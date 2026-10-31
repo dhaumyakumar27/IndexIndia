@@ -59,9 +59,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================= 3. HOVER / ACCESSIBILITY PANEL SETTINGS =================
+  const fontSizeSelect = document.getElementById("font-size-select");
+  const fontStyleSelect = document.getElementById("font-style-select");
   const contrastToggle = document.getElementById("contrast-toggle");
   const gridToggle = document.getElementById("grid-toggle");
   const densityToggle = document.getElementById("density-toggle");
+
+  // Font Size adjustment
+  if (fontSizeSelect) {
+    fontSizeSelect.addEventListener("change", (e) => {
+      document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
+      document.documentElement.classList.add(`font-size-${e.target.value}`);
+    });
+  }
+
+  // Font Style adjustment (Long Reading vs Typewriter)
+  if (fontStyleSelect) {
+    fontStyleSelect.addEventListener("change", (e) => {
+      document.body.classList.remove("font-style-reading", "font-style-typewriter");
+      document.body.classList.add(`font-style-${e.target.value}`);
+    });
+  }
 
   if (contrastToggle) {
     contrastToggle.addEventListener("change", (e) => {

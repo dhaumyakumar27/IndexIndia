@@ -79,6 +79,26 @@
         <!-- Settings Dedicated Hover Panel -->
         <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
           <div class="panel-section-title">VIEW PREFERENCES</div>
+
+          <div class="setting-select-row">
+            <label for="font-size-select">Font Size</label>
+            <select id="font-size-select" class="setting-select" aria-label="Adjust font size">
+              <option value="small">Small</option>
+              <option value="medium" selected>Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+
+          <div class="setting-select-row">
+            <label for="font-style-select">Font Style</label>
+            <select id="font-style-select" class="setting-select" aria-label="Select typography style">
+              <option value="reading" selected>Long Reading (Clean Sans)</option>
+              <option value="typewriter">Typewriter (Monospace)</option>
+            </select>
+          </div>
+
+          <div class="panel-divider"></div>
+
           <div class="setting-toggle-row">
             <label for="density-toggle">Compact Tables</label>
             <input type="checkbox" id="density-toggle" checked>

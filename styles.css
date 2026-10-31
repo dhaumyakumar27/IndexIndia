@@ -84,6 +84,21 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Font Size Switcher Variations */
+html.font-size-small { font-size: 13px; }
+html.font-size-medium { font-size: 15px; }
+html.font-size-large { font-size: 17.5px; }
+
+/* Font Style Typography Variations */
+body.font-style-reading {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body.font-style-typewriter {
+  --font-sans: "Courier Prime", "Courier New", Courier, "SF Mono", Monaco, Consolas, monospace;
+  letter-spacing: -0.015em;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-page);
@@ -268,7 +283,55 @@ body.theme-dark .view-switcher {
 }
 
 .settings-panel {
-  width: 220px;
+  width: 270px;
+}
+
+/* Settings dropdown selects */
+.setting-select-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.setting-select-row label {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.setting-select {
+  flex: 1;
+  max-width: 165px;
+  padding: 5px 8px;
+  font-size: 0.76rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background-color: var(--bg-surface-subtle);
+  border: 1.2px solid var(--border-primary);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.setting-select:hover,
+.setting-select:focus {
+  border-color: var(--accent);
+}
+
+body.theme-dark .setting-select {
+  background-color: #1a1a1f;
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.panel-divider {
+  height: 1px;
+  background-color: var(--border-faint);
+  margin: 10px 0;
 }
 
 /* Expand smoothly on hover or focus of respective button wrapper */
