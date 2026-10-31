@@ -59,6 +59,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================= 3. HOVER / ACCESSIBILITY PANEL SETTINGS =================
+  // Ensure hover menus close immediately when mouse cursor leaves
+  const panelWrappers = document.querySelectorAll(".panel-trigger-wrapper");
+  panelWrappers.forEach((wrapper) => {
+    wrapper.addEventListener("mouseleave", () => {
+      if (document.activeElement && wrapper.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+    });
+  });
+
   const fontSizeSelect = document.getElementById("font-size-select");
   const fontStyleSelect = document.getElementById("font-style-select");
   const contrastToggle = document.getElementById("contrast-toggle");

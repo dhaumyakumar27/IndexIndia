@@ -250,8 +250,7 @@ body.theme-dark .view-switcher {
 }
 
 .icon-btn:hover,
-.panel-trigger-wrapper:hover .icon-btn,
-.panel-trigger-wrapper:focus-within .icon-btn {
+.panel-trigger-wrapper:hover .icon-btn {
   background-color: var(--border-primary);
   color: var(--text-inverse);
   transform: translateY(-1px);
@@ -272,9 +271,19 @@ body.theme-dark .view-switcher {
   opacity: 0;
   visibility: hidden;
   transform: translateY(4px);
-  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
   pointer-events: none;
   z-index: 200;
+}
+
+/* Invisible bridge so mouse moving from button to panel never drops hover */
+.hover-flyout-panel::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
 }
 
 /* Specific panel widths */
@@ -334,9 +343,8 @@ body.theme-dark .setting-select {
   margin: 10px 0;
 }
 
-/* Expand smoothly on hover or focus of respective button wrapper */
-.panel-trigger-wrapper:hover .hover-flyout-panel,
-.panel-trigger-wrapper:focus-within .hover-flyout-panel {
+/* Expand strictly on hover only — immediately closes when cursor leaves */
+.panel-trigger-wrapper:hover .hover-flyout-panel {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
