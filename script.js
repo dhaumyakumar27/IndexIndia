@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   btnIndex.addEventListener("click", () => switchView("index"));
 
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
-  const scrollRail = document.getElementById("scroll-rail");
+  const railNavigator = document.getElementById("rail-navigator");
   const railTrack = document.getElementById("rail-track");
   const railTreePanel = document.getElementById("rail-tree-panel");
   const treeContentScroll = document.getElementById("tree-content-scroll");
@@ -105,9 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Align tree panel instantly to prevent high-speed animation queue buildup
+    // Align tree panel smoothly to selected node
     if (shouldScroll && treeContentScroll) {
-      const targetTop = node.offsetTop - treeContentScroll.clientHeight / 2 + node.clientHeight / 2;
+      const nodeRect = node.getBoundingClientRect();
+      const containerRect = treeContentScroll.getBoundingClientRect();
+      const currentScroll = treeContentScroll.scrollTop;
+      const relativeTop = nodeRect.top - containerRect.top + currentScroll;
+      const targetTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
       treeContentScroll.scrollTop = targetTop;
     }
   }
@@ -180,97 +184,72 @@ document.addEventListener("DOMContentLoaded", () => {
   // Open / Close Tree Flyout helpers
   function openRailPanel() {
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
-    document.body.classList.add("rail-hovered");
-    if (scrollRail) scrollRail.classList.add("is-hidden");
+    if (railNavigator) railNavigator.classList.add("is-open");
+    if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
   }
 
   function closeRailPanel(delay = 180) {
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
     railLeaveTimer = setTimeout(() => {
-      const isRailHovered = scrollRail && scrollRail.matches(":hover");
+      const isNavHovered = railNavigator && railNavigator.matches(":hover");
       const isPanelHovered = railTreePanel && railTreePanel.matches(":hover");
-      if (!isRailHovered && !isPanelHovered && !isPointerDownOnRail) {
+      if (!isNavHovered && !isPanelHovered && !isPointerDownOnRail) {
+        if (railNavigator) railNavigator.classList.remove("is-open");
+        if (railTrack) railTrack.classList.remove("is-hidden");
         if (railTreePanel) railTreePanel.classList.remove("is-open");
-        if (scrollRail) scrollRail.classList.remove("is-hidden");
-        document.body.classList.remove("rail-hovered");
         isUserScrubbing = false;
       }
     }, delay);
   }
 
-  if (scrollRail) {
-    scrollRail.addEventListener("mouseenter", () => {
+  if (railNavigator) {
+    railNavigator.addEventListener("mouseenter", () => {
       isUserScrubbing = true;
       openRailPanel();
     });
 
-    scrollRail.addEventListener("mouseleave", () => {
+    railNavigator.addEventListener("mouseleave", () => {
       closeRailPanel(180);
     });
 
-    // Pointer Scrubbing: Move cursor along the lines to directly select topic/subtopic
-    scrollRail.addEventListener("pointerdown", (e) => {
+    // Pointer Scrubbing: Move cursor along the rail to directly select topic/subtopic
+    railNavigator.addEventListener("pointerdown", (e) => {
+      if (e.target.closest(".tree-content-scroll")) return;
       isPointerDownOnRail = true;
       isUserScrubbing = true;
       openRailPanel();
       try {
-        scrollRail.setPointerCapture(e.pointerId);
+        railNavigator.setPointerCapture(e.pointerId);
       } catch (err) {}
       scrubToCursor(e.clientY, true);
     });
 
-    scrollRail.addEventListener("pointermove", (e) => {
-      isUserScrubbing = true;
-      openRailPanel();
-      scrubToCursor(e.clientY, true);
+    railNavigator.addEventListener("pointermove", (e) => {
+      if (isPointerDownOnRail) {
+        scrubToCursor(e.clientY, true);
+      }
     });
 
-    // When the user releases, they go directly to that section
-    scrollRail.addEventListener("pointerup", (e) => {
-      isPointerDownOnRail = false;
-      const ratio = scrubToCursor(e.clientY, true);
-      navigateToSection(ratio);
-      try {
-        scrollRail.releasePointerCapture(e.pointerId);
-      } catch (err) {}
-      closeRailPanel(300);
+    railNavigator.addEventListener("pointerup", (e) => {
+      if (isPointerDownOnRail) {
+        isPointerDownOnRail = false;
+        const ratio = scrubToCursor(e.clientY, true);
+        navigateToSection(ratio);
+        try {
+          railNavigator.releasePointerCapture(e.pointerId);
+        } catch (err) {}
+        closeRailPanel(300);
+      }
     });
 
-    scrollRail.addEventListener("pointercancel", () => {
+    railNavigator.addEventListener("pointercancel", () => {
       isPointerDownOnRail = false;
       closeRailPanel(180);
     });
 
-    // Also support direct click on any line/track
-    scrollRail.addEventListener("click", (e) => {
-      const ratio = scrubToCursor(e.clientY, true);
-      navigateToSection(ratio);
-    });
-
-    // Direct hover and click listeners on individual tick marks
-    tickMarks.forEach((tick, i) => {
-      tick.addEventListener("mouseenter", () => {
-        isUserScrubbing = true;
-        openRailPanel();
-        tickMarks.forEach((t) => t.classList.remove("active"));
-        tick.classList.add("active");
-        const ratio = i / Math.max(tickMarks.length - 1, 1);
-        const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
-        if (treeNodes[nodeIdx]) {
-          selectTreeNode(treeNodes[nodeIdx], true);
-        }
-      });
-
-      tick.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const ratio = i / Math.max(tickMarks.length - 1, 1);
-        navigateToSection(ratio);
-      });
-    });
-
     // Wheel scrolling up and down directly selects topic/subtopic at a calm, controlled pace
-    scrollRail.addEventListener("wheel", (e) => {
+    railNavigator.addEventListener("wheel", (e) => {
       e.preventDefault();
       e.stopPropagation();
       isUserScrubbing = true;
@@ -294,6 +273,29 @@ document.addEventListener("DOMContentLoaded", () => {
         isUserScrubbing = false;
       }, 400);
     }, { passive: false });
+  }
+
+  // Direct click / hover listeners on individual tick marks
+  if (railTrack) {
+    tickMarks.forEach((tick, i) => {
+      tick.addEventListener("mouseenter", () => {
+        isUserScrubbing = true;
+        openRailPanel();
+        tickMarks.forEach((t) => t.classList.remove("active"));
+        tick.classList.add("active");
+        const ratio = i / Math.max(tickMarks.length - 1, 1);
+        const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
+        if (treeNodes[nodeIdx]) {
+          selectTreeNode(treeNodes[nodeIdx], true);
+        }
+      });
+
+      tick.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const ratio = i / Math.max(tickMarks.length - 1, 1);
+        navigateToSection(ratio);
+      });
+    });
   }
 
   if (railTreePanel) {
@@ -549,7 +551,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Keep tree active node in sync with page position when user isn't scrubbing or hovering
       const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
-      if (treeNodes[nodeIdx] && !railTreePanel.matches(":hover") && !scrollRail.matches(":hover")) {
+      const isNavHovered = (railNavigator && railNavigator.matches(":hover")) || (railTreePanel && railTreePanel.matches(":hover"));
+      if (treeNodes[nodeIdx] && !isNavHovered) {
         treeNodes.forEach((n) => n.classList.remove("active"));
         treeNodes[nodeIdx].classList.add("active");
         currentSubIndex = nodeIdx;
