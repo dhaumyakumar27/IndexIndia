@@ -59,37 +59,82 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================= 3. HOVER / ACCESSIBILITY PANEL SETTINGS =================
-  // Ensure hover menus close immediately when mouse cursor leaves
   const panelWrappers = document.querySelectorAll(".panel-trigger-wrapper");
+  const customDropdowns = document.querySelectorAll(".custom-dropdown");
+
+  // Ensure hover menus close immediately when mouse cursor leaves the menu area
   panelWrappers.forEach((wrapper) => {
     wrapper.addEventListener("mouseleave", () => {
+      // Close any open inner custom dropdowns
+      customDropdowns.forEach((dd) => dd.classList.remove("is-open"));
       if (document.activeElement && wrapper.contains(document.activeElement)) {
         document.activeElement.blur();
       }
     });
   });
 
-  const fontSizeSelect = document.getElementById("font-size-select");
-  const fontStyleSelect = document.getElementById("font-style-select");
+  // Toggle Custom Dropdowns (Font Size & Font Style)
+  const btnFontSizeTrigger = document.getElementById("btn-font-size-trigger");
+  const dropdownFontSize = document.getElementById("dropdown-font-size");
+  const fontSizeLabel = document.getElementById("font-size-label");
+
+  const btnFontStyleTrigger = document.getElementById("btn-font-style-trigger");
+  const dropdownFontStyle = document.getElementById("dropdown-font-style");
+  const fontStyleLabel = document.getElementById("font-style-label");
+
+  if (btnFontSizeTrigger && dropdownFontSize) {
+    btnFontSizeTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = dropdownFontSize.classList.contains("is-open");
+      if (dropdownFontStyle) dropdownFontStyle.classList.remove("is-open");
+      dropdownFontSize.classList.toggle("is-open", !isOpen);
+      btnFontSizeTrigger.setAttribute("aria-expanded", !isOpen);
+    });
+  }
+
+  if (btnFontStyleTrigger && dropdownFontStyle) {
+    btnFontStyleTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = dropdownFontStyle.classList.contains("is-open");
+      if (dropdownFontSize) dropdownFontSize.classList.remove("is-open");
+      dropdownFontStyle.classList.toggle("is-open", !isOpen);
+      btnFontStyleTrigger.setAttribute("aria-expanded", !isOpen);
+    });
+  }
+
+  // Handle Option Clicks
+  const dropdownItems = document.querySelectorAll(".dropdown-item");
+  dropdownItems.forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const type = item.getAttribute("data-type");
+      const val = item.getAttribute("data-val");
+
+      if (type === "font-size") {
+        document.querySelectorAll("#list-font-size .dropdown-item").forEach((el) => el.classList.remove("active"));
+        item.classList.add("active");
+        if (fontSizeLabel) fontSizeLabel.textContent = item.textContent.split(" ")[0]; // e.g. "Small", "Medium", "Large"
+        
+        document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
+        document.documentElement.classList.add(`font-size-${val}`);
+        if (dropdownFontSize) dropdownFontSize.classList.remove("is-open");
+        if (btnFontSizeTrigger) btnFontSizeTrigger.setAttribute("aria-expanded", "false");
+      } else if (type === "font-style") {
+        document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
+        item.classList.add("active");
+        if (fontStyleLabel) fontStyleLabel.textContent = val === "reading" ? "Long Reading" : "Typewriter";
+
+        document.body.classList.remove("font-style-reading", "font-style-typewriter");
+        document.body.classList.add(`font-style-${val}`);
+        if (dropdownFontStyle) dropdownFontStyle.classList.remove("is-open");
+        if (btnFontStyleTrigger) btnFontStyleTrigger.setAttribute("aria-expanded", "false");
+      }
+    });
+  });
+
   const contrastToggle = document.getElementById("contrast-toggle");
   const gridToggle = document.getElementById("grid-toggle");
   const densityToggle = document.getElementById("density-toggle");
-
-  // Font Size adjustment
-  if (fontSizeSelect) {
-    fontSizeSelect.addEventListener("change", (e) => {
-      document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
-      document.documentElement.classList.add(`font-size-${e.target.value}`);
-    });
-  }
-
-  // Font Style adjustment (Long Reading vs Typewriter)
-  if (fontStyleSelect) {
-    fontStyleSelect.addEventListener("change", (e) => {
-      document.body.classList.remove("font-style-reading", "font-style-typewriter");
-      document.body.classList.add(`font-style-${e.target.value}`);
-    });
-  }
 
   if (contrastToggle) {
     contrastToggle.addEventListener("change", (e) => {

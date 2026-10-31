@@ -80,21 +80,35 @@
         <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
           <div class="panel-section-title">VIEW PREFERENCES</div>
 
-          <div class="setting-select-row">
-            <label for="font-size-select">Font Size</label>
-            <select id="font-size-select" class="setting-select" aria-label="Adjust font size">
-              <option value="small">Small</option>
-              <option value="medium" selected>Medium</option>
-              <option value="large">Large</option>
-            </select>
+          <!-- Font Size Custom In-Panel Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Size</span>
+            <div class="custom-dropdown" id="dropdown-font-size">
+              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-size-label">Medium</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small (13px)</button>
+                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium" role="option">Medium (15px)</button>
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large (17.5px)</button>
+              </div>
+            </div>
           </div>
 
-          <div class="setting-select-row">
-            <label for="font-style-select">Font Style</label>
-            <select id="font-style-select" class="setting-select" aria-label="Select typography style">
-              <option value="reading" selected>Long Reading (Clean Sans)</option>
-              <option value="typewriter">Typewriter (Monospace)</option>
-            </select>
+          <!-- Font Style Custom In-Panel Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Style</span>
+            <div class="custom-dropdown" id="dropdown-font-style">
+              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-style-label">Long Reading</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading" role="option">Long Reading (Clean Sans)</button>
+                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter" role="option">Typewriter (Monospace)</button>
+              </div>
+            </div>
           </div>
 
           <div class="panel-divider"></div>
