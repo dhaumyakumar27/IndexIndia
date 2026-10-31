@@ -11,7 +11,7 @@
   <!-- <script defer data-domain="indexindian.com" src="https://plausible.io/js/script.js"></script> -->
   <!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "CLOUDFLARE_ANALYTICS_TOKEN"}'></script> -->
 
-  <link rel="stylesheet" href="styles.css?v=2.2">
+  <link rel="stylesheet" href="styles.css?v=2.3">
 </head>
 <body class="theme-light">
 
@@ -130,8 +130,8 @@
     </div>
   </header>
 
-  <!-- ================= LEFT RAIL (Pure Ticks Only) ================= -->
-  <aside class="scroll-rail-container" id="scroll-rail" aria-label="Left Rail Reference Ticks">
+  <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
+  <aside class="scroll-rail-container" id="scroll-rail" aria-label="Left Rail Reference Ticks and Directory Navigator">
     <div class="rail-track" id="rail-track">
       <!-- Left margin ruler tick marks matching wireframe -->
       <div class="rail-ticks" id="rail-ticks-wrapper">
@@ -157,6 +157,310 @@
         <div class="tick-mark" data-index="19"></div>
         <div class="tick-mark" data-index="20"></div>
         <div class="tick-mark" data-index="21"></div>
+      </div>
+    </div>
+
+    <!-- Hover Flyout Directory Tree Panel -->
+    <div class="rail-tree-panel" id="rail-tree-panel" role="region" aria-label="Directory Navigation Tree">
+      <div class="tree-panel-header">
+        <div class="tree-header-left">
+          <span class="tree-terminal-prompt font-mono">&#9656;</span>
+          <span class="tree-root-label font-mono">data_dump/</span>
+        </div>
+        <div class="tree-speed-pill font-mono" id="tree-speed-pill">
+          <span class="speed-dot"></span>
+          <span id="speed-status-text">SLOW: SUBSECTION</span>
+        </div>
+      </div>
+
+      <div class="velocity-track">
+        <div class="velocity-fill" id="velocity-fill"></div>
+      </div>
+
+      <div class="tree-content-scroll" id="tree-content-scroll">
+        <!-- Root Item -->
+        <div class="tree-node tree-root" data-index="0" data-path="data_dump/" data-branch="-1" data-is-main="true">
+          <span class="tree-marker font-mono">&#9632;</span>
+          <span class="tree-icon">&#128194;</span>
+          <span class="tree-name font-mono font-bold">data_dump/</span>
+          <span class="tree-badge font-mono">ROOT</span>
+        </div>
+
+        <!-- MAIN BRANCH 1: 2024/ -->
+        <div class="tree-node is-main-branch active" data-index="1" data-path="data_dump/2024/" data-branch="0" data-is-main="true">
+          <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono font-bold">2024/</span>
+          <span class="tree-badge font-mono">MAIN 01</span>
+        </div>
+
+        <!-- 2024 / 01_january -->
+        <div class="tree-node" data-index="2" data-path="data_dump/2024/01_january/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">01_january/</span>
+        </div>
+        <div class="tree-node" data-index="3" data-path="data_dump/2024/01_january/raw_logs/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">raw_logs/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="4" data-path="data_dump/2024/01_january/raw_logs/access_20240101.log.gz" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">access_20240101.log.gz</span>
+        </div>
+        <div class="tree-node tree-file" data-index="5" data-path="data_dump/2024/01_january/raw_logs/access_20240102.log.gz" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">access_20240102.log.gz</span>
+        </div>
+        <div class="tree-node tree-file" data-index="6" data-path="data_dump/2024/01_january/raw_logs/error_20240101.log.gz" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">error_20240101.log.gz</span>
+        </div>
+
+        <!-- 2024 / 01_january / database_backups -->
+        <div class="tree-node" data-index="7" data-path="data_dump/2024/01_january/database_backups/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">database_backups/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="8" data-path="data_dump/2024/01_january/database_backups/prod_db_full_20240115.sql.zst" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">prod_db_full_20240115.sql.zst</span>
+        </div>
+        <div class="tree-node tree-file" data-index="9" data-path="data_dump/2024/01_january/database_backups/users_table_20240131.csv.gz" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">users_table_20240131.csv.gz</span>
+        </div>
+
+        <!-- 2024 / 01_january / exports -->
+        <div class="tree-node" data-index="10" data-path="data_dump/2024/01_january/exports/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">exports/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="11" data-path="data_dump/2024/01_january/exports/analytics_q1_part1.parquet" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">analytics_q1_part1.parquet</span>
+        </div>
+        <div class="tree-node tree-file" data-index="12" data-path="data_dump/2024/01_january/exports/reports_summary.json" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">reports_summary.json</span>
+        </div>
+
+        <!-- 2024 / 06_june -->
+        <div class="tree-node" data-index="13" data-path="data_dump/2024/06_june/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">06_june/</span>
+        </div>
+        <div class="tree-node" data-index="14" data-path="data_dump/2024/06_june/media_archive/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">media_archive/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="15" data-path="data_dump/2024/06_june/media_archive/user_uploads_batch1.tar" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">user_uploads_batch1.tar</span>
+        </div>
+        <div class="tree-node tree-file" data-index="16" data-path="data_dump/2024/06_june/media_archive/user_uploads_batch2.tar" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">user_uploads_batch2.tar</span>
+        </div>
+        <div class="tree-node" data-index="17" data-path="data_dump/2024/06_june/system_snapshots/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">system_snapshots/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="18" data-path="data_dump/2024/06_june/system_snapshots/vm_image_v2.1.qcow2" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">vm_image_v2.1.qcow2</span>
+        </div>
+
+        <!-- 2024 / 12_december -->
+        <div class="tree-node" data-index="19" data-path="data_dump/2024/12_december/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">12_december/</span>
+        </div>
+        <div class="tree-node" data-index="20" data-path="data_dump/2024/12_december/archives/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">archives/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="21" data-path="data_dump/2024/12_december/archives/yearly_rollup_2024.tar.zst" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">yearly_rollup_2024.tar.zst</span>
+        </div>
+        <div class="tree-node" data-index="22" data-path="data_dump/2024/12_december/checksums/" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">checksums/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="23" data-path="data_dump/2024/12_december/checksums/sha256sums_2024.txt" data-branch="0" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">sha256sums_2024.txt</span>
+        </div>
+
+        <!-- MAIN BRANCH 2: 2025/ -->
+        <div class="tree-node is-main-branch" data-index="24" data-path="data_dump/2025/" data-branch="1" data-is-main="true">
+          <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono font-bold">2025/</span>
+          <span class="tree-badge font-mono">MAIN 02</span>
+        </div>
+
+        <!-- 2025 / 03_march -->
+        <div class="tree-node" data-index="25" data-path="data_dump/2025/03_march/" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">03_march/</span>
+        </div>
+        <div class="tree-node" data-index="26" data-path="data_dump/2025/03_march/incoming/" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">incoming/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="27" data-path="data_dump/2025/03_march/incoming/batch_001.csv" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">batch_001.csv</span>
+        </div>
+        <div class="tree-node tree-file" data-index="28" data-path="data_dump/2025/03_march/incoming/batch_002.csv" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">batch_002.csv</span>
+        </div>
+        <div class="tree-node" data-index="29" data-path="data_dump/2025/03_march/processed/" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">processed/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="30" data-path="data_dump/2025/03_march/processed/cleaned_batch_001.parquet" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">cleaned_batch_001.parquet</span>
+        </div>
+        <div class="tree-node tree-file" data-index="31" data-path="data_dump/2025/03_march/processed/cleaned_batch_002.parquet" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">cleaned_batch_002.parquet</span>
+        </div>
+
+        <!-- 2025 / 09_september -->
+        <div class="tree-node" data-index="32" data-path="data_dump/2025/09_september/" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">09_september/</span>
+        </div>
+        <div class="tree-node" data-index="33" data-path="data_dump/2025/09_september/temp_scratch/" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">temp_scratch/</span>
+        </div>
+        <div class="tree-node" data-index="34" data-path="data_dump/2025/09_september/temp_scratch/sorting_buffer/" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">sorting_buffer/</span>
+        </div>
+        <div class="tree-node" data-index="35" data-path="data_dump/2025/09_september/logs/" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">logs/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="36" data-path="data_dump/2025/09_september/logs/migration.log" data-branch="1" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">migration.log</span>
+        </div>
+
+        <!-- MAIN BRANCH 3: shared_assets/ -->
+        <div class="tree-node is-main-branch" data-index="37" data-path="data_dump/shared_assets/" data-branch="2" data-is-main="true">
+          <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono font-bold">shared_assets/</span>
+          <span class="tree-badge font-mono">MAIN 03</span>
+        </div>
+
+        <!-- shared_assets / schemas -->
+        <div class="tree-node" data-index="38" data-path="data_dump/shared_assets/schemas/" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">schemas/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="39" data-path="data_dump/shared_assets/schemas/user_schema_v1.json" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">user_schema_v1.json</span>
+        </div>
+        <div class="tree-node tree-file" data-index="40" data-path="data_dump/shared_assets/schemas/event_schema_v3.avsc" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">event_schema_v3.avsc</span>
+        </div>
+
+        <!-- shared_assets / configs -->
+        <div class="tree-node" data-index="41" data-path="data_dump/shared_assets/configs/" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">configs/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="42" data-path="data_dump/shared_assets/configs/backup_rotation.yaml" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">backup_rotation.yaml</span>
+        </div>
+        <div class="tree-node tree-file" data-index="43" data-path="data_dump/shared_assets/configs/compression_rules.conf" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">compression_rules.conf</span>
+        </div>
+
+        <!-- shared_assets / scripts -->
+        <div class="tree-node" data-index="44" data-path="data_dump/shared_assets/scripts/" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128193;</span>
+          <span class="tree-name font-mono">scripts/</span>
+        </div>
+        <div class="tree-node tree-file" data-index="45" data-path="data_dump/shared_assets/scripts/verify_checksums.sh" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">verify_checksums.sh</span>
+        </div>
+        <div class="tree-node tree-file" data-index="46" data-path="data_dump/shared_assets/scripts/rotate_dumps.py" data-branch="2" data-is-main="false">
+          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono">rotate_dumps.py</span>
+        </div>
+
+        <!-- MAIN BRANCH 4: README.md -->
+        <div class="tree-node is-main-branch tree-file" data-index="47" data-path="data_dump/README.md" data-branch="3" data-is-main="true">
+          <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
+          <span class="tree-icon">&#128196;</span>
+          <span class="tree-name font-mono font-bold">README.md</span>
+          <span class="tree-badge font-mono">DOC</span>
+        </div>
+      </div>
+
+      <div class="tree-panel-footer">
+        <div class="footer-hint font-mono">
+          <span class="hint-key">&#8597; SLOW:</span> Subsections &bull; <span class="hint-key">&#8648; FAST:</span> Main Branches
+        </div>
+        <div class="active-item-preview font-mono" id="tree-active-path">
+          data_dump/2024/
+        </div>
       </div>
     </div>
   </aside>
@@ -1482,6 +1786,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=2.2"></script>
+  <script src="script.js?v=2.3"></script>
 </body>
 </html>

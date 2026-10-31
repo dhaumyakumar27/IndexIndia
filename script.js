@@ -38,25 +38,195 @@ document.addEventListener("DOMContentLoaded", () => {
   btnGuide.addEventListener("click", () => switchView("guide"));
   btnIndex.addEventListener("click", () => switchView("index"));
 
-  // ================= 2. LEFT RAIL (Clickable Reference Ticks) =================
+  // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
+  const scrollRail = document.getElementById("scroll-rail");
   const railTrack = document.getElementById("rail-track");
+  const railTreePanel = document.getElementById("rail-tree-panel");
+  const treeContentScroll = document.getElementById("tree-content-scroll");
+  const treeNodes = Array.from(document.querySelectorAll(".tree-node"));
+  const mainBranchNodes = treeNodes.filter((node) => node.classList.contains("is-main-branch"));
+  const speedStatusText = document.getElementById("speed-status-text");
+  const speedPill = document.getElementById("tree-speed-pill");
+  const velocityFill = document.getElementById("velocity-fill");
+  const activePathDisplay = document.getElementById("tree-active-path");
+  const tickMarks = document.querySelectorAll(".tick-mark");
 
-  // Optional: Clicking on the left tick rail smoothly navigates up/down the page
-  if (railTrack) {
-    railTrack.addEventListener("click", (e) => {
-      const rect = railTrack.getBoundingClientRect();
-      const clickY = e.clientY - rect.top;
-      const topMargin = 24;
-      const availableHeight = rect.height - 48;
-      const ratio = Math.min(Math.max((clickY - topMargin) / availableHeight, 0), 1);
-      
+  let currentSubIndex = 1; // Default to first main branch: 2024/
+  let currentMainIndex = 0;
+  let lastWheelTime = 0;
+  let speedResetTimer = null;
+  let railLeaveTimer = null;
+
+  function selectTreeNode(node, shouldScroll = true) {
+    if (!node) return;
+    treeNodes.forEach((n) => n.classList.remove("active"));
+    node.classList.add("active");
+
+    const index = parseInt(node.getAttribute("data-index"), 10);
+    if (!isNaN(index)) {
+      currentSubIndex = index;
+    }
+
+    const branchIdx = parseInt(node.getAttribute("data-branch"), 10);
+    if (!isNaN(branchIdx) && branchIdx >= 0) {
+      currentMainIndex = branchIdx;
+    }
+
+    const path = node.getAttribute("data-path") || "data_dump/";
+    if (activePathDisplay) {
+      activePathDisplay.textContent = path;
+    }
+
+    // Synchronize Left Rail reference ticks
+    if (tickMarks.length > 0) {
+      const activeTickIdx = Math.min(
+        Math.floor((currentSubIndex / Math.max(treeNodes.length - 1, 1)) * tickMarks.length),
+        tickMarks.length - 1
+      );
+      tickMarks.forEach((tick, i) => {
+        tick.classList.toggle("active", i === activeTickIdx);
+      });
+    }
+
+    if (shouldScroll && treeContentScroll) {
+      node.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
+  // Hover open / close handling with bridge debounce
+  if (scrollRail && railTreePanel) {
+    scrollRail.addEventListener("mouseenter", () => {
+      if (railLeaveTimer) clearTimeout(railLeaveTimer);
+      railTreePanel.classList.add("is-open");
+    });
+
+    scrollRail.addEventListener("mouseleave", () => {
+      railLeaveTimer = setTimeout(() => {
+        if (!railTreePanel.matches(":hover") && !scrollRail.matches(":hover")) {
+          railTreePanel.classList.remove("is-open");
+        }
+      }, 140);
+    });
+
+    railTreePanel.addEventListener("mouseenter", () => {
+      if (railLeaveTimer) clearTimeout(railLeaveTimer);
+      railTreePanel.classList.add("is-open");
+    });
+
+    railTreePanel.addEventListener("mouseleave", () => {
+      railLeaveTimer = setTimeout(() => {
+        if (!scrollRail.matches(":hover") && !railTreePanel.matches(":hover")) {
+          railTreePanel.classList.remove("is-open");
+        }
+      }, 140);
+    });
+  }
+
+  // Velocity-sensitive wheel navigation (Slow = Subsection, Fast = Main Branch)
+  function handleTreeWheel(e) {
+    const isOverRail = scrollRail && scrollRail.matches(":hover");
+    const isOverPanel = railTreePanel && railTreePanel.matches(":hover");
+    if (!isOverRail && !isOverPanel) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const now = performance.now();
+    const timeDelta = Math.max(now - lastWheelTime, 12);
+    lastWheelTime = now;
+
+    const deltaY = e.deltaY;
+    const absDelta = Math.abs(deltaY);
+    const direction = deltaY > 0 ? 1 : -1;
+
+    // Fast vs slow speed detection
+    // Slow speed = gentle wheel tick or slow trackpad glide
+    // Fast speed = rapid flick or high delta (absDelta >= 80 or fast burst under 40ms)
+    const isFast = absDelta >= 80 || (absDelta >= 40 && timeDelta < 40);
+
+    if (speedResetTimer) clearTimeout(speedResetTimer);
+
+    if (isFast) {
+      // FAST SPEED -> Move up and down through MAIN BRANCHES
+      if (speedStatusText) speedStatusText.textContent = "FAST ❯❯ MAIN BRANCH";
+      if (speedPill) speedPill.classList.add("speed-fast");
+      if (velocityFill) velocityFill.style.width = "100%";
+
+      currentMainIndex = Math.min(Math.max(currentMainIndex + direction, 0), mainBranchNodes.length - 1);
+      const targetMain = mainBranchNodes[currentMainIndex];
+      selectTreeNode(targetMain, true);
+    } else {
+      // SLOW SPEED -> Move up and down through SUBSECTIONS / FILES
+      if (speedStatusText) speedStatusText.textContent = "SLOW ❯ SUBSECTION";
+      if (speedPill) speedPill.classList.remove("speed-fast");
+      if (velocityFill) velocityFill.style.width = "35%";
+
+      currentSubIndex = Math.min(Math.max(currentSubIndex + direction, 0), treeNodes.length - 1);
+      const targetNode = treeNodes[currentSubIndex];
+      selectTreeNode(targetNode, true);
+    }
+
+    speedResetTimer = setTimeout(() => {
+      if (speedStatusText) speedStatusText.textContent = "SLOW: SUBSECTION";
+      if (speedPill) speedPill.classList.remove("speed-fast");
+      if (velocityFill) velocityFill.style.width = "0%";
+    }, 650);
+  }
+
+  if (scrollRail) {
+    scrollRail.addEventListener("wheel", handleTreeWheel, { passive: false });
+  }
+  if (railTreePanel) {
+    railTreePanel.addEventListener("wheel", handleTreeWheel, { passive: false });
+  }
+
+  // Node Hover and Click Interactions
+  treeNodes.forEach((node) => {
+    node.addEventListener("mouseenter", () => {
+      selectTreeNode(node, false);
+    });
+
+    node.addEventListener("click", (e) => {
+      e.stopPropagation();
+      selectTreeNode(node, true);
+      const path = node.getAttribute("data-path");
+      if (path && navigator.clipboard) {
+        navigator.clipboard.writeText(path).catch(() => {});
+      }
+      if (activePathDisplay) {
+        const orig = activePathDisplay.textContent;
+        activePathDisplay.textContent = `✓ COPIED: ${path}`;
+        setTimeout(() => {
+          if (activePathDisplay.textContent.startsWith("✓")) {
+            activePathDisplay.textContent = orig;
+          }
+        }, 1200);
+      }
+    });
+  });
+
+  // Tick Mark Hover Synchronization & Page Jump
+  tickMarks.forEach((tick, i) => {
+    tick.addEventListener("mouseenter", () => {
+      if (treeNodes.length > 0) {
+        const targetIdx = Math.min(
+          Math.floor((i / tickMarks.length) * treeNodes.length),
+          treeNodes.length - 1
+        );
+        selectTreeNode(treeNodes[targetIdx], true);
+      }
+    });
+
+    tick.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const ratio = i / Math.max(tickMarks.length - 1, 1);
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       window.scrollTo({
         top: ratio * docHeight,
         behavior: "smooth"
       });
     });
-  }
+  });
 
   // ================= 3. HOVER / ACCESSIBILITY PANEL SETTINGS =================
   const panelWrappers = document.querySelectorAll(".panel-trigger-wrapper");
@@ -229,7 +399,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ================= 5. SCROLLSPY & LEFT RAIL TELEMETRY SYNC =================
-  const tickMarks = document.querySelectorAll(".tick-mark");
   const quickNavLinks = document.querySelectorAll(".quick-nav-pill");
 
   // Smooth scroll click handler for quick nav pills
