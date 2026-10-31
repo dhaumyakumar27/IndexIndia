@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
       guideView.classList.remove("active");
       guideView.hidden = true;
     }
-    // Subtle view update
+    updateScrollTelemetry();
   }
 
   btnGuide.addEventListener("click", () => switchView("guide"));
@@ -182,35 +182,108 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableRows = document.querySelectorAll("#company-table-body tr");
   const filterPills = document.querySelectorAll(".filter-pill");
 
-  if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      tableRows.forEach((row) => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(query) ? "" : "none";
-      });
+  function applyFilters() {
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    const activePill = document.querySelector(".filter-pill.active");
+    const filterText = activePill ? activePill.textContent.trim() : "All Entities";
+
+    tableRows.forEach((row) => {
+      const rowText = row.textContent.toLowerCase();
+      const matchesSearch = !query || rowText.includes(query);
+
+      let matchesPill = true;
+      if (filterText === "All Entities") {
+        matchesPill = true;
+      } else if (filterText.includes("Capex Bottlenecks")) {
+        const capex = row.cells[2].textContent;
+        const capexNum = parseInt(capex.replace(/[^\d]/g, ""), 10) || 0;
+        matchesPill = capexNum >= 1000;
+      } else if (filterText.includes("CARO Qualified")) {
+        const caro = row.cells[3].textContent;
+        matchesPill = caro.includes("ANNEXURE");
+      } else if (filterText.includes("Defense & Aerospace")) {
+        const sector = row.cells[1].textContent.toLowerCase();
+        matchesPill = sector.includes("defense") || sector.includes("aerospace") || sector.includes("naval");
+      } else if (filterText.includes("Energy & Transition")) {
+        const sector = row.cells[1].textContent.toLowerCase();
+        matchesPill = sector.includes("energy") || sector.includes("power") || sector.includes("wind") || sector.includes("petroleum");
+      } else if (filterText.includes("Clean Balance Sheets")) {
+        const caro = row.cells[3].textContent;
+        matchesPill = caro.includes("CLEAN");
+      }
+
+      row.style.display = matchesSearch && matchesPill ? "" : "none";
     });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener("input", applyFilters);
   }
 
   filterPills.forEach((pill) => {
     pill.addEventListener("click", () => {
       filterPills.forEach((p) => p.classList.remove("active"));
       pill.classList.add("active");
-
-      const filterText = pill.textContent.trim();
-      tableRows.forEach((row) => {
-        if (filterText === "All Entities") {
-          row.style.display = "";
-        } else if (filterText.includes("Capex Bottlenecks")) {
-          const capex = row.cells[2].textContent;
-          row.style.display = capex.includes("Cr") ? "" : "none";
-        } else if (filterText.includes("CARO Qualified")) {
-          const caro = row.cells[3].textContent;
-          row.style.display = caro.includes("ANNEXURE") ? "" : "none";
-        } else {
-          row.style.display = "";
-        }
-      });
+      applyFilters();
     });
   });
+
+  // ================= 5. SCROLLSPY & LEFT RAIL TELEMETRY SYNC =================
+  const tickMarks = document.querySelectorAll(".tick-mark");
+  const quickNavLinks = document.querySelectorAll(".quick-nav-pill");
+
+  // Smooth scroll click handler for quick nav pills
+  quickNavLinks.forEach((pill) => {
+    pill.addEventListener("click", (e) => {
+      const targetId = pill.getAttribute("href");
+      if (targetId && targetId.startsWith("#")) {
+        const targetEl = document.querySelector(targetId);
+        if (targetEl) {
+          e.preventDefault();
+          targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+          history.replaceState(null, null, targetId);
+        }
+      }
+    });
+  });
+
+  function updateScrollTelemetry() {
+    const scrollY = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    
+    // 1. Sync Left Rail Ticks
+    if (tickMarks.length > 0 && docHeight > 0) {
+      const ratio = Math.min(Math.max(scrollY / docHeight, 0), 1);
+      const activeIdx = Math.min(Math.floor(ratio * tickMarks.length), tickMarks.length - 1);
+      tickMarks.forEach((tick, i) => {
+        tick.classList.toggle("active", i === activeIdx);
+      });
+    }
+
+    // 2. Sync Quick Nav Active Pill (ScrollSpy)
+    const activeView = document.querySelector(".content-view.active");
+    if (!activeView) return;
+
+    const sections = activeView.querySelectorAll("section[id], article[id]");
+    let currentSectionId = "";
+
+    sections.forEach((sec) => {
+      const rect = sec.getBoundingClientRect();
+      // Section is considered active if its top is near top of viewport
+      if (rect.top <= 140 && rect.bottom >= 100) {
+        currentSectionId = sec.id;
+      }
+    });
+
+    if (currentSectionId) {
+      const currentPills = activeView.querySelectorAll(".quick-nav-pill");
+      currentPills.forEach((p) => {
+        const href = p.getAttribute("href");
+        p.classList.toggle("active", href === `#${currentSectionId}`);
+      });
+    }
+  }
+
+  window.addEventListener("scroll", updateScrollTelemetry, { passive: true });
+  updateScrollTelemetry();
 });

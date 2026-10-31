@@ -95,6 +95,7 @@ html {
   font-size: 15px;
   line-height: 1.55;
   scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-height) + 54px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -634,9 +635,10 @@ body.theme-dark .dropdown-item:hover {
   transition: all 0.15s ease;
 }
 
-.tick-mark:hover {
+.tick-mark:hover,
+.tick-mark.active {
   opacity: 1;
-  width: 32px;
+  width: 34px;
   background-color: var(--accent);
 }
 
@@ -777,11 +779,197 @@ body.theme-dark .dropdown-item:hover {
   color: var(--border-primary);
 }
 
-/* Sections */
+/* Sections with native virtualization for instant render */
 .report-section {
   margin-top: 48px;
   padding-top: 36px;
   border-top: 1px dashed var(--border-subtle);
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+
+/* Quick Navigation Anchor Bar */
+.quick-nav-bar {
+  position: sticky;
+  top: calc(var(--nav-height) + 6px);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 28px 0;
+  padding: 10px 14px;
+  background: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  scrollbar-width: thin;
+}
+
+body.theme-dark .quick-nav-bar {
+  background: rgba(20, 22, 28, 0.94);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.quick-nav-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.quick-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quick-nav-pill {
+  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.quick-nav-pill:hover {
+  color: var(--accent);
+  background-color: var(--bg-card);
+  border-color: var(--accent);
+}
+
+.quick-nav-pill.active {
+  background-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  border-color: var(--bg-inverted);
+}
+
+/* Stat Callout Grid */
+.stat-callout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 24px 0 32px 0;
+}
+
+.stat-card {
+  background: var(--bg-surface-subtle);
+  border: 1.2px solid var(--border-primary);
+  border-radius: 6px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-num {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Architecture Grid (X-A-B-C) */
+.architecture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.arch-card {
+  background: var(--bg-surface-subtle);
+  border: 1.4px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arch-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arch-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  padding: 2px 6px;
+  border-radius: 3px;
+  align-self: flex-start;
+}
+
+.arch-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.arch-desc {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Timeline Phased Roadmap */
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.timeline-step {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-surface-subtle);
+  border-left: 3px solid var(--border-primary);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.timeline-marker {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.timeline-body {
+  color: var(--text-primary);
+}
+
+.ordered-feature-list {
+  margin: 16px 0 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-primary);
 }
 
 .section-badge-header {
