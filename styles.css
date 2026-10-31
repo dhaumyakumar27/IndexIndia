@@ -181,33 +181,63 @@ body.theme-dark .top-nav {
 .view-switcher {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   padding: 3px;
-  border: 1.6px solid var(--border-primary);
-  border-radius: 6px;
+  border: 1.8px solid var(--border-primary);
+  border-radius: 9999px;
   background: var(--bg-card);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+body.theme-dark .view-switcher {
+  background: var(--bg-surface-subtle);
+  border-color: var(--border-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .switch-btn {
-  padding: 4px 12px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+  border-radius: 9999px;
   background: transparent;
-  transition: all 0.15s ease;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
 
 .switch-btn:hover:not(.active) {
+  color: var(--text-primary);
   background-color: var(--bg-surface-subtle);
+}
+
+body.theme-dark .switch-btn:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
 }
 
 .switch-btn.active {
   background-color: var(--bg-inverted);
   color: var(--text-on-inverted);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  font-weight: 800;
+}
+
+body.theme-dark .switch-btn.active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.switch-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .brand-subtext {
