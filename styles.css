@@ -314,6 +314,15 @@ body.theme-dark .top-nav {
   align-items: center;
   gap: 12px;
   margin-bottom: 10px;
+  position: relative;
+}
+
+.custom-dropdown-row:first-of-type {
+  z-index: 20;
+}
+
+.custom-dropdown-row:nth-of-type(2) {
+  z-index: 10;
 }
 
 .custom-dropdown-label {
@@ -321,6 +330,7 @@ body.theme-dark .top-nav {
   color: var(--text-primary);
   font-weight: 500;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .custom-dropdown {
@@ -346,7 +356,9 @@ body.theme-dark .top-nav {
   user-select: none;
 }
 
-.dropdown-trigger:hover,
+/* Open on hover of row, dropdown or when clicked (is-open) */
+.custom-dropdown-row:hover .dropdown-trigger,
+.custom-dropdown:hover .dropdown-trigger,
 .custom-dropdown.is-open .dropdown-trigger {
   border-color: var(--accent);
 }
@@ -356,6 +368,8 @@ body.theme-dark .top-nav {
   color: var(--text-secondary);
 }
 
+.custom-dropdown-row:hover .dropdown-chevron,
+.custom-dropdown:hover .dropdown-chevron,
 .custom-dropdown.is-open .dropdown-chevron {
   transform: rotate(180deg);
   color: var(--accent);
@@ -377,6 +391,19 @@ body.theme-dark .top-nav {
   z-index: 300;
 }
 
+/* Invisible bridge so mouse moving from button to dropdown list never drops hover */
+.dropdown-menu-list::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+
+/* Show on hover or is-open */
+.custom-dropdown-row:hover .dropdown-menu-list,
+.custom-dropdown:hover .dropdown-menu-list,
 .custom-dropdown.is-open .dropdown-menu-list {
   display: flex;
   animation: fadeInDown 0.12s ease-out;
