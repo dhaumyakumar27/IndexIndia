@@ -44,18 +44,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const railTreePanel = document.getElementById("rail-tree-panel");
   const treeContentScroll = document.getElementById("tree-content-scroll");
   const treeNodes = Array.from(document.querySelectorAll(".tree-node"));
-  const mainBranchNodes = treeNodes.filter((node) => node.classList.contains("is-main-branch"));
-  const speedStatusText = document.getElementById("speed-status-text");
-  const speedPill = document.getElementById("tree-speed-pill");
-  const velocityFill = document.getElementById("velocity-fill");
-  const activePathDisplay = document.getElementById("tree-active-path");
-  const tickMarks = document.querySelectorAll(".tick-mark");
+  const tickMarks = Array.from(document.querySelectorAll(".tick-mark"));
 
-  let currentSubIndex = 1; // Default to first main branch: 2024/
-  let currentMainIndex = 0;
-  let lastWheelTime = 0;
-  let speedResetTimer = null;
+  let currentSubIndex = 0;
+  let isPointerDownOnRail = false;
   let railLeaveTimer = null;
+  let wheelReleaseTimer = null;
 
   function selectTreeNode(node, shouldScroll = true) {
     if (!node) return;
@@ -65,16 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const index = parseInt(node.getAttribute("data-index"), 10);
     if (!isNaN(index)) {
       currentSubIndex = index;
-    }
-
-    const branchIdx = parseInt(node.getAttribute("data-branch"), 10);
-    if (!isNaN(branchIdx) && branchIdx >= 0) {
-      currentMainIndex = branchIdx;
-    }
-
-    const path = node.getAttribute("data-path") || "data_dump/";
-    if (activePathDisplay) {
-      activePathDisplay.textContent = path;
     }
 
     // Synchronize Left Rail reference ticks
@@ -89,144 +73,165 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (shouldScroll && treeContentScroll) {
-      node.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      node.scrollIntoView({ block: "center", behavior: "smooth" });
     }
   }
 
-  // Hover open / close handling with bridge debounce
-  if (scrollRail && railTreePanel) {
-    scrollRail.addEventListener("mouseenter", () => {
-      if (railLeaveTimer) clearTimeout(railLeaveTimer);
-      railTreePanel.classList.add("is-open");
-    });
+  // Navigate to corresponding section smoothly
+  function navigateToSection(ratio) {
+    const activeView = document.querySelector(".content-view.active");
+    if (!activeView) return;
 
-    scrollRail.addEventListener("mouseleave", () => {
-      railLeaveTimer = setTimeout(() => {
-        if (!railTreePanel.matches(":hover") && !scrollRail.matches(":hover")) {
-          railTreePanel.classList.remove("is-open");
+    const sections = Array.from(
+      activeView.querySelectorAll("article[id], section[id]")
+    );
+
+    if (sections.length > 0) {
+      const targetIdx = Math.min(
+        Math.floor(ratio * sections.length),
+        sections.length - 1
+      );
+      const targetSection = sections[targetIdx];
+      if (targetSection) {
+        const navOffset = 64; // Keep navbar and section title nicely framed
+        const targetY = targetSection.getBoundingClientRect().top + window.scrollY - navOffset;
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: "smooth"
+        });
+        if (targetSection.id) {
+          history.replaceState(null, null, `#${targetSection.id}`);
         }
-      }, 140);
-    });
+        return;
+      }
+    }
 
-    railTreePanel.addEventListener("mouseenter", () => {
-      if (railLeaveTimer) clearTimeout(railLeaveTimer);
-      railTreePanel.classList.add("is-open");
-    });
-
-    railTreePanel.addEventListener("mouseleave", () => {
-      railLeaveTimer = setTimeout(() => {
-        if (!scrollRail.matches(":hover") && !railTreePanel.matches(":hover")) {
-          railTreePanel.classList.remove("is-open");
-        }
-      }, 140);
+    // Fallback if no specific section IDs
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({
+      top: Math.max(0, ratio * docHeight),
+      behavior: "smooth"
     });
   }
 
-  // Velocity-sensitive wheel navigation (Slow = Subsection, Fast = Main Branch)
-  function handleTreeWheel(e) {
-    const isOverRail = scrollRail && scrollRail.matches(":hover");
-    const isOverPanel = railTreePanel && railTreePanel.matches(":hover");
-    if (!isOverRail && !isOverPanel) return;
+  // Calculate ratio from cursor Y position along the rail track
+  function getRailRatio(clientY) {
+    if (!railTrack) return 0;
+    const rect = railTrack.getBoundingClientRect();
+    const relativeY = clientY - rect.top;
+    return Math.max(0, Math.min(1, relativeY / rect.height));
+  }
 
-    e.preventDefault();
-    e.stopPropagation();
-
-    const now = performance.now();
-    const timeDelta = Math.max(now - lastWheelTime, 12);
-    lastWheelTime = now;
-
-    const deltaY = e.deltaY;
-    const absDelta = Math.abs(deltaY);
-    const direction = deltaY > 0 ? 1 : -1;
-
-    // Fast vs slow speed detection
-    // Slow speed = gentle wheel tick or slow trackpad glide
-    // Fast speed = rapid flick or high delta (absDelta >= 80 or fast burst under 40ms)
-    const isFast = absDelta >= 80 || (absDelta >= 40 && timeDelta < 40);
-
-    if (speedResetTimer) clearTimeout(speedResetTimer);
-
-    if (isFast) {
-      // FAST SPEED -> Move up and down through MAIN BRANCHES
-      if (speedStatusText) speedStatusText.textContent = "FAST ❯❯ MAIN BRANCH";
-      if (speedPill) speedPill.classList.add("speed-fast");
-      if (velocityFill) velocityFill.style.width = "100%";
-
-      currentMainIndex = Math.min(Math.max(currentMainIndex + direction, 0), mainBranchNodes.length - 1);
-      const targetMain = mainBranchNodes[currentMainIndex];
-      selectTreeNode(targetMain, true);
-    } else {
-      // SLOW SPEED -> Move up and down through SUBSECTIONS / FILES
-      if (speedStatusText) speedStatusText.textContent = "SLOW ❯ SUBSECTION";
-      if (speedPill) speedPill.classList.remove("speed-fast");
-      if (velocityFill) velocityFill.style.width = "35%";
-
-      currentSubIndex = Math.min(Math.max(currentSubIndex + direction, 0), treeNodes.length - 1);
-      const targetNode = treeNodes[currentSubIndex];
-      selectTreeNode(targetNode, true);
+  function scrubToCursor(clientY, autoScrollTree = true) {
+    const ratio = getRailRatio(clientY);
+    const targetIdx = Math.min(
+      Math.floor(ratio * treeNodes.length),
+      treeNodes.length - 1
+    );
+    if (treeNodes[targetIdx]) {
+      selectTreeNode(treeNodes[targetIdx], autoScrollTree);
     }
+    return ratio;
+  }
 
-    speedResetTimer = setTimeout(() => {
-      if (speedStatusText) speedStatusText.textContent = "SLOW: SUBSECTION";
-      if (speedPill) speedPill.classList.remove("speed-fast");
-      if (velocityFill) velocityFill.style.width = "0%";
-    }, 650);
+  // Open / Close Tree Flyout helpers
+  function openRailPanel() {
+    if (railLeaveTimer) clearTimeout(railLeaveTimer);
+    if (railTreePanel) railTreePanel.classList.add("is-open");
+  }
+
+  function closeRailPanel(delay = 180) {
+    if (railLeaveTimer) clearTimeout(railLeaveTimer);
+    railLeaveTimer = setTimeout(() => {
+      const isRailHovered = scrollRail && scrollRail.matches(":hover");
+      const isPanelHovered = railTreePanel && railTreePanel.matches(":hover");
+      if (!isRailHovered && !isPanelHovered && !isPointerDownOnRail) {
+        if (railTreePanel) railTreePanel.classList.remove("is-open");
+      }
+    }, delay);
   }
 
   if (scrollRail) {
-    scrollRail.addEventListener("wheel", handleTreeWheel, { passive: false });
+    scrollRail.addEventListener("mouseenter", openRailPanel);
+    scrollRail.addEventListener("mouseleave", () => closeRailPanel(180));
+
+    // Pointer Scrubbing: Move cursor along the lines to directly select topic/subtopic
+    scrollRail.addEventListener("pointerdown", (e) => {
+      isPointerDownOnRail = true;
+      openRailPanel();
+      try {
+        scrollRail.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      scrubToCursor(e.clientY, true);
+    });
+
+    scrollRail.addEventListener("pointermove", (e) => {
+      openRailPanel();
+      scrubToCursor(e.clientY, true);
+    });
+
+    // When the user releases, they go directly to that section
+    scrollRail.addEventListener("pointerup", (e) => {
+      isPointerDownOnRail = false;
+      const ratio = scrubToCursor(e.clientY, true);
+      navigateToSection(ratio);
+      try {
+        scrollRail.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+      closeRailPanel(300);
+    });
+
+    scrollRail.addEventListener("pointercancel", () => {
+      isPointerDownOnRail = false;
+      closeRailPanel(180);
+    });
+
+    // Also support direct click on any line/track
+    scrollRail.addEventListener("click", (e) => {
+      const ratio = scrubToCursor(e.clientY, true);
+      navigateToSection(ratio);
+    });
+
+    // Wheel scrolling up and down directly selects topic/subtopic; on release it navigates to that section
+    scrollRail.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openRailPanel();
+
+      const direction = e.deltaY > 0 ? 1 : -1;
+      currentSubIndex = Math.min(Math.max(currentSubIndex + direction, 0), treeNodes.length - 1);
+      const targetNode = treeNodes[currentSubIndex];
+      selectTreeNode(targetNode, true);
+
+      // Debounced release to navigate
+      if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
+      wheelReleaseTimer = setTimeout(() => {
+        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
+        navigateToSection(ratio);
+      }, 350);
+    }, { passive: false });
   }
+
   if (railTreePanel) {
-    railTreePanel.addEventListener("wheel", handleTreeWheel, { passive: false });
-  }
+    railTreePanel.addEventListener("mouseenter", openRailPanel);
+    railTreePanel.addEventListener("mouseleave", () => closeRailPanel(180));
 
-  // Node Hover and Click Interactions
-  treeNodes.forEach((node) => {
-    node.addEventListener("mouseenter", () => {
-      selectTreeNode(node, false);
-    });
+    // If mouse moves inside the panel, hovering a node selects it
+    treeNodes.forEach((node) => {
+      node.addEventListener("mouseenter", () => {
+        selectTreeNode(node, false);
+      });
 
-    node.addEventListener("click", (e) => {
-      e.stopPropagation();
-      selectTreeNode(node, true);
-      const path = node.getAttribute("data-path");
-      if (path && navigator.clipboard) {
-        navigator.clipboard.writeText(path).catch(() => {});
-      }
-      if (activePathDisplay) {
-        const orig = activePathDisplay.textContent;
-        activePathDisplay.textContent = `✓ COPIED: ${path}`;
-        setTimeout(() => {
-          if (activePathDisplay.textContent.startsWith("✓")) {
-            activePathDisplay.textContent = orig;
-          }
-        }, 1200);
-      }
-    });
-  });
-
-  // Tick Mark Hover Synchronization & Page Jump
-  tickMarks.forEach((tick, i) => {
-    tick.addEventListener("mouseenter", () => {
-      if (treeNodes.length > 0) {
-        const targetIdx = Math.min(
-          Math.floor((i / tickMarks.length) * treeNodes.length),
-          treeNodes.length - 1
-        );
-        selectTreeNode(treeNodes[targetIdx], true);
-      }
-    });
-
-    tick.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const ratio = i / Math.max(tickMarks.length - 1, 1);
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      window.scrollTo({
-        top: ratio * docHeight,
-        behavior: "smooth"
+      // Clicking any node in the panel also navigates directly to that section
+      node.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectTreeNode(node, true);
+        const idx = parseInt(node.getAttribute("data-index"), 10) || 0;
+        const ratio = idx / Math.max(treeNodes.length - 1, 1);
+        navigateToSection(ratio);
       });
     });
-  });
+  }
 
   // ================= 3. HOVER / ACCESSIBILITY PANEL SETTINGS =================
   const panelWrappers = document.querySelectorAll(".panel-trigger-wrapper");
@@ -287,6 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
         document.documentElement.classList.add(`font-size-${val}`);
+        localStorage.setItem("indexindian_font_size", val);
         if (dropdownFontSize) dropdownFontSize.classList.remove("is-open");
         if (btnFontSizeTrigger) btnFontSizeTrigger.setAttribute("aria-expanded", "false");
       } else if (type === "font-style") {
@@ -296,6 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.body.classList.remove("font-style-reading", "font-style-typewriter");
         document.body.classList.add(`font-style-${val}`);
+        localStorage.setItem("indexindian_font_style", val);
         if (dropdownFontStyle) dropdownFontStyle.classList.remove("is-open");
         if (btnFontStyleTrigger) btnFontStyleTrigger.setAttribute("aria-expanded", "false");
       }
@@ -312,6 +319,31 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.add("theme-dark");
     document.body.classList.remove("theme-light");
     if (contrastToggle) contrastToggle.checked = true;
+  }
+
+  // Restore saved font size & style on load
+  const savedFontSize = localStorage.getItem("indexindian_font_size");
+  if (savedFontSize) {
+    document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
+    document.documentElement.classList.add(`font-size-${savedFontSize}`);
+    const activeItem = document.querySelector(`#list-font-size .dropdown-item[data-val="${savedFontSize}"]`);
+    if (activeItem) {
+      document.querySelectorAll("#list-font-size .dropdown-item").forEach((el) => el.classList.remove("active"));
+      activeItem.classList.add("active");
+      if (fontSizeLabel) fontSizeLabel.textContent = activeItem.textContent.split(" ")[0];
+    }
+  }
+
+  const savedFontStyle = localStorage.getItem("indexindian_font_style");
+  if (savedFontStyle) {
+    document.body.classList.remove("font-style-reading", "font-style-typewriter");
+    document.body.classList.add(`font-style-${savedFontStyle}`);
+    const activeItem = document.querySelector(`#list-font-style .dropdown-item[data-val="${savedFontStyle}"]`);
+    if (activeItem) {
+      document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
+      activeItem.classList.add("active");
+      if (fontStyleLabel) fontStyleLabel.textContent = savedFontStyle === "reading" ? "Long Reading" : "Typewriter";
+    }
   }
 
   if (contrastToggle) {
