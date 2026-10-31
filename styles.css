@@ -622,15 +622,33 @@ body.theme-dark .dropdown-item:hover {
 /* ==========================================================================
    LEFT RAIL (Pure Static Reference Ticks)
    ========================================================================== */
+/* ==========================================================================
+   LEFT RAIL (Normal mode: Visible reference scroll lines on the left)
+   ========================================================================== */
 .scroll-rail-container {
   position: fixed;
   left: 0;
   top: var(--nav-height);
   bottom: 0;
-  width: 54px;
-  z-index: 90;
+  width: 58px;
+  z-index: 100;
   display: flex;
   justify-content: center;
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+}
+
+/* Hide scroll lines when hovered or when tree panel is open */
+.scroll-rail-container.is-hidden,
+.scroll-rail-container:hover,
+body.rail-hovered .scroll-rail-container {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-16px);
 }
 
 .rail-track {
@@ -646,46 +664,62 @@ body.theme-dark .dropdown-item:hover {
   box-sizing: border-box;
 }
 
+/* Substantial, visible, high-contrast scroll lines */
 .tick-mark {
-  width: 24px;
-  height: 2px;
+  width: 32px;
+  height: 2.8px;
   background-color: var(--border-primary);
-  opacity: 0.65;
-  transition: width 0.12s ease, background-color 0.12s ease, opacity 0.12s ease;
+  opacity: 0.75;
+  border-radius: 2px;
+  transition: width 0.14s ease, background-color 0.14s ease, opacity 0.14s ease, transform 0.14s ease;
   pointer-events: auto;
 }
 
+/* Active tick in normal mode is black bold (no red) */
 .tick-mark:hover,
 .tick-mark.active {
   opacity: 1;
-  width: 38px;
-  height: 2.2px;
-  background-color: var(--accent);
-  box-shadow: 0 0 8px rgba(255, 59, 0, 0.4);
+  width: 44px;
+  height: 3.2px;
+  background-color: #000000;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-dark .tick-mark {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+body.theme-dark .tick-mark:hover,
+body.theme-dark .tick-mark.active {
+  background-color: #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
 }
 
 /* ==========================================================================
-   LEFT RAIL DIRECTORY TREE HOVER FLYOUT & TELEMETRY
+   LEFT RAIL DIRECTORY TREE (Appears from left-most side on hover)
    ========================================================================== */
 .rail-tree-panel {
   position: fixed;
-  left: 48px;
-  top: calc(var(--nav-height) + 12px);
-  width: 360px;
-  max-height: calc(100vh - var(--nav-height) - 28px);
+  left: 0; /* Left-most side of the screen */
+  top: var(--nav-height);
+  bottom: 0;
+  width: 380px;
+  max-height: calc(100vh - var(--nav-height));
   background: var(--bg-surface-elevated);
-  border: 1.5px solid var(--border-primary);
-  border-radius: 8px;
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  border-right: 1.5px solid var(--border-primary);
+  border-left: none;
+  border-top: none;
+  border-bottom: none;
+  box-shadow: 16px 0 44px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 250;
   display: flex;
   flex-direction: column;
   opacity: 0;
   visibility: hidden;
-  transform: translateX(-12px);
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s ease;
+  transform: translateX(-100%);
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s ease;
   pointer-events: none;
   overflow: hidden;
   font-family: inherit;
@@ -693,13 +727,13 @@ body.theme-dark .dropdown-item:hover {
 }
 
 body.theme-dark .rail-tree-panel {
-  background: rgba(20, 22, 28, 0.98);
-  border-color: var(--border-primary);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+  background: rgba(18, 20, 26, 0.98);
+  border-right-color: var(--border-primary);
+  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.65);
 }
 
-/* Open states: hover on rail container, hover on panel itself, or .is-open class */
-.scroll-rail-container:hover .rail-tree-panel,
+/* Open states: hover on left area or .is-open class reveals directory tree from left-most side */
+.scroll-rail-container:hover ~ .rail-tree-panel,
 .rail-tree-panel:hover,
 .rail-tree-panel.is-open {
   opacity: 1;
@@ -712,7 +746,7 @@ body.theme-dark .rail-tree-panel {
   flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 10px 12px;
+  padding: 16px 14px;
   font-family: inherit;
   font-size: 0.88rem;
   line-height: 1.5;
@@ -723,10 +757,10 @@ body.theme-dark .rail-tree-panel {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
-  border-left: 3px solid transparent;
+  border-left: 3.5px solid transparent;
   transition: background-color 0.12s ease, border-left 0.12s ease, color 0.12s ease, font-weight 0.1s ease;
   user-select: none;
   white-space: nowrap;
@@ -736,18 +770,21 @@ body.theme-dark .rail-tree-panel {
   color: var(--text-secondary);
 }
 
+/* Black Bold Highlighting (No red) */
 .tree-node:hover,
 .tree-node.active {
-  background-color: var(--accent-subtle);
-  border-left: 3px solid var(--accent);
-  color: var(--accent) !important;
-  font-weight: 700 !important;
+  background-color: rgba(0, 0, 0, 0.06);
+  border-left: 3.5px solid #000000;
+  color: #000000 !important;
+  font-weight: 800 !important;
 }
 
 body.theme-dark .tree-node:hover,
 body.theme-dark .tree-node.active {
-  background-color: rgba(255, 85, 34, 0.18);
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 3.5px solid #FFFFFF;
   color: #FFFFFF !important;
+  font-weight: 800 !important;
 }
 
 .tree-node.is-main-branch {
@@ -797,9 +834,15 @@ body.theme-dark .tree-node.is-main-branch {
   letter-spacing: 0.04em;
 }
 
+/* Black bold badge in active state */
 .tree-node.active .tree-badge {
-  background: var(--accent);
+  background: #000000;
   color: #FFFFFF;
+}
+
+body.theme-dark .tree-node.active .tree-badge {
+  background: #FFFFFF;
+  color: #000000;
 }
 
 .rail-tree-panel .tree-name,

@@ -180,6 +180,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Open / Close Tree Flyout helpers
   function openRailPanel() {
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
+    document.body.classList.add("rail-hovered");
+    if (scrollRail) scrollRail.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
   }
 
@@ -190,6 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const isPanelHovered = railTreePanel && railTreePanel.matches(":hover");
       if (!isRailHovered && !isPanelHovered && !isPointerDownOnRail) {
         if (railTreePanel) railTreePanel.classList.remove("is-open");
+        if (scrollRail) scrollRail.classList.remove("is-hidden");
+        document.body.classList.remove("rail-hovered");
         isUserScrubbing = false;
       }
     }, delay);
