@@ -639,22 +639,11 @@ body.theme-dark .dropdown-item:hover {
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20px 0;
-  cursor: pointer;
-}
-
-/* Clean horizontal ticks matching the wireframe */
-.rail-ticks {
-  position: absolute;
-  top: 24px;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  padding: 32px 0;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 .tick-mark {
@@ -737,34 +726,32 @@ body.theme-dark .rail-tree-panel {
   padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
-  border-left: 2.5px solid transparent;
-  transition: background-color 0.12s ease, border-left 0.12s ease, color 0.12s ease;
+  border-left: 3px solid transparent;
+  transition: background-color 0.12s ease, border-left 0.12s ease, color 0.12s ease, font-weight 0.1s ease;
   user-select: none;
   white-space: nowrap;
   font-family: inherit;
   font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--text-secondary);
 }
 
-.tree-node:hover {
-  background-color: var(--bg-surface-subtle);
-  color: var(--accent);
-}
-
+.tree-node:hover,
 .tree-node.active {
   background-color: var(--accent-subtle);
-  border-left: 2.5px solid var(--accent);
-  color: var(--text-primary);
-  font-weight: 700;
+  border-left: 3px solid var(--accent);
+  color: var(--accent) !important;
+  font-weight: 700 !important;
 }
 
+body.theme-dark .tree-node:hover,
 body.theme-dark .tree-node.active {
   background-color: rgba(255, 85, 34, 0.18);
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .tree-node.is-main-branch {
   margin-top: 6px;
-  font-weight: 800;
   color: var(--text-primary);
   background-color: rgba(0, 0, 0, 0.02);
 }

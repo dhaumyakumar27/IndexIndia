@@ -47,9 +47,43 @@ document.addEventListener("DOMContentLoaded", () => {
   const tickMarks = Array.from(document.querySelectorAll(".tick-mark"));
 
   let currentSubIndex = 0;
+  let isUserScrubbing = false;
   let isPointerDownOnRail = false;
   let railLeaveTimer = null;
   let wheelReleaseTimer = null;
+  let wheelAccumulator = 0;
+  const WHEEL_THRESHOLD = 45; // Calm, controllable single-step threshold
+  let pageScrollAnim = null;
+
+  // Controlled, elegant smooth scroll physics
+  function smoothScrollTo(targetY, minDuration = 500, maxDuration = 850) {
+    if (pageScrollAnim) cancelAnimationFrame(pageScrollAnim);
+
+    const startY = window.scrollY;
+    const distance = targetY - startY;
+    if (Math.abs(distance) < 4) return;
+
+    // Adjust duration proportionally: minimum 500ms, max 850ms
+    const adjustedDuration = Math.min(Math.max(Math.abs(distance) * 0.28, minDuration), maxDuration);
+    const startTime = performance.now();
+
+    function step(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / adjustedDuration, 1);
+
+      // Ease out cubic: starts briskly and decelerates gently to a soft stop
+      const ease = 1 - Math.pow(1 - progress, 3);
+      window.scrollTo(0, startY + distance * ease);
+
+      if (progress < 1) {
+        pageScrollAnim = requestAnimationFrame(step);
+      } else {
+        pageScrollAnim = null;
+      }
+    }
+
+    pageScrollAnim = requestAnimationFrame(step);
+  }
 
   function selectTreeNode(node, shouldScroll = true) {
     if (!node) return;
@@ -61,23 +95,24 @@ document.addEventListener("DOMContentLoaded", () => {
       currentSubIndex = index;
     }
 
-    // Synchronize Left Rail reference ticks
+    // Keep Left Rail reference tick synchronized
     if (tickMarks.length > 0) {
-      const activeTickIdx = Math.min(
-        Math.floor((currentSubIndex / Math.max(treeNodes.length - 1, 1)) * tickMarks.length),
-        tickMarks.length - 1
+      const activeTickIdx = Math.round(
+        (currentSubIndex / Math.max(treeNodes.length - 1, 1)) * (tickMarks.length - 1)
       );
       tickMarks.forEach((tick, i) => {
         tick.classList.toggle("active", i === activeTickIdx);
       });
     }
 
+    // Align tree panel instantly to prevent high-speed animation queue buildup
     if (shouldScroll && treeContentScroll) {
-      node.scrollIntoView({ block: "center", behavior: "smooth" });
+      const targetTop = node.offsetTop - treeContentScroll.clientHeight / 2 + node.clientHeight / 2;
+      treeContentScroll.scrollTop = targetTop;
     }
   }
 
-  // Navigate to corresponding section smoothly
+  // Navigate to corresponding section with calibrated smooth scrolling
   function navigateToSection(ratio) {
     const activeView = document.querySelector(".content-view.active");
     if (!activeView) return;
@@ -95,10 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (targetSection) {
         const navOffset = 64; // Keep navbar and section title nicely framed
         const targetY = targetSection.getBoundingClientRect().top + window.scrollY - navOffset;
-        window.scrollTo({
-          top: Math.max(0, targetY),
-          behavior: "smooth"
-        });
+        smoothScrollTo(Math.max(0, targetY));
         if (targetSection.id) {
           history.replaceState(null, null, `#${targetSection.id}`);
         }
@@ -108,26 +140,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fallback if no specific section IDs
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    window.scrollTo({
-      top: Math.max(0, ratio * docHeight),
-      behavior: "smooth"
-    });
+    smoothScrollTo(Math.max(0, ratio * docHeight));
   }
 
-  // Calculate ratio from cursor Y position along the rail track
-  function getRailRatio(clientY) {
-    if (!railTrack) return 0;
-    const rect = railTrack.getBoundingClientRect();
-    const relativeY = clientY - rect.top;
-    return Math.max(0, Math.min(1, relativeY / rect.height));
+  // Find the exact tick mark closest to the cursor clientY
+  function getClosestTickIndex(clientY) {
+    if (!tickMarks || tickMarks.length === 0) return 0;
+    let closestIdx = 0;
+    let minDistance = Infinity;
+
+    tickMarks.forEach((tick, i) => {
+      const rect = tick.getBoundingClientRect();
+      const tickCenterY = rect.top + rect.height / 2;
+      const dist = Math.abs(clientY - tickCenterY);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIdx = i;
+      }
+    });
+
+    return closestIdx;
   }
 
   function scrubToCursor(clientY, autoScrollTree = true) {
-    const ratio = getRailRatio(clientY);
-    const targetIdx = Math.min(
-      Math.floor(ratio * treeNodes.length),
-      treeNodes.length - 1
-    );
+    const tickIdx = getClosestTickIndex(clientY);
+    
+    // Highlight the exact tick the cursor is hovering on
+    tickMarks.forEach((t, i) => t.classList.toggle("active", i === tickIdx));
+
+    // Calculate ratio and select corresponding node in the flyout
+    const ratio = tickIdx / Math.max(tickMarks.length - 1, 1);
+    const targetIdx = Math.round(ratio * (treeNodes.length - 1));
     if (treeNodes[targetIdx]) {
       selectTreeNode(treeNodes[targetIdx], autoScrollTree);
     }
@@ -147,17 +190,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const isPanelHovered = railTreePanel && railTreePanel.matches(":hover");
       if (!isRailHovered && !isPanelHovered && !isPointerDownOnRail) {
         if (railTreePanel) railTreePanel.classList.remove("is-open");
+        isUserScrubbing = false;
       }
     }, delay);
   }
 
   if (scrollRail) {
-    scrollRail.addEventListener("mouseenter", openRailPanel);
-    scrollRail.addEventListener("mouseleave", () => closeRailPanel(180));
+    scrollRail.addEventListener("mouseenter", () => {
+      isUserScrubbing = true;
+      openRailPanel();
+    });
+
+    scrollRail.addEventListener("mouseleave", () => {
+      closeRailPanel(180);
+    });
 
     // Pointer Scrubbing: Move cursor along the lines to directly select topic/subtopic
     scrollRail.addEventListener("pointerdown", (e) => {
       isPointerDownOnRail = true;
+      isUserScrubbing = true;
       openRailPanel();
       try {
         scrollRail.setPointerCapture(e.pointerId);
@@ -166,6 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     scrollRail.addEventListener("pointermove", (e) => {
+      isUserScrubbing = true;
       openRailPanel();
       scrubToCursor(e.clientY, true);
     });
@@ -192,23 +244,51 @@ document.addEventListener("DOMContentLoaded", () => {
       navigateToSection(ratio);
     });
 
-    // Wheel scrolling up and down directly selects topic/subtopic; on release it navigates to that section
+    // Direct hover and click listeners on individual tick marks
+    tickMarks.forEach((tick, i) => {
+      tick.addEventListener("mouseenter", () => {
+        isUserScrubbing = true;
+        openRailPanel();
+        tickMarks.forEach((t) => t.classList.remove("active"));
+        tick.classList.add("active");
+        const ratio = i / Math.max(tickMarks.length - 1, 1);
+        const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
+        if (treeNodes[nodeIdx]) {
+          selectTreeNode(treeNodes[nodeIdx], true);
+        }
+      });
+
+      tick.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const ratio = i / Math.max(tickMarks.length - 1, 1);
+        navigateToSection(ratio);
+      });
+    });
+
+    // Wheel scrolling up and down directly selects topic/subtopic at a calm, controlled pace
     scrollRail.addEventListener("wheel", (e) => {
       e.preventDefault();
       e.stopPropagation();
+      isUserScrubbing = true;
       openRailPanel();
 
-      const direction = e.deltaY > 0 ? 1 : -1;
-      currentSubIndex = Math.min(Math.max(currentSubIndex + direction, 0), treeNodes.length - 1);
-      const targetNode = treeNodes[currentSubIndex];
-      selectTreeNode(targetNode, true);
+      wheelAccumulator += e.deltaY;
+
+      if (Math.abs(wheelAccumulator) >= WHEEL_THRESHOLD) {
+        const step = wheelAccumulator > 0 ? 1 : -1;
+        wheelAccumulator = 0;
+        currentSubIndex = Math.min(Math.max(currentSubIndex + step, 0), treeNodes.length - 1);
+        const targetNode = treeNodes[currentSubIndex];
+        selectTreeNode(targetNode, true);
+      }
 
       // Debounced release to navigate
       if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
       wheelReleaseTimer = setTimeout(() => {
         const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
         navigateToSection(ratio);
-      }, 350);
+        isUserScrubbing = false;
+      }, 400);
     }, { passive: false });
   }
 
@@ -217,7 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
     railTreePanel.addEventListener("mouseleave", () => closeRailPanel(180));
 
     // If mouse moves inside the panel, hovering a node selects it
-    treeNodes.forEach((node) => {
+    treeNodes.forEach((node, i) => {
       node.addEventListener("mouseenter", () => {
         selectTreeNode(node, false);
       });
@@ -225,9 +305,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Clicking any node in the panel also navigates directly to that section
       node.addEventListener("click", (e) => {
         e.stopPropagation();
-        selectTreeNode(node, true);
-        const idx = parseInt(node.getAttribute("data-index"), 10) || 0;
-        const ratio = idx / Math.max(treeNodes.length - 1, 1);
+        selectTreeNode(node, false);
+        const ratio = i / Math.max(treeNodes.length - 1, 1);
         navigateToSection(ratio);
       });
     });
@@ -441,7 +520,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const targetEl = document.querySelector(targetId);
         if (targetEl) {
           e.preventDefault();
-          targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+          const navOffset = 64;
+          const targetY = targetEl.getBoundingClientRect().top + window.scrollY - navOffset;
+          smoothScrollTo(Math.max(0, targetY));
           history.replaceState(null, null, targetId);
         }
       }
@@ -449,6 +530,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function updateScrollTelemetry() {
+    if (isUserScrubbing) return;
+
     const scrollY = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     
@@ -459,22 +542,33 @@ document.addEventListener("DOMContentLoaded", () => {
       tickMarks.forEach((tick, i) => {
         tick.classList.toggle("active", i === activeIdx);
       });
+
+      // Keep tree active node in sync with page position when user isn't scrubbing or hovering
+      const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
+      if (treeNodes[nodeIdx] && !railTreePanel.matches(":hover") && !scrollRail.matches(":hover")) {
+        treeNodes.forEach((n) => n.classList.remove("active"));
+        treeNodes[nodeIdx].classList.add("active");
+        currentSubIndex = nodeIdx;
+      }
     }
 
     // 2. Sync Quick Nav Active Pill (ScrollSpy)
     const activeView = document.querySelector(".content-view.active");
     if (!activeView) return;
 
-    const sections = activeView.querySelectorAll("section[id], article[id]");
+    const sections = Array.from(activeView.querySelectorAll("section[id], article[id]"));
     let currentSectionId = "";
 
     sections.forEach((sec) => {
       const rect = sec.getBoundingClientRect();
-      // Section is considered active if its top is near top of viewport
-      if (rect.top <= 140 && rect.bottom >= 100) {
+      if (rect.top <= 160 && rect.bottom >= 100) {
         currentSectionId = sec.id;
       }
     });
+
+    if (!currentSectionId && sections.length > 0 && scrollY < 200) {
+      currentSectionId = sections[0].id;
+    }
 
     if (currentSectionId) {
       const currentPills = activeView.querySelectorAll(".quick-nav-pill");
