@@ -15,6 +15,10 @@
   --text-secondary: #525252;
   --text-tertiary: #737373;
   --text-inverse: #FFFFFF;
+
+  /* Inverted contrast tokens for solid badges, active pills & CTA buttons */
+  --bg-inverted: #0A0A0A;
+  --text-on-inverted: #FFFFFF;
   
   --border-primary: #121212;
   --border-subtle: #E2E2E5;
@@ -46,27 +50,38 @@
   --grid-size: 24px;
 }
 
-/* Inverted / Terminal Noir Mode */
+/* Inverted / Terminal Noir Mode (Precision High-Contrast) */
 body.theme-dark {
-  --bg-page: #0C0C0D;
-  --bg-card: #141416;
-  --bg-surface-subtle: #19191D;
-  --bg-surface-elevated: #1F1F24;
+  --bg-page: #0C0D10;
+  --bg-card: #14161C;
+  --bg-surface-subtle: #1B1E26;
+  --bg-surface-elevated: #222530;
   
-  --text-primary: #F2F2F4;
-  --text-secondary: #A0A0A8;
-  --text-tertiary: #6E6E77;
-  --text-inverse: #0A0A0A;
+  --text-primary: #F8F9FA;
+  --text-secondary: #A6ABB8;
+  --text-tertiary: #6E7484;
+  --text-inverse: #0C0D10;
+
+  /* Crisp Stark White Inverted Elements in Dark Mode */
+  --bg-inverted: #F8F9FA;
+  --text-on-inverted: #0C0D10;
   
-  --border-primary: #333338;
-  --border-subtle: #26262B;
-  --border-faint: #1D1D22;
+  --border-primary: #444958;
+  --border-subtle: #2B2F3B;
+  --border-faint: #1E212A;
 
   --accent: #FF5522;
   --accent-hover: #FF6A3D;
-  --accent-subtle: rgba(255, 85, 34, 0.15);
+  --accent-subtle: rgba(255, 85, 34, 0.16);
 
-  --grid-line-color: rgba(255, 255, 255, 0.04);
+  --status-optimal: #34D399;
+  --status-optimal-bg: rgba(52, 211, 153, 0.14);
+  --status-caution: #FBBF24;
+  --status-caution-bg: rgba(251, 191, 36, 0.14);
+  --status-neutral: #9CA3AF;
+  --status-neutral-bg: rgba(156, 163, 175, 0.14);
+
+  --grid-line-color: rgba(255, 255, 255, 0.045);
 }
 
 /* --- Base Reset & Box Sizing --- */
@@ -169,12 +184,8 @@ body.theme-dark .top-nav {
   padding: 3px;
   border: 1.6px solid var(--border-primary);
   border-radius: 6px;
-  background: #FFFFFF;
+  background: var(--bg-card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-body.theme-dark .view-switcher {
-  background: #141416;
 }
 
 .switch-btn {
@@ -190,12 +201,12 @@ body.theme-dark .view-switcher {
 }
 
 .switch-btn:hover:not(.active) {
-  background-color: var(--border-faint);
+  background-color: var(--bg-surface-subtle);
 }
 
 .switch-btn.active {
-  background-color: var(--border-primary);
-  color: var(--text-inverse);
+  background-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
 }
 
 .brand-subtext {
@@ -210,11 +221,12 @@ body.theme-dark .view-switcher {
 }
 
 .ticker-badge {
-  background: var(--border-primary);
-  color: var(--text-inverse);
-  padding: 1px 5px;
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  padding: 2px 6px;
   border-radius: 3px;
   font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .brand-divider {
@@ -251,8 +263,8 @@ body.theme-dark .view-switcher {
 
 .icon-btn:hover,
 .panel-trigger-wrapper:hover .icon-btn {
-  background-color: var(--border-primary);
-  color: var(--text-inverse);
+  background-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
   transform: translateY(-1px);
 }
 
@@ -401,8 +413,8 @@ body.theme-dark .view-switcher {
 }
 
 .dropdown-item.active {
-  background-color: var(--border-primary);
-  color: var(--text-inverse);
+  background-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
   font-weight: 600;
 }
 
@@ -448,8 +460,8 @@ body.theme-dark .dropdown-item:hover {
   font-size: 0.68rem;
   font-family: var(--font-mono);
   font-weight: 700;
-  background: var(--border-primary);
-  color: var(--text-inverse);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
   padding: 2px 6px;
   border-radius: 3px;
   margin-bottom: 4px;
@@ -653,8 +665,8 @@ body.theme-dark .dropdown-item:hover {
 }
 
 .tag-monochrome {
-  background-color: var(--border-primary);
-  color: var(--text-inverse);
+  background-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
   padding: 3px 8px;
   border-radius: 3px;
   font-family: var(--font-mono);
@@ -892,16 +904,18 @@ body.theme-dark .forensic-table tr:hover td {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--border-primary);
-  padding: 4px 8px;
-  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  border: 1.2px solid var(--border-primary);
   border-radius: 4px;
+  background-color: transparent;
   transition: all 0.15s ease;
 }
 
 .btn-table-action:hover {
-  background-color: var(--border-primary);
-  color: var(--text-inverse);
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #FFFFFF;
 }
 
 /* ==========================================================================
@@ -980,8 +994,8 @@ body.theme-dark .forensic-table tr:hover td {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background-color: var(--border-primary);
-  color: var(--text-inverse);
+  background-color: var(--bg-inverted);
+  color: var(--text-on-inverted);
   padding: 12px 24px;
   font-size: 0.95rem;
   font-weight: 700;
@@ -1055,11 +1069,15 @@ body.theme-dark .forensic-table tr:hover td {
   transition: all 0.12s ease;
 }
 
-.filter-pill:hover,
+.filter-pill:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
 .filter-pill.active {
-  border-color: var(--border-primary);
-  background: var(--border-primary);
-  color: var(--text-inverse);
+  border-color: var(--bg-inverted);
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
 }
 
 .methodology-card {

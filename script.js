@@ -136,14 +136,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const gridToggle = document.getElementById("grid-toggle");
   const densityToggle = document.getElementById("density-toggle");
 
+  // Restore saved theme on load
+  const savedTheme = localStorage.getItem("indexindian_theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("theme-dark");
+    document.body.classList.remove("theme-light");
+    if (contrastToggle) contrastToggle.checked = true;
+  }
+
   if (contrastToggle) {
     contrastToggle.addEventListener("change", (e) => {
       if (e.target.checked) {
         document.body.classList.add("theme-dark");
         document.body.classList.remove("theme-light");
+        localStorage.setItem("indexindian_theme", "dark");
       } else {
         document.body.classList.remove("theme-dark");
         document.body.classList.add("theme-light");
+        localStorage.setItem("indexindian_theme", "light");
       }
     });
   }
