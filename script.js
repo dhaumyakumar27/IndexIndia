@@ -45,14 +45,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const treeContentScroll = document.getElementById("tree-content-scroll");
   const treeNodes = Array.from(document.querySelectorAll(".tree-node"));
   const tickMarks = Array.from(document.querySelectorAll(".tick-mark"));
+  const btnPinTree = document.getElementById("btn-pin-tree");
+  const btnCloseTree = document.getElementById("btn-close-tree");
+  const treeScrubStrip = document.getElementById("tree-scrub-strip");
+  const treeScrubIndicator = document.getElementById("tree-scrub-indicator");
+  const railTreeStatus = document.getElementById("rail-tree-status");
 
   let currentSubIndex = 0;
   let isUserScrubbing = false;
   let isPointerDownOnRail = false;
-  let railLeaveTimer = null;
+  let isPointerScrubbingStrip = false;
+  let isPinned = false;
+  let isWheeling = false;
+  let wheelCooldownTimer = null;
   let wheelReleaseTimer = null;
   let wheelAccumulator = 0;
-  const WHEEL_THRESHOLD = 45; // Calm, controllable single-step threshold
+  const WHEEL_SENSITIVITY = 32; // Calibrated step sensitivity for smooth trackpad swipe
+  let railLeaveTimer = null;
   let pageScrollAnim = null;
 
   // Controlled, elegant smooth scroll physics
@@ -85,6 +94,22 @@ document.addEventListener("DOMContentLoaded", () => {
     pageScrollAnim = requestAnimationFrame(step);
   }
 
+  function updateTreeTelemetryUI() {
+    if (railTreeStatus && treeNodes.length > 0) {
+      const curr = String(currentSubIndex + 1).padStart(2, "0");
+      const total = String(treeNodes.length).padStart(2, "0");
+      railTreeStatus.textContent = `${curr} / ${total}`;
+    }
+
+    if (treeScrubIndicator && treeScrubStrip && treeNodes.length > 1) {
+      const ratio = currentSubIndex / (treeNodes.length - 1);
+      const stripHeight = treeScrubStrip.clientHeight || 400;
+      const thumbHeight = treeScrubIndicator.clientHeight || 36;
+      const maxTop = Math.max(0, stripHeight - thumbHeight);
+      treeScrubIndicator.style.top = `${ratio * maxTop}px`;
+    }
+  }
+
   function selectTreeNode(node, shouldScroll = true) {
     if (!node) return;
     treeNodes.forEach((n) => n.classList.remove("active"));
@@ -114,6 +139,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const targetTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
       treeContentScroll.scrollTop = targetTop;
     }
+
+    updateTreeTelemetryUI();
   }
 
   // Navigate to corresponding section with calibrated smooth scrolling
@@ -147,60 +174,64 @@ document.addEventListener("DOMContentLoaded", () => {
     smoothScrollTo(Math.max(0, ratio * docHeight));
   }
 
-  // Find the exact tick mark closest to the cursor clientY
-  function getClosestTickIndex(clientY) {
-    if (!tickMarks || tickMarks.length === 0) return 0;
-    let closestIdx = 0;
-    let minDistance = Infinity;
-
-    tickMarks.forEach((tick, i) => {
-      const rect = tick.getBoundingClientRect();
-      const tickCenterY = rect.top + rect.height / 2;
-      const dist = Math.abs(clientY - tickCenterY);
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestIdx = i;
-      }
-    });
-
-    return closestIdx;
-  }
-
-  function scrubToCursor(clientY, autoScrollTree = true) {
-    const tickIdx = getClosestTickIndex(clientY);
-    
-    // Highlight the exact tick the cursor is hovering on
-    tickMarks.forEach((t, i) => t.classList.toggle("active", i === tickIdx));
-
-    // Calculate ratio and select corresponding node in the flyout
-    const ratio = tickIdx / Math.max(tickMarks.length - 1, 1);
-    const targetIdx = Math.round(ratio * (treeNodes.length - 1));
-    if (treeNodes[targetIdx]) {
-      selectTreeNode(treeNodes[targetIdx], autoScrollTree);
-    }
-    return ratio;
-  }
-
   // Open / Close Tree Flyout helpers
   function openRailPanel() {
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
     if (railNavigator) railNavigator.classList.add("is-open");
     if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
+    updateTreeTelemetryUI();
   }
 
-  function closeRailPanel(delay = 180) {
+  function closeRailPanel(delay = 350) {
+    if (isPinned) return; // Never auto-close when pinned
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
     railLeaveTimer = setTimeout(() => {
       const isNavHovered = railNavigator && railNavigator.matches(":hover");
       const isPanelHovered = railTreePanel && railTreePanel.matches(":hover");
-      if (!isNavHovered && !isPanelHovered && !isPointerDownOnRail) {
+      if (!isNavHovered && !isPanelHovered && !isPointerDownOnRail && !isPointerScrubbingStrip && !isPinned) {
         if (railNavigator) railNavigator.classList.remove("is-open");
         if (railTrack) railTrack.classList.remove("is-hidden");
         if (railTreePanel) railTreePanel.classList.remove("is-open");
         isUserScrubbing = false;
       }
     }, delay);
+  }
+
+  function togglePinTree(forceState) {
+    isPinned = typeof forceState === "boolean" ? forceState : !isPinned;
+    if (railNavigator) {
+      railNavigator.classList.toggle("is-pinned", isPinned);
+      if (isPinned) {
+        railNavigator.classList.add("is-open");
+        if (railTrack) railTrack.classList.add("is-hidden");
+        if (railTreePanel) railTreePanel.classList.add("is-open");
+      }
+    }
+    if (btnPinTree) {
+      btnPinTree.classList.toggle("is-active", isPinned);
+      btnPinTree.setAttribute("aria-pressed", isPinned ? "true" : "false");
+    }
+    if (!isPinned) {
+      closeRailPanel(120);
+    }
+  }
+
+  if (btnPinTree) {
+    btnPinTree.addEventListener("click", (e) => {
+      e.stopPropagation();
+      togglePinTree();
+    });
+  }
+
+  if (btnCloseTree) {
+    btnCloseTree.addEventListener("click", (e) => {
+      e.stopPropagation();
+      togglePinTree(false);
+      if (railNavigator) railNavigator.classList.remove("is-open", "is-pinned");
+      if (railTrack) railTrack.classList.remove("is-hidden");
+      if (railTreePanel) railTreePanel.classList.remove("is-open");
+    });
   }
 
   if (railNavigator) {
@@ -210,68 +241,40 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     railNavigator.addEventListener("mouseleave", () => {
-      closeRailPanel(180);
+      closeRailPanel(350);
     });
 
-    // Pointer Scrubbing: Move cursor along the rail to directly select topic/subtopic
-    railNavigator.addEventListener("pointerdown", (e) => {
-      if (e.target.closest(".tree-content-scroll")) return;
-      isPointerDownOnRail = true;
-      isUserScrubbing = true;
-      openRailPanel();
-      try {
-        railNavigator.setPointerCapture(e.pointerId);
-      } catch (err) {}
-      scrubToCursor(e.clientY, true);
-    });
-
-    railNavigator.addEventListener("pointermove", (e) => {
-      if (isPointerDownOnRail) {
-        scrubToCursor(e.clientY, true);
-      }
-    });
-
-    railNavigator.addEventListener("pointerup", (e) => {
-      if (isPointerDownOnRail) {
-        isPointerDownOnRail = false;
-        const ratio = scrubToCursor(e.clientY, true);
-        navigateToSection(ratio);
-        try {
-          railNavigator.releasePointerCapture(e.pointerId);
-        } catch (err) {}
-        closeRailPanel(300);
-      }
-    });
-
-    railNavigator.addEventListener("pointercancel", () => {
-      isPointerDownOnRail = false;
-      closeRailPanel(180);
-    });
-
-    // Wheel scrolling up and down directly selects topic/subtopic at a calm, controlled pace
+    // Trackpad swipe & mouse wheel handling (proportional stepping, decoupled from cursor hover)
     railNavigator.addEventListener("wheel", (e) => {
       e.preventDefault();
       e.stopPropagation();
       isUserScrubbing = true;
+      isWheeling = true;
       openRailPanel();
 
-      wheelAccumulator += e.deltaY;
+      // Suppress stationary mouseenter events during swipe
+      if (wheelCooldownTimer) clearTimeout(wheelCooldownTimer);
+      wheelCooldownTimer = setTimeout(() => {
+        isWheeling = false;
+      }, 260);
 
-      if (Math.abs(wheelAccumulator) >= WHEEL_THRESHOLD) {
-        const step = wheelAccumulator > 0 ? 1 : -1;
-        wheelAccumulator = 0;
-        currentSubIndex = Math.min(Math.max(currentSubIndex + step, 0), treeNodes.length - 1);
+      wheelAccumulator += e.deltaY;
+      const steps = Math.trunc(wheelAccumulator / WHEEL_SENSITIVITY);
+
+      if (steps !== 0) {
+        wheelAccumulator -= steps * WHEEL_SENSITIVITY;
+        currentSubIndex = Math.min(Math.max(currentSubIndex + steps, 0), treeNodes.length - 1);
         const targetNode = treeNodes[currentSubIndex];
         selectTreeNode(targetNode, true);
       }
 
-      // Debounced release to navigate
+      // Debounced release to navigate main document to swiped section
       if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
       wheelReleaseTimer = setTimeout(() => {
         const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
         navigateToSection(ratio);
         isUserScrubbing = false;
-      }, 400);
+      }, 350);
     }, { passive: false });
   }
 
@@ -300,15 +303,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (railTreePanel) {
     railTreePanel.addEventListener("mouseenter", openRailPanel);
-    railTreePanel.addEventListener("mouseleave", () => closeRailPanel(180));
+    railTreePanel.addEventListener("mouseleave", () => closeRailPanel(350));
 
-    // If mouse moves inside the panel, hovering a node selects it
+    // Hover decoupling: Only update on deliberate cursor movement, NEVER during swipe
     treeNodes.forEach((node, i) => {
-      node.addEventListener("mouseenter", () => {
+      node.addEventListener("mouseenter", (e) => {
+        if (isWheeling) return; // Block programmatic scroll moving elements under cursor
+        if (e.movementX === 0 && e.movementY === 0) return; // Ignore synthetic stationary cursor events
         selectTreeNode(node, false);
       });
 
-      // Clicking any node in the panel also navigates directly to that section
+      node.addEventListener("mousemove", (e) => {
+        if (isWheeling) return;
+        if (e.movementX === 0 && e.movementY === 0) return;
+        if (!node.classList.contains("active")) {
+          selectTreeNode(node, false);
+        }
+      });
+
+      // Clicking any node navigates directly to that section
       node.addEventListener("click", (e) => {
         e.stopPropagation();
         selectTreeNode(node, false);
@@ -317,6 +330,88 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+
+  // Vertical Quick-Scrub Strip Drag/Swipe Handler
+  function scrubToStripY(clientY) {
+    if (!treeScrubStrip || treeNodes.length === 0) return;
+    const rect = treeScrubStrip.getBoundingClientRect();
+    const clampedY = Math.min(Math.max(clientY, rect.top), rect.bottom);
+    const ratio = (clampedY - rect.top) / Math.max(rect.height, 1);
+    const targetIdx = Math.min(Math.round(ratio * (treeNodes.length - 1)), treeNodes.length - 1);
+    if (treeNodes[targetIdx]) {
+      selectTreeNode(treeNodes[targetIdx], true);
+    }
+  }
+
+  if (treeScrubStrip) {
+    treeScrubStrip.addEventListener("pointerdown", (e) => {
+      isPointerScrubbingStrip = true;
+      isUserScrubbing = true;
+      try {
+        treeScrubStrip.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      scrubToStripY(e.clientY);
+    });
+
+    treeScrubStrip.addEventListener("pointermove", (e) => {
+      if (isPointerScrubbingStrip) {
+        scrubToStripY(e.clientY);
+      }
+    });
+
+    treeScrubStrip.addEventListener("pointerup", (e) => {
+      if (isPointerScrubbingStrip) {
+        isPointerScrubbingStrip = false;
+        try {
+          treeScrubStrip.releasePointerCapture(e.pointerId);
+        } catch (err) {}
+        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
+        navigateToSection(ratio);
+        closeRailPanel(400);
+      }
+    });
+
+    treeScrubStrip.addEventListener("pointercancel", () => {
+      isPointerScrubbingStrip = false;
+      closeRailPanel(200);
+    });
+  }
+
+  // Global Keyboard Shortcuts (Terminal mode: T toggles drawer, Esc closes)
+  document.addEventListener("keydown", (e) => {
+    // Ignore when user is typing in form inputs
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+
+    if (e.key === "t" || e.key === "T") {
+      e.preventDefault();
+      togglePinTree();
+    } else if (e.key === "Escape") {
+      if (isPinned || railNavigator?.classList.contains("is-open")) {
+        togglePinTree(false);
+        if (railNavigator) railNavigator.classList.remove("is-open", "is-pinned");
+        if (railTrack) railTrack.classList.remove("is-hidden");
+        if (railTreePanel) railTreePanel.classList.remove("is-open");
+      }
+    } else if (e.key === "j" || e.key === "ArrowDown") {
+      // Step to next section smoothly if tree drawer is open
+      if (railNavigator?.classList.contains("is-open") || isPinned) {
+        e.preventDefault();
+        currentSubIndex = Math.min(currentSubIndex + 1, treeNodes.length - 1);
+        selectTreeNode(treeNodes[currentSubIndex], true);
+        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
+        navigateToSection(ratio);
+      }
+    } else if (e.key === "k" || e.key === "ArrowUp") {
+      // Step to previous section smoothly if tree drawer is open
+      if (railNavigator?.classList.contains("is-open") || isPinned) {
+        e.preventDefault();
+        currentSubIndex = Math.max(currentSubIndex - 1, 0);
+        selectTreeNode(treeNodes[currentSubIndex], true);
+        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
+        navigateToSection(ratio);
+      }
+    }
+  });
 
   // ================= 3. HOVER / ACCESSIBILITY PANEL SETTINGS =================
   const panelWrappers = document.querySelectorAll(".panel-trigger-wrapper");
@@ -551,11 +646,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Keep tree active node in sync with page position when user isn't scrubbing or hovering
       const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
-      const isNavHovered = (railNavigator && railNavigator.matches(":hover")) || (railTreePanel && railTreePanel.matches(":hover"));
+      const isNavHovered = (railNavigator && railNavigator.matches(":hover")) || (railTreePanel && railTreePanel.matches(":hover")) || isPinned;
       if (treeNodes[nodeIdx] && !isNavHovered) {
         treeNodes.forEach((n) => n.classList.remove("active"));
         treeNodes[nodeIdx].classList.add("active");
         currentSubIndex = nodeIdx;
+        updateTreeTelemetryUI();
       }
     }
 

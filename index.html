@@ -11,7 +11,7 @@
   <!-- <script defer data-domain="indexindian.com" src="https://plausible.io/js/script.js"></script> -->
   <!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "CLOUDFLARE_ANALYTICS_TOKEN"}'></script> -->
 
-  <link rel="stylesheet" href="styles.css?v=2.7">
+  <link rel="stylesheet" href="styles.css?v=2.8">
 </head>
 <body class="theme-light">
 
@@ -159,7 +159,26 @@
 
     <!-- Hover Flyout Directory Tree Panel -->
     <div class="rail-tree-panel" id="rail-tree-panel" role="region" aria-label="Directory Navigation Tree">
-      <div class="tree-content-scroll" id="tree-content-scroll">
+      <!-- Institutional Drawer Header with Pin & Close -->
+      <div class="rail-tree-header" id="rail-tree-header">
+        <div class="rail-tree-header-meta">
+          <span class="rail-tree-tag font-mono">SECTIONS</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 48</span>
+        </div>
+        <div class="rail-tree-header-actions">
+          <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin sidebar open (or press T)" aria-label="Pin Directory Tree" aria-pressed="false">
+            <span class="btn-pin-icon">&#128204;</span>
+            <span class="font-mono">PIN</span>
+          </button>
+          <button type="button" class="rail-header-btn close-btn" id="btn-close-tree" title="Close drawer (Esc)" aria-label="Close Directory Tree">
+            <span class="font-mono">&times;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Body: Scrollable nodes + sleek scrub strip -->
+      <div class="rail-tree-body">
+        <div class="tree-content-scroll" id="tree-content-scroll">
         <!-- Root Item -->
         <div class="tree-node tree-root" data-index="0" data-path="data_dump/" data-branch="-1" data-is-main="true">
           <span class="tree-marker font-mono">&#9632;</span>
@@ -434,8 +453,16 @@
           <span class="tree-name font-mono">README.md</span>
           <span class="tree-badge font-mono">DOC</span>
         </div>
+        <!-- End tree-content-scroll -->
+
+        <!-- Vertical quick-scrub track on the right edge of drawer -->
+        <div class="tree-scrub-strip" id="tree-scrub-strip" title="Drag vertically or swipe to scrub all 48 sections">
+          <div class="tree-scrub-indicator" id="tree-scrub-indicator"></div>
+        </div>
       </div>
+      <!-- End rail-tree-body -->
     </div>
+    <!-- End rail-tree-panel -->
   </aside>
 
   <!-- ================= MAIN CONTENT AREA ================= -->
@@ -1759,6 +1786,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=2.7"></script>
+  <script src="script.js?v=2.8"></script>
 </body>
 </html>

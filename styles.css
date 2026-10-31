@@ -636,9 +636,10 @@ body.theme-dark .dropdown-item:hover {
   transition: width 0.2s ease;
 }
 
-/* Hover expansion: width expands to 380px so mouse can move freely without flicker */
+/* Hover or Pinned expansion: width expands to 380px so mouse can move freely without flicker */
 .rail-navigator:hover,
-.rail-navigator.is-open {
+.rail-navigator.is-open,
+.rail-navigator.is-pinned {
   width: 380px;
 }
 
@@ -665,9 +666,10 @@ body.theme-dark .dropdown-item:hover {
   pointer-events: auto;
 }
 
-/* Hide scroll lines when navigator is hovered */
+/* Hide scroll lines when navigator is hovered or pinned */
 .rail-navigator:hover .rail-track,
 .rail-navigator.is-open .rail-track,
+.rail-navigator.is-pinned .rail-track,
 .rail-track.is-hidden {
   opacity: 0;
   visibility: hidden;
@@ -703,7 +705,7 @@ body.theme-dark .tick-mark.active {
 }
 
 /* ==========================================================================
-   2. DIRECTORY TREE (Appears from Leftmost Edge on Hover)
+   2. DIRECTORY TREE (Appears from Leftmost Edge on Hover or Pin)
    ========================================================================== */
 .rail-tree-panel {
   position: absolute;
@@ -741,6 +743,7 @@ body.theme-dark .rail-tree-panel {
 /* Reveal directory tree from leftmost side */
 .rail-navigator:hover .rail-tree-panel,
 .rail-navigator.is-open .rail-tree-panel,
+.rail-navigator.is-pinned .rail-tree-panel,
 .rail-tree-panel.is-open {
   opacity: 1;
   visibility: visible;
@@ -748,16 +751,158 @@ body.theme-dark .rail-tree-panel {
   pointer-events: auto;
 }
 
+/* Institutional Drawer Header with Pin & Close Controls */
+.rail-tree-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-bottom: 1.2px solid var(--border-subtle);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+body.theme-dark .rail-tree-header {
+  background: rgba(24, 26, 32, 0.95);
+  border-bottom-color: var(--border-subtle);
+}
+
+.rail-tree-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rail-tree-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  background: var(--bg-surface-subtle);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.rail-tree-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.rail-tree-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rail-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.14s ease;
+  outline: none;
+}
+
+.rail-header-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-subtle);
+}
+
+.rail-header-btn.is-active {
+  background: #000000;
+  color: #FFFFFF;
+  border-color: #000000;
+}
+
+body.theme-dark .rail-header-btn.is-active {
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+}
+
+.rail-header-btn.close-btn {
+  padding: 1px 7px;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+/* Main Body with Tree Nodes & Vertical Scrub Track */
+.rail-tree-body {
+  flex: 1 1 auto;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
 .tree-content-scroll {
   position: relative;
   flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 14px;
+  padding: 12px 10px 24px 12px;
   font-family: inherit;
   font-size: 0.88rem;
   line-height: 1.5;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+}
+
+.tree-content-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sleek Vertical Quick-Scrub Strip */
+.tree-scrub-strip {
+  width: 14px;
+  position: relative;
+  border-left: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.02);
+  cursor: ns-resize;
+  flex-shrink: 0;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+}
+
+body.theme-dark .tree-scrub-strip {
+  background: rgba(255, 255, 255, 0.02);
+  border-left-color: var(--border-subtle);
+}
+
+.tree-scrub-indicator {
+  position: absolute;
+  top: 0;
+  width: 7px;
+  height: 36px;
+  border-radius: 4px;
+  background: #000000;
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.tree-scrub-strip:hover .tree-scrub-indicator {
+  opacity: 0.9;
+}
+
+body.theme-dark .tree-scrub-indicator {
+  background: #FFFFFF;
+  opacity: 0.55;
+}
+
+body.theme-dark .tree-scrub-strip:hover .tree-scrub-indicator {
+  opacity: 1;
 }
 
 .tree-node {
