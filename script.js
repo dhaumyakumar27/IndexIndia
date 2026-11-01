@@ -100,6 +100,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openTreeExplicitly(pin = true) {
+    if (window.innerWidth <= 1280 && typeof closeDoubtSolver === "function") {
+      closeDoubtSolver();
+    }
     isPinned = pin;
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
 
@@ -146,6 +149,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openRailPanel() {
+    if (window.innerWidth <= 1280 && typeof closeDoubtSolver === "function") {
+      closeDoubtSolver();
+    }
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
     if (railNavigator) {
       railNavigator.classList.remove("is-closed");
@@ -2723,6 +2729,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   openDoubtSolver = function(contextOverride) {
     try {
+      if (window.innerWidth <= 1280 && typeof closeTreeExplicitly === "function") {
+        closeTreeExplicitly();
+      }
       if (doubtPill) doubtPill.classList.remove("is-visible");
       currentDoubtContext = contextOverride || getVisibleScreenTarget() || {
         type: "section",
@@ -3790,6 +3799,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("mousedown", (e) => {
     if (navSearchBarWrapper && !navSearchBarWrapper.contains(e.target)) {
       closeNavSearchResults();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth <= 1280) {
+      if (isTreeCurrentlyOpen() && doubtTile && doubtTile.classList.contains("is-open")) {
+        closeDoubtSolver();
+      }
     }
   });
 });
