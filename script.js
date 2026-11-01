@@ -90,8 +90,17 @@ document.addEventListener("DOMContentLoaded", () => {
       railNavigator.classList.contains("is-open") ||
       railNavigator.classList.contains("is-pinned") ||
       Boolean(railTreePanel && railTreePanel.classList.contains("is-open")) ||
-      railNavigator.matches(":hover")
+      railNavigator.matches(":hover") ||
+      Boolean(railTreePanel && railTreePanel.matches(":hover")) ||
+      Boolean(document.activeElement && railNavigator.contains(document.activeElement))
     );
+  }
+
+  function scrollTreeToNode(node) {
+    if (treeContentScroll && node) {
+      const targetTop = node.offsetTop - (treeContentScroll.clientHeight / 2) + (node.clientHeight / 2);
+      treeContentScroll.scrollTop = Math.max(0, targetTop);
+    }
   }
 
   function openTreeExplicitly(pin = true) {
@@ -111,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btnPinTree.setAttribute("aria-pressed", isPinned ? "true" : "false");
     }
     updateTreeTelemetryUI();
+    scrollTreeToNode(treeNodes[currentSubIndex]);
   }
 
   function closeTreeExplicitly() {
@@ -155,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
     updateTreeTelemetryUI();
+    scrollTreeToNode(treeNodes[currentSubIndex]);
   }
 
   function closeRailPanel(delay = 300) {
@@ -202,14 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 4. Instantly center the tree scroll view on the target node
-    if (treeContentScroll) {
-      const nodeRect = targetNode.getBoundingClientRect();
-      const containerRect = treeContentScroll.getBoundingClientRect();
-      const currentScroll = treeContentScroll.scrollTop;
-      const relativeTop = nodeRect.top - containerRect.top + currentScroll;
-      const targetTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
-      treeContentScroll.scrollTop = targetTop;
-    }
+    scrollTreeToNode(targetNode);
 
     updateTreeTelemetryUI();
 
@@ -462,18 +466,73 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 5. Up / Down arrow keys scroll the page naturally without hijacking directory tree sections.
-    // Vim navigation: j / k scrolls page cleanly down / up
-    if (e.key === "j" || e.key === "J") {
-      e.preventDefault();
-      window.scrollBy({ top: 90, behavior: "auto" });
-      return;
-    }
+    // 5. Arrow key & navigation handling:
+    // When inside Directory Tree: Up / Down arrow keys navigate sections directly and move page from directory tree without page scrolling.
+    // When outside Directory Tree: Up / Down arrow keys scroll document page naturally without hijacking sections.
+    const isInsideTree = isTreeCurrentlyOpen();
 
-    if (e.key === "k" || e.key === "K") {
-      e.preventDefault();
-      window.scrollBy({ top: -90, behavior: "auto" });
-      return;
+    if (isInsideTree) {
+      if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
+        e.preventDefault();
+        currentSubIndex = Math.min(currentSubIndex + 1, treeNodes.length - 1);
+        navigateToNodeIndex(currentSubIndex);
+        return;
+      }
+
+      if (e.key === "ArrowUp" || e.key === "k" || e.key === "K") {
+        e.preventDefault();
+        currentSubIndex = Math.max(currentSubIndex - 1, 0);
+        navigateToNodeIndex(currentSubIndex);
+        return;
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        navigateToNodeIndex(currentSubIndex);
+        if (!isPinned) {
+          closeTreeExplicitly();
+        }
+        return;
+      }
+
+      if (e.key === "Home") {
+        e.preventDefault();
+        navigateToNodeIndex(0);
+        return;
+      }
+
+      if (e.key === "End") {
+        e.preventDefault();
+        navigateToNodeIndex(treeNodes.length - 1);
+        return;
+      }
+
+      if (e.key === "PageDown") {
+        e.preventDefault();
+        currentSubIndex = Math.min(currentSubIndex + 6, treeNodes.length - 1);
+        navigateToNodeIndex(currentSubIndex);
+        return;
+      }
+
+      if (e.key === "PageUp") {
+        e.preventDefault();
+        currentSubIndex = Math.max(currentSubIndex - 6, 0);
+        navigateToNodeIndex(currentSubIndex);
+        return;
+      }
+    } else {
+      // Outside Directory Tree: Vim navigation j / k scrolls document page cleanly
+      if (e.key === "j" || e.key === "J") {
+        e.preventDefault();
+        window.scrollBy({ top: 90, behavior: "auto" });
+        return;
+      }
+
+      if (e.key === "k" || e.key === "K") {
+        e.preventDefault();
+        window.scrollBy({ top: -90, behavior: "auto" });
+        return;
+      }
     }
 
     // 6. Escape closes all open panels, menus, and directory tree
