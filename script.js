@@ -358,8 +358,17 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
-    // 1. Tab: Short tap cycles 3 sub-pages (x | y | z), Long press switches Guide <=> Index
+    // Helper: strictly true if NO modifier key (Ctrl, Shift, Alt, Meta) is pressed
+    const noModifiers = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
+
+    // 1. Tab: strictly alone (no Ctrl, Shift, Alt, Meta)
     if (e.key === "Tab") {
+      if (!noModifiers) {
+        clearTabTimers();
+        isTabLongPressTriggered = false;
+        return;
+      }
+
       e.preventDefault();
       if (e.repeat) return; // Prevent autorepeat from resetting timer while held
 
@@ -383,16 +392,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 2. "[" toggles Account
-    if (e.key === "[") {
+    // 2. "[" toggles Account (strictly alone)
+    if (e.key === "[" && noModifiers) {
       e.preventDefault();
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.toggle("is-open");
       return;
     }
 
-    // 3. "]" toggles Settings
-    if (e.key === "]") {
+    // 3. "]" toggles Settings (strictly alone)
+    if (e.key === "]" && noModifiers) {
       e.preventDefault();
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
@@ -400,8 +409,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 4. "?" toggles Keyboard Shortcuts Panel
-    if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+    // 4. "?" toggles Keyboard Shortcuts Panel (strictly ? or Shift+/, no Ctrl, Alt, Meta)
+    if ((e.key === "?" || (e.shiftKey && e.key === "/")) && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
@@ -409,15 +418,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 5. "Space" opens/closes Directory Tree
-    if (e.code === "Space" || e.key === " ") {
+    // 5. "Space" opens/closes Directory Tree (strictly alone)
+    if ((e.code === "Space" || e.key === " ") && noModifiers) {
       e.preventDefault();
       toggleTree();
       return;
     }
 
-    // 6. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree
-    if ((e.ctrlKey || e.metaKey) && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+    // 6. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree (strictly Ctrl/Meta alone, no Shift, no Alt)
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       closeTreeExplicitly(); // Guarantee directory tree is NOT shown
 
@@ -450,28 +459,28 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 7. Normal Arrow Up / Down: Move / scroll page with zero delay
-    if (e.key === "ArrowDown") {
+    // 7. Normal Arrow Up / Down: Move / scroll page with zero delay (strictly alone, no modifiers)
+    if (e.key === "ArrowDown" && noModifiers) {
       e.preventDefault();
       window.scrollBy({ top: 90, behavior: "auto" });
       return;
     }
 
-    if (e.key === "ArrowUp") {
+    if (e.key === "ArrowUp" && noModifiers) {
       e.preventDefault();
       window.scrollBy({ top: -90, behavior: "auto" });
       return;
     }
 
-    // 8. Enter inside open tree navigates to current node
-    if (e.key === "Enter" && isTreeCurrentlyOpen()) {
+    // 8. Enter inside open tree navigates to current node (strictly alone)
+    if (e.key === "Enter" && noModifiers && isTreeCurrentlyOpen()) {
       e.preventDefault();
       navigateToNode(currentSubIndex);
       return;
     }
 
-    // 9. Escape closes all open panels, menus, and directory tree
-    if (e.key === "Escape") {
+    // 9. Escape closes all open panels, menus, and directory tree (strictly alone)
+    if (e.key === "Escape" && noModifiers) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
@@ -484,6 +493,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
     if (e.key === "Tab") {
+      // Must trigger if and only if NO modifier key (Ctrl, Shift, Alt, Meta) was pressed
+      if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
+        clearTabTimers();
+        isTabLongPressTriggered = false;
+        return;
+      }
+
       e.preventDefault();
       clearTabTimers();
 
@@ -493,7 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Short tap on Tab: Cycle through the 3 sub-pages (x | y | z)
+      // Short tap on Tab (strictly alone): Cycle forward through the 3 sub-pages (x | y | z)
       // Guide Suite: Founder | Investor | Bottleneck
       // Index Suite: Graph | Directory | Source
       const currentFile = pathname.split("/").pop() || "index.html";
@@ -505,14 +521,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let nextIdx = 0;
       if (currIdx === -1) {
-        // If on landing page (index.html or index-view.html)
-        nextIdx = e.shiftKey ? activePages.length - 1 : 0;
+        nextIdx = 0;
       } else {
-        if (e.shiftKey) {
-          nextIdx = (currIdx - 1 + activePages.length) % activePages.length;
-        } else {
-          nextIdx = (currIdx + 1) % activePages.length;
-        }
+        nextIdx = (currIdx + 1) % activePages.length;
       }
 
       window.location.href = activePages[nextIdx];
