@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnIndex = document.getElementById("btn-index");
   const guideView = document.getElementById("guide-view");
   const indexView = document.getElementById("index-view");
+  const subNavGuide = document.getElementById("sub-nav-guide");
+  const subNavIndex = document.getElementById("sub-nav-index");
 
   function switchView(target) {
     if (target === "guide") {
@@ -21,6 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
       guideView.hidden = false;
       indexView.classList.remove("active");
       indexView.hidden = true;
+
+      if (subNavGuide) subNavGuide.style.display = "inline-flex";
+      if (subNavIndex) subNavIndex.style.display = "none";
     } else if (target === "index") {
       btnIndex.classList.add("active");
       btnIndex.setAttribute("aria-selected", "true");
@@ -31,12 +36,43 @@ document.addEventListener("DOMContentLoaded", () => {
       indexView.hidden = false;
       guideView.classList.remove("active");
       guideView.hidden = true;
+
+      if (subNavGuide) subNavGuide.style.display = "none";
+      if (subNavIndex) subNavIndex.style.display = "inline-flex";
     }
     updateScrollTelemetry();
   }
 
   btnGuide.addEventListener("click", () => switchView("guide"));
   btnIndex.addEventListener("click", () => switchView("index"));
+
+  // Contextual Top-Right Sub-Nav Buttons (Guide: Founder | Investor | Bottleneck; Index: Graph | Directory | Source)
+  const subNavButtons = document.querySelectorAll(".sub-nav-btn");
+  subNavButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const parentGroup = btn.closest(".sub-nav-group");
+      if (parentGroup) {
+        parentGroup.querySelectorAll(".sub-nav-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      const targetId = btn.getAttribute("data-target");
+      if (targetId) {
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          const navOffset = 64;
+          const targetY = targetEl.getBoundingClientRect().top + window.scrollY - navOffset;
+          isDirectNavigating = true;
+          if (directNavTimer) clearTimeout(directNavTimer);
+          directNavTimer = setTimeout(() => {
+            isDirectNavigating = false;
+          }, 80);
+          window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
+          history.replaceState(null, null, `#${targetId}`);
+        }
+      }
+    });
+  });
 
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
   const railNavigator = document.getElementById("rail-navigator");
@@ -846,6 +882,33 @@ document.addEventListener("DOMContentLoaded", () => {
         const href = p.getAttribute("href");
         p.classList.toggle("active", href === `#${currentSectionId}`);
       });
+
+      // 3. Sync Contextual Top Right Sub-Nav Buttons
+      if (activeView.id === "guide-view") {
+        let activeSub = "founder";
+        if (["sec-carry-pool", "sec-firm-d-plan", "sec-diligence-matrix"].includes(currentSectionId)) {
+          activeSub = "investor";
+        } else if (["sec-philosophy", "sec-ai-hardware", "sec-fte-transition", "sec-fema-rbi", "sec-synthetic-equity", "sec-monetization"].includes(currentSectionId)) {
+          activeSub = "bottleneck";
+        }
+        const btns = document.querySelectorAll("#sub-nav-guide .sub-nav-btn");
+        btns.forEach((b) => {
+          const id = b.id.replace("btn-sub-", "");
+          b.classList.toggle("active", id === activeSub);
+        });
+      } else if (activeView.id === "index-view") {
+        let activeSub = "directory";
+        if (["sec-cfo-pat", "sec-rpt-matrix"].includes(currentSectionId)) {
+          activeSub = "graph";
+        } else if (["sec-caro-decoder", "sec-methodology"].includes(currentSectionId)) {
+          activeSub = "source";
+        }
+        const btns = document.querySelectorAll("#sub-nav-index .sub-nav-btn");
+        btns.forEach((b) => {
+          const id = b.id.replace("btn-sub-", "");
+          b.classList.toggle("active", id === activeSub);
+        });
+      }
     }
   }
 

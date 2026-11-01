@@ -270,6 +270,67 @@ body.theme-dark .switch-btn.active {
   align-items: center;
 }
 
+/* ==========================================================================
+   TOP RIGHT CONTEXTUAL SUB-NAV (Guide: Founder | Investor | Bottleneck; Index: Graph | Directory | Source)
+   ========================================================================== */
+.sub-nav-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 14px;
+  user-select: none;
+}
+
+.sub-nav-sep {
+  color: var(--text-tertiary);
+  font-size: 0.82rem;
+  opacity: 0.45;
+  user-select: none;
+}
+
+.sub-nav-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 3px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: #767676;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.14s ease, font-weight 0.14s ease;
+  outline: none;
+  border-radius: 3px;
+}
+
+.sub-nav-btn:hover:not(.active) {
+  color: #222222;
+}
+
+/* Selected button: Dark Black and Bold Font */
+.sub-nav-btn.active {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* Dark Theme Adjustments */
+body.theme-dark .sub-nav-btn {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+body.theme-dark .sub-nav-btn:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+body.theme-dark .sub-nav-btn.active {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+body.theme-dark .sub-nav-sep {
+  color: rgba(255, 255, 255, 0.25);
+}
+
 .panel-trigger-wrapper {
   position: relative;
   display: flex;

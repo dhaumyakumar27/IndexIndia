@@ -11,7 +11,7 @@
   <!-- <script defer data-domain="indexindian.com" src="https://plausible.io/js/script.js"></script> -->
   <!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "CLOUDFLARE_ANALYTICS_TOKEN"}'></script> -->
 
-  <link rel="stylesheet" href="styles.css?v=3.2">
+  <link rel="stylesheet" href="styles.css?v=3.3">
 </head>
 <body class="theme-light">
 
@@ -31,6 +31,24 @@
 
     <!-- Wireframe: Top Right Account and Settings - distinct individual hover panels -->
     <div class="nav-right">
+      <!-- Contextual Sub-Nav: Guide View [ Founder | Investor | Bottleneck ] -->
+      <nav class="sub-nav-group" id="sub-nav-guide" aria-label="Guide Perspectives">
+        <button type="button" class="sub-nav-btn active" id="btn-sub-founder" data-target="sec-hero">Founder</button>
+        <span class="sub-nav-sep font-mono">|</span>
+        <button type="button" class="sub-nav-btn" id="btn-sub-investor" data-target="sec-carry-pool">Investor</button>
+        <span class="sub-nav-sep font-mono">|</span>
+        <button type="button" class="sub-nav-btn" id="btn-sub-bottleneck" data-target="sec-philosophy">Bottleneck</button>
+      </nav>
+
+      <!-- Contextual Sub-Nav: Index View [ Graph | Directory | Source ] -->
+      <nav class="sub-nav-group" id="sub-nav-index" aria-label="Index Perspectives" style="display: none;">
+        <button type="button" class="sub-nav-btn" id="btn-sub-graph" data-target="sec-cfo-pat">Graph</button>
+        <span class="sub-nav-sep font-mono">|</span>
+        <button type="button" class="sub-nav-btn active" id="btn-sub-directory" data-target="sec-company-matrix">Directory</button>
+        <span class="sub-nav-sep font-mono">|</span>
+        <button type="button" class="sub-nav-btn" id="btn-sub-source" data-target="sec-caro-decoder">Source</button>
+      </nav>
+
       <!-- 1. ACCOUNT BUTTON & HOVER PANEL -->
       <div class="panel-trigger-wrapper" id="account-wrapper">
         <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier ( [ )">
@@ -1786,6 +1804,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=3.2"></script>
+  <script src="script.js?v=3.3"></script>
 </body>
 </html>
