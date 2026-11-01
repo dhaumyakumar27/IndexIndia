@@ -1603,8 +1603,53 @@ document.addEventListener("DOMContentLoaded", () => {
     return null;
   }
 
+  const DOUBTS_STORAGE_KEY = "indexindia_doubts_history_v1";
+
+  function getLocalDoubtsHistory() {
+    try {
+      const raw = localStorage.getItem(DOUBTS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.warn("[DoubtSolver] Local storage read error:", e);
+      return [];
+    }
+  }
+
+  function saveLocalDoubtsHistory(items) {
+    try {
+      localStorage.setItem(DOUBTS_STORAGE_KEY, JSON.stringify(items));
+    } catch (e) {
+      console.warn("[DoubtSolver] Local storage write error:", e);
+    }
+  }
+
+  function clearLocalDoubtsHistory() {
+    try {
+      localStorage.removeItem(DOUBTS_STORAGE_KEY);
+    } catch (e) {
+      console.warn("[DoubtSolver] Local storage clear error:", e);
+    }
+  }
+
+  function getExactTimestamp() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const hh = pad(now.getHours());
+    const mm = pad(now.getMinutes());
+    const ss = pad(now.getSeconds());
+    const dd = pad(now.getDate());
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const mmm = months[now.getMonth()];
+    const yyyy = now.getFullYear();
+    return {
+      time: `${hh}:${mm}:${ss}`,
+      date: `${dd} ${mmm} ${yyyy}`,
+      full: `${hh}:${mm}:${ss} · ${dd} ${mmm} ${yyyy}`
+    };
+  }
+
   let currentDoubtContext = null;
-  let activeDoubtMode = "explain";
+  let activeDoubtMode = "doubts";
   let activeQueryId = 0;
 
   // Create UI elements
@@ -1631,24 +1676,17 @@ document.addEventListener("DOMContentLoaded", () => {
         <span>DUCKDUCKGO DOUBT SOLVER</span>
       </div>
       <div class="doubt-tile-controls">
-        <span class="doubt-context-badge" id="doubt-context-badge">SECTION CONTEXT</span>
         <button type="button" class="doubt-tile-close" id="doubt-tile-close" title="Close (Esc)">&times;</button>
       </div>
     </div>
     <div class="doubt-tile-body">
-      <div class="doubt-context-card">
-        <span class="doubt-context-label">REFERENCED CONTEXT:</span>
-        <p class="doubt-context-snippet" id="doubt-context-snippet">Scanning visible screen...</p>
-      </div>
       <div class="doubt-input-row">
-        <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask DuckDuckGo or press Enter to explain..." autocomplete="off">
+        <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask a doubt or press Enter..." autocomplete="off">
         <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask DDG ↵</button>
       </div>
       <div class="doubt-chips-container" id="doubt-chips-container">
-        <button type="button" class="doubt-chip-btn active" data-mode="explain">💡 Plain English</button>
-        <button type="button" class="doubt-chip-btn" data-mode="keypoint">📊 Key Takeaway</button>
-        <button type="button" class="doubt-chip-btn" data-mode="regulatory">⚖️ SEBI &amp; Risk</button>
-        <button type="button" class="doubt-chip-btn" data-mode="formula">🧮 Math &amp; Metric</button>
+        <button type="button" class="doubt-chip-btn active" data-mode="doubts" id="chip-mode-doubts">💬 Doubts</button>
+        <button type="button" class="doubt-chip-btn" data-mode="keytakeaway" id="chip-mode-takeaway">📊 Key Takeaway</button>
       </div>
       <div class="doubt-output-container" id="doubt-output-container"></div>
     </div>
@@ -1659,15 +1697,13 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><kbd>Enter</kbd> ask</span>
       </div>
       <div class="doubt-footer-engine">
-        <span>🦆 Powered by DuckDuckGo Engine</span>
+        <span>💾 Stored on Device · 🦆 DuckDuckGo Engine</span>
       </div>
     </div>
   `;
   document.body.appendChild(doubtTile);
 
   const doubtCloseBtn = doubtTile.querySelector("#doubt-tile-close");
-  const doubtContextBadge = doubtTile.querySelector("#doubt-context-badge");
-  const doubtContextSnippet = doubtTile.querySelector("#doubt-context-snippet");
   const doubtTextInput = doubtTile.querySelector("#doubt-text-input");
   const doubtAskBtn = doubtTile.querySelector("#doubt-ask-btn");
   const doubtChips = doubtTile.querySelectorAll(".doubt-chip-btn");
@@ -1795,7 +1831,13 @@ document.addEventListener("DOMContentLoaded", () => {
   doubtPill.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    const sel = window.getSelection();
+    const selectedText = sel ? sel.toString().trim() : "";
     openDoubtSolver();
+    if (selectedText.length >= 2) {
+      if (doubtTextInput) doubtTextInput.value = selectedText;
+      askDoubt(selectedText);
+    }
   });
 
   const doubtNavBtn = document.getElementById("doubt-nav-btn");
@@ -1806,6 +1848,161 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function renderDoubtsView() {
+    const history = getLocalDoubtsHistory();
+    if (!history || history.length === 0) {
+      doubtOutput.innerHTML = `
+        <div class="doubt-blank-page">
+          <div class="doubt-blank-icon">🦆</div>
+          <div class="doubt-blank-title">Doubts History</div>
+          <p class="doubt-blank-sub">This section is completely private. Type your doubt above and press Enter to solve it. Questions, answers, and exact timestamps are stored strictly on your device.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = `
+      <div class="doubt-history-actions-bar">
+        <span class="doubt-history-count font-mono">${history.length} DOUBT${history.length > 1 ? "S" : ""} RECORDED ON THIS DEVICE</span>
+        <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
+      </div>
+      <div class="doubt-history-list">
+    `;
+
+    for (const item of history) {
+      html += `
+        <div class="doubt-history-card" data-id="${item.id}">
+          <div class="doubt-history-meta">
+            <div class="doubt-history-time font-mono">
+              <span class="doubt-time-clock">🕒</span>
+              <span>${escapeHtml(item.exactTimestamp)}</span>
+              <span class="doubt-device-tag">LOCAL DEVICE</span>
+            </div>
+            <button type="button" class="doubt-item-del-btn" title="Delete this entry" data-id="${item.id}">&times;</button>
+          </div>
+          <div class="doubt-history-q">
+            <span class="doubt-q-badge font-mono">DOUBT:</span>
+            <span class="doubt-q-text">${escapeHtml(item.question)}</span>
+          </div>
+          <div class="doubt-history-a">
+            ${item.answerHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    doubtOutput.innerHTML = html;
+
+    const clearBtn = doubtOutput.querySelector("#doubt-clear-all-btn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        if (confirm("Clear all doubts history stored on this device?")) {
+          clearLocalDoubtsHistory();
+          renderDoubtsView();
+        }
+      });
+    }
+
+    doubtOutput.querySelectorAll(".doubt-item-del-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute("data-id");
+        const curr = getLocalDoubtsHistory();
+        const filtered = curr.filter(x => x.id !== id);
+        saveLocalDoubtsHistory(filtered);
+        renderDoubtsView();
+      });
+    });
+  }
+
+  function renderKeyTakeawayView() {
+    const screenTarget = getVisibleScreenTarget();
+    const rawText = screenTarget.text || "";
+    const title = screenTarget.title || "Visible Content";
+
+    const sentences = rawText.split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 20 && !s.toLowerCase().includes("institutional research hub"));
+
+    const keySentences = sentences.slice(0, 3);
+    if (keySentences.length === 0) {
+      keySentences.push(rawText.slice(0, 180) || "Visible screen content analyzed.");
+    }
+
+    const numbersFound = rawText.match(/(\d+(?:\.\d+)?%|\$\d+|\b\d+\s*(?:days|crore|months|years|bps|x)\b)/gi) || [];
+    const uniqueNumbers = Array.from(new Set(numbersFound)).slice(0, 5);
+
+    let matchedTopic = null;
+    let highestScore = 0;
+    for (const item of FORENSIC_KNOWLEDGE_BASE) {
+      let score = 0;
+      for (const term of item.terms) {
+        if (rawText.toLowerCase().includes(term)) score += 2;
+        if (title.toLowerCase().includes(term)) score += 3;
+      }
+      if (score > highestScore) {
+        highestScore = score;
+        matchedTopic = item;
+      }
+    }
+
+    let metricsHtml = "";
+    if (uniqueNumbers.length > 0) {
+      metricsHtml = `
+        <div class="doubt-takeaway-row">
+          <span class="doubt-takeaway-label font-mono">TRACKED METRICS &amp; THRESHOLDS:</span>
+          <div class="doubt-takeaway-tags">
+            ${uniqueNumbers.map(n => `<span class="doubt-highlight-tag">${escapeHtml(n)}</span>`).join(" ")}
+          </div>
+        </div>
+      `;
+    }
+
+    const ddgSearchTerm = `${title} Indian financial markets corporate governance SEBI summary`;
+    const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
+    const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
+
+    const ddgActionBarHtml = `
+      <div class="doubt-ddg-bar">
+        <span class="doubt-ddg-bar-label">
+          <span class="ddg-icon">🦆</span> DUCKDUCKGO ENGINE:
+        </span>
+        <div class="doubt-ddg-actions">
+          <a href="${ddgAiUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-ai" title="Ask DuckDuckGo AI about this screen">
+            <span>Ask DuckDuckGo AI</span>
+            <span class="ddg-arrow">↗</span>
+          </a>
+          <a href="${ddgWebUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-web" title="Search live web on DuckDuckGo">
+            <span>Web Search</span>
+            <span class="ddg-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+    `;
+
+    doubtOutput.innerHTML = `
+      <div class="doubt-takeaway-card">
+        <div class="doubt-takeaway-header">
+          <span class="doubt-takeaway-badge font-mono">SCREEN SCAN: ${escapeHtml(title).toUpperCase()}</span>
+        </div>
+        <div class="doubt-takeaway-bullets">
+          ${keySentences.map(s => `
+            <div class="doubt-takeaway-bullet">
+              <span class="doubt-bullet-dot">▸</span>
+              <span>${escapeHtml(s)}</span>
+            </div>
+          `).join("")}
+        </div>
+        ${metricsHtml}
+        <div class="doubt-takeaway-verdict">
+          <strong>Executive Summary:</strong> ${matchedTopic ? escapeHtml(matchedTopic.screenContext) : `Institutional parameters defined under the Sovereign Methodology to eliminate promotional and governance bias.`}
+        </div>
+        ${ddgActionBarHtml}
+      </div>
+    `;
+  }
+
   openDoubtSolver = function(contextOverride) {
     try {
       if (doubtPill) doubtPill.classList.remove("is-visible");
@@ -1814,20 +2011,16 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "Visible Content",
         text: "Select any text or ask a question about this screen."
       };
-      
-      if (doubtContextBadge) {
-        doubtContextBadge.textContent = (currentDoubtContext.title || "CONTENT").toUpperCase();
-        doubtContextBadge.title = currentDoubtContext.title || "";
-      }
-      if (doubtContextSnippet) {
-        doubtContextSnippet.textContent = currentDoubtContext.text || "Scanning visible screen...";
-      }
 
       if (doubtTile) {
         doubtTile.classList.add("is-open");
       }
 
-      executeDoubtQuery();
+      if (activeDoubtMode === "doubts") {
+        renderDoubtsView();
+      } else {
+        renderKeyTakeawayView();
+      }
 
       setTimeout(() => {
         if (doubtTextInput) {
@@ -1863,9 +2056,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.openDoubtSolver = openDoubtSolver;
   window.closeDoubtSolver = closeDoubtSolver;
 
-  function synthesizeDoubtAnswer(query, mode, context) {
-    const rawText = context.text || "";
-    const title = context.title || "Visible Content";
+  function synthesizeDoubtAnswer(query, context) {
+    const rawText = context ? (context.text || "") : "";
+    const title = context ? (context.title || "Visible Content") : "Visible Content";
     const cleanQuery = (query || "").trim();
     const queryLower = cleanQuery.toLowerCase();
 
@@ -1886,9 +2079,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const numbersFound = rawText.match(/(\d+(?:\.\d+)?%|\$\d+|\b\d+\s*(?:days|crore|months|years|bps)\b)/gi) || [];
-    const uniqueNumbers = Array.from(new Set(numbersFound)).slice(0, 5);
-
     const sentences = rawText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 12);
     let bestSentence = sentences[0] || rawText.slice(0, 160);
     
@@ -1908,80 +2098,35 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    let questionEchoHtml = "";
-    if (cleanQuery) {
-      questionEchoHtml = `
-        <div class="doubt-question-echo">
-          <span class="doubt-q-badge font-mono">YOUR DOUBT:</span>
-          <span class="doubt-q-text">"${escapeHtml(cleanQuery)}"</span>
-        </div>
-      `;
-    }
-
-    let directAnswerHtml = "";
-    let screenEvidenceHtml = "";
-    let takeawayHtml = "";
-
     const isWhyQuestion = queryLower.startsWith("why") || queryLower.includes(" why ");
     const isHowQuestion = queryLower.startsWith("how") || queryLower.includes(" how ");
+
+    let directAnswerHtml = "";
+    let takeawayHtml = "";
 
     if (cleanQuery) {
       if (isWhyQuestion && matchedTopic) {
         directAnswerHtml = `<strong>Why this exists:</strong> ${matchedTopic.screenContext}`;
-        screenEvidenceHtml = `<strong>Screen Context:</strong> In <strong>${escapeHtml(title)}</strong>, this principle guards against governance breakdown: "<em>${escapeHtml(bestSentence.slice(0, 160))}...</em>"`;
-        takeawayHtml = `<strong>Statutory Rationale:</strong> ${matchedTopic.statutoryRule}`;
+        takeawayHtml = `<strong>Statutory Standard:</strong> ${matchedTopic.statutoryRule}`;
       } else if (isHowQuestion && matchedTopic) {
         directAnswerHtml = `<strong>Operational Mechanic:</strong> ${matchedTopic.concept}`;
-        screenEvidenceHtml = `<strong>Execution Rule:</strong> "<em>${escapeHtml(bestSentence.slice(0, 160))}...</em>"`;
-        takeawayHtml = `<strong>Statutory Standard:</strong> ${matchedTopic.statutoryRule}`;
+        takeawayHtml = `<strong>Execution Rule:</strong> ${matchedTopic.statutoryRule}`;
       } else if (matchedTopic) {
         directAnswerHtml = `<strong>Concept Analysis:</strong> ${matchedTopic.concept}`;
-        screenEvidenceHtml = `<strong>Visible Screen Application:</strong> ${matchedTopic.screenContext} (Referencing: "<em>${escapeHtml(bestSentence.slice(0, 150))}...</em>")`;
-        takeawayHtml = `<strong>Forensic Standard:</strong> ${matchedTopic.statutoryRule}`;
+        takeawayHtml = `<strong>Regulatory Benchmark:</strong> ${matchedTopic.statutoryRule}`;
       } else {
-        directAnswerHtml = `<strong>Direct Context Explanation:</strong> Based on the visible content in <strong>${escapeHtml(title)}</strong>, this section sets out forensic parameters directly applicable to institutional research.`;
-        screenEvidenceHtml = `<strong>Visible Excerpt:</strong> "<em>${escapeHtml(bestSentence.slice(0, 190))}...</em>"`;
-        takeawayHtml = `<strong>Forensic Takeaway:</strong> Analyzed under the sovereign research methodology to eliminate speculative bias.`;
+        directAnswerHtml = `<strong>Analysis:</strong> Evaluated under sovereign corporate governance & financial forensic standards.`;
+        takeawayHtml = `<strong>Statutory Rule:</strong> Governed by statutory SEBI regulations and Ind AS financial disclosure frameworks.`;
       }
     } else {
-      if (mode === "regulatory") {
-        directAnswerHtml = matchedTopic
-          ? `<strong>Statutory Mandate:</strong> ${matchedTopic.statutoryRule}`
-          : `<strong>Regulatory Compliance:</strong> Governed by SEBI (Listing Obligations and Disclosure Requirements) Regulations and Companies Act statutory disclosure mandates.`;
-        screenEvidenceHtml = `<strong>Compliance Monitor:</strong> Audited under institutional governance rules to prevent minority shareholder wealth erosion.`;
-        takeawayHtml = `<strong>Audit Benchmark:</strong> Any qualification or failure in this metric triggers an automatic governance risk downgrade.`;
-      } else if (mode === "keypoint") {
-        directAnswerHtml = `<strong>Primary Metric Target:</strong> ${uniqueNumbers.length > 0 ? `Key thresholds tracked on this screen: ${uniqueNumbers.map(n => `<span class="doubt-highlight-tag">${escapeHtml(n)}</span>`).join(" ")}.` : `Core institutional standard established for ${escapeHtml(title)}.`}`;
-        screenEvidenceHtml = `<strong>Primary Screen Evidence:</strong> "${escapeHtml(bestSentence.slice(0, 180))}..."`;
-        takeawayHtml = `<strong>Quantitative Takeaway:</strong> Deviations from this benchmark signal heightened systemic risk.`;
-      } else if (mode === "formula") {
-        directAnswerHtml = matchedTopic && matchedTopic.terms.includes("hhi")
-          ? `<strong>Concentration Formula:</strong> <span class="doubt-highlight-tag">HHI = &Sigma; s<sub>i</sub><sup>2</sup></span> where <em>s<sub>i</sub></em> is the percentage weight of each constituent sector.`
-          : `<strong>Weighting &amp; Scoring Logic:</strong> Multi-factor governance score: 60% Corporate Governance + 40% Forensic Solvency metrics.`;
-        screenEvidenceHtml = `<strong>Portfolio Mechanics:</strong> Enforces a 25% single-sector cap with +/- 2.5% buffer bands to eliminate churn.`;
-        takeawayHtml = `<strong>Mathematical Guarantee:</strong> Eliminates disproportionate skew from mega-cap enterprise concentration.`;
-      } else {
-        if (matchedTopic) {
-          directAnswerHtml = `<strong>Plain English Concept:</strong> ${matchedTopic.concept}`;
-          screenEvidenceHtml = `<strong>Visible On Your Screen:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
-          takeawayHtml = `<strong>Why It Matters:</strong> ${matchedTopic.screenContext}`;
-        } else {
-          directAnswerHtml = `<strong>Overview:</strong> Defines structural forensic rules and institutional research standards for <strong>${escapeHtml(title)}</strong>.`;
-          screenEvidenceHtml = `<strong>Context Excerpt:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
-          takeawayHtml = `<strong>Forensic Watchout:</strong> Designed for rapid institutional vetting without promotional or speculative bias.`;
-        }
-      }
+      directAnswerHtml = matchedTopic ? matchedTopic.concept : `Forensic and institutional parameters defined for ${escapeHtml(title)}.`;
+      takeawayHtml = matchedTopic ? matchedTopic.statutoryRule : `Audited under SEBI institutional governance mandates.`;
     }
 
     // Formulate optimized DuckDuckGo search queries
-    let ddgSearchTerm = "";
-    if (cleanQuery) {
-      ddgSearchTerm = `${cleanQuery} Indian financial markets corporate governance SEBI`;
-    } else if (matchedTopic) {
-      ddgSearchTerm = `${matchedTopic.terms[0]} corporate governance Indian financial markets SEBI`;
-    } else {
-      ddgSearchTerm = `${title} corporate governance India stock market`;
-    }
+    const ddgSearchTerm = cleanQuery 
+      ? `${cleanQuery} Indian financial markets corporate governance SEBI`
+      : `${title} corporate governance India stock market`;
 
     const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
     const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
@@ -2005,14 +2150,9 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     return `
-      ${questionEchoHtml}
       <div class="doubt-output-section">
-        <div class="doubt-output-header">1. CORE CONCEPT · DUCKDUCKGO SYNTHESIS</div>
+        <div class="doubt-output-header">1. CONCEPT EXPLANATION</div>
         <div class="doubt-output-body">${directAnswerHtml}</div>
-      </div>
-      <div class="doubt-output-section">
-        <div class="doubt-output-header">2. VISIBLE EVIDENCE &amp; CONTEXT</div>
-        <div class="doubt-output-body">${screenEvidenceHtml}</div>
       </div>
       <div class="doubt-output-takeaway">
         ${takeawayHtml}
@@ -2021,52 +2161,68 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  function executeDoubtQuery() {
+  async function askDoubt(query) {
+    const trimmed = (query || "").trim();
+    if (!trimmed) {
+      if (doubtTextInput) doubtTextInput.focus();
+      return;
+    }
+
+    if (activeDoubtMode !== "doubts") {
+      activeDoubtMode = "doubts";
+      doubtChips.forEach(c => {
+        c.classList.toggle("active", c.getAttribute("data-mode") === "doubts");
+      });
+      if (doubtTextInput) {
+        doubtTextInput.placeholder = "Ask a doubt or press Enter...";
+      }
+    }
+
+    const currentId = ++activeQueryId;
+    if (doubtAskBtn) {
+      doubtAskBtn.textContent = "Analyzing... 🦆";
+      doubtAskBtn.disabled = true;
+    }
+
+    const context = currentDoubtContext || getVisibleScreenTarget();
+    const timeInfo = getExactTimestamp();
+    const initialAnswer = synthesizeDoubtAnswer(trimmed, context);
+
+    const newRecord = {
+      id: "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+      timestamp: Date.now(),
+      exactTimestamp: timeInfo.full,
+      question: trimmed,
+      answerHtml: initialAnswer
+    };
+
+    const currentHistory = getLocalDoubtsHistory();
+    const updatedHistory = [newRecord, ...currentHistory];
+    saveLocalDoubtsHistory(updatedHistory);
+
+    if (doubtTextInput) doubtTextInput.value = "";
+    renderDoubtsView();
+
     try {
-      if (!currentDoubtContext) {
-        currentDoubtContext = getVisibleScreenTarget();
-      }
-      const query = doubtTextInput ? doubtTextInput.value.trim() : "";
-      const currentId = ++activeQueryId;
-      
-      // Active feedback on button
-      if (doubtAskBtn) {
-        doubtAskBtn.textContent = "Analyzing... 🦆";
-        doubtAskBtn.disabled = true;
-      }
-
-      setTimeout(async () => {
-        try {
-          const resultHtml = synthesizeDoubtAnswer(query, activeDoubtMode, currentDoubtContext);
-          renderDoubtAnswer(resultHtml);
-
-          // If user asked a specific query, attempt async DuckDuckGo web enrichment
-          if (query && query.length >= 2) {
-            const webData = await fetchDuckDuckGoWebDefinition(query);
-            if (currentId === activeQueryId && webData && doubtOutput) {
-              const liveSection = document.createElement("div");
-              liveSection.className = "doubt-output-section doubt-web-enrichment";
-              liveSection.innerHTML = `
-                <div class="doubt-output-header">🦆 DUCKDUCKGO WEB DEFINITION: ${escapeHtml(webData.title).toUpperCase()}</div>
-                <div class="doubt-output-body">${escapeHtml(webData.extract.slice(0, 320))}...</div>
-              `;
-              const ddgBar = doubtOutput.querySelector(".doubt-ddg-bar");
-              if (ddgBar) {
-                doubtOutput.insertBefore(liveSection, ddgBar);
-              } else {
-                doubtOutput.appendChild(liveSection);
-              }
-            }
-          }
-        } finally {
-          if (doubtAskBtn) {
-            doubtAskBtn.textContent = "Ask DDG ↵";
-            doubtAskBtn.disabled = false;
-          }
+      const webData = await fetchDuckDuckGoWebDefinition(trimmed);
+      if (webData && currentId === activeQueryId) {
+        const enrichedHistory = getLocalDoubtsHistory();
+        const target = enrichedHistory.find(x => x.id === newRecord.id);
+        if (target) {
+          target.answerHtml = `
+            <div class="doubt-output-section doubt-web-enrichment">
+              <div class="doubt-output-header">🦆 DUCKDUCKGO WEB DEFINITION: ${escapeHtml(webData.title).toUpperCase()}</div>
+              <div class="doubt-output-body">${escapeHtml(webData.extract.slice(0, 320))}...</div>
+            </div>
+            ${initialAnswer}
+          `;
+          saveLocalDoubtsHistory(enrichedHistory);
+          renderDoubtsView();
         }
-      }, 60);
-    } catch (err) {
-      console.error("[DoubtSolver] executeDoubtQuery error:", err);
+      }
+    } catch (_) {
+      // Clean fallback
+    } finally {
       if (doubtAskBtn) {
         doubtAskBtn.textContent = "Ask DDG ↵";
         doubtAskBtn.disabled = false;
@@ -2074,20 +2230,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function renderDoubtAnswer(html) {
-    doubtOutput.innerHTML = html;
-  }
-
   doubtCloseBtn.addEventListener("click", closeDoubtSolver);
 
   doubtAskBtn.addEventListener("click", () => {
-    executeDoubtQuery();
+    const q = doubtTextInput ? doubtTextInput.value : "";
+    askDoubt(q);
   });
 
   doubtTextInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      executeDoubtQuery();
+      const q = doubtTextInput ? doubtTextInput.value : "";
+      askDoubt(q);
     } else if (e.key === "Escape") {
       e.preventDefault();
       closeDoubtSolver();
@@ -2098,8 +2252,14 @@ document.addEventListener("DOMContentLoaded", () => {
     chip.addEventListener("click", () => {
       doubtChips.forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
-      activeDoubtMode = chip.getAttribute("data-mode") || "explain";
-      executeDoubtQuery();
+      activeDoubtMode = chip.getAttribute("data-mode") || "doubts";
+      if (activeDoubtMode === "doubts") {
+        if (doubtTextInput) doubtTextInput.placeholder = "Ask a doubt or press Enter...";
+        renderDoubtsView();
+      } else {
+        if (doubtTextInput) doubtTextInput.placeholder = "Ask a question about this takeaway...";
+        renderKeyTakeawayView();
+      }
     });
   });
 
