@@ -35,6 +35,76 @@
         <a href="source.html" class="sub-nav-btn active" id="btn-sub-source" title="Source (Tab)">Source</a>
       </nav>
 
+      <!-- SHORTCUTS BUTTON & HOVER PANEL (Between x|y|z and Account) -->
+      <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
+        <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts" title="Keyboard Shortcuts ( ? )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel shortcuts-panel" id="shortcuts-panel" role="region" aria-label="Keyboard Shortcuts">
+          <div class="panel-header" style="margin-bottom: 10px;">
+            <div class="panel-user-meta">
+              <span class="user-role-badge">CHEATSHEET</span>
+              <span class="user-id">SHORTCUTS</span>
+            </div>
+            <span class="font-mono" style="font-size: 0.7rem; color: var(--text-tertiary); font-weight: 700;">KEYBOARD</span>
+          </div>
+
+          <div class="shortcuts-group">
+            <div class="shortcuts-group-title">NAVIGATION &amp; SUITE</div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Cycle Sub-Pages (x | y | z)</span>
+              <span class="shortcut-keys"><kbd>Tab</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Cycle Sub-Pages (Reverse)</span>
+              <span class="shortcut-keys"><kbd>Shift</kbd>+<kbd>Tab</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Switch Guide &hArr; Index</span>
+              <span class="shortcut-keys"><kbd>Hold Tab</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Step Section Directly</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Scroll Page Smoothly</span>
+              <span class="shortcut-keys"><kbd>&darr;</kbd> / <kbd>&uarr;</kbd> / <kbd>J</kbd> / <kbd>K</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Directory Tree Drawer</span>
+              <span class="shortcut-keys"><kbd>Space</kbd> / <kbd>T</kbd></span>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="shortcuts-group">
+            <div class="shortcuts-group-title">PANELS &amp; SETTINGS</div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Account Dossier</span>
+              <span class="shortcut-keys"><kbd>[</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Display Settings</span>
+              <span class="shortcut-keys"><kbd>]</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Shortcuts Panel</span>
+              <span class="shortcut-keys"><kbd>?</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Close Open Overlays</span>
+              <span class="shortcut-keys"><kbd>Esc</kbd></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 1. ACCOUNT BUTTON & HOVER PANEL -->
       <div class="panel-trigger-wrapper" id="account-wrapper">
         <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier ( [ )">

@@ -287,15 +287,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial highlight of active page
   highlightTreeNode(activeNodeIdx);
 
-  // ================= 3. TOP RIGHT ACCOUNT & SETTINGS PANELS =================
+  // ================= 3. TOP RIGHT SHORTCUTS, ACCOUNT & SETTINGS PANELS =================
+  const shortcutsWrapper = document.getElementById("shortcuts-wrapper");
+  const shortcutsBtn = document.getElementById("shortcuts-btn");
   const accountWrapper = document.getElementById("account-wrapper");
   const accountBtn = document.getElementById("account-btn");
   const settingsWrapper = document.getElementById("settings-wrapper");
   const settingsBtn = document.getElementById("settings-btn");
 
+  if (shortcutsBtn) {
+    shortcutsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (accountWrapper) accountWrapper.classList.remove("is-open");
+      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+      if (shortcutsWrapper) shortcutsWrapper.classList.toggle("is-open");
+    });
+  }
+
   if (accountBtn) {
     accountBtn.addEventListener("click", (e) => {
       e.stopPropagation();
+      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.toggle("is-open");
     });
@@ -304,12 +316,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (settingsBtn) {
     settingsBtn.addEventListener("click", (e) => {
       e.stopPropagation();
+      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.toggle("is-open");
     });
   }
 
   document.addEventListener("click", (e) => {
+    if (shortcutsWrapper && !shortcutsWrapper.contains(e.target)) {
+      shortcutsWrapper.classList.remove("is-open");
+    }
     if (accountWrapper && !accountWrapper.contains(e.target)) {
       accountWrapper.classList.remove("is-open");
     }
@@ -378,19 +394,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. "]" toggles Settings
     if (e.key === "]") {
       e.preventDefault();
+      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.toggle("is-open");
       return;
     }
 
-    // 4. "Space" opens/closes Directory Tree
+    // 4. "?" toggles Keyboard Shortcuts Panel
+    if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+      e.preventDefault();
+      if (accountWrapper) accountWrapper.classList.remove("is-open");
+      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+      if (shortcutsWrapper) shortcutsWrapper.classList.toggle("is-open");
+      return;
+    }
+
+    // 5. "Space" opens/closes Directory Tree
     if (e.code === "Space" || e.key === " " || e.key === "t" || e.key === "T") {
       e.preventDefault();
       toggleTree();
       return;
     }
 
-    // 5. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree
+    // 6. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree
     if ((e.ctrlKey || e.metaKey) && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       closeTreeExplicitly(); // Guarantee directory tree is NOT shown
@@ -424,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 6. Normal Arrow Up / Down (and j / k): Move / scroll page with zero delay
+    // 7. Normal Arrow Up / Down (and j / k): Move / scroll page with zero delay
     if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
       e.preventDefault();
       window.scrollBy({ top: 90, behavior: "auto" });
@@ -437,15 +463,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 7. Enter inside open tree navigates to current node
+    // 8. Enter inside open tree navigates to current node
     if (e.key === "Enter" && isTreeCurrentlyOpen()) {
       e.preventDefault();
       navigateToNode(currentSubIndex);
       return;
     }
 
-    // 6. Escape closes all open panels, menus, and directory tree
+    // 9. Escape closes all open panels, menus, and directory tree
     if (e.key === "Escape") {
+      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       closeTreeExplicitly();
