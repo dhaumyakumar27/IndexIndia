@@ -2717,12 +2717,14 @@ body.theme-dark .doubt-pill-key {
 
 /* Body */
 .doubt-tile-body {
-  padding: 13px 15px;
+  padding: 13px 15px 15px;
   display: flex;
   flex-direction: column;
   gap: 11px;
   overflow-y: auto;
   flex: 1;
+  border-bottom-left-radius: 9px;
+  border-bottom-right-radius: 9px;
 }
 
 /* Input Row */
@@ -2936,16 +2938,6 @@ body.theme-dark .doubt-pill-key {
 .doubt-time-clock {
   font-size: 0.68rem;
   line-height: 1;
-}
-
-.doubt-device-tag {
-  background: var(--border-subtle);
-  color: var(--text-tertiary);
-  font-size: 0.55rem;
-  padding: 1px 4px;
-  border-radius: 2px;
-  letter-spacing: 0.04em;
-  font-weight: 700;
 }
 
 .doubt-item-del-btn {
@@ -3391,99 +3383,7 @@ body.theme-light .doubt-web-enrichment {
   background: rgba(0, 168, 150, 0.09);
 }
 
-/* Footer */
-.doubt-tile-footer {
-  padding: 8px 14px;
-  background: var(--bg-surface-subtle);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom-left-radius: 9px;
-  border-bottom-right-radius: 9px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
 
-.doubt-footer-ddg-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.doubt-footer-ddg-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.16s ease;
-  line-height: 1.2;
-}
-
-.doubt-footer-ddg-ai {
-  background: rgba(222, 88, 51, 0.12);
-  border: 1px solid rgba(222, 88, 51, 0.35);
-  color: #ff7043;
-}
-
-.doubt-footer-ddg-ai:hover {
-  background: rgba(222, 88, 51, 0.22);
-  border-color: #ff8a65;
-  color: #ffab91;
-  transform: translateY(-1px);
-}
-
-body.theme-light .doubt-footer-ddg-ai {
-  background: rgba(222, 88, 51, 0.08);
-  border: 1px solid rgba(222, 88, 51, 0.3);
-  color: #c8411b;
-}
-
-body.theme-light .doubt-footer-ddg-ai:hover {
-  background: rgba(222, 88, 51, 0.16);
-  border-color: #c8411b;
-  color: #b03410;
-}
-
-.doubt-footer-ddg-web {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-}
-
-.doubt-footer-ddg-web:hover {
-  background: var(--bg-surface-subtle);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-  transform: translateY(-1px);
-}
-
-.doubt-footer-ddg-btn .ddg-icon {
-  font-size: 0.72rem;
-  line-height: 1;
-}
-
-.doubt-footer-ddg-btn .ddg-arrow {
-  font-size: 0.6rem;
-  opacity: 0.75;
-}
-
-.doubt-footer-engine {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--status-optimal);
-  font-weight: 600;
-}
 
 /* Mobile Responsiveness */
 @media (max-width: 640px) {

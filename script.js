@@ -1989,7 +1989,12 @@ document.addEventListener("DOMContentLoaded", () => {
           item.answerHtml.includes("LIVE SCREEN ANALYSIS") ||
           item.answerHtml.includes("doubt-output-section") ||
           item.answerHtml.includes("doubt-ddg-bar") ||
-          item.answerHtml.includes("doubt-plain-takeaway")
+          item.answerHtml.includes("doubt-plain-takeaway") ||
+          item.answerHtml.includes("TAKEAWAY:") ||
+          item.answerHtml.includes("DUCKDUCKGO ENGINE:") ||
+          item.answerHtml.includes("doubt-output-takeaway") ||
+          item.answerHtml.includes("Ask DuckDuckGo AI") ||
+          item.answerHtml.includes("Web Search")
         )) {
           item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
           healed = true;
@@ -2080,22 +2085,6 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="doubt-output-container" id="doubt-output-container"></div>
     </div>
-    <div class="doubt-tile-footer">
-      <div class="doubt-footer-ddg-actions">
-        <a href="https://duckduckgo.com/?q=DuckDuckGo+AI&ia=chat" target="_blank" rel="noopener noreferrer" class="doubt-footer-ddg-btn doubt-footer-ddg-ai" id="doubt-footer-ai-btn" title="Ask DuckDuckGo AI">
-          <span class="ddg-icon">🦆</span>
-          <span>Ask DuckDuckGo AI</span>
-          <span class="ddg-arrow">↗</span>
-        </a>
-        <a href="https://duckduckgo.com" target="_blank" rel="noopener noreferrer" class="doubt-footer-ddg-btn doubt-footer-ddg-web" id="doubt-footer-web-btn" title="Search on DuckDuckGo Web">
-          <span>Web Search</span>
-          <span class="ddg-arrow">↗</span>
-        </a>
-      </div>
-      <div class="doubt-footer-engine font-mono">
-        <span>💾 Local Device · <strong class="font-mono">v5.6</strong></span>
-      </div>
-    </div>
   `;
   document.body.appendChild(doubtTile);
 
@@ -2104,14 +2093,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const doubtAskBtn = doubtTile.querySelector("#doubt-ask-btn");
   const doubtChips = doubtTile.querySelectorAll(".doubt-chip-btn");
   const doubtOutput = doubtTile.querySelector("#doubt-output-container");
-
-  function updateFooterDdgLinks(query) {
-    const aiBtn = doubtTile.querySelector("#doubt-footer-ai-btn");
-    const webBtn = doubtTile.querySelector("#doubt-footer-web-btn");
-    const term = (query || (doubtTextInput ? doubtTextInput.value : "") || (currentDoubtContext ? currentDoubtContext.title : "") || "IndexIndia").trim();
-    if (aiBtn) aiBtn.href = `https://duckduckgo.com/?q=${encodeURIComponent(term)}&ia=chat`;
-    if (webBtn) webBtn.href = `https://duckduckgo.com/?q=${encodeURIComponent(term)}`;
-  }
 
   function escapeHtml(str) {
     if (!str) return "";
@@ -2367,7 +2348,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="doubt-history-time font-mono">
               <span class="doubt-time-clock">🕒</span>
               <span>${escapeHtml(item.exactTimestamp)}</span>
-              <span class="doubt-device-tag">LOCAL DEVICE</span>
             </div>
             <button type="button" class="doubt-item-del-btn" title="Delete this entry" data-id="${item.id}">&times;</button>
           </div>
@@ -2517,7 +2497,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (doubtTile) {
         doubtTile.classList.add("is-open");
       }
-      updateFooterDdgLinks();
 
       if (activeDoubtMode === "doubts") {
         renderDoubtsView();
@@ -2608,7 +2587,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const currentHistory = getLocalDoubtsHistory();
         const updatedHistory = [newRecord, ...currentHistory];
         saveLocalDoubtsHistory(updatedHistory);
-        updateFooterDdgLinks(trimmed);
 
         if (doubtTextInput) doubtTextInput.value = "";
         renderDoubtsView();
@@ -2638,10 +2616,6 @@ document.addEventListener("DOMContentLoaded", () => {
   doubtAskBtn.addEventListener("click", () => {
     const q = doubtTextInput ? doubtTextInput.value : "";
     askDoubt(q);
-  });
-
-  doubtTextInput.addEventListener("input", () => {
-    updateFooterDdgLinks(doubtTextInput.value);
   });
 
   doubtTextInput.addEventListener("keydown", (e) => {
