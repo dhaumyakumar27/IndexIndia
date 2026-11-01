@@ -43,7 +43,7 @@
 
   /* Spacing */
   --nav-height: 56px;
-  --rail-width: 48px;
+  --rail-width: 0px;
 
   /* Technical Blueprint Grid Pattern */
   --grid-line-color: rgba(0, 0, 0, 0.045);
@@ -795,23 +795,24 @@ body.theme-dark .dropdown-item:hover {
   left: 0;
   top: var(--nav-height);
   bottom: 0;
-  width: 58px;
+  width: 0;
   z-index: 200;
-  pointer-events: auto;
+  pointer-events: none;
   transition: width 0.2s ease;
 }
 
-/* Hover or Pinned expansion: width expands to 380px so mouse can move freely without flicker */
-.rail-navigator:hover,
+/* Explicitly opened or pinned expansion */
 .rail-navigator.is-open,
 .rail-navigator.is-pinned {
   width: 380px;
+  pointer-events: auto;
 }
 
-/* Force-closed state: Space bar or Esc explicitly closes tree even if cursor is hovering rail */
+/* Force-closed state */
 .rail-navigator.is-closed,
 .rail-navigator.is-closed:hover {
-  width: 58px !important;
+  width: 0 !important;
+  pointer-events: none !important;
 }
 
 .rail-navigator.is-closed .rail-tree-panel,
@@ -822,46 +823,11 @@ body.theme-dark .dropdown-item:hover {
   pointer-events: none !important;
 }
 
-.rail-navigator.is-closed .rail-track,
-.rail-navigator.is-closed:hover .rail-track {
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: translateX(0) !important;
-  pointer-events: auto !important;
-}
-
 /* ==========================================================================
-   1. SCROLL LINES (Normal Mode: Left Margin Ruler Ticks)
+   1. SCROLL LINES (Removed per user request)
    ========================================================================== */
 .rail-track {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 58px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 0;
-  cursor: pointer;
-  box-sizing: border-box;
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
-  pointer-events: auto;
-}
-
-/* Hide scroll lines when navigator is hovered or pinned */
-.rail-navigator:hover .rail-track,
-.rail-navigator.is-open .rail-track,
-.rail-navigator.is-pinned .rail-track,
-.rail-track.is-hidden {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(-14px);
-  pointer-events: none;
+  display: none !important;
 }
 
 /* Substantial, visible, high-contrast scroll lines */
@@ -1402,7 +1368,7 @@ body.theme-dark .story-act-divider {
    CONTENT AREA (Clean layout — no big box border)
    ========================================================================== */
 .main-viewport-wrapper {
-  padding: 24px 40px 60px calc(var(--rail-width) + 32px);
+  padding: 24px 40px 60px 40px;
   max-width: 1200px;
   margin: 0 auto;
 }
