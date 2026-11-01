@@ -648,13 +648,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // 1. Enter your Project URL in SUPABASE_CONFIG.url
   // 2. Enter your "anon" "public" key in SUPABASE_CONFIG.anonKey
   // 3. Run the SQL table migration snippet in Supabase SQL editor
-  // Until configured, this automatically operates with 100% zero-friction local storage.
   const SUPABASE_CONFIG = {
-    url: "",        // e.g. "https://abcdefghijklmn.supabase.co"
-    anonKey: "",    // e.g. "eyJhbGciOi..."
+    url: "https://hssphsykrgyvejxfkfin.supabase.co",
+    anonKey: "sb_publishable_PwCnO8oI58ESwGGwtLgsQw_vZ9o05_n",
     tableName: "forum_messages",
     retentionDays: 30
   };
+
+  function getSupabaseBaseUrl() {
+    return (SUPABASE_CONFIG.url || "").replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+  }
 
   function getIndianStandardTimeNow() {
     return new Date().toLocaleTimeString("en-GB", {
@@ -798,8 +801,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isSupabaseLive) {
       try {
+        const base = getSupabaseBaseUrl();
         const cutoffISO = new Date(cutoffMs).toISOString();
-        const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}?page_id=eq.${encodeURIComponent(pageId)}&created_at=gte.${cutoffISO}&order=created_at.desc&limit=50`;
+        const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}?page_id=eq.${encodeURIComponent(pageId)}&created_at=gte.${cutoffISO}&order=created_at.desc&limit=50`;
         const res = await fetch(endpoint, {
           headers: {
             "apikey": SUPABASE_CONFIG.anonKey,
@@ -841,7 +845,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isSupabaseLive) {
       try {
-        const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}`;
+        const base = getSupabaseBaseUrl();
+        const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}`;
         const res = await fetch(endpoint, {
           method: "POST",
           headers: {
