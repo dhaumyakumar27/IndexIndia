@@ -64,35 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let railLeaveTimer = null;
   let pageScrollAnim = null;
 
-  // Controlled, elegant smooth scroll physics
-  function smoothScrollTo(targetY, minDuration = 500, maxDuration = 850) {
-    if (pageScrollAnim) cancelAnimationFrame(pageScrollAnim);
-
-    const startY = window.scrollY;
-    const distance = targetY - startY;
-    if (Math.abs(distance) < 4) return;
-
-    // Adjust duration proportionally: minimum 500ms, max 850ms
-    const adjustedDuration = Math.min(Math.max(Math.abs(distance) * 0.28, minDuration), maxDuration);
-    const startTime = performance.now();
-
-    function step(currentTime) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / adjustedDuration, 1);
-
-      // Ease out cubic: starts briskly and decelerates gently to a soft stop
-      const ease = 1 - Math.pow(1 - progress, 3);
-      window.scrollTo(0, startY + distance * ease);
-
-      if (progress < 1) {
-        pageScrollAnim = requestAnimationFrame(step);
-      } else {
-        pageScrollAnim = null;
-      }
-    }
-
-    pageScrollAnim = requestAnimationFrame(step);
-  }
+  let isDirectNavigating = false;
+  let directNavTimer = null;
 
   function updateTreeTelemetryUI() {
     if (railTreeStatus && treeNodes.length > 0) {
@@ -110,81 +83,82 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function selectTreeNode(node, shouldScroll = true) {
-    if (!node) return;
-    treeNodes.forEach((n) => n.classList.remove("active"));
-    node.classList.add("active");
+  function isTreeCurrentlyOpen() {
+    if (!railNavigator) return false;
+    if (railNavigator.classList.contains("is-closed")) return false;
+    return (
+      railNavigator.classList.contains("is-open") ||
+      railNavigator.classList.contains("is-pinned") ||
+      Boolean(railTreePanel && railTreePanel.classList.contains("is-open")) ||
+      railNavigator.matches(":hover")
+    );
+  }
 
-    const index = parseInt(node.getAttribute("data-index"), 10);
-    if (!isNaN(index)) {
-      currentSubIndex = index;
+  function openTreeExplicitly(pin = true) {
+    isPinned = pin;
+    if (railLeaveTimer) clearTimeout(railLeaveTimer);
+
+    if (railNavigator) {
+      railNavigator.classList.remove("is-closed");
+      railNavigator.classList.add("is-open");
+      if (isPinned) railNavigator.classList.add("is-pinned");
     }
+    if (railTrack) railTrack.classList.add("is-hidden");
+    if (railTreePanel) railTreePanel.classList.add("is-open");
 
-    // Keep Left Rail reference tick synchronized
-    if (tickMarks.length > 0) {
-      const activeTickIdx = Math.round(
-        (currentSubIndex / Math.max(treeNodes.length - 1, 1)) * (tickMarks.length - 1)
-      );
-      tickMarks.forEach((tick, i) => {
-        tick.classList.toggle("active", i === activeTickIdx);
-      });
+    if (btnPinTree) {
+      btnPinTree.classList.toggle("is-active", isPinned);
+      btnPinTree.setAttribute("aria-pressed", isPinned ? "true" : "false");
     }
-
-    // Align tree panel smoothly to selected node
-    if (shouldScroll && treeContentScroll) {
-      const nodeRect = node.getBoundingClientRect();
-      const containerRect = treeContentScroll.getBoundingClientRect();
-      const currentScroll = treeContentScroll.scrollTop;
-      const relativeTop = nodeRect.top - containerRect.top + currentScroll;
-      const targetTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
-      treeContentScroll.scrollTop = targetTop;
-    }
-
     updateTreeTelemetryUI();
   }
 
-  // Navigate to corresponding section with calibrated smooth scrolling
-  function navigateToSection(ratio) {
-    const activeView = document.querySelector(".content-view.active");
-    if (!activeView) return;
+  function closeTreeExplicitly() {
+    isPinned = false;
+    isUserScrubbing = false;
+    if (railLeaveTimer) clearTimeout(railLeaveTimer);
 
-    const sections = Array.from(
-      activeView.querySelectorAll("article[id], section[id]")
-    );
-
-    if (sections.length > 0) {
-      const targetIdx = Math.min(
-        Math.floor(ratio * sections.length),
-        sections.length - 1
-      );
-      const targetSection = sections[targetIdx];
-      if (targetSection) {
-        const navOffset = 64; // Keep navbar and section title nicely framed
-        const targetY = targetSection.getBoundingClientRect().top + window.scrollY - navOffset;
-        smoothScrollTo(Math.max(0, targetY));
-        if (targetSection.id) {
-          history.replaceState(null, null, `#${targetSection.id}`);
-        }
-        return;
-      }
+    if (railNavigator) {
+      railNavigator.classList.remove("is-open", "is-pinned");
+      railNavigator.classList.add("is-closed");
     }
+    if (railTrack) railTrack.classList.remove("is-hidden");
+    if (railTreePanel) railTreePanel.classList.remove("is-open");
 
-    // Fallback if no specific section IDs
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    smoothScrollTo(Math.max(0, ratio * docHeight));
+    if (btnPinTree) {
+      btnPinTree.classList.remove("is-active");
+      btnPinTree.setAttribute("aria-pressed", "false");
+    }
   }
 
-  // Open / Close Tree Flyout helpers
+  function toggleTree(forceState) {
+    let shouldOpen;
+    if (typeof forceState === "boolean") {
+      shouldOpen = forceState;
+    } else {
+      shouldOpen = !isTreeCurrentlyOpen();
+    }
+
+    if (shouldOpen) {
+      openTreeExplicitly(true);
+    } else {
+      closeTreeExplicitly();
+    }
+  }
+
   function openRailPanel() {
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
-    if (railNavigator) railNavigator.classList.add("is-open");
+    if (railNavigator) {
+      railNavigator.classList.remove("is-closed");
+      railNavigator.classList.add("is-open");
+    }
     if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
     updateTreeTelemetryUI();
   }
 
-  function closeRailPanel(delay = 350) {
-    if (isPinned) return; // Never auto-close when pinned
+  function closeRailPanel(delay = 300) {
+    if (isPinned) return;
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
     railLeaveTimer = setTimeout(() => {
       const isNavHovered = railNavigator && railNavigator.matches(":hover");
@@ -198,50 +172,104 @@ document.addEventListener("DOMContentLoaded", () => {
     }, delay);
   }
 
-  function togglePinTree(forceState) {
-    isPinned = typeof forceState === "boolean" ? forceState : !isPinned;
-    if (railNavigator) {
-      railNavigator.classList.toggle("is-pinned", isPinned);
-      if (isPinned) {
-        railNavigator.classList.add("is-open");
-        if (railTrack) railTrack.classList.add("is-hidden");
-        if (railTreePanel) railTreePanel.classList.add("is-open");
+  // Instant navigation to section by tree node index (removes delayed crawl animation)
+  function navigateToNodeIndex(index) {
+    if (treeNodes.length === 0) return;
+    const targetIdx = Math.min(Math.max(0, index), treeNodes.length - 1);
+    const targetNode = treeNodes[targetIdx];
+    if (!targetNode) return;
+
+    // 1. Lock direct navigation to prevent intermediate scroll crawling
+    isDirectNavigating = true;
+    if (directNavTimer) clearTimeout(directNavTimer);
+    directNavTimer = setTimeout(() => {
+      isDirectNavigating = false;
+    }, 80);
+
+    // 2. Instantly update active node in tree (no intermediate animation)
+    treeNodes.forEach((n) => n.classList.remove("active"));
+    targetNode.classList.add("active");
+    currentSubIndex = targetIdx;
+
+    // 3. Keep Left Rail ticks in sync instantly
+    if (tickMarks.length > 0) {
+      const activeTickIdx = Math.round(
+        (targetIdx / Math.max(treeNodes.length - 1, 1)) * (tickMarks.length - 1)
+      );
+      tickMarks.forEach((tick, i) => {
+        tick.classList.toggle("active", i === activeTickIdx);
+      });
+    }
+
+    // 4. Instantly center the tree scroll view on the target node
+    if (treeContentScroll) {
+      const nodeRect = targetNode.getBoundingClientRect();
+      const containerRect = treeContentScroll.getBoundingClientRect();
+      const currentScroll = treeContentScroll.scrollTop;
+      const relativeTop = nodeRect.top - containerRect.top + currentScroll;
+      const targetTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
+      treeContentScroll.scrollTop = targetTop;
+    }
+
+    updateTreeTelemetryUI();
+
+    // 5. Jump page directly to the corresponding section (instantaneous, no delay)
+    if (pageScrollAnim) cancelAnimationFrame(pageScrollAnim);
+
+    const activeView = document.querySelector(".content-view.active");
+    if (activeView) {
+      const sections = Array.from(activeView.querySelectorAll("article[id], section[id]"));
+      if (sections.length > 0) {
+        const ratio = targetIdx / Math.max(treeNodes.length - 1, 1);
+        const secIdx = Math.min(Math.floor(ratio * sections.length), sections.length - 1);
+        const targetSection = sections[secIdx];
+        if (targetSection) {
+          const navOffset = 64;
+          const targetY = targetSection.getBoundingClientRect().top + window.scrollY - navOffset;
+          window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
+          if (targetSection.id) {
+            history.replaceState(null, null, `#${targetSection.id}`);
+          }
+          return;
+        }
       }
     }
-    if (btnPinTree) {
-      btnPinTree.classList.toggle("is-active", isPinned);
-      btnPinTree.setAttribute("aria-pressed", isPinned ? "true" : "false");
-    }
-    if (!isPinned) {
-      closeRailPanel(120);
-    }
+
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const ratio = targetIdx / Math.max(treeNodes.length - 1, 1);
+    window.scrollTo({ top: Math.max(0, ratio * docHeight), behavior: "auto" });
+  }
+
+  function navigateToSection(ratio) {
+    const targetIdx = Math.round(ratio * (treeNodes.length - 1));
+    navigateToNodeIndex(targetIdx);
   }
 
   if (btnPinTree) {
     btnPinTree.addEventListener("click", (e) => {
       e.stopPropagation();
-      togglePinTree();
+      toggleTree();
     });
   }
 
   if (btnCloseTree) {
     btnCloseTree.addEventListener("click", (e) => {
       e.stopPropagation();
-      togglePinTree(false);
-      if (railNavigator) railNavigator.classList.remove("is-open", "is-pinned");
-      if (railTrack) railTrack.classList.remove("is-hidden");
-      if (railTreePanel) railTreePanel.classList.remove("is-open");
+      closeTreeExplicitly();
     });
   }
 
   if (railNavigator) {
     railNavigator.addEventListener("mouseenter", () => {
-      isUserScrubbing = true;
+      railNavigator.classList.remove("is-closed");
       openRailPanel();
     });
 
     railNavigator.addEventListener("mouseleave", () => {
-      closeRailPanel(350);
+      railNavigator.classList.remove("is-closed");
+      if (!isPinned) {
+        closeRailPanel(250);
+      }
     });
 
     // Trackpad swipe & mouse wheel handling (proportional stepping, decoupled from cursor hover)
@@ -250,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       isUserScrubbing = true;
       isWheeling = true;
-      openRailPanel();
+      openTreeExplicitly(false);
 
       // Suppress stationary mouseenter events during swipe
       if (wheelCooldownTimer) clearTimeout(wheelCooldownTimer);
@@ -265,23 +293,32 @@ document.addEventListener("DOMContentLoaded", () => {
         wheelAccumulator -= steps * WHEEL_SENSITIVITY;
         currentSubIndex = Math.min(Math.max(currentSubIndex + steps, 0), treeNodes.length - 1);
         const targetNode = treeNodes[currentSubIndex];
-        selectTreeNode(targetNode, true);
+        if (targetNode) {
+          treeNodes.forEach((n) => n.classList.remove("active"));
+          targetNode.classList.add("active");
+          if (treeContentScroll) {
+            const nodeRect = targetNode.getBoundingClientRect();
+            const containerRect = treeContentScroll.getBoundingClientRect();
+            const currentScroll = treeContentScroll.scrollTop;
+            const relativeTop = nodeRect.top - containerRect.top + currentScroll;
+            treeContentScroll.scrollTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
+          }
+          updateTreeTelemetryUI();
+        }
       }
 
       // Debounced release to navigate main document to swiped section
       if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
       wheelReleaseTimer = setTimeout(() => {
-        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
-        navigateToSection(ratio);
+        navigateToNodeIndex(currentSubIndex);
         isUserScrubbing = false;
-      }, 350);
+      }, 250);
     }, { passive: false });
   }
 
   // Direct click / hover listeners on individual tick marks
   if (railTrack) {
     tickMarks.forEach((tick, i) => {
-      // Hovering a tick opens the rail panel without altering the active scrolled section
       tick.addEventListener("mouseenter", () => {
         openRailPanel();
       });
@@ -296,16 +333,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (railTreePanel) {
     railTreePanel.addEventListener("mouseenter", openRailPanel);
-    railTreePanel.addEventListener("mouseleave", () => closeRailPanel(350));
+    railTreePanel.addEventListener("mouseleave", () => closeRailPanel(250));
 
     // Cursor hover DOES NOT highlight or bold the section.
-    // Only the scrolled section is in bold text.
+    // Clicking any node navigates directly and instantly to that section without delay animation.
     treeNodes.forEach((node, i) => {
-      // Clicking any node navigates directly to that section
       node.addEventListener("click", (e) => {
         e.stopPropagation();
-        const ratio = i / Math.max(treeNodes.length - 1, 1);
-        navigateToSection(ratio);
+        navigateToNodeIndex(i);
       });
     });
   }
@@ -317,8 +352,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const clampedY = Math.min(Math.max(clientY, rect.top), rect.bottom);
     const ratio = (clampedY - rect.top) / Math.max(rect.height, 1);
     const targetIdx = Math.min(Math.round(ratio * (treeNodes.length - 1)), treeNodes.length - 1);
-    if (treeNodes[targetIdx]) {
-      selectTreeNode(treeNodes[targetIdx], true);
+    if (treeNodes[targetIdx] && currentSubIndex !== targetIdx) {
+      treeNodes.forEach((n) => n.classList.remove("active"));
+      treeNodes[targetIdx].classList.add("active");
+      currentSubIndex = targetIdx;
+      updateTreeTelemetryUI();
     }
   }
 
@@ -344,9 +382,8 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           treeScrubStrip.releasePointerCapture(e.pointerId);
         } catch (err) {}
-        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
-        navigateToSection(ratio);
-        closeRailPanel(400);
+        navigateToNodeIndex(currentSubIndex);
+        closeRailPanel(300);
       }
     });
 
@@ -418,46 +455,32 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 4. "Space" opens/toggles Directory Tree (also 'T' alias)
+    // 4. "Space" opens/closes Directory Tree (also 'T' alias)
     if (e.code === "Space" || e.key === " " || e.key === "t" || e.key === "T") {
       e.preventDefault();
-      togglePinTree();
+      toggleTree();
       return;
     }
 
-    // 5. ArrowDown / ArrowUp (and j/k aliases) navigate sections and glide document
-    if (e.key === "ArrowDown" || e.key === "j") {
+    // 5. Up / Down arrow keys scroll the page naturally without hijacking directory tree sections.
+    // Vim navigation: j / k scrolls page cleanly down / up
+    if (e.key === "j" || e.key === "J") {
       e.preventDefault();
-      if (!railNavigator?.classList.contains("is-open") && !isPinned) {
-        openRailPanel();
-      }
-      currentSubIndex = Math.min(currentSubIndex + 1, treeNodes.length - 1);
-      selectTreeNode(treeNodes[currentSubIndex], true);
-      const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
-      navigateToSection(ratio);
+      window.scrollBy({ top: 90, behavior: "auto" });
       return;
     }
 
-    if (e.key === "ArrowUp" || e.key === "k") {
+    if (e.key === "k" || e.key === "K") {
       e.preventDefault();
-      if (!railNavigator?.classList.contains("is-open") && !isPinned) {
-        openRailPanel();
-      }
-      currentSubIndex = Math.max(currentSubIndex - 1, 0);
-      selectTreeNode(treeNodes[currentSubIndex], true);
-      const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
-      navigateToSection(ratio);
+      window.scrollBy({ top: -90, behavior: "auto" });
       return;
     }
 
-    // 6. Escape closes all open panels, menus, and unpins drawer
+    // 6. Escape closes all open panels, menus, and directory tree
     if (e.key === "Escape") {
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-      togglePinTree(false);
-      if (railNavigator) railNavigator.classList.remove("is-open", "is-pinned");
-      if (railTrack) railTrack.classList.remove("is-hidden");
-      if (railTreePanel) railTreePanel.classList.remove("is-open");
+      closeTreeExplicitly();
       return;
     }
   });
@@ -663,7 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ================= 5. SCROLLSPY & LEFT RAIL TELEMETRY SYNC =================
   const quickNavLinks = document.querySelectorAll(".quick-nav-pill");
 
-  // Smooth scroll click handler for quick nav pills
+  // Instant navigation click handler for quick nav pills (no delayed crawl animation)
   quickNavLinks.forEach((pill) => {
     pill.addEventListener("click", (e) => {
       const targetId = pill.getAttribute("href");
@@ -673,15 +696,39 @@ document.addEventListener("DOMContentLoaded", () => {
           e.preventDefault();
           const navOffset = 64;
           const targetY = targetEl.getBoundingClientRect().top + window.scrollY - navOffset;
-          smoothScrollTo(Math.max(0, targetY));
+          
+          isDirectNavigating = true;
+          if (directNavTimer) clearTimeout(directNavTimer);
+          directNavTimer = setTimeout(() => {
+            isDirectNavigating = false;
+          }, 80);
+
+          window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
           history.replaceState(null, null, targetId);
+
+          quickNavLinks.forEach((p) => p.classList.toggle("active", p === pill));
+
+          const activeView = document.querySelector(".content-view.active");
+          if (activeView) {
+            const sections = Array.from(activeView.querySelectorAll("section[id], article[id]"));
+            const secIdx = sections.indexOf(targetEl);
+            if (secIdx !== -1) {
+              const nodeIdx = Math.round((secIdx / Math.max(sections.length - 1, 1)) * (treeNodes.length - 1));
+              if (treeNodes[nodeIdx]) {
+                treeNodes.forEach((n) => n.classList.remove("active"));
+                treeNodes[nodeIdx].classList.add("active");
+                currentSubIndex = nodeIdx;
+                updateTreeTelemetryUI();
+              }
+            }
+          }
         }
       }
     });
   });
 
   function updateScrollTelemetry() {
-    if (isUserScrubbing) return;
+    if (isUserScrubbing || isDirectNavigating) return;
 
     const scrollY = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -696,11 +743,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Keep tree active node in sync with scroll position (always bold the scrolled section)
       const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
-      if (treeNodes[nodeIdx]) {
+      if (treeNodes[nodeIdx] && currentSubIndex !== nodeIdx) {
         treeNodes.forEach((n) => n.classList.remove("active"));
         treeNodes[nodeIdx].classList.add("active");
         currentSubIndex = nodeIdx;
         updateTreeTelemetryUI();
+
+        // If drawer is currently open, keep active node visible in tree without smooth scroll jumps
+        if (railTreePanel && railTreePanel.classList.contains("is-open") && treeContentScroll) {
+          const activeNode = treeNodes[nodeIdx];
+          const nodeRect = activeNode.getBoundingClientRect();
+          const containerRect = treeContentScroll.getBoundingClientRect();
+          if (nodeRect.top < containerRect.top || nodeRect.bottom > containerRect.bottom) {
+            const currentScroll = treeContentScroll.scrollTop;
+            const relativeTop = nodeRect.top - containerRect.top + currentScroll;
+            treeContentScroll.scrollTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
+          }
+        }
       }
     }
 

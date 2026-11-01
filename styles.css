@@ -94,7 +94,7 @@ body.theme-dark {
 html {
   font-size: 15px;
   line-height: 1.55;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-padding-top: calc(var(--nav-height) + 54px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -645,6 +645,28 @@ body.theme-dark .dropdown-item:hover {
   width: 380px;
 }
 
+/* Force-closed state: Space bar or Esc explicitly closes tree even if cursor is hovering rail */
+.rail-navigator.is-closed,
+.rail-navigator.is-closed:hover {
+  width: 58px !important;
+}
+
+.rail-navigator.is-closed .rail-tree-panel,
+.rail-navigator.is-closed:hover .rail-tree-panel {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateX(-100%) !important;
+  pointer-events: none !important;
+}
+
+.rail-navigator.is-closed .rail-track,
+.rail-navigator.is-closed:hover .rail-track {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateX(0) !important;
+  pointer-events: auto !important;
+}
+
 /* ==========================================================================
    1. SCROLL LINES (Normal Mode: Left Margin Ruler Ticks)
    ========================================================================== */
@@ -858,6 +880,7 @@ body.theme-dark .rail-header-btn.is-active {
   font-size: 0.88rem;
   line-height: 1.5;
   scrollbar-width: none;
+  scroll-behavior: auto !important;
 }
 
 .tree-content-scroll::-webkit-scrollbar {
@@ -915,7 +938,7 @@ body.theme-dark .tree-scrub-strip:hover .tree-scrub-indicator {
   border-radius: 4px;
   cursor: pointer;
   border-left: 3.5px solid transparent;
-  transition: background-color 0.12s ease, border-left 0.12s ease, color 0.12s ease, font-weight 0.1s ease;
+  transition: none !important;
   user-select: none;
   white-space: nowrap;
   font-family: inherit;
