@@ -511,6 +511,85 @@ document.addEventListener("DOMContentLoaded", () => {
     if (otherSuiteBtn) otherSuiteBtn.classList.remove("tab-hold-target");
   }
 
+  // ================= SMOOTH DELAYLESS KEYBOARD SCROLLING ENGINE =================
+  // Continuous 60fps/120fps motion with ZERO repeat delay when holding arrow keys.
+  // Uses integer pixel rounding (Math.trunc) to eliminate subpixel font rasterization jumping.
+  let smoothScrollRaf = null;
+  let activeArrowDirection = 0; // +1 = down, -1 = up, 0 = idle
+  let smoothVelocity = 0;
+  let isArrowHeld = false;
+  let lastFrameTime = 0;
+  let subPixelAccumulator = 0;
+
+  const MAX_CRUISE_SPEED = 9.5; // pixels per frame at 60fps (~570px/sec cruising speed)
+  const TAP_INITIAL_VELOCITY = 3.8; // gentle initial impulse on tap (~26-30px total displacement)
+  const ACCELERATION = 0.42; // smooth ramp-up to cruising speed while held (~250ms)
+  const FRICTION = 0.84; // silky ~120ms ease-out on key release
+
+  function cancelSmoothScrollImmediately() {
+    isArrowHeld = false;
+    smoothVelocity = 0;
+    activeArrowDirection = 0;
+    subPixelAccumulator = 0;
+    if (smoothScrollRaf) {
+      cancelAnimationFrame(smoothScrollRaf);
+      smoothScrollRaf = null;
+    }
+    lastFrameTime = 0;
+  }
+
+  function stepSmoothScroll(timestamp) {
+    const elapsed = lastFrameTime ? Math.min(timestamp - lastFrameTime, 32) : 16.667;
+    lastFrameTime = timestamp;
+    const timeScale = elapsed / 16.667; // Normalized to 60fps
+
+    if (isArrowHeld) {
+      if (smoothVelocity < MAX_CRUISE_SPEED) {
+        smoothVelocity = Math.min(MAX_CRUISE_SPEED, smoothVelocity + ACCELERATION * timeScale);
+      }
+    } else {
+      smoothVelocity *= Math.pow(FRICTION, timeScale);
+    }
+
+    if (smoothVelocity > 0.4) {
+      subPixelAccumulator += activeArrowDirection * smoothVelocity * timeScale;
+      const intStep = Math.trunc(subPixelAccumulator);
+
+      if (intStep !== 0) {
+        subPixelAccumulator -= intStep;
+        const prevScrollY = window.scrollY;
+        window.scrollBy(0, intStep);
+
+        // Stop if at top or bottom boundary
+        if (window.scrollY === prevScrollY) {
+          cancelSmoothScrollImmediately();
+          return;
+        }
+      }
+
+      smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
+    } else {
+      cancelSmoothScrollImmediately();
+    }
+  }
+
+  function startSmoothScroll(direction) {
+    activeArrowDirection = direction;
+    isArrowHeld = true;
+    if (smoothVelocity < TAP_INITIAL_VELOCITY) {
+      smoothVelocity = TAP_INITIAL_VELOCITY;
+    }
+    if (!smoothScrollRaf) {
+      lastFrameTime = 0;
+      subPixelAccumulator = 0;
+      smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
+    }
+  }
+
+  function stopSmoothScroll() {
+    isArrowHeld = false;
+  }
+
   document.addEventListener("keydown", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
@@ -654,14 +733,22 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 8. Enter inside open tree navigates to current node (strictly alone)
+    // 8. Normal Arrow Up / Down: Smooth delayless page scrolling (strictly alone, no modifiers)
+    // Instant 0ms start when holding, integer-pixel translation with zero subpixel font jumping
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && noModifiers) {
+      e.preventDefault();
+      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+
+    // 9. Enter inside open tree navigates to current node (strictly alone)
     if (e.key === "Enter" && noModifiers && isTreeCurrentlyOpen()) {
       e.preventDefault();
       navigateToNode(currentSubIndex);
       return;
     }
 
-    // 9. Escape closes all open panels, menus, and directory tree (strictly alone)
+    // 10. Escape closes all open panels, menus, and directory tree (strictly alone)
     if (e.key === "Escape" && noModifiers) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
@@ -673,6 +760,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keyup", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+
+    if (e.key === "ArrowDown" && activeArrowDirection === 1) {
+      stopSmoothScroll();
+    } else if (e.key === "ArrowUp" && activeArrowDirection === -1) {
+      stopSmoothScroll();
+    }
 
     if (e.key === "Tab") {
       // Must trigger if and only if NO modifier key (Ctrl, Shift, Alt, Meta) was pressed
@@ -716,7 +809,14 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("blur", () => {
     clearTabTimers();
     isTabLongPressTriggered = false;
+    cancelSmoothScrollImmediately();
   });
+
+  window.addEventListener("wheel", () => {
+    if (smoothScrollRaf) {
+      cancelSmoothScrollImmediately();
+    }
+  }, { passive: true });
 
   // ================= 5. THEME, FONT SIZE & FONT STYLE PERSISTENCE =================
   const btnFontSizeTrigger = document.getElementById("btn-font-size-trigger");

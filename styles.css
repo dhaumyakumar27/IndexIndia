@@ -94,7 +94,7 @@ body.theme-dark {
 html {
   font-size: 15px;
   line-height: 1.55;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-padding-top: calc(var(--nav-height) + 54px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
