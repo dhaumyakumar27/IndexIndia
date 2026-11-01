@@ -734,8 +734,8 @@ document.addEventListener("DOMContentLoaded", () => {
         message: message,
         created_at: createdAtISO
       };
-      current.unshift(newEntry);
-      const trimmed = current.slice(0, 100);
+      current.push(newEntry);
+      const trimmed = current.slice(-100);
       localStorage.setItem(`indexindian_forum_${pageId}`, JSON.stringify(trimmed));
       return newEntry;
     } catch (e) {
@@ -803,7 +803,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const base = getSupabaseBaseUrl();
         const cutoffISO = new Date(cutoffMs).toISOString();
-        const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}?page_id=eq.${encodeURIComponent(pageId)}&created_at=gte.${cutoffISO}&order=created_at.desc&limit=50`;
+        const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}?page_id=eq.${encodeURIComponent(pageId)}&created_at=gte.${cutoffISO}&order=created_at.asc&limit=100`;
         const res = await fetch(endpoint, {
           headers: {
             "apikey": SUPABASE_CONFIG.anonKey,
