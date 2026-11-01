@@ -750,12 +750,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 10. Escape closes all open panels, menus, and directory tree (strictly alone)
+    // 10. Shortcut 'D': Toggle AI Doubt Solver (strictly alone)
+    if ((e.key === "d" || e.key === "D") && noModifiers) {
+      e.preventDefault();
+      if (typeof toggleDoubtSolver === "function") {
+        toggleDoubtSolver();
+      }
+      return;
+    }
+
+    // 11. Escape closes all open panels, menus, directory tree, and Doubt Solver (strictly alone)
     if (e.key === "Escape" && noModifiers) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       closeTreeExplicitly();
+      if (typeof closeDoubtSolver === "function") {
+        closeDoubtSolver();
+      }
       return;
     }
   });
@@ -1420,4 +1432,419 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("forum-messages-list")) {
     loadForumMessages();
   }
+
+  // ================= 9. AI DOUBT SOLVER & INTELLIGENT EXPLAINER (100% Client-Side) =================
+  const FORENSIC_KNOWLEDGE_BASE = [
+    {
+      terms: ["promoter pledging", "pledge", "pledged shares", "encumbrance", "collateral"],
+      concept: "Promoters borrow debt from NBFCs or mutual funds by using their company equity as loan collateral.",
+      screenContext: "High pledging poses sudden solvency and control risk. If share prices fall below margin limits, lenders dump pledged shares onto the open market, triggering severe stock collapse.",
+      statutoryRule: "SEBI LODR Regulation 31 requires quarterly disclosure of all encumbrances. The Sovereign Index penalizes pledging above 15% and automatically excludes firms above 25%."
+    },
+    {
+      terms: ["related party transaction", "rpt", "related party", "transfer pricing", "siphoning", "unlisted entity"],
+      concept: "Commercial or financial contracts between a listed firm and entities owned by its promoters, key executives, or their relatives.",
+      screenContext: "Forensic audits flag RPTs as the primary vector for extracting corporate cash—via inflated consultancy fees, unbacked loans to private promoter firms, or below-market asset sales.",
+      statutoryRule: "Companies Act Section 188 & SEBI LODR Regulation 23 require prior Audit Committee approval. Material RPTs (>10% turnover) require minority shareholder approval where promoter votes are disqualified."
+    },
+    {
+      terms: ["auditor resignation", "auditor", "statutory audit", "qualified opinion", "preoccupation", "audit committee"],
+      concept: "An independent external audit firm quitting its statutory mandate before completing the standard 5-year appointment term.",
+      screenContext: "Abrupt auditor exits are the single highest correlated forensic red flag for corporate fraud, fabricated revenue, or restricted access to company books.",
+      statutoryRule: "Under SEBI Circular CIR/CFD/CMD1/114/2019, auditors must provide explicit forensic reasons for exit; resigning within 45 days of a quarter end mandates completing limited review first."
+    },
+    {
+      terms: ["board independence", "independent director", "board of directors", "director tenure", "woman director"],
+      concept: "Directors having zero pecuniary, commercial, or family ties with promoters or executive management.",
+      screenContext: "Independent boards act as the primary defense for minority public shareholders against promoter overreach and capital misallocation.",
+      statutoryRule: "SEBI LODR mandates at least 50% independent directors when the Chairman is an executive or promoter, alongside at least one independent woman director and 2-term (10-year) maximum caps."
+    },
+    {
+      terms: ["herfindahl", "hhi", "concentration", "sector cap", "weighting", "weights"],
+      concept: "The Herfindahl-Hirschman Index (HHI = sum of squared sector weights) quantitatively measures portfolio concentration and shock vulnerability.",
+      screenContext: "In India, unconstrained market-cap weighting leaves portfolios dangerously vulnerable to concentrated single-sector swings (e.g. banking >35%). The index enforces strict 25% sector caps.",
+      statutoryRule: "An HHI < 1,000 indicates a well-diversified sovereign benchmark; HHI > 1,800 denotes high concentration risk."
+    },
+    {
+      terms: ["quarterly rebalancing", "rebalance", "rebalancing", "turnover", "buffer", "effective date"],
+      concept: "Periodic re-calculation of constituent weights, inclusions, and exclusions on a disciplined quarterly timetable.",
+      screenContext: "Rebalancing prevents constituent drift while utilizing turnover buffer bands (+/- 2.5%) to minimize transaction friction and execution slippage.",
+      statutoryRule: "Index reconstitution takes place on the last trading day of March, June, September, and December based on 30-day Volume Weighted Average Price (VWAP)."
+    },
+    {
+      terms: ["cash flow", "cfo", "operating cash flow", "pat", "divergence", "revenue recognition"],
+      concept: "Operating Cash Flow (CFO) measures actual cash generated from operations, contrasting with accounting Net Profit (PAT).",
+      screenContext: "A persistent gap where PAT expands while CFO remains flat or negative signals artificial revenue booking, channel stuffing, or uncollectible receivables.",
+      statutoryRule: "Forensic governance mandates a minimum CFO/PAT ratio > 0.70 across 3-year rolling windows."
+    },
+    {
+      terms: ["contingent liabilities", "guarantees", "off balance sheet", "tax dispute", "litigation"],
+      concept: "Potential liabilities that may become actual obligations depending on future judicial or tax outcomes.",
+      screenContext: "Promoter-guaranteed corporate guarantees to speculative subsidiaries often precipitate sudden insolvency when subsidiary operations fail.",
+      statutoryRule: "Contingent liabilities exceeding 50% of net worth trigger an automatic governance rating downgrade."
+    },
+    {
+      terms: ["free float", "market cap", "public shareholding", "locked-in", "minimum public shareholding"],
+      concept: "Shares readily available for public trading, explicitly subtracting promoter stakes, government holdings, and locked employee equity.",
+      screenContext: "Free-float weighting ensures the benchmark mirrors true investable liquidity rather than un-tradable promoter wealth.",
+      statutoryRule: "SEBI mandates Minimum Public Shareholding (MPS) of 25% for all listed firms in India."
+    },
+    {
+      terms: ["working capital", "receivables", "debtor days", "inventory days", "dso"],
+      concept: "The operational liquidity cycle measuring days cash remains locked in inventory and unpaid customer invoices.",
+      screenContext: "A rapid expansion in DSO (Days Sales Outstanding) without revenue growth is the hallmark indicator of artificial distributor stocking.",
+      statutoryRule: "Forensic filters flag enterprises whose cash conversion cycles diverge by >40% from industry median peers."
+    }
+  ];
+
+  let currentDoubtContext = null;
+  let activeDoubtMode = "explain";
+
+  // Create UI elements
+  const doubtPill = document.createElement("div");
+  doubtPill.className = "doubt-selection-pill";
+  doubtPill.id = "doubt-selection-pill";
+  doubtPill.title = "Ask AI Doubt (Shortcut: D)";
+  doubtPill.innerHTML = `
+    <span class="doubt-pill-spark">✦</span>
+    <span>Explain</span>
+    <span class="doubt-pill-key">D</span>
+  `;
+  document.body.appendChild(doubtPill);
+
+  const doubtTile = document.createElement("aside");
+  doubtTile.className = "doubt-solver-tile";
+  doubtTile.id = "doubt-solver-tile";
+  doubtTile.setAttribute("role", "dialog");
+  doubtTile.setAttribute("aria-label", "AI Doubt Solver");
+  doubtTile.innerHTML = `
+    <div class="doubt-tile-header">
+      <div class="doubt-tile-brand">
+        <span class="doubt-tile-brand-icon">✦</span>
+        <span>DOUBT SOLVER</span>
+      </div>
+      <div class="doubt-tile-controls">
+        <span class="doubt-context-badge" id="doubt-context-badge">SECTION CONTEXT</span>
+        <button type="button" class="doubt-tile-close" id="doubt-tile-close" title="Close (Esc)">&times;</button>
+      </div>
+    </div>
+    <div class="doubt-tile-body">
+      <div class="doubt-context-card">
+        <span class="doubt-context-label">REFERENCED CONTEXT:</span>
+        <p class="doubt-context-snippet" id="doubt-context-snippet">Scanning visible screen...</p>
+      </div>
+      <div class="doubt-input-row">
+        <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask a doubt or press Enter to explain..." autocomplete="off">
+        <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Explain ↵</button>
+      </div>
+      <div class="doubt-chips-container" id="doubt-chips-container">
+        <button type="button" class="doubt-chip-btn active" data-mode="explain">💡 Plain English</button>
+        <button type="button" class="doubt-chip-btn" data-mode="keypoint">📊 Key Takeaway</button>
+        <button type="button" class="doubt-chip-btn" data-mode="regulatory">⚖️ SEBI &amp; Risk</button>
+        <button type="button" class="doubt-chip-btn" data-mode="formula">🧮 Math &amp; Metric</button>
+      </div>
+      <div class="doubt-output-container" id="doubt-output-container"></div>
+    </div>
+    <div class="doubt-tile-footer">
+      <div class="doubt-footer-shortcuts">
+        <span><kbd>D</kbd> toggle</span>
+        <span><kbd>Esc</kbd> close</span>
+        <span><kbd>Enter</kbd> ask</span>
+      </div>
+      <div class="doubt-footer-engine">
+        <span>⚡ 100% Client-Side Engine</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(doubtTile);
+
+  const doubtCloseBtn = doubtTile.querySelector("#doubt-tile-close");
+  const doubtContextBadge = doubtTile.querySelector("#doubt-context-badge");
+  const doubtContextSnippet = doubtTile.querySelector("#doubt-context-snippet");
+  const doubtTextInput = doubtTile.querySelector("#doubt-text-input");
+  const doubtAskBtn = doubtTile.querySelector("#doubt-ask-btn");
+  const doubtChips = doubtTile.querySelectorAll(".doubt-chip-btn");
+  const doubtOutput = doubtTile.querySelector("#doubt-output-container");
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function getVisibleScreenTarget() {
+    const selection = window.getSelection();
+    const selectedText = selection ? selection.toString().trim() : "";
+    if (selectedText.length >= 2) {
+      const parentSection = selection.anchorNode?.parentElement?.closest("section, div[id]");
+      const sectionTitle = parentSection?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "";
+      return {
+        type: "selection",
+        title: sectionTitle ? `SELECTION in ${sectionTitle}` : "SELECTED EXCERPT",
+        text: selectedText
+      };
+    }
+
+    let sectionEl = null;
+    if (treeNodes && treeNodes[currentSubIndex]) {
+      const href = treeNodes[currentSubIndex].getAttribute("href");
+      if (href && href.startsWith("#")) {
+        sectionEl = document.querySelector(href);
+      }
+    }
+
+    if (!sectionEl) {
+      const sections = Array.from(document.querySelectorAll("section[id], .content-area > div"));
+      const scrollPos = window.scrollY + 100;
+      for (const sec of sections) {
+        const top = sec.offsetTop;
+        const height = sec.offsetHeight;
+        if (scrollPos >= top && scrollPos < top + height) {
+          sectionEl = sec;
+          break;
+        }
+      }
+      if (!sectionEl && sections.length > 0) sectionEl = sections[0];
+    }
+
+    const title = sectionEl?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "Visible Section";
+    const paragraphs = Array.from(sectionEl?.querySelectorAll("p, li, .story-narrative-lead, .story-meta-tags, td, th") || [])
+      .map(p => p.textContent.trim())
+      .filter(t => t.length > 0)
+      .join(" ");
+
+    const text = paragraphs.length > 0 ? paragraphs : (sectionEl?.textContent?.replace(/\s+/g, " ").trim() || "Institutional research dossier content.");
+    return {
+      type: "section",
+      title: title.replace(/^[^\w\s]+/, "").trim(),
+      text: text
+    };
+  }
+
+  function handleTextSelection() {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+      doubtPill.classList.remove("is-visible");
+      return;
+    }
+    const text = selection.toString().trim();
+    if (text.length < 3) {
+      doubtPill.classList.remove("is-visible");
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      doubtPill.classList.remove("is-visible");
+      return;
+    }
+
+    const commonAncestor = range.commonAncestorContainer;
+    const parentEl = commonAncestor.nodeType === 1 ? commonAncestor : commonAncestor.parentElement;
+    if (parentEl && (parentEl.closest(".doubt-solver-tile") || parentEl.closest(".top-nav"))) {
+      doubtPill.classList.remove("is-visible");
+      return;
+    }
+
+    let top = window.scrollY + rect.top - 38;
+    if (top < window.scrollY + 10) {
+      top = window.scrollY + rect.bottom + 8;
+    }
+    const left = window.scrollX + Math.max(12, rect.left + (rect.width / 2) - 45);
+
+    doubtPill.style.top = `${top}px`;
+    doubtPill.style.left = `${left}px`;
+    doubtPill.classList.add("is-visible");
+  }
+
+  document.addEventListener("mouseup", () => {
+    setTimeout(handleTextSelection, 30);
+  });
+  document.addEventListener("selectionchange", () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      doubtPill.classList.remove("is-visible");
+    }
+  });
+
+  doubtPill.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openDoubtSolver();
+  });
+
+  function openDoubtSolver(contextOverride) {
+    doubtPill.classList.remove("is-visible");
+    currentDoubtContext = contextOverride || getVisibleScreenTarget();
+    
+    doubtContextBadge.textContent = currentDoubtContext.title.toUpperCase();
+    doubtContextBadge.title = currentDoubtContext.title;
+    doubtContextSnippet.textContent = currentDoubtContext.text;
+
+    doubtTile.classList.add("is-open");
+
+    executeDoubtQuery();
+
+    setTimeout(() => {
+      doubtTextInput.focus();
+      doubtTextInput.select();
+    }, 60);
+  }
+
+  function closeDoubtSolver() {
+    doubtTile.classList.remove("is-open");
+    doubtPill.classList.remove("is-visible");
+    doubtTextInput.blur();
+  }
+
+  function toggleDoubtSolver() {
+    if (doubtTile.classList.contains("is-open")) {
+      closeDoubtSolver();
+    } else {
+      openDoubtSolver();
+    }
+  }
+
+  function synthesizeDoubtAnswer(query, mode, context) {
+    const rawText = context.text || "";
+    const title = context.title || "Visible Content";
+    const cleanQuery = (query || "").trim().toLowerCase();
+
+    let matchedTopic = null;
+    let highestScore = 0;
+
+    for (const item of FORENSIC_KNOWLEDGE_BASE) {
+      let score = 0;
+      for (const term of item.terms) {
+        if (cleanQuery && cleanQuery.includes(term)) score += 5;
+        if (rawText.toLowerCase().includes(term)) score += 2;
+        if (title.toLowerCase().includes(term)) score += 3;
+      }
+      if (score > highestScore) {
+        highestScore = score;
+        matchedTopic = item;
+      }
+    }
+
+    const numbersFound = rawText.match(/(\d+(?:\.\d+)?%|\$\d+|\b\d+\s*(?:days|crore|months|years|bps)\b)/gi) || [];
+    const uniqueNumbers = Array.from(new Set(numbersFound)).slice(0, 4);
+
+    const sentences = rawText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 15);
+    let bestSentence = sentences[0] || rawText.slice(0, 160);
+    if (cleanQuery) {
+      const qWords = cleanQuery.split(/\s+/).filter(w => w.length > 2);
+      let bestSentScore = 0;
+      for (const s of sentences) {
+        const sLower = s.toLowerCase();
+        let sScore = 0;
+        for (const w of qWords) {
+          if (sLower.includes(w)) sScore++;
+        }
+        if (sScore > bestSentScore) {
+          bestSentScore = sScore;
+          bestSentence = s;
+        }
+      }
+    }
+
+    let conceptHtml = "";
+    let screenHtml = "";
+    let takeawayHtml = "";
+
+    if (mode === "regulatory") {
+      conceptHtml = matchedTopic
+        ? `<strong>Statutory Framework:</strong> ${matchedTopic.statutoryRule}`
+        : `<strong>Regulatory Compliance:</strong> Governed by SEBI (Listing Obligations and Disclosure Requirements) Regulations and Companies Act statutory disclosure mandates.`;
+      screenHtml = `<strong>Screen Red Flag Check:</strong> Monitored under institutional forensic auditing rules to prevent minority shareholder wealth erosion.`;
+      takeawayHtml = `<strong>Audit Benchmark:</strong> Any non-compliance or qualification in this section prompts an immediate governance risk rating downgrade.`;
+    } else if (mode === "keypoint") {
+      conceptHtml = `<strong>Primary Metric Target:</strong> ${uniqueNumbers.length > 0 ? `Key thresholds tracked on this screen: ${uniqueNumbers.map(n => `<span class="doubt-highlight-tag">${escapeHtml(n)}</span>`).join(" ")}.` : `Core institutional standard established for ${escapeHtml(title)}.`}`;
+      screenHtml = `<strong>Core Finding:</strong> "${escapeHtml(bestSentence.slice(0, 180))}..."`;
+      takeawayHtml = `<strong>Quantitative Takeaway:</strong> Deviations from this benchmark signal anomalous financial reporting or heightened systemic volatility.`;
+    } else if (mode === "formula") {
+      conceptHtml = matchedTopic && matchedTopic.terms.includes("hhi")
+        ? `<strong>Concentration Formula:</strong> <span class="doubt-highlight-tag">HHI = &Sigma; s<sub>i</sub><sup>2</sup></span> where <em>s<sub>i</sub></em> is the percentage weight of each constituent sector.`
+        : `<strong>Weighting &amp; Scoring Logic:</strong> Weighted against multi-factor governance criteria (60% Corporate Governance + 40% Forensic Solvency metrics).`;
+      screenHtml = `<strong>Screen Mechanics:</strong> Uses a 25% single-sector cap with +/- 2.5% buffer bands to eliminate index churn and liquidity slippage.`;
+      takeawayHtml = `<strong>Mathematical Guarantee:</strong> Eliminates disproportionate skew from mega-cap enterprise concentration.`;
+    } else {
+      // Default: Plain English Explanation (Mode: "explain" or custom query)
+      if (cleanQuery && matchedTopic) {
+        conceptHtml = `<strong>Concept Breakdown:</strong> ${matchedTopic.concept}`;
+        screenHtml = `<strong>Visible Screen Application:</strong> ${matchedTopic.screenContext} (Referencing: "<em>${escapeHtml(bestSentence.slice(0, 140))}...</em>")`;
+        takeawayHtml = `<strong>Forensic Takeaway:</strong> ${matchedTopic.statutoryRule}`;
+      } else if (cleanQuery) {
+        conceptHtml = `<strong>Question Resolution:</strong> Explaining "${escapeHtml(query)}" based on the visible ${escapeHtml(title)} data.`;
+        screenHtml = `<strong>Direct Context Match:</strong> "${escapeHtml(bestSentence.slice(0, 200))}..."`;
+        takeawayHtml = `<strong>Institutional Interpretation:</strong> Reflects the sovereign research methodology applied across the ${isIndexSuite ? "Index Terminal" : "Guide Dossier"}.`;
+      } else if (matchedTopic) {
+        conceptHtml = `<strong>Plain English Concept:</strong> ${matchedTopic.concept}`;
+        screenHtml = `<strong>Visible On Your Screen:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
+        takeawayHtml = `<strong>Why It Matters:</strong> ${matchedTopic.screenContext}`;
+      } else {
+        conceptHtml = `<strong>Overview:</strong> This section defines the structural forensic rules and institutional research standards for <strong>${escapeHtml(title)}</strong>.`;
+        screenHtml = `<strong>Context Excerpt:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
+        takeawayHtml = `<strong>Key Takeaway:</strong> Designed for rapid forensic vetting without promotional or speculative bias.`;
+      }
+    }
+
+    return `
+      <div class="doubt-output-section">
+        <div class="doubt-output-header">1. CORE CONCEPT</div>
+        <div class="doubt-output-body">${conceptHtml}</div>
+      </div>
+      <div class="doubt-output-section">
+        <div class="doubt-output-header">2. VISIBLE CONTEXT</div>
+        <div class="doubt-output-body">${screenHtml}</div>
+      </div>
+      <div class="doubt-output-takeaway">
+        ${takeawayHtml}
+      </div>
+    `;
+  }
+
+  function executeDoubtQuery() {
+    if (!currentDoubtContext) {
+      currentDoubtContext = getVisibleScreenTarget();
+    }
+    const query = doubtTextInput.value.trim();
+    const resultHtml = synthesizeDoubtAnswer(query, activeDoubtMode, currentDoubtContext);
+    renderDoubtAnswer(resultHtml);
+  }
+
+  function renderDoubtAnswer(html) {
+    doubtOutput.innerHTML = html;
+  }
+
+  doubtCloseBtn.addEventListener("click", closeDoubtSolver);
+
+  doubtAskBtn.addEventListener("click", () => {
+    executeDoubtQuery();
+  });
+
+  doubtTextInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      executeDoubtQuery();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closeDoubtSolver();
+    }
+  });
+
+  doubtChips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      doubtChips.forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      activeDoubtMode = chip.getAttribute("data-mode") || "explain";
+      executeDoubtQuery();
+    });
+  });
+
+  document.addEventListener("mousedown", (e) => {
+    if (!doubtTile.classList.contains("is-open")) return;
+    if (!doubtTile.contains(e.target) && !doubtPill.contains(e.target)) {
+      closeDoubtSolver();
+    }
+  });
 });
