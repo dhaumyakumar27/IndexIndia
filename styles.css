@@ -212,6 +212,7 @@ body.theme-dark .view-switcher {
   cursor: pointer;
   transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
+  text-decoration: none !important;
 }
 
 .switch-btn:hover:not(.active) {
@@ -238,6 +239,40 @@ body.theme-dark .switch-btn.active {
 .switch-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* Long-press Tab visual confirmation */
+.switch-btn.tab-hold-target {
+  position: relative;
+  overflow: hidden;
+  color: var(--text-primary);
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+body.theme-dark .switch-btn.tab-hold-target {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+.switch-btn.tab-hold-target::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2.5px;
+  width: 100%;
+  background: var(--text-primary);
+  transform-origin: left;
+  animation: tabHoldProgress 0.38s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+body.theme-dark .switch-btn.tab-hold-target::after {
+  background: #FFFFFF;
+}
+
+@keyframes tabHoldProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 .brand-subtext {
@@ -301,6 +336,7 @@ body.theme-dark .switch-btn.active {
   transition: color 0.14s ease, font-weight 0.14s ease;
   outline: none;
   border-radius: 3px;
+  text-decoration: none !important;
 }
 
 .sub-nav-btn:hover:not(.active) {
@@ -1006,6 +1042,51 @@ body.theme-dark .tree-scrub-strip:hover .tree-scrub-indicator {
   font-size: 0.88rem;
   font-weight: 400;
   color: var(--text-secondary);
+  text-decoration: none !important;
+}
+
+/* Institutional Canvas Empty State (Clean Minimal Shell) */
+.canvas-empty-state {
+  margin-top: 24px;
+  min-height: 480px;
+  border: 1.5px dashed var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  gap: 14px;
+}
+
+body.theme-dark .canvas-empty-state {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--border-subtle);
+}
+
+.canvas-tag {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+}
+
+.canvas-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.canvas-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  max-width: 520px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* Black Bold Highlighting ONLY for active scrolled section */
@@ -1044,6 +1125,20 @@ body.theme-dark .tree-node:hover:not(.active) {
 
 body.theme-dark .tree-node.is-main-branch {
   background-color: rgba(255, 255, 255, 0.03);
+}
+
+.tree-section-header {
+  padding: 10px 10px 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  user-select: none;
+}
+
+body.theme-dark .tree-section-header {
+  color: rgba(255, 255, 255, 0.38);
 }
 
 .tree-guide {

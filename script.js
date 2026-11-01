@@ -1,78 +1,15 @@
 /**
  * IndexIndian (Firm D) — Core Institutional Interactions
- * Zero-bloat, lightweight vanilla JS (~2KB).
+ * Zero-bloat, lightweight vanilla JS across all 8 modular pages.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // ================= 1. VIEW SWITCHER (Guide vs Index) =================
-  const btnGuide = document.getElementById("btn-guide");
-  const btnIndex = document.getElementById("btn-index");
-  const guideView = document.getElementById("guide-view");
-  const indexView = document.getElementById("index-view");
-  const subNavGuide = document.getElementById("sub-nav-guide");
-  const subNavIndex = document.getElementById("sub-nav-index");
+  // ================= 1. PAGE CONTEXT & VIEW DETECTION =================
+  const pathname = window.location.pathname.toLowerCase();
+  const isIndexSuite = pathname.includes("index-view") || pathname.includes("graph") || pathname.includes("directory") || pathname.includes("source");
 
-  function switchView(target) {
-    if (target === "guide") {
-      btnGuide.classList.add("active");
-      btnGuide.setAttribute("aria-selected", "true");
-      btnIndex.classList.remove("active");
-      btnIndex.setAttribute("aria-selected", "false");
-
-      guideView.classList.add("active");
-      guideView.hidden = false;
-      indexView.classList.remove("active");
-      indexView.hidden = true;
-
-      if (subNavGuide) subNavGuide.style.display = "inline-flex";
-      if (subNavIndex) subNavIndex.style.display = "none";
-    } else if (target === "index") {
-      btnIndex.classList.add("active");
-      btnIndex.setAttribute("aria-selected", "true");
-      btnGuide.classList.remove("active");
-      btnGuide.setAttribute("aria-selected", "false");
-
-      indexView.classList.add("active");
-      indexView.hidden = false;
-      guideView.classList.remove("active");
-      guideView.hidden = true;
-
-      if (subNavGuide) subNavGuide.style.display = "none";
-      if (subNavIndex) subNavIndex.style.display = "inline-flex";
-    }
-    updateScrollTelemetry();
-  }
-
-  btnGuide.addEventListener("click", () => switchView("guide"));
-  btnIndex.addEventListener("click", () => switchView("index"));
-
-  // Contextual Top-Right Sub-Nav Buttons (Guide: Founder | Investor | Bottleneck; Index: Graph | Directory | Source)
-  const subNavButtons = document.querySelectorAll(".sub-nav-btn");
-  subNavButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const parentGroup = btn.closest(".sub-nav-group");
-      if (parentGroup) {
-        parentGroup.querySelectorAll(".sub-nav-btn").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-      }
-
-      const targetId = btn.getAttribute("data-target");
-      if (targetId) {
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) {
-          const navOffset = 64;
-          const targetY = targetEl.getBoundingClientRect().top + window.scrollY - navOffset;
-          isDirectNavigating = true;
-          if (directNavTimer) clearTimeout(directNavTimer);
-          directNavTimer = setTimeout(() => {
-            isDirectNavigating = false;
-          }, 80);
-          window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
-          history.replaceState(null, null, `#${targetId}`);
-        }
-      }
-    });
-  });
+  // Keyboard shortcut Tab switches between Guide landing <=> Index landing
+  const targetOtherSuiteUrl = isIndexSuite ? "index.html" : "index-view.html";
 
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
   const railNavigator = document.getElementById("rail-navigator");
@@ -87,21 +24,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const treeScrubIndicator = document.getElementById("tree-scrub-indicator");
   const railTreeStatus = document.getElementById("rail-tree-status");
 
-  let currentSubIndex = 0;
-  let isUserScrubbing = false;
-  let isPointerDownOnRail = false;
-  let isPointerScrubbingStrip = false;
+  // Determine active page index among treeNodes
+  let activeNodeIdx = treeNodes.findIndex((n) => n.classList.contains("active"));
+  if (activeNodeIdx === -1) {
+    const currentFile = pathname.split("/").pop() || "index.html";
+    activeNodeIdx = treeNodes.findIndex((n) => {
+      const href = n.getAttribute("href") || "";
+      return href === currentFile || (currentFile === "" && href === "index.html");
+    });
+    if (activeNodeIdx === -1) activeNodeIdx = 0;
+  }
+  let currentSubIndex = activeNodeIdx;
+
   let isPinned = false;
   let isWheeling = false;
   let wheelCooldownTimer = null;
   let wheelReleaseTimer = null;
   let wheelAccumulator = 0;
-  const WHEEL_SENSITIVITY = 32; // Calibrated step sensitivity for smooth trackpad swipe
+  const WHEEL_SENSITIVITY = 32;
   let railLeaveTimer = null;
-  let pageScrollAnim = null;
-
-  let isDirectNavigating = false;
-  let directNavTimer = null;
 
   function updateTreeTelemetryUI() {
     if (railTreeStatus && treeNodes.length > 0) {
@@ -161,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeTreeExplicitly() {
     isPinned = false;
-    isUserScrubbing = false;
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
 
     if (railNavigator) {
@@ -178,13 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function toggleTree(forceState) {
-    let shouldOpen;
-    if (typeof forceState === "boolean") {
-      shouldOpen = forceState;
-    } else {
-      shouldOpen = !isTreeCurrentlyOpen();
-    }
-
+    let shouldOpen = typeof forceState === "boolean" ? forceState : !isTreeCurrentlyOpen();
     if (shouldOpen) {
       openTreeExplicitly(true);
     } else {
@@ -210,79 +144,38 @@ document.addEventListener("DOMContentLoaded", () => {
     railLeaveTimer = setTimeout(() => {
       const isNavHovered = railNavigator && railNavigator.matches(":hover");
       const isPanelHovered = railTreePanel && railTreePanel.matches(":hover");
-      if (!isNavHovered && !isPanelHovered && !isPointerDownOnRail && !isPointerScrubbingStrip && !isPinned) {
+      if (!isNavHovered && !isPanelHovered && !isPinned) {
         if (railNavigator) railNavigator.classList.remove("is-open");
         if (railTrack) railTrack.classList.remove("is-hidden");
         if (railTreePanel) railTreePanel.classList.remove("is-open");
-        isUserScrubbing = false;
       }
     }, delay);
   }
 
-  // Instant navigation to section by tree node index (removes delayed crawl animation)
-  function navigateToNodeIndex(index) {
+  function highlightTreeNode(index) {
     if (treeNodes.length === 0) return;
-    const targetIdx = Math.min(Math.max(0, index), treeNodes.length - 1);
-    const targetNode = treeNodes[targetIdx];
+    currentSubIndex = Math.min(Math.max(0, index), treeNodes.length - 1);
+    const targetNode = treeNodes[currentSubIndex];
     if (!targetNode) return;
 
-    // 1. Lock direct navigation to prevent intermediate scroll crawling
-    isDirectNavigating = true;
-    if (directNavTimer) clearTimeout(directNavTimer);
-    directNavTimer = setTimeout(() => {
-      isDirectNavigating = false;
-    }, 80);
-
-    // 2. Instantly update active node in tree (no intermediate animation)
     treeNodes.forEach((n) => n.classList.remove("active"));
     targetNode.classList.add("active");
-    currentSubIndex = targetIdx;
 
-    // 3. Keep Left Rail ticks in sync instantly
     if (tickMarks.length > 0) {
-      const activeTickIdx = Math.round(
-        (targetIdx / Math.max(treeNodes.length - 1, 1)) * (tickMarks.length - 1)
-      );
-      tickMarks.forEach((tick, i) => {
-        tick.classList.toggle("active", i === activeTickIdx);
-      });
+      const activeTickIdx = Math.round((currentSubIndex / Math.max(treeNodes.length - 1, 1)) * (tickMarks.length - 1));
+      tickMarks.forEach((tick, i) => tick.classList.toggle("active", i === activeTickIdx));
     }
 
-    // 4. Instantly center the tree scroll view on the target node
     scrollTreeToNode(targetNode);
-
     updateTreeTelemetryUI();
-
-    // 5. Jump page directly to the corresponding section (instantaneous, no delay)
-    if (pageScrollAnim) cancelAnimationFrame(pageScrollAnim);
-
-    const activeView = document.querySelector(".content-view.active");
-    if (activeView) {
-      const sections = Array.from(activeView.querySelectorAll("article[id], section[id]"));
-      if (sections.length > 0) {
-        const ratio = targetIdx / Math.max(treeNodes.length - 1, 1);
-        const secIdx = Math.min(Math.floor(ratio * sections.length), sections.length - 1);
-        const targetSection = sections[secIdx];
-        if (targetSection) {
-          const navOffset = 64;
-          const targetY = targetSection.getBoundingClientRect().top + window.scrollY - navOffset;
-          window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
-          if (targetSection.id) {
-            history.replaceState(null, null, `#${targetSection.id}`);
-          }
-          return;
-        }
-      }
-    }
-
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const ratio = targetIdx / Math.max(treeNodes.length - 1, 1);
-    window.scrollTo({ top: Math.max(0, ratio * docHeight), behavior: "auto" });
   }
 
-  function navigateToSection(ratio) {
-    const targetIdx = Math.round(ratio * (treeNodes.length - 1));
-    navigateToNodeIndex(targetIdx);
+  function navigateToNode(index) {
+    highlightTreeNode(index);
+    const targetNode = treeNodes[currentSubIndex];
+    if (targetNode && targetNode.getAttribute("href")) {
+      window.location.href = targetNode.getAttribute("href");
+    }
   }
 
   if (btnPinTree) {
@@ -307,66 +200,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     railNavigator.addEventListener("mouseleave", () => {
       railNavigator.classList.remove("is-closed");
-      if (!isPinned) {
-        closeRailPanel(250);
-      }
+      if (!isPinned) closeRailPanel(250);
     });
 
-    // Trackpad swipe & mouse wheel handling (proportional stepping, decoupled from cursor hover)
     railNavigator.addEventListener("wheel", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      isUserScrubbing = true;
       isWheeling = true;
       openTreeExplicitly(false);
 
-      // Suppress stationary mouseenter events during swipe
       if (wheelCooldownTimer) clearTimeout(wheelCooldownTimer);
-      wheelCooldownTimer = setTimeout(() => {
-        isWheeling = false;
-      }, 260);
+      wheelCooldownTimer = setTimeout(() => { isWheeling = false; }, 260);
 
       wheelAccumulator += e.deltaY;
       const steps = Math.trunc(wheelAccumulator / WHEEL_SENSITIVITY);
-
       if (steps !== 0) {
         wheelAccumulator -= steps * WHEEL_SENSITIVITY;
-        currentSubIndex = Math.min(Math.max(currentSubIndex + steps, 0), treeNodes.length - 1);
-        const targetNode = treeNodes[currentSubIndex];
-        if (targetNode) {
-          treeNodes.forEach((n) => n.classList.remove("active"));
-          targetNode.classList.add("active");
-          if (treeContentScroll) {
-            const nodeRect = targetNode.getBoundingClientRect();
-            const containerRect = treeContentScroll.getBoundingClientRect();
-            const currentScroll = treeContentScroll.scrollTop;
-            const relativeTop = nodeRect.top - containerRect.top + currentScroll;
-            treeContentScroll.scrollTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
-          }
-          updateTreeTelemetryUI();
-        }
+        highlightTreeNode(currentSubIndex + steps);
       }
 
-      // Debounced release to navigate main document to swiped section
       if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
       wheelReleaseTimer = setTimeout(() => {
-        navigateToNodeIndex(currentSubIndex);
-        isUserScrubbing = false;
-      }, 250);
+        navigateToNode(currentSubIndex);
+      }, 350);
     }, { passive: false });
   }
 
-  // Direct click / hover listeners on individual tick marks
   if (railTrack) {
     tickMarks.forEach((tick, i) => {
-      tick.addEventListener("mouseenter", () => {
-        openRailPanel();
-      });
-
+      tick.addEventListener("mouseenter", openRailPanel);
       tick.addEventListener("click", (e) => {
         e.stopPropagation();
-        const ratio = i / Math.max(tickMarks.length - 1, 1);
-        navigateToSection(ratio);
+        const targetNodeIdx = Math.round((i / Math.max(tickMarks.length - 1, 1)) * (treeNodes.length - 1));
+        navigateToNode(targetNodeIdx);
       });
     });
   }
@@ -374,66 +240,54 @@ document.addEventListener("DOMContentLoaded", () => {
   if (railTreePanel) {
     railTreePanel.addEventListener("mouseenter", openRailPanel);
     railTreePanel.addEventListener("mouseleave", () => closeRailPanel(250));
+  }
 
-    // Cursor hover DOES NOT highlight or bold the section.
-    // Clicking any node navigates directly and instantly to that section without delay animation.
-    treeNodes.forEach((node, i) => {
-      node.addEventListener("click", (e) => {
-        e.stopPropagation();
-        navigateToNodeIndex(i);
-      });
+  treeNodes.forEach((node, idx) => {
+    node.addEventListener("click", () => {
+      highlightTreeNode(idx);
     });
-  }
+  });
 
-  // Vertical Quick-Scrub Strip Drag/Swipe Handler
-  function scrubToStripY(clientY) {
-    if (!treeScrubStrip || treeNodes.length === 0) return;
-    const rect = treeScrubStrip.getBoundingClientRect();
-    const clampedY = Math.min(Math.max(clientY, rect.top), rect.bottom);
-    const ratio = (clampedY - rect.top) / Math.max(rect.height, 1);
-    const targetIdx = Math.min(Math.round(ratio * (treeNodes.length - 1)), treeNodes.length - 1);
-    if (treeNodes[targetIdx] && currentSubIndex !== targetIdx) {
-      treeNodes.forEach((n) => n.classList.remove("active"));
-      treeNodes[targetIdx].classList.add("active");
-      currentSubIndex = targetIdx;
-      updateTreeTelemetryUI();
-    }
-  }
-
+  // Quick scrub strip drag
   if (treeScrubStrip) {
+    let isScrubbing = false;
+    function scrubY(clientY) {
+      const rect = treeScrubStrip.getBoundingClientRect();
+      const clampedY = Math.min(Math.max(clientY, rect.top), rect.bottom);
+      const ratio = (clampedY - rect.top) / Math.max(rect.height, 1);
+      const targetIdx = Math.min(Math.round(ratio * (treeNodes.length - 1)), treeNodes.length - 1);
+      highlightTreeNode(targetIdx);
+    }
+
     treeScrubStrip.addEventListener("pointerdown", (e) => {
-      isPointerScrubbingStrip = true;
-      isUserScrubbing = true;
-      try {
-        treeScrubStrip.setPointerCapture(e.pointerId);
-      } catch (err) {}
-      scrubToStripY(e.clientY);
+      isScrubbing = true;
+      try { treeScrubStrip.setPointerCapture(e.pointerId); } catch (err) {}
+      scrubY(e.clientY);
     });
 
     treeScrubStrip.addEventListener("pointermove", (e) => {
-      if (isPointerScrubbingStrip) {
-        scrubToStripY(e.clientY);
-      }
+      if (isScrubbing) scrubY(e.clientY);
     });
 
     treeScrubStrip.addEventListener("pointerup", (e) => {
-      if (isPointerScrubbingStrip) {
-        isPointerScrubbingStrip = false;
-        try {
-          treeScrubStrip.releasePointerCapture(e.pointerId);
-        } catch (err) {}
-        navigateToNodeIndex(currentSubIndex);
+      if (isScrubbing) {
+        isScrubbing = false;
+        try { treeScrubStrip.releasePointerCapture(e.pointerId); } catch (err) {}
+        navigateToNode(currentSubIndex);
         closeRailPanel(300);
       }
     });
 
     treeScrubStrip.addEventListener("pointercancel", () => {
-      isPointerScrubbingStrip = false;
+      isScrubbing = false;
       closeRailPanel(200);
     });
   }
 
-  // ================= TOP RIGHT ACCOUNT & SETTINGS PANELS =================
+  // Initial highlight of active page
+  highlightTreeNode(activeNodeIdx);
+
+  // ================= 3. TOP RIGHT ACCOUNT & SETTINGS PANELS =================
   const accountWrapper = document.getElementById("account-wrapper");
   const accountBtn = document.getElementById("account-btn");
   const settingsWrapper = document.getElementById("settings-wrapper");
@@ -455,7 +309,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Click outside closes account & settings flyouts
   document.addEventListener("click", (e) => {
     if (accountWrapper && !accountWrapper.contains(e.target)) {
       accountWrapper.classList.remove("is-open");
@@ -465,17 +318,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ================= GLOBAL KEYBOARD SHORTCUTS (Terminal Mode) =================
+  // ================= 4. GLOBAL KEYBOARD SHORTCUTS =================
+  // Tab key state: short tap cycles 3 sub-pages (x | y | z), long press (held >= 380ms) switches Guide <=> Index
+  let tabHoldTimer = null;
+  let tabVisualTimer = null;
+  let isTabLongPressTriggered = false;
+  const TAB_LONG_PRESS_MS = 380;
+  const TAB_VISUAL_HINT_MS = 110;
+
+  function clearTabTimers() {
+    if (tabHoldTimer) {
+      clearTimeout(tabHoldTimer);
+      tabHoldTimer = null;
+    }
+    if (tabVisualTimer) {
+      clearTimeout(tabVisualTimer);
+      tabVisualTimer = null;
+    }
+    const otherSuiteBtn = isIndexSuite ? document.getElementById("btn-guide") : document.getElementById("btn-index");
+    if (otherSuiteBtn) otherSuiteBtn.classList.remove("tab-hold-target");
+  }
+
   document.addEventListener("keydown", (e) => {
-    // Ignore shortcuts when user is actively typing in form inputs
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
-    // 1. Tab switches between Guide <=> Index
+    // 1. Tab: Short tap cycles 3 sub-pages (x | y | z), Long press switches Guide <=> Index
     if (e.key === "Tab") {
       e.preventDefault();
-      const isGuideActive = btnGuide && btnGuide.classList.contains("active");
-      const targetView = isGuideActive ? "index" : "guide";
-      switchView(targetView);
+      if (e.repeat) return; // Prevent autorepeat from resetting timer while held
+
+      isTabLongPressTriggered = false;
+      const otherSuiteBtn = isIndexSuite ? document.getElementById("btn-guide") : document.getElementById("btn-index");
+
+      // Show subtle holding progress underline on target suite button after 110ms
+      if (tabVisualTimer) clearTimeout(tabVisualTimer);
+      tabVisualTimer = setTimeout(() => {
+        if (otherSuiteBtn) otherSuiteBtn.classList.add("tab-hold-target");
+      }, TAB_VISUAL_HINT_MS);
+
+      // Trigger suite change if held >= 380ms
+      if (tabHoldTimer) clearTimeout(tabHoldTimer);
+      tabHoldTimer = setTimeout(() => {
+        isTabLongPressTriggered = true;
+        clearTabTimers();
+        window.location.href = targetOtherSuiteUrl;
+      }, TAB_LONG_PRESS_MS);
+
       return;
     }
 
@@ -495,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 4. "Space" opens/closes Directory Tree (also 'T' alias)
+    // 4. "Space" opens/closes Directory Tree
     if (e.code === "Space" || e.key === " " || e.key === "t" || e.key === "T") {
       e.preventDefault();
       toggleTree();
@@ -503,61 +391,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 5. Arrow key & navigation handling:
-    // When inside Directory Tree: Up / Down arrow keys navigate sections directly and move page from directory tree without page scrolling.
-    // When outside Directory Tree: Up / Down arrow keys scroll document page naturally without hijacking sections.
     const isInsideTree = isTreeCurrentlyOpen();
 
     if (isInsideTree) {
       if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
         e.preventDefault();
-        currentSubIndex = Math.min(currentSubIndex + 1, treeNodes.length - 1);
-        navigateToNodeIndex(currentSubIndex);
+        highlightTreeNode(currentSubIndex + 1);
         return;
       }
 
       if (e.key === "ArrowUp" || e.key === "k" || e.key === "K") {
         e.preventDefault();
-        currentSubIndex = Math.max(currentSubIndex - 1, 0);
-        navigateToNodeIndex(currentSubIndex);
+        highlightTreeNode(currentSubIndex - 1);
         return;
       }
 
       if (e.key === "Enter") {
         e.preventDefault();
-        navigateToNodeIndex(currentSubIndex);
-        if (!isPinned) {
-          closeTreeExplicitly();
-        }
+        navigateToNode(currentSubIndex);
         return;
       }
 
       if (e.key === "Home") {
         e.preventDefault();
-        navigateToNodeIndex(0);
+        highlightTreeNode(0);
         return;
       }
 
       if (e.key === "End") {
         e.preventDefault();
-        navigateToNodeIndex(treeNodes.length - 1);
+        highlightTreeNode(treeNodes.length - 1);
         return;
       }
 
       if (e.key === "PageDown") {
         e.preventDefault();
-        currentSubIndex = Math.min(currentSubIndex + 6, treeNodes.length - 1);
-        navigateToNodeIndex(currentSubIndex);
+        highlightTreeNode(currentSubIndex + 3);
         return;
       }
 
       if (e.key === "PageUp") {
         e.preventDefault();
-        currentSubIndex = Math.max(currentSubIndex - 6, 0);
-        navigateToNodeIndex(currentSubIndex);
+        highlightTreeNode(currentSubIndex - 3);
         return;
       }
     } else {
-      // Outside Directory Tree: Vim navigation j / k scrolls document page cleanly
       if (e.key === "j" || e.key === "J") {
         e.preventDefault();
         window.scrollBy({ top: 90, behavior: "auto" });
@@ -580,23 +458,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ================= 3. HOVER / ACCESSIBILITY PANEL SETTINGS =================
-  const panelWrappers = document.querySelectorAll(".panel-trigger-wrapper");
-  const customDropdowns = document.querySelectorAll(".custom-dropdown");
+  document.addEventListener("keyup", (e) => {
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
-  // Ensure hover menus close immediately when mouse cursor leaves the menu area
-  panelWrappers.forEach((wrapper) => {
-    wrapper.addEventListener("mouseleave", () => {
-      // Close any open inner custom dropdowns
-      customDropdowns.forEach((dd) => dd.classList.remove("is-open"));
-      wrapper.classList.remove("is-open");
-      if (document.activeElement && wrapper.contains(document.activeElement)) {
-        document.activeElement.blur();
+    if (e.key === "Tab") {
+      e.preventDefault();
+      clearTabTimers();
+
+      // If long press already fired, do not execute short tap action
+      if (isTabLongPressTriggered) {
+        isTabLongPressTriggered = false;
+        return;
       }
-    });
+
+      // Short tap on Tab: Cycle through the 3 sub-pages (x | y | z)
+      // Guide Suite: Founder | Investor | Bottleneck
+      // Index Suite: Graph | Directory | Source
+      const currentFile = pathname.split("/").pop() || "index.html";
+      const guidePages = ["founder.html", "investor.html", "bottleneck.html"];
+      const indexPages = ["graph.html", "directory.html", "source.html"];
+
+      const activePages = isIndexSuite ? indexPages : guidePages;
+      let currIdx = activePages.findIndex((p) => currentFile.toLowerCase().includes(p));
+
+      let nextIdx = 0;
+      if (currIdx === -1) {
+        // If on landing page (index.html or index-view.html)
+        nextIdx = e.shiftKey ? activePages.length - 1 : 0;
+      } else {
+        if (e.shiftKey) {
+          nextIdx = (currIdx - 1 + activePages.length) % activePages.length;
+        } else {
+          nextIdx = (currIdx + 1) % activePages.length;
+        }
+      }
+
+      window.location.href = activePages[nextIdx];
+      return;
+    }
   });
 
-  // Toggle Custom Dropdowns (Font Size & Font Style)
+  window.addEventListener("blur", () => {
+    clearTabTimers();
+    isTabLongPressTriggered = false;
+  });
+
+  // ================= 5. THEME, FONT SIZE & FONT STYLE PERSISTENCE =================
   const btnFontSizeTrigger = document.getElementById("btn-font-size-trigger");
   const dropdownFontSize = document.getElementById("dropdown-font-size");
   const fontSizeLabel = document.getElementById("font-size-label");
@@ -625,7 +532,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Handle Option Clicks
   const dropdownItems = document.querySelectorAll(".dropdown-item");
   dropdownItems.forEach((item) => {
     item.addEventListener("click", (e) => {
@@ -636,8 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (type === "font-size") {
         document.querySelectorAll("#list-font-size .dropdown-item").forEach((el) => el.classList.remove("active"));
         item.classList.add("active");
-        if (fontSizeLabel) fontSizeLabel.textContent = item.textContent.split(" ")[0]; // e.g. "Small", "Medium", "Large"
-        
+        if (fontSizeLabel) fontSizeLabel.textContent = item.textContent.split(" ")[0];
         document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
         document.documentElement.classList.add(`font-size-${val}`);
         localStorage.setItem("indexindian_font_size", val);
@@ -647,7 +552,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
         item.classList.add("active");
         if (fontStyleLabel) fontStyleLabel.textContent = val === "reading" ? "Long Reading" : "Typewriter";
-
         document.body.classList.remove("font-style-reading", "font-style-typewriter");
         document.body.classList.add(`font-style-${val}`);
         localStorage.setItem("indexindian_font_style", val);
@@ -659,9 +563,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const contrastToggle = document.getElementById("contrast-toggle");
   const gridToggle = document.getElementById("grid-toggle");
-  const densityToggle = document.getElementById("density-toggle");
 
-  // Restore saved theme on load
   const savedTheme = localStorage.getItem("indexindian_theme");
   if (savedTheme === "dark") {
     document.body.classList.add("theme-dark");
@@ -669,7 +571,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (contrastToggle) contrastToggle.checked = true;
   }
 
-  // Restore saved font size & style on load
   const savedFontSize = localStorage.getItem("indexindian_font_size");
   if (savedFontSize) {
     document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
@@ -717,201 +618,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  if (densityToggle) {
-    densityToggle.addEventListener("change", (e) => {
-      const tables = document.querySelectorAll(".forensic-table td, .forensic-table th");
-      tables.forEach((cell) => {
-        cell.style.padding = e.target.checked ? "8px 12px" : "14px 16px";
-      });
-    });
-  }
-
-  // ================= 4. INDEX COMPANY SEARCH & FILTER =================
-  const searchInput = document.getElementById("company-search");
-  const tableRows = document.querySelectorAll("#company-table-body tr");
-  const filterPills = document.querySelectorAll(".filter-pill");
-
-  function applyFilters() {
-    const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
-    const activePill = document.querySelector(".filter-pill.active");
-    const filterText = activePill ? activePill.textContent.trim() : "All Entities";
-
-    tableRows.forEach((row) => {
-      const rowText = row.textContent.toLowerCase();
-      const matchesSearch = !query || rowText.includes(query);
-
-      let matchesPill = true;
-      if (filterText === "All Entities") {
-        matchesPill = true;
-      } else if (filterText.includes("Capex Bottlenecks")) {
-        const capex = row.cells[2].textContent;
-        const capexNum = parseInt(capex.replace(/[^\d]/g, ""), 10) || 0;
-        matchesPill = capexNum >= 1000;
-      } else if (filterText.includes("CARO Qualified")) {
-        const caro = row.cells[3].textContent;
-        matchesPill = caro.includes("ANNEXURE");
-      } else if (filterText.includes("Defense & Aerospace")) {
-        const sector = row.cells[1].textContent.toLowerCase();
-        matchesPill = sector.includes("defense") || sector.includes("aerospace") || sector.includes("naval");
-      } else if (filterText.includes("Energy & Transition")) {
-        const sector = row.cells[1].textContent.toLowerCase();
-        matchesPill = sector.includes("energy") || sector.includes("power") || sector.includes("wind") || sector.includes("petroleum");
-      } else if (filterText.includes("Clean Balance Sheets")) {
-        const caro = row.cells[3].textContent;
-        matchesPill = caro.includes("CLEAN");
-      }
-
-      row.style.display = matchesSearch && matchesPill ? "" : "none";
-    });
-  }
-
-  if (searchInput) {
-    searchInput.addEventListener("input", applyFilters);
-  }
-
-  filterPills.forEach((pill) => {
-    pill.addEventListener("click", () => {
-      filterPills.forEach((p) => p.classList.remove("active"));
-      pill.classList.add("active");
-      applyFilters();
-    });
-  });
-
-  // ================= 5. SCROLLSPY & LEFT RAIL TELEMETRY SYNC =================
-  const quickNavLinks = document.querySelectorAll(".quick-nav-pill");
-
-  // Instant navigation click handler for quick nav pills (no delayed crawl animation)
-  quickNavLinks.forEach((pill) => {
-    pill.addEventListener("click", (e) => {
-      const targetId = pill.getAttribute("href");
-      if (targetId && targetId.startsWith("#")) {
-        const targetEl = document.querySelector(targetId);
-        if (targetEl) {
-          e.preventDefault();
-          const navOffset = 64;
-          const targetY = targetEl.getBoundingClientRect().top + window.scrollY - navOffset;
-          
-          isDirectNavigating = true;
-          if (directNavTimer) clearTimeout(directNavTimer);
-          directNavTimer = setTimeout(() => {
-            isDirectNavigating = false;
-          }, 80);
-
-          window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
-          history.replaceState(null, null, targetId);
-
-          quickNavLinks.forEach((p) => p.classList.toggle("active", p === pill));
-
-          const activeView = document.querySelector(".content-view.active");
-          if (activeView) {
-            const sections = Array.from(activeView.querySelectorAll("section[id], article[id]"));
-            const secIdx = sections.indexOf(targetEl);
-            if (secIdx !== -1) {
-              const nodeIdx = Math.round((secIdx / Math.max(sections.length - 1, 1)) * (treeNodes.length - 1));
-              if (treeNodes[nodeIdx]) {
-                treeNodes.forEach((n) => n.classList.remove("active"));
-                treeNodes[nodeIdx].classList.add("active");
-                currentSubIndex = nodeIdx;
-                updateTreeTelemetryUI();
-              }
-            }
-          }
-        }
-      }
-    });
-  });
-
-  function updateScrollTelemetry() {
-    if (isUserScrubbing || isDirectNavigating) return;
-
-    const scrollY = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    
-    // 1. Sync Left Rail Ticks
-    if (tickMarks.length > 0 && docHeight > 0) {
-      const ratio = Math.min(Math.max(scrollY / docHeight, 0), 1);
-      const activeIdx = Math.min(Math.floor(ratio * tickMarks.length), tickMarks.length - 1);
-      tickMarks.forEach((tick, i) => {
-        tick.classList.toggle("active", i === activeIdx);
-      });
-
-      // Keep tree active node in sync with scroll position (always bold the scrolled section)
-      const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
-      if (treeNodes[nodeIdx] && currentSubIndex !== nodeIdx) {
-        treeNodes.forEach((n) => n.classList.remove("active"));
-        treeNodes[nodeIdx].classList.add("active");
-        currentSubIndex = nodeIdx;
-        updateTreeTelemetryUI();
-
-        // If drawer is currently open, keep active node visible in tree without smooth scroll jumps
-        if (railTreePanel && railTreePanel.classList.contains("is-open") && treeContentScroll) {
-          const activeNode = treeNodes[nodeIdx];
-          const nodeRect = activeNode.getBoundingClientRect();
-          const containerRect = treeContentScroll.getBoundingClientRect();
-          if (nodeRect.top < containerRect.top || nodeRect.bottom > containerRect.bottom) {
-            const currentScroll = treeContentScroll.scrollTop;
-            const relativeTop = nodeRect.top - containerRect.top + currentScroll;
-            treeContentScroll.scrollTop = relativeTop - containerRect.height / 2 + nodeRect.height / 2;
-          }
-        }
-      }
-    }
-
-    // 2. Sync Quick Nav Active Pill (ScrollSpy)
-    const activeView = document.querySelector(".content-view.active");
-    if (!activeView) return;
-
-    const sections = Array.from(activeView.querySelectorAll("section[id], article[id]"));
-    let currentSectionId = "";
-
-    sections.forEach((sec) => {
-      const rect = sec.getBoundingClientRect();
-      if (rect.top <= 160 && rect.bottom >= 100) {
-        currentSectionId = sec.id;
-      }
-    });
-
-    if (!currentSectionId && sections.length > 0 && scrollY < 200) {
-      currentSectionId = sections[0].id;
-    }
-
-    if (currentSectionId) {
-      const currentPills = activeView.querySelectorAll(".quick-nav-pill");
-      currentPills.forEach((p) => {
-        const href = p.getAttribute("href");
-        p.classList.toggle("active", href === `#${currentSectionId}`);
-      });
-
-      // 3. Sync Contextual Top Right Sub-Nav Buttons
-      if (activeView.id === "guide-view") {
-        let activeSub = "founder";
-        if (["sec-carry-pool", "sec-firm-d-plan", "sec-diligence-matrix"].includes(currentSectionId)) {
-          activeSub = "investor";
-        } else if (["sec-philosophy", "sec-ai-hardware", "sec-fte-transition", "sec-fema-rbi", "sec-synthetic-equity", "sec-monetization"].includes(currentSectionId)) {
-          activeSub = "bottleneck";
-        }
-        const btns = document.querySelectorAll("#sub-nav-guide .sub-nav-btn");
-        btns.forEach((b) => {
-          const id = b.id.replace("btn-sub-", "");
-          b.classList.toggle("active", id === activeSub);
-        });
-      } else if (activeView.id === "index-view") {
-        let activeSub = "directory";
-        if (["sec-cfo-pat", "sec-rpt-matrix"].includes(currentSectionId)) {
-          activeSub = "graph";
-        } else if (["sec-caro-decoder", "sec-methodology"].includes(currentSectionId)) {
-          activeSub = "source";
-        }
-        const btns = document.querySelectorAll("#sub-nav-index .sub-nav-btn");
-        btns.forEach((b) => {
-          const id = b.id.replace("btn-sub-", "");
-          b.classList.toggle("active", id === activeSub);
-        });
-      }
-    }
-  }
-
-  window.addEventListener("scroll", updateScrollTelemetry, { passive: true });
-  updateScrollTelemetry();
 });

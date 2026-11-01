@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Bottleneck — IndexIndian Institutional Research Hub</title>
+  <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
+  <link rel="stylesheet" href="styles.css?v=3.4">
+</head>
+<body class="theme-light">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="top-nav" id="top-nav">
+    <div class="nav-left">
+      <!-- Segmented switch button on top left [Guide | Index] -->
+      <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
+        <a href="index.html" class="switch-btn active" id="btn-guide" role="tab" aria-selected="true" title="Guide Suite (Hold Tab to switch)">
+          Guide
+        </a>
+        <a href="index-view.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false" title="Switch to Index (Hold Tab)">
+          Index
+        </a>
+      </nav>
+    </div>
+
+    <!-- Top Right Sub-Nav, Account and Settings -->
+    <div class="nav-right">
+      <!-- Contextual Sub-Nav: Guide Suite [ Founder | Investor | Bottleneck ] -->
+      <nav class="sub-nav-group" id="sub-nav-guide" aria-label="Guide Perspectives">
+        <a href="founder.html" class="sub-nav-btn" id="btn-sub-founder" title="Founder (Tab)">Founder</a>
+        <span class="sub-nav-sep font-mono">|</span>
+        <a href="investor.html" class="sub-nav-btn" id="btn-sub-investor" title="Investor (Tab)">Investor</a>
+        <span class="sub-nav-sep font-mono">|</span>
+        <a href="bottleneck.html" class="sub-nav-btn active" id="btn-sub-bottleneck" title="Bottleneck (Tab)">Bottleneck</a>
+      </nav>
+
+      <!-- 1. ACCOUNT BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="account-wrapper">
+        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier ( [ )">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
+          <div class="panel-header">
+            <div class="panel-user-meta">
+              <span class="user-role-badge">RESEARCH PASS</span>
+              <span class="user-id">ID: #INDX-8821</span>
+            </div>
+            <div class="active-pulse-indicator" title="Connected">
+              <span class="pulse-dot"></span> Active
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-metric-row">
+              <span class="metric-label">Access Level</span>
+              <span class="metric-value font-mono">Founders &amp; LPs</span>
+            </div>
+            <div class="panel-metric-row">
+              <span class="metric-label">Payment Status</span>
+              <span class="metric-value status-verified">Verified</span>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <div class="panel-sub-note">IndexIndian Sovereign Research</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. SETTINGS BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="settings-wrapper">
+        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" title="Display Settings ( ] )">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
+          <div class="panel-section-title">VIEW PREFERENCES</div>
+
+          <!-- Font Size Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Size</span>
+            <div class="custom-dropdown" id="dropdown-font-size">
+              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-size-label">Medium</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small (13px)</button>
+                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium" role="option">Medium (15px)</button>
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large (17.5px)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Font Style Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Style</span>
+            <div class="custom-dropdown" id="dropdown-font-style">
+              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-style-label">Long Reading</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading" role="option">Long Reading (Clean Sans)</button>
+                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter" role="option">Typewriter (Monospace)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="setting-toggle-row">
+            <label for="density-toggle">Compact Tables</label>
+            <input type="checkbox" id="density-toggle" checked>
+          </div>
+          <div class="setting-toggle-row">
+            <label for="grid-toggle">Background Grid</label>
+            <input type="checkbox" id="grid-toggle" checked>
+          </div>
+          <div class="setting-toggle-row">
+            <label for="contrast-toggle">Dark Theme</label>
+            <input type="checkbox" id="contrast-toggle">
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
+  <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
+    <div class="rail-track" id="rail-track">
+      <div class="tick-mark" data-index="0" title="Guide Landing"></div>
+      <div class="tick-mark" data-index="1" title="Founder"></div>
+      <div class="tick-mark" data-index="2" title="Investor"></div>
+      <div class="tick-mark active" data-index="3" title="Bottleneck"></div>
+      <div class="tick-mark" data-index="4" title="Index Landing"></div>
+      <div class="tick-mark" data-index="5" title="Graph"></div>
+      <div class="tick-mark" data-index="6" title="Directory"></div>
+      <div class="tick-mark" data-index="7" title="Source"></div>
+    </div>
+
+    <!-- Hover Flyout Directory Tree Panel -->
+    <div class="rail-tree-panel" id="rail-tree-panel" role="region" aria-label="Directory Navigation Tree">
+      <div class="rail-tree-header" id="rail-tree-header">
+        <div class="rail-tree-header-meta">
+          <span class="rail-tree-tag font-mono">SECTIONS</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">04 / 08</span>
+        </div>
+        <div class="rail-tree-header-actions">
+          <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin drawer open (Space or T)" aria-label="Pin Directory Tree" aria-pressed="false">
+            <span class="btn-pin-icon">&#128204;</span>
+            <span class="font-mono">PIN</span>
+          </button>
+          <button type="button" class="rail-header-btn close-btn" id="btn-close-tree" title="Close drawer (Esc or Space)" aria-label="Close Directory Tree">
+            <span class="font-mono">&times;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="rail-tree-body">
+        <div class="tree-content-scroll" id="tree-content-scroll">
+          <div class="tree-section-header">GUIDE SUITE</div>
+          <a href="index.html" class="tree-node" data-index="0">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/landing</span>
+            <span class="tree-badge font-mono">01</span>
+          </a>
+          <a href="founder.html" class="tree-node" data-index="1">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/founder</span>
+            <span class="tree-badge font-mono">02</span>
+          </a>
+          <a href="investor.html" class="tree-node" data-index="2">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/investor</span>
+            <span class="tree-badge font-mono">03</span>
+          </a>
+          <a href="bottleneck.html" class="tree-node active" data-index="3">
+            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/bottleneck</span>
+            <span class="tree-badge font-mono">04</span>
+          </a>
+
+          <div class="tree-section-header">INDEX SUITE</div>
+          <a href="index-view.html" class="tree-node" data-index="4">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/landing</span>
+            <span class="tree-badge font-mono">05</span>
+          </a>
+          <a href="graph.html" class="tree-node" data-index="5">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/graph</span>
+            <span class="tree-badge font-mono">06</span>
+          </a>
+          <a href="directory.html" class="tree-node" data-index="6">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/directory</span>
+            <span class="tree-badge font-mono">07</span>
+          </a>
+          <a href="source.html" class="tree-node" data-index="7">
+            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/source</span>
+            <span class="tree-badge font-mono">08</span>
+          </a>
+        </div>
+        <div class="tree-scrub-strip" id="tree-scrub-strip">
+          <div class="tree-scrub-indicator" id="tree-scrub-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN VIEWPORT CONTENT ================= -->
+  <main class="main-viewport-wrapper">
+    <div class="content-area">
+      <div class="report-meta-strip font-mono">
+        <span class="tag-monochrome">[REGULATORY BOTTLENECK]</span>
+        <span class="tag-meta">SUITE: GUIDE</span>
+        <span class="meta-separator">&bull;</span>
+        <span class="tag-meta">PERSPECTIVE: BOTTLENECK</span>
+      </div>
+
+      <h1 class="institutional-title">Industrial Bottlenecks &amp; Wind-Up Frameworks</h1>
+      <p class="dossier-lead">MCA-21 regulatory choke points, IBC insolvency diagnostics, and corporate dispute mechanisms.</p>
+
+      <div class="canvas-empty-state">
+        <span class="canvas-tag font-mono">[READY FOR CONTENT]</span>
+        <h2 class="canvas-title">Bottleneck</h2>
+        <p class="canvas-desc">Modular canvas ready for IBC resolution case studies, regulatory wind-up flowcharts, and compliance bottleneck matrices.</p>
+      </div>
+
+      <!-- Mandatory Institutional Footer -->
+      <footer class="institutional-footer" id="sec-footer">
+        <div class="footer-grid">
+          <div class="footer-col-main">
+            <div class="footer-brand-title">INDEXINDIAN &bull; RESEARCH ARM</div>
+            <p class="strict-legal-disclaimer">
+              <strong>STRICT STATUTORY DISCLAIMER:</strong> All content, models, and forensic reports provided on IndexIndian are strictly for educational and informational purposes only. This does not constitute financial, investment, or legal advice. IndexIndian is not a SEBI-registered investment advisor, portfolio manager, or research analyst entity under the SEBI (Research Analysts) Regulations, 2014. No forward-looking return guarantees are made or implied.
+            </p>
+          </div>
+          
+          <div class="footer-col-links">
+            <div class="footer-links-title">STATUTORY &amp; PRIVACY</div>
+            <ul class="footer-nav-list">
+              <li><a href="#terms" class="footer-link">Terms &amp; Conditions</a></li>
+              <li><a href="#privacy" class="footer-link">Privacy Policy (No Third-Party Data Selling)</a></li>
+              <li><a href="#fair-dealing" class="footer-link">Fair Dealing Compliance</a></li>
+              <li><a href="#licensing" class="footer-link">Cosmofeed &amp; Merchant Terms</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom-bar">
+          <span class="copy-text">&copy; 2026 IndexIndian (Firm D Sovereign Research). Zero Ad-Trackers. Monochromatic Institutional Interface.</span>
+          <span class="speed-badge font-mono">&#9889; 100/100 LIGHTHOUSE ZERO-BLOAT</span>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script src="script.js?v=3.4"></script>
+</body>
+</html>

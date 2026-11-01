@@ -4,49 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>IndexIndian — Institutional Data & Corporate Research Hub</title>
-  <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market. Educational and forensic research platform for founders and investors.">
-  
-  <!-- Analytics Snippet Placeholder (Plausible / Cloudflare Web Analytics - Zero cookies, zero bloat) -->
-  <!-- <script defer data-domain="indexindian.com" src="https://plausible.io/js/script.js"></script> -->
-  <!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "CLOUDFLARE_ANALYTICS_TOKEN"}'></script> -->
-
-  <link rel="stylesheet" href="styles.css?v=3.3">
+  <title>Guide Landing — IndexIndian Institutional Research Hub</title>
+  <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
+  <link rel="stylesheet" href="styles.css?v=3.4">
 </head>
 <body class="theme-light">
 
   <!-- ================= TOP NAVIGATION BAR ================= -->
   <header class="top-nav" id="top-nav">
     <div class="nav-left">
-      <!-- Wireframe: Segmented switch button on top left [Guide | Index] -->
+      <!-- Segmented switch button on top left [Guide | Index] -->
       <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
-        <button type="button" class="switch-btn active" id="btn-guide" role="tab" aria-selected="true" aria-controls="guide-view" data-view="guide" title="Switch to Guide (Tab)">
+        <a href="index.html" class="switch-btn active" id="btn-guide" role="tab" aria-selected="true" title="Guide Suite (Hold Tab to switch)">
           Guide
-        </button>
-        <button type="button" class="switch-btn" id="btn-index" role="tab" aria-selected="false" aria-controls="index-view" data-view="index" title="Switch to Index (Tab)">
+        </a>
+        <a href="index-view.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false" title="Switch to Index (Hold Tab)">
           Index
-        </button>
+        </a>
       </nav>
     </div>
 
-    <!-- Wireframe: Top Right Account and Settings - distinct individual hover panels -->
+    <!-- Top Right Sub-Nav, Account and Settings -->
     <div class="nav-right">
-      <!-- Contextual Sub-Nav: Guide View [ Founder | Investor | Bottleneck ] -->
+      <!-- Contextual Sub-Nav: Guide Suite [ Founder | Investor | Bottleneck ] -->
       <nav class="sub-nav-group" id="sub-nav-guide" aria-label="Guide Perspectives">
-        <button type="button" class="sub-nav-btn active" id="btn-sub-founder" data-target="sec-hero">Founder</button>
+        <a href="founder.html" class="sub-nav-btn" id="btn-sub-founder" title="Founder (Tab)">Founder</a>
         <span class="sub-nav-sep font-mono">|</span>
-        <button type="button" class="sub-nav-btn" id="btn-sub-investor" data-target="sec-carry-pool">Investor</button>
+        <a href="investor.html" class="sub-nav-btn" id="btn-sub-investor" title="Investor (Tab)">Investor</a>
         <span class="sub-nav-sep font-mono">|</span>
-        <button type="button" class="sub-nav-btn" id="btn-sub-bottleneck" data-target="sec-philosophy">Bottleneck</button>
-      </nav>
-
-      <!-- Contextual Sub-Nav: Index View [ Graph | Directory | Source ] -->
-      <nav class="sub-nav-group" id="sub-nav-index" aria-label="Index Perspectives" style="display: none;">
-        <button type="button" class="sub-nav-btn" id="btn-sub-graph" data-target="sec-cfo-pat">Graph</button>
-        <span class="sub-nav-sep font-mono">|</span>
-        <button type="button" class="sub-nav-btn active" id="btn-sub-directory" data-target="sec-company-matrix">Directory</button>
-        <span class="sub-nav-sep font-mono">|</span>
-        <button type="button" class="sub-nav-btn" id="btn-sub-source" data-target="sec-caro-decoder">Source</button>
+        <a href="bottleneck.html" class="sub-nav-btn" id="btn-sub-bottleneck" title="Bottleneck (Tab)">Bottleneck</a>
       </nav>
 
       <!-- 1. ACCOUNT BUTTON & HOVER PANEL -->
@@ -58,7 +44,6 @@
           </svg>
         </button>
 
-        <!-- Account Dedicated Hover Panel -->
         <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
           <div class="panel-header">
             <div class="panel-user-meta">
@@ -72,7 +57,7 @@
           <div class="panel-section">
             <div class="panel-metric-row">
               <span class="metric-label">Access Level</span>
-              <span class="metric-value font-mono">Founders & LPs</span>
+              <span class="metric-value font-mono">Founders &amp; LPs</span>
             </div>
             <div class="panel-metric-row">
               <span class="metric-label">Payment Status</span>
@@ -94,11 +79,10 @@
           </svg>
         </button>
 
-        <!-- Settings Dedicated Hover Panel -->
         <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
           <div class="panel-section-title">VIEW PREFERENCES</div>
 
-          <!-- Font Size Custom In-Panel Dropdown -->
+          <!-- Font Size Dropdown -->
           <div class="custom-dropdown-row">
             <span class="custom-dropdown-label">Font Size</span>
             <div class="custom-dropdown" id="dropdown-font-size">
@@ -114,7 +98,7 @@
             </div>
           </div>
 
-          <!-- Font Style Custom In-Panel Dropdown -->
+          <!-- Font Style Dropdown -->
           <div class="custom-dropdown-row">
             <span class="custom-dropdown-label">Font Style</span>
             <div class="custom-dropdown" id="dropdown-font-style">
@@ -151,37 +135,22 @@
   <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
   <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
     <div class="rail-track" id="rail-track">
-      <div class="tick-mark" data-index="0"></div>
-      <div class="tick-mark" data-index="1"></div>
-      <div class="tick-mark" data-index="2"></div>
-      <div class="tick-mark" data-index="3"></div>
-      <div class="tick-mark" data-index="4"></div>
-      <div class="tick-mark" data-index="5"></div>
-      <div class="tick-mark" data-index="6"></div>
-      <div class="tick-mark" data-index="7"></div>
-      <div class="tick-mark" data-index="8"></div>
-      <div class="tick-mark" data-index="9"></div>
-      <div class="tick-mark" data-index="10"></div>
-      <div class="tick-mark" data-index="11"></div>
-      <div class="tick-mark" data-index="12"></div>
-      <div class="tick-mark" data-index="13"></div>
-      <div class="tick-mark" data-index="14"></div>
-      <div class="tick-mark" data-index="15"></div>
-      <div class="tick-mark" data-index="16"></div>
-      <div class="tick-mark" data-index="17"></div>
-      <div class="tick-mark" data-index="18"></div>
-      <div class="tick-mark" data-index="19"></div>
-      <div class="tick-mark" data-index="20"></div>
-      <div class="tick-mark" data-index="21"></div>
+      <div class="tick-mark active" data-index="0" title="Guide Landing"></div>
+      <div class="tick-mark" data-index="1" title="Founder"></div>
+      <div class="tick-mark" data-index="2" title="Investor"></div>
+      <div class="tick-mark" data-index="3" title="Bottleneck"></div>
+      <div class="tick-mark" data-index="4" title="Index Landing"></div>
+      <div class="tick-mark" data-index="5" title="Graph"></div>
+      <div class="tick-mark" data-index="6" title="Directory"></div>
+      <div class="tick-mark" data-index="7" title="Source"></div>
     </div>
 
     <!-- Hover Flyout Directory Tree Panel -->
     <div class="rail-tree-panel" id="rail-tree-panel" role="region" aria-label="Directory Navigation Tree">
-      <!-- Institutional Drawer Header with Pin & Close -->
       <div class="rail-tree-header" id="rail-tree-header">
         <div class="rail-tree-header-meta">
           <span class="rail-tree-tag font-mono">SECTIONS</span>
-          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 48</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 08</span>
         </div>
         <div class="rail-tree-header-actions">
           <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin drawer open (Space or T)" aria-label="Pin Directory Tree" aria-pressed="false">
@@ -194,1587 +163,87 @@
         </div>
       </div>
 
-      <!-- Main Body: Scrollable nodes + sleek scrub strip -->
       <div class="rail-tree-body">
         <div class="tree-content-scroll" id="tree-content-scroll">
-        <!-- Root Item -->
-        <div class="tree-node tree-root" data-index="0" data-path="data_dump/" data-branch="-1" data-is-main="true">
-          <span class="tree-marker font-mono">&#9632;</span>
-          <span class="tree-icon">&#128194;</span>
-          <span class="tree-name font-mono">data_dump/</span>
-          <span class="tree-badge font-mono">ROOT</span>
-        </div>
+          <div class="tree-section-header">GUIDE SUITE</div>
+          <a href="index.html" class="tree-node active" data-index="0">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/landing</span>
+            <span class="tree-badge font-mono">01</span>
+          </a>
+          <a href="founder.html" class="tree-node" data-index="1">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/founder</span>
+            <span class="tree-badge font-mono">02</span>
+          </a>
+          <a href="investor.html" class="tree-node" data-index="2">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/investor</span>
+            <span class="tree-badge font-mono">03</span>
+          </a>
+          <a href="bottleneck.html" class="tree-node" data-index="3">
+            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">guide/bottleneck</span>
+            <span class="tree-badge font-mono">04</span>
+          </a>
 
-        <!-- MAIN BRANCH 1: 2024/ -->
-        <div class="tree-node is-main-branch" data-index="1" data-path="data_dump/2024/" data-branch="0" data-is-main="true">
-          <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">2024/</span>
-          <span class="tree-badge font-mono">MAIN 01</span>
+          <div class="tree-section-header">INDEX SUITE</div>
+          <a href="index-view.html" class="tree-node" data-index="4">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/landing</span>
+            <span class="tree-badge font-mono">05</span>
+          </a>
+          <a href="graph.html" class="tree-node" data-index="5">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/graph</span>
+            <span class="tree-badge font-mono">06</span>
+          </a>
+          <a href="directory.html" class="tree-node" data-index="6">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/directory</span>
+            <span class="tree-badge font-mono">07</span>
+          </a>
+          <a href="source.html" class="tree-node" data-index="7">
+            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128196;</span>
+            <span class="tree-name font-mono">index/source</span>
+            <span class="tree-badge font-mono">08</span>
+          </a>
         </div>
-
-        <!-- 2024 / 01_january -->
-        <div class="tree-node" data-index="2" data-path="data_dump/2024/01_january/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">01_january/</span>
-        </div>
-        <div class="tree-node" data-index="3" data-path="data_dump/2024/01_january/raw_logs/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">raw_logs/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="4" data-path="data_dump/2024/01_january/raw_logs/access_20240101.log.gz" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">access_20240101.log.gz</span>
-        </div>
-        <div class="tree-node tree-file" data-index="5" data-path="data_dump/2024/01_january/raw_logs/access_20240102.log.gz" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">access_20240102.log.gz</span>
-        </div>
-        <div class="tree-node tree-file" data-index="6" data-path="data_dump/2024/01_january/raw_logs/error_20240101.log.gz" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">error_20240101.log.gz</span>
-        </div>
-
-        <!-- 2024 / 01_january / database_backups -->
-        <div class="tree-node" data-index="7" data-path="data_dump/2024/01_january/database_backups/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">database_backups/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="8" data-path="data_dump/2024/01_january/database_backups/prod_db_full_20240115.sql.zst" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">prod_db_full_20240115.sql.zst</span>
-        </div>
-        <div class="tree-node tree-file" data-index="9" data-path="data_dump/2024/01_january/database_backups/users_table_20240131.csv.gz" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">users_table_20240131.csv.gz</span>
-        </div>
-
-        <!-- 2024 / 01_january / exports -->
-        <div class="tree-node" data-index="10" data-path="data_dump/2024/01_january/exports/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">exports/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="11" data-path="data_dump/2024/01_january/exports/analytics_q1_part1.parquet" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">analytics_q1_part1.parquet</span>
-        </div>
-        <div class="tree-node tree-file" data-index="12" data-path="data_dump/2024/01_january/exports/reports_summary.json" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">reports_summary.json</span>
-        </div>
-
-        <!-- 2024 / 06_june -->
-        <div class="tree-node" data-index="13" data-path="data_dump/2024/06_june/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">06_june/</span>
-        </div>
-        <div class="tree-node" data-index="14" data-path="data_dump/2024/06_june/media_archive/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">media_archive/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="15" data-path="data_dump/2024/06_june/media_archive/user_uploads_batch1.tar" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">user_uploads_batch1.tar</span>
-        </div>
-        <div class="tree-node tree-file" data-index="16" data-path="data_dump/2024/06_june/media_archive/user_uploads_batch2.tar" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">user_uploads_batch2.tar</span>
-        </div>
-        <div class="tree-node" data-index="17" data-path="data_dump/2024/06_june/system_snapshots/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">system_snapshots/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="18" data-path="data_dump/2024/06_june/system_snapshots/vm_image_v2.1.qcow2" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">vm_image_v2.1.qcow2</span>
-        </div>
-
-        <!-- 2024 / 12_december -->
-        <div class="tree-node" data-index="19" data-path="data_dump/2024/12_december/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">12_december/</span>
-        </div>
-        <div class="tree-node" data-index="20" data-path="data_dump/2024/12_december/archives/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">archives/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="21" data-path="data_dump/2024/12_december/archives/yearly_rollup_2024.tar.zst" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">yearly_rollup_2024.tar.zst</span>
-        </div>
-        <div class="tree-node" data-index="22" data-path="data_dump/2024/12_december/checksums/" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">checksums/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="23" data-path="data_dump/2024/12_december/checksums/sha256sums_2024.txt" data-branch="0" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">sha256sums_2024.txt</span>
-        </div>
-
-        <!-- MAIN BRANCH 2: 2025/ -->
-        <div class="tree-node is-main-branch" data-index="24" data-path="data_dump/2025/" data-branch="1" data-is-main="true">
-          <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">2025/</span>
-          <span class="tree-badge font-mono">MAIN 02</span>
-        </div>
-
-        <!-- 2025 / 03_march -->
-        <div class="tree-node" data-index="25" data-path="data_dump/2025/03_march/" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">03_march/</span>
-        </div>
-        <div class="tree-node" data-index="26" data-path="data_dump/2025/03_march/incoming/" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">incoming/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="27" data-path="data_dump/2025/03_march/incoming/batch_001.csv" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">batch_001.csv</span>
-        </div>
-        <div class="tree-node tree-file" data-index="28" data-path="data_dump/2025/03_march/incoming/batch_002.csv" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">batch_002.csv</span>
-        </div>
-        <div class="tree-node" data-index="29" data-path="data_dump/2025/03_march/processed/" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">processed/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="30" data-path="data_dump/2025/03_march/processed/cleaned_batch_001.parquet" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">cleaned_batch_001.parquet</span>
-        </div>
-        <div class="tree-node tree-file" data-index="31" data-path="data_dump/2025/03_march/processed/cleaned_batch_002.parquet" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">cleaned_batch_002.parquet</span>
-        </div>
-
-        <!-- 2025 / 09_september -->
-        <div class="tree-node" data-index="32" data-path="data_dump/2025/09_september/" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">09_september/</span>
-        </div>
-        <div class="tree-node" data-index="33" data-path="data_dump/2025/09_september/temp_scratch/" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">temp_scratch/</span>
-        </div>
-        <div class="tree-node" data-index="34" data-path="data_dump/2025/09_september/temp_scratch/sorting_buffer/" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">sorting_buffer/</span>
-        </div>
-        <div class="tree-node" data-index="35" data-path="data_dump/2025/09_september/logs/" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">logs/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="36" data-path="data_dump/2025/09_september/logs/migration.log" data-branch="1" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">migration.log</span>
-        </div>
-
-        <!-- MAIN BRANCH 3: shared_assets/ -->
-        <div class="tree-node is-main-branch" data-index="37" data-path="data_dump/shared_assets/" data-branch="2" data-is-main="true">
-          <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">shared_assets/</span>
-          <span class="tree-badge font-mono">MAIN 03</span>
-        </div>
-
-        <!-- shared_assets / schemas -->
-        <div class="tree-node" data-index="38" data-path="data_dump/shared_assets/schemas/" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">schemas/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="39" data-path="data_dump/shared_assets/schemas/user_schema_v1.json" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">user_schema_v1.json</span>
-        </div>
-        <div class="tree-node tree-file" data-index="40" data-path="data_dump/shared_assets/schemas/event_schema_v3.avsc" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">event_schema_v3.avsc</span>
-        </div>
-
-        <!-- shared_assets / configs -->
-        <div class="tree-node" data-index="41" data-path="data_dump/shared_assets/configs/" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">configs/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="42" data-path="data_dump/shared_assets/configs/backup_rotation.yaml" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">backup_rotation.yaml</span>
-        </div>
-        <div class="tree-node tree-file" data-index="43" data-path="data_dump/shared_assets/configs/compression_rules.conf" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">compression_rules.conf</span>
-        </div>
-
-        <!-- shared_assets / scripts -->
-        <div class="tree-node" data-index="44" data-path="data_dump/shared_assets/scripts/" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128193;</span>
-          <span class="tree-name font-mono">scripts/</span>
-        </div>
-        <div class="tree-node tree-file" data-index="45" data-path="data_dump/shared_assets/scripts/verify_checksums.sh" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">verify_checksums.sh</span>
-        </div>
-        <div class="tree-node tree-file" data-index="46" data-path="data_dump/shared_assets/scripts/rotate_dumps.py" data-branch="2" data-is-main="false">
-          <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">rotate_dumps.py</span>
-        </div>
-
-        <!-- MAIN BRANCH 4: README.md -->
-        <div class="tree-node is-main-branch tree-file" data-index="47" data-path="data_dump/README.md" data-branch="3" data-is-main="true">
-          <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
-          <span class="tree-icon">&#128196;</span>
-          <span class="tree-name font-mono">README.md</span>
-          <span class="tree-badge font-mono">DOC</span>
-        </div>
-        <!-- End tree-content-scroll -->
-
-        <!-- Vertical quick-scrub track on the right edge of drawer -->
-        <div class="tree-scrub-strip" id="tree-scrub-strip" title="Drag vertically or swipe to scrub all 48 sections">
+        <div class="tree-scrub-strip" id="tree-scrub-strip">
           <div class="tree-scrub-indicator" id="tree-scrub-indicator"></div>
         </div>
       </div>
-      <!-- End rail-tree-body -->
     </div>
-    <!-- End rail-tree-panel -->
   </aside>
 
-  <!-- ================= MAIN CONTENT AREA ================= -->
-  <!-- Wireframe: Clean content area (no big box border) -->
+  <!-- ================= MAIN VIEWPORT CONTENT ================= -->
   <main class="main-viewport-wrapper">
-    <div class="content-area" id="content-area">
+    <div class="content-area">
+      <div class="report-meta-strip font-mono">
+        <span class="tag-monochrome">[GUIDE DOSSIER]</span>
+        <span class="tag-meta">SUITE: GUIDE</span>
+        <span class="meta-separator">&bull;</span>
+        <span class="tag-meta">VERSION 3.4</span>
+      </div>
 
-      <!-- ================= VIEW 1: GUIDE (Educational & Legal Breakdown) ================= -->
-      <section id="guide-view" class="content-view active" role="tabpanel" aria-labelledby="btn-guide">
-        <!-- Section 1: Hero / Overview -->
-        <article class="report-container" id="sec-hero">
-          <div class="report-meta-strip">
-            <span class="tag-monochrome">FOUNDER LAW &amp; FINANCE</span>
-            <span class="meta-separator">&bull;</span>
-            <span class="tag-meta">SERIES: INDIAN DEEP-TECH BOTTLENECKS</span>
-            <span class="meta-separator">&bull;</span>
-            <span class="tag-meta font-mono">DOC ID: FLF-2026-04</span>
-          </div>
+      <h1 class="institutional-title">Guide Landing</h1>
+      <p class="dossier-lead">Primary research terminal and educational methodologies portal.</p>
 
-          <h1 class="institutional-title">
-            Project India: Master Blueprint &amp; Holding Company Architecture for Deep-Tech Industrialization
-          </h1>
+      <div class="canvas-empty-state">
+        <span class="canvas-tag font-mono">[READY FOR CONTENT]</span>
+        <h2 class="canvas-title">Guide Landing</h2>
+        <p class="canvas-desc">Modular canvas ready for educational frameworks, institutional research dossiers, and founder-investor guidelines.</p>
+      </div>
 
-          <div class="dossier-lead">
-            An institutional breakdown of holding-subsidiary topologies, synthetic carry pools, and fast-track exit wind-ups under the Indian Companies Act, 2013. Designed for technical founders, researchers, and early-stage capital allocators seeking legal immunity against premature commercialization demands.
-          </div>
-
-          <!-- Quick Navigation Bar for Instant Section Jumping -->
-          <nav class="quick-nav-bar" aria-label="Article Table of Contents">
-            <span class="quick-nav-title font-mono">SECTIONS:</span>
-            <div class="quick-nav-links">
-              <a href="#sec-philosophy" class="quick-nav-pill">01 / Guinea Pig Problem</a>
-              <a href="#sec-entity-matrix" class="quick-nav-pill">02 / Entity Comparison</a>
-              <a href="#sec-xabc-holdco" class="quick-nav-pill">03 / X-A-B-C Conglomerate</a>
-              <a href="#sec-carry-pool" class="quick-nav-pill">04 / 100-Point Carry</a>
-              <a href="#sec-firm-d-plan" class="quick-nav-pill">05 / Firm D 5-Yr Roadmap</a>
-              <a href="#sec-ai-hardware" class="quick-nav-pill">06 / Dual-GPU Hardware</a>
-              <a href="#sec-fte-transition" class="quick-nav-pill">07 / Section 248 Exit</a>
-              <a href="#sec-fema-rbi" class="quick-nav-pill">08 / Cross-Border FEMA</a>
-              <a href="#sec-synthetic-equity" class="quick-nav-pill">09 / Phantom Stock &amp; DVR</a>
-              <a href="#sec-diligence-matrix" class="quick-nav-pill">10 / Series A Diligence</a>
-              <a href="#sec-monetization" class="quick-nav-pill">11 / Unlock Toolkit</a>
-            </div>
-          </nav>
-
-          <div class="key-takeaways-box">
-            <div class="takeaways-header">
-              <span class="box-icon">&#9632;</span>
-              <strong>EXECUTIVE FORENSIC SUMMARY (FIRM D DIRECTIVE)</strong>
-            </div>
-            <ul class="takeaway-list">
-              <li><strong>The "Guinea Pig Problem":</strong> Traditional Indian venture capital forces academic deep-tech startups into 50% gross margin expectations prematurely. True industrialization requires patient parent-holding architecture.</li>
-              <li><strong>HoldCo / SubCo Topology:</strong> Operating Firm D as an initial low-compliance training ground allows accumulating untaxed operational credibility before transitioning into a full Parent X / Sub-A / Sub-B / Sub-C conglomerate.</li>
-              <li><strong>Fast Track Exit (FTE):</strong> Section 248(2) strike-off pathways guarantee a pristine cap-table transfer without historical baggage or zombie company liabilities.</li>
-            </ul>
-          </div>
-        </article>
-
-        <!-- Section 1: The Core Philosophy & Market Dynamics -->
-        <section class="report-section" id="sec-philosophy">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">01 /</span>
-            <h2 class="section-title">The Core Philosophy: Valley of Death &amp; The "Guinea Pig Problem"</h2>
-          </div>
-          <p class="section-desc">
-            Forensic analysis of why deep-tech ventures fail in the Indian market despite world-class prototype engineering.
-          </p>
-
-          <div class="prose-content">
-            <p>
-              In analyzing the top investment firms across India, an existential bottleneck surfaces repeatedly: brilliant academic founders build functional prototypes (advanced robotics, synthetic materials, space avionics, and quantum key distribution), but traditional VCs force them to commercialize prematurely, demanding SaaS-like 50% profit margins within 18 months.
-            </p>
-            <p>
-              Startups collapse not because the physics is broken, but because Indian enterprise clients refuse to act as <em>"guinea pigs"</em> for unproven technologies without sovereign balance sheet indemnities.
-            </p>
-          </div>
-
-          <div class="stat-callout-grid">
-            <div class="stat-card">
-              <span class="stat-num font-mono">78%</span>
-              <span class="stat-label">Indian Deep-Tech Prototypes Abandoned Before Commercial Industrialization</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-num font-mono">18 Mo.</span>
-              <span class="stat-label">Traditional VC Margin Pressure Window vs. 48 Mo. Hardware Maturity Reality</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-num font-mono">&#8377;0</span>
-              <span class="stat-label">Enterprise Liability Assumed by Academic Grants Under UGC/DST Guidelines</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- Section 2: Comparative Entity Mechanics -->
-        <section class="report-section" id="sec-entity-matrix">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">02 /</span>
-            <h2 class="section-title">Comparative Entity Mechanics: Sole Prop vs. OPC vs. Pvt Ltd vs. Trust</h2>
-          </div>
-          <p class="section-desc">
-            Statutory analysis of compliance overhead, GST thresholds, and foreign equity participation capability under Indian regulatory framework.
-          </p>
-
-          <div class="table-wrapper">
-            <table class="forensic-table" aria-label="Legal Structure Comparison Table">
-              <thead>
-                <tr>
-                  <th scope="col">Entity Structure</th>
-                  <th scope="col">Annual Compliance Cost</th>
-                  <th scope="col">Equity / Carry Pool</th>
-                  <th scope="col">Foreign Investment (FDI)</th>
-                  <th scope="col">Strike-Off Velocity</th>
-                  <th scope="col">Suitability (Firm D Phase)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Sole Proprietorship</strong></td>
-                  <td class="font-mono">&lt; &#8377;10,000 / yr</td>
-                  <td>None (Self only)</td>
-                  <td>Restricted / Nil</td>
-                  <td>Immediate (&lt; 7 Days)</td>
-                  <td><span class="badge-status optimal">OPTIMAL FOR TRAINING</span></td>
-                </tr>
-                <tr>
-                  <td><strong>One Person Company (OPC)</strong></td>
-                  <td class="font-mono">&#8377;25,000 &ndash; &#8377;40,000 / yr</td>
-                  <td>Single Member only</td>
-                  <td>Complex Conversion Req.</td>
-                  <td>Standard (6-9 Months)</td>
-                  <td><span class="badge-status neutral">MODERATE OVERHEAD</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Private Limited (Pvt Ltd)</strong></td>
-                  <td class="font-mono">&#8377;60,000 &ndash; &#8377;1,50,000+ / yr</td>
-                  <td>100-Pt Pool / ESOPs Allowed</td>
-                  <td>Automatic FDI (100% tech)</td>
-                  <td>Section 248 (12-18 Months)</td>
-                  <td><span class="badge-status caution">RESERVED FOR PARENT X</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Section 8 / Trust / NGO</strong></td>
-                  <td class="font-mono">&#8377;80,000 &ndash; &#8377;2,00,000+ / yr</td>
-                  <td>Legally Barred (No Dividend)</td>
-                  <td>FCRA Scrutiny / Heavy Audit</td>
-                  <td>Discretionary Court Approval</td>
-                  <td><span class="badge-status caution">DISCARDED / UNVIABLE</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="prose-content">
-            <p>
-              <strong>Why the NGO/Trust Model Was Rejected:</strong> An NGO or charitable trust structure cannot legally distribute dividends, issue voting equity, or grant performance-based carry points to operating partners. Attempting to commercialize deep-tech IP through a non-profit introduces catastrophic regulatory drag under Indian Section 8 and FCRA audits.
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 3: The End-State Conglomerate (X-A-B-C Structure) -->
-        <section class="report-section" id="sec-xabc-holdco">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">03 /</span>
-            <h2 class="section-title">The End-State Conglomerate: The X-A-B-C Corporate Architecture</h2>
-          </div>
-          <p class="section-desc">
-            How to eliminate profit pressure on fragile deep-tech founders without creating a slow, bureaucratic hierarchy.
-          </p>
-
-          <div class="architecture-grid">
-            <div class="arch-card">
-              <div class="arch-card-header">
-                <span class="arch-badge">HOLDING CO</span>
-                <span class="arch-title">Parent Firm X</span>
-              </div>
-              <p class="arch-desc">
-                Houses the General Partner ("Architectural Leader"). Directs global strategy, holds master intellectual property, and exercises capital allocation discretion across all specialized subsidiaries.
-              </p>
-            </div>
-
-            <div class="arch-card">
-              <div class="arch-card-header">
-                <span class="arch-badge">SANDBOX ENGINE</span>
-                <span class="arch-title">Firm A</span>
-              </div>
-              <p class="arch-desc">
-                High-volume, rapid-fire pre-seed grant machine. Scrapes Indian patents and GitHub repositories. Deploys non-negotiable checks (e.g., &#8377;50 Lakh for 10%) with 48-hour turnarounds. Target: ~100 grants/yr.
-              </p>
-            </div>
-
-            <div class="arch-card">
-              <div class="arch-card-header">
-                <span class="arch-badge">ACTIVE COMMERCIALIZER</span>
-                <span class="arch-title">Firm B</span>
-              </div>
-              <p class="arch-desc">
-                Seasoned operational SWAT team (supply chain specialists, enterprise B2B rainmakers). Embeds for 12&ndash;18 months to fix the "Guinea Pig Problem," land pilot contracts, and prep startups for Series A. Target: ~20 deep scalings.
-              </p>
-            </div>
-
-            <div class="arch-card">
-              <div class="arch-card-header">
-                <span class="arch-badge">ECONOMIC ENGINE</span>
-                <span class="arch-title">Firm C</span>
-              </div>
-              <p class="arch-desc">
-                The money farmer. Deploys capital (&#8377;100Cr+) via Special Purpose Vehicles (SPVs) into cash-flowing infrastructure, energy transitions, and mature industrial assets. Generates massive, stable dividend flows.
-              </p>
-            </div>
-          </div>
-
-          <div class="callout-quote">
-            <blockquote>
-              "The Subsidized Ecosystem: Firm C's massive, stable profits flow UP to Parent X as dividends. Parent X flows this capital DOWN to A and B. This entirely removes the pressure on Firm A and B to force early monetization on fragile deep-tech founders."
-            </blockquote>
-            <cite>&mdash; Project India: Master Blueprint, Part 2</cite>
-          </div>
-        </section>
-
-        <!-- Section 4: Leadership & Compensation -->
-        <section class="report-section" id="sec-carry-pool">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">04 /</span>
-            <h2 class="section-title">Leadership &amp; Compensation: The 100-Point Carry Pool</h2>
-          </div>
-          <p class="section-desc">
-            Contractual equity architecture designed to align top-tier operational talent without cash burn.
-          </p>
-
-          <div class="prose-content">
-            <p>
-              In capital-constrained research operations, traditional market salaries create severe cash burn before product-market validation. To align seasoned operators (supply chain specialists, enterprise B2B rainmakers), equity pools must be structured around direct exit liquidation rights rather than dilutive common voting shares.
-            </p>
-            <p>
-              By utilizing contractually enforceable <em>Synthetic Carry Points</em> inside the holding company framework, operators earn an uncompromised percentage of the realization events when a specialized subsidiary reaches commercial viability or Series A handoff.
-            </p>
-            <p>
-              <strong>Commander's Intent:</strong> The Architectural Leader (GP) dictates the <em>what</em>, never the <em>how</em> to 50&ndash;100 expert brains. Cross-disciplinary synthesis across corporate law, macro capital routing, and technical pattern recognition replaces micromanagement.
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 5: Firm D 5-Year Roadmap -->
-        <section class="report-section" id="sec-firm-d-plan">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">05 /</span>
-            <h2 class="section-title">The 5-Year Action Plan: Building Firm D as a Cash Training Ground</h2>
-          </div>
-          <p class="section-desc">
-            Why building X-A-B-C on Day 1 is financially irresponsible, and how to execute the phased transition.
-          </p>
-
-          <div class="timeline-container">
-            <div class="timeline-step">
-              <div class="timeline-marker font-mono">YEAR 01 &ndash; 02</div>
-              <div class="timeline-body">
-                <strong>Sole Proprietorship / OPC Phase:</strong> Zero compliance overhead. Act as solo researcher/analyst. Master VC law, term sheet nuances, and cap table mechanics. Generate &#8377;34k &ndash; &#8377;80k monthly profit.
-              </div>
-            </div>
-
-            <div class="timeline-step">
-              <div class="timeline-marker font-mono">YEAR 03 &ndash; 04</div>
-              <div class="timeline-body">
-                <strong>Forensic Summaries &amp; Prompt Engineering:</strong> Deploy dual-GPU scraping engine to parse 300-page Annual Reports, DRHPs, and earnings calls for India's top 500 listed companies. Perfect the exact evaluation prompt engine that will later scan private seed startups.
-              </div>
-            </div>
-
-            <div class="timeline-step">
-              <div class="timeline-marker font-mono">YEAR 05</div>
-              <div class="timeline-body">
-                <strong>The Corporate Transition:</strong> Incorporate Parent Firm X as a clean, empty Pvt Ltd. Extract all accumulated post-tax profits from Firm D via share swap/dividends. Formally wind up Firm D under Fast-Track Exit (FTE) rules.
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Section 6: AI Engine & Hardware Architecture -->
-        <section class="report-section" id="sec-ai-hardware">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">06 /</span>
-            <h2 class="section-title">Hardware Architecture: Dual-GPU Linux RAG vs. Apple Silicon Debate</h2>
-          </div>
-          <p class="section-desc">
-            Technical stress-testing of hardware configurations required to ingest 300-page Annual Reports across thousands of listed companies.
-          </p>
-
-          <div class="table-wrapper">
-            <table class="forensic-table" aria-label="Hardware Architecture Evaluation Matrix">
-              <thead>
-                <tr>
-                  <th scope="col">Hardware Architecture</th>
-                  <th scope="col">Est. Budget</th>
-                  <th scope="col">Tensor Parallelism</th>
-                  <th scope="col">CUDA Alignment</th>
-                  <th scope="col">Verdict</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Mac Mini M6 (32GB Unified)</strong></td>
-                  <td class="font-mono">&#8377;1.25L &ndash; &#8377;1.50L</td>
-                  <td>Poor (Unified memory only)</td>
-                  <td>None (Apple Metal)</td>
-                  <td><span class="badge-status caution">REJECTED &bull; NO SERVER VALUE</span></td>
-                </tr>
-                <tr>
-                  <td><strong>AMD RX 7900 XT (20GB)</strong></td>
-                  <td class="font-mono">&#8377;1.80L &ndash; &#8377;2.20L</td>
-                  <td>ROCm stack unstable</td>
-                  <td>Zero CUDA compatibility</td>
-                  <td><span class="badge-status caution">REJECTED &bull; DRIVER RISKS</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Intel 14400F + Dual GPUs</strong></td>
-                  <td class="font-mono">&#8377;2.50L &ndash; &#8377;3.00L</td>
-                  <td>PCIe Lane Starvation (20 lanes)</td>
-                  <td>Native CUDA</td>
-                  <td><span class="badge-status caution">REJECTED &bull; BUS CHOKING</span></td>
-                </tr>
-                <tr>
-                  <td><strong>AMD Ryzen 9 + Dual RTX GPUs</strong></td>
-                  <td class="font-mono">&#8377;3.00L &ndash; &#8377;4.00L</td>
-                  <td>Full PCIe routing / Dual 16GB</td>
-                  <td>100% Enterprise CUDA</td>
-                  <td><span class="badge-status optimal">WINNING ARCHITECTURE</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="prose-content">
-            <p>
-              <strong>The RAG Hybrid Pipeline ("The Two-Brain System"):</strong>
-            </p>
-            <ol class="ordered-feature-list">
-              <li><strong>Brain 1 &mdash; Local Scrubber (Dual Nvidia PC):</strong> Uses a lightweight open-source model (e.g., Llama 3 8B) running locally to parse the 300-page PDF and extract only the ~10 pages containing critical balance sheet data, debt commitments, and CARO risk annexures.</li>
-              <li><strong>Brain 2 &mdash; Forensic Judge (Cloud API):</strong> The condensed 10 pages are sent to Gemini 1.5 Pro / Argon-High via API. This reduces API token costs from <strong>&#8377;30/report down to &#8377;0.50/report</strong> while retaining Wall Street-grade financial reasoning.</li>
-            </ol>
-          </div>
-        </section>
-
-        <!-- Section 7: Transition & FTE Wind-Up -->
-        <section class="report-section" id="sec-fte-transition">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">07 /</span>
-            <h2 class="section-title">The Transition: Section 248 Fast-Track Exit (FTE) Mechanics</h2>
-          </div>
-          <p class="section-desc">
-            How to formally wind up Firm D under Fast Track Exit rules so Parent X inherits a 100% clean cap table.
-          </p>
-
-          <div class="prose-content">
-            <p>
-              When transition velocity arrives in Year 5, carrying forward an old operational entity with historical GST, bank, or vendor accounts introduces unacceptable diligence risk for LP capital.
-            </p>
-            <p>
-              Under Section 248(2) of the Indian Companies Act, 2013, an entity with nil liabilities and extinguished operational contracts can file Form STK-2 for expedited strike-off. Parent X is born with an immaculate regulatory history, zero legacy vendor disputes, and no zombie tax assessments.
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 8: Cross-Border Holding Topologies & FEMA / RBI Regulations -->
-        <section class="report-section" id="sec-fema-rbi">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">08 /</span>
-            <h2 class="section-title">Cross-Border Holding Topologies: FEMA, RBI &amp; Foreign Direct Investment (FDI)</h2>
-          </div>
-          <p class="section-desc">
-            Statutory navigation of Reserve Bank of India (RBI) non-debt instrument rules, cross-border IP transfer pricing, and offshore Delaware/Singapore flip structures.
-          </p>
-
-          <div class="prose-content">
-            <p>
-              When technical founders prepare to accept global institutional capital, venture funds frequently suggest <em>"flipping"</em> the holding company to Delaware or Singapore. However, for hardware, defense, and deep-tech operations with tangible physical laboratories in India, premature offshore flipping can be catastrophic.
-            </p>
-            <p>
-              Under <strong>RBI Overseas Direct Investment (ODI) regulations</strong> and Section 90 of the Indian Income Tax Act, 1961, any structure where Indian resident promoters invest in an offshore entity that subsequently owns operating assets back in India is flagged for potential <em>"Round-Tripping"</em>, exposing founders to punitive tax rates up to 300% and ED (Enforcement Directorate) scrutiny.
-            </p>
-          </div>
-
-          <div class="table-wrapper">
-            <table class="forensic-table" aria-label="Cross-Border Jurisdictional Comparison">
-              <thead>
-                <tr>
-                  <th scope="col">Jurisdiction</th>
-                  <th scope="col">Effective Corporate Tax</th>
-                  <th scope="col">IP Licensing Withholding (DTAA)</th>
-                  <th scope="col">RBI Round-Tripping Drag</th>
-                  <th scope="col">Strategic Institutional Verdict</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>India (Domestic Pvt Ltd)</strong></td>
-                  <td class="font-mono">22% (Sec 115BAA)</td>
-                  <td class="font-mono">Nil (Domestic)</td>
-                  <td>Zero Risk (Sovereign Native)</td>
-                  <td><span class="badge-status optimal">OPTIMAL FOR HARDWARE/DEFENSE</span></td>
-                </tr>
-                <tr>
-                  <td><strong>GIFT City IFSC (Gujarat)</strong></td>
-                  <td class="font-mono">0% (10-Yr Holiday)</td>
-                  <td class="font-mono">Exempt under IFSC Act</td>
-                  <td>Statutorily Pre-Cleared by RBI</td>
-                  <td><span class="badge-status optimal">PRIME CROSS-BORDER GATEWAY</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Singapore (ACRA HoldCo)</strong></td>
-                  <td class="font-mono">17% Headline</td>
-                  <td class="font-mono">10% &ndash; 15% under DTAA</td>
-                  <td>Requires Form FC-GPR &amp; ODI Clearance</td>
-                  <td><span class="badge-status neutral">ACCEPTABLE FOR PURE SAAS</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Delaware (US C-Corp)</strong></td>
-                  <td class="font-mono">21% Fed + State Tax</td>
-                  <td class="font-mono">15% under Indo-US DTAA</td>
-                  <td>Severe Drag; Subject to POEM Audits</td>
-                  <td><span class="badge-status caution">HIGH TAX LEAKAGE FOR INDIA R&amp;D</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="prose-content">
-            <p>
-              <strong>The Transfer Pricing Shield (Form 3CEB):</strong> When Parent X retains sovereign Indian patent ownership while licensing software kernels to offshore sales arms, transactions must satisfy Arm's Length Pricing (ALP) under Section 92C. Structuring cost-plus service agreements (typically cost + 15% mark-up) protects domestic research subsidies while maintaining total IP defensibility.
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 9: Synthetic Equity & Section 62 Phantom Stock Legal Mechanics -->
-        <section class="report-section" id="sec-synthetic-equity">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">09 /</span>
-            <h2 class="section-title">Synthetic Equity Mechanics: Phantom Stock Units (PSUs) &amp; Differential Voting Rights (DVR)</h2>
-          </div>
-          <p class="section-desc">
-            Contractual formulas to align key scientific operators without diluting common equity voting blocks or triggering SEBI SBEB regulations.
-          </p>
-
-          <div class="prose-content">
-            <p>
-              Traditional ESOPs (Employee Stock Option Plans) under Section 62(1)(b) of the Companies Act require complex board resolutions, annual secretarial filings, and create tax friction upon exercise (taxed as perquisites under Section 17(2)). For early-stage research syndicates, issuing statutory shares prematurely pollutes the cap table with inactive contributors.
-            </p>
-            <p>
-              <strong>The Phantom Stock Unit (PSU) Formula:</strong> Governed under the Indian Contract Act, 1872, PSUs grant synthetic economic rights linked directly to company valuation milestones without conferring voting rights or statutory shareholder inspection privileges.
-            </p>
-          </div>
-
-          <div class="stat-callout-grid">
-            <div class="stat-card">
-              <span class="stat-num font-mono">74%</span>
-              <span class="stat-label">Voting Retained via Rule 4 DVR Shares</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-num font-mono">0%</span>
-              <span class="stat-label">Cap Table Dilution Prior to Commercial Liquidity Event</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-num font-mono">1 Yr</span>
-              <span class="stat-label">Mandatory Non-Negotiable Cliff on Synthetic Carry Grant</span>
-            </div>
-          </div>
-
-          <div class="prose-content">
-            <p>
-              <strong>Differential Voting Rights (DVR) Defensive Moat:</strong> Under Rule 4 of the Companies (Share Capital and Debentures) Rules, 2014, an unlisted private company can issue shares with differential voting rights up to 74% of total voting power. The Architectural Leader (GP) can retain 74% voting control with as little as 26% economic ownership, insulating long-cycle industrial development from activist investor interference.
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 10: Series A Due Diligence: 25-Point Statutory Compliance Audit Matrix -->
-        <section class="report-section" id="sec-diligence-matrix">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">10 /</span>
-            <h2 class="section-title">Institutional Series A Diligence: 25-Point Statutory Compliance Audit Matrix</h2>
-          </div>
-          <p class="section-desc">
-            Forensic audit checklist enforced by Big 4 diligence partners before clearing &#8377;50Cr+ venture deployments in Indian industrial deep-tech.
-          </p>
-
-          <div class="table-wrapper">
-            <table class="forensic-table" aria-label="Series A Statutory Diligence Matrix">
-              <thead>
-                <tr>
-                  <th scope="col">Compliance Domain</th>
-                  <th scope="col">Statutory Filing / Reference</th>
-                  <th scope="col">Forensic Diligence Checkpoint</th>
-                  <th scope="col">Severity Weight</th>
-                  <th scope="col">Standard Resolution Pathway</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Corporate Secretarial</strong></td>
-                  <td class="font-mono">MCA Form MGT-7 &amp; AOC-4</td>
-                  <td>Annual return and financial statement reconciliation with signed Director reports</td>
-                  <td><span class="badge-status optimal">MANDATORY</span></td>
-                  <td>Direct MCA portal filing with digital DSC signatures</td>
-                </tr>
-                <tr>
-                  <td><strong>Allotment Validity</strong></td>
-                  <td class="font-mono">MCA Form PAS-3</td>
-                  <td>Return of allotment for every historical seed angel share issuance within 30 days</td>
-                  <td><span class="badge-status caution">CRITICAL</span></td>
-                  <td>Condonation of delay under Section 460 via Regional Director (RD)</td>
-                </tr>
-                <tr>
-                  <td><strong>Encumbrance Search</strong></td>
-                  <td class="font-mono">MCA Form CHG-1 / CHG-4</td>
-                  <td>Search of charges on company bank loans, machinery hypothecation, and working cap</td>
-                  <td><span class="badge-status caution">CRITICAL</span></td>
-                  <td>Obtain Bank NOC and file CHG-4 charge satisfaction certificate</td>
-                </tr>
-                <tr>
-                  <td><strong>Related Party Lending</strong></td>
-                  <td class="font-mono">Section 185 / 186</td>
-                  <td>Prohibition of loans to directors or interested entities without special resolution</td>
-                  <td><span class="badge-status caution">FATAL RED FLAG</span></td>
-                  <td>Immediate refund of loan advance to avoid compounding penalty</td>
-                </tr>
-                <tr>
-                  <td><strong>Labor &amp; Staff Dues</strong></td>
-                  <td class="font-mono">EPFO / ESIC Portals</td>
-                  <td>Proof of monthly provident fund and employee state insurance remittances</td>
-                  <td><span class="badge-status neutral">HIGH MONITOR</span></td>
-                  <td>ECR challan reconciliation and clearance of any unpaid vendor contractor dues</td>
-                </tr>
-                <tr>
-                  <td><strong>Withholding Taxes</strong></td>
-                  <td class="font-mono">Form 26Q / 27Q (TDS)</td>
-                  <td>Deduction of TDS on professional fees (194J), contracts (194C), and foreign IP (195)</td>
-                  <td><span class="badge-status caution">CRITICAL</span></td>
-                  <td>TRACES correction statement filing and interest settlement under Section 201</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="prose-content">
-            <p>
-              Prior to initiating Series A documentation, founders must execute a mock <em>"Diligence Dry-Run"</em>. A single unfiled PAS-3 form or an unresolved Section 185 director loan can stall institutional funding rounds for 4&ndash;6 months, resulting in bridge round cram-downs.
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 11: Monetization External Unlock CTA -->
-        <section class="report-section" id="sec-monetization">
-          <div class="monetization-card">
-            <div class="monetization-info">
-              <span class="badge-pill">PREMIUM ARTIFACT &bull; FORENSIC TOOLKIT</span>
-              <h3 class="monetization-title">Indian Deep-Tech Cap Table &amp; Holding Structure Legal Templates</h3>
-              <p class="monetization-desc">
-                Includes pre-configured Excel cap table models with FDI/FEMA calculations, draft resolutions for Section 248 FTE strike-offs, and synthetic carry agreement contracts.
-              </p>
-              <div class="pricing-lockup">
-                <span class="price-val font-mono">&#8377;4,999</span>
-                <span class="price-meta">/ Single-Seat Instant Download &bull; GST Exempt Micro-Transaction</span>
-              </div>
-            </div>
-            <div class="monetization-action">
-              <a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-cta-monochrome" id="btn-unlock-dossier">
-                <span>Unlock Dossier via Cosmofeed</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M7 17l9.2-9.2M17 17V7H7"/>
-                </svg>
-              </a>
-              <span class="cta-micro-guarantee">Direct instant PDF &amp; XLSX delivery to your email</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- Section 9: Governance Disclaimers -->
-        <section class="report-section" id="sec-governance">
-          <div class="forensic-notice-box">
-            <div class="notice-header">
-              <span class="notice-tag">FAIR DEALING &amp; RESEARCH NOTICE</span>
-            </div>
-            <p>
-              Data synthesized within this guide derives exclusively from publicly available statutory filings, Ministry of Corporate Affairs (MCA) gazettes, and published court precedents. All analyses are strictly descriptive and educational.
-            </p>
-          </div>
-        </section>
-      </section>
-
-      <!-- ================= VIEW 2: INDEX (Listed Company Evaluation / Forensic Data) ================= -->
-      <section id="index-view" class="content-view" role="tabpanel" aria-labelledby="btn-index" hidden>
-        <article class="report-container">
-          <div class="report-meta-strip">
-            <span class="tag-monochrome">FORENSIC EVALUATION</span>
-            <span class="meta-separator">&bull;</span>
-            <span class="tag-meta">BSE / NSE LISTED UNIVERSE</span>
-            <span class="meta-separator">&bull;</span>
-            <span class="tag-meta font-mono">SCAN CYCLE: Q3 FY26 &bull; 25 CORE ENTITIES</span>
-          </div>
-
-          <h1 class="institutional-title">
-            BSE / NSE Forensic Governance Index: Capital Allocation &amp; CARO Flagged Companies
-          </h1>
-
-          <div class="dossier-lead">
-            Algorithmic extraction of capital expenditure bottlenecks, CARO 2020 annexure qualifications, and related-party loan transfers across India's largest industrial, infrastructure, and engineering conglomerates.
-          </div>
-
-          <!-- Quick Navigation Bar for Index View -->
-          <nav class="quick-nav-bar" aria-label="Index Table of Contents">
-            <span class="quick-nav-title font-mono">FORENSIC SUITE:</span>
-            <div class="quick-nav-links">
-              <a href="#sec-company-matrix" class="quick-nav-pill">01 / BSE/NSE 25 Entities</a>
-              <a href="#sec-caro-decoder" class="quick-nav-pill">02 / CARO 2020 Decoder</a>
-              <a href="#sec-rpt-matrix" class="quick-nav-pill">03 / Related Party Channeling</a>
-              <a href="#sec-cfo-pat" class="quick-nav-pill">04 / Cash Flow vs PAT Divergence</a>
-              <a href="#sec-methodology" class="quick-nav-pill">05 / Scraping Pipeline</a>
-            </div>
-          </nav>
-
-          <!-- Section 1: 25 BSE / NSE Conglomerates Matrix -->
-          <section class="report-section" id="sec-company-matrix">
-            <div class="section-badge-header">
-              <span class="section-num font-mono">01 /</span>
-              <h2 class="section-title">BSE / NSE 25 Conglomerate Forensic Evaluation Matrix</h2>
-            </div>
-            <p class="section-desc">
-              Capex deployment run-rates, statutory auditor CARO annexures, and working capital cycles compiled from annual filings.
-            </p>
-
-            <!-- Quick Filters Bar -->
-            <div class="filter-toolbar">
-              <div class="search-input-box">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input type="text" id="company-search" placeholder="Filter by Ticker, Sector or CARO Flag (e.g. RELIANCE, L&T, BHEL, HAL)..." aria-label="Search Companies">
-              </div>
-              <div class="filter-pill-group">
-                <button type="button" class="filter-pill active">All Entities</button>
-                <button type="button" class="filter-pill">Capex Bottlenecks (&gt;&#8377;1000Cr)</button>
-                <button type="button" class="filter-pill">CARO Qualified</button>
-                <button type="button" class="filter-pill">Defense &amp; Aerospace</button>
-                <button type="button" class="filter-pill">Energy &amp; Transition</button>
-                <button type="button" class="filter-pill">Clean Balance Sheets</button>
-              </div>
-            </div>
-
-            <!-- Forensic Company Evaluation Data Table (25 Entities) -->
-            <div class="table-wrapper">
-            <table class="forensic-table" aria-label="BSE/NSE Forensic Intelligence Matrix">
-              <thead>
-                <tr>
-                  <th scope="col">Entity / Ticker</th>
-                  <th scope="col">Sector</th>
-                  <th scope="col">FY25-26 Capex</th>
-                  <th scope="col">CARO 2020 Status</th>
-                  <th scope="col">Related Party Deals</th>
-                  <th scope="col">Working Capital Days</th>
-                  <th scope="col">Action</th>
-                </tr>
-              </thead>
-              <tbody id="company-table-body">
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>LARSEN &amp; TOUBRO LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: LT</span>
-                    </div>
-                  </td>
-                  <td>Heavy Engineering</td>
-                  <td class="font-mono">&#8377;12,450 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Normal (3.2%)</td>
-                  <td class="font-mono">82 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>BHARAT HEAVY ELECTRICALS</strong>
-                      <span class="ticker-badge font-mono">NSE: BHEL</span>
-                    </div>
-                  </td>
-                  <td>Capital Goods / Power</td>
-                  <td class="font-mono">&#8377;2,180 Cr</td>
-                  <td><span class="badge-status caution">ANNEXURE 3(ii) INVENTORY</span></td>
-                  <td class="font-mono">PSU Inter-Govt</td>
-                  <td class="font-mono">214 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>SUZLON ENERGY LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: SUZLON</span>
-                    </div>
-                  </td>
-                  <td>Energy &amp; Transition</td>
-                  <td class="font-mono">&#8377;740 Cr</td>
-                  <td><span class="badge-status neutral">DELEVERAGED &bull; WATCH</span></td>
-                  <td class="font-mono">Clean</td>
-                  <td class="font-mono">64 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>ADANI ENTERPRISES LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: ADANIENT</span>
-                    </div>
-                  </td>
-                  <td>Infrastructure Incubator</td>
-                  <td class="font-mono">&#8377;28,900 Cr</td>
-                  <td><span class="badge-status caution">ANNEXURE 3(v) LOANS GIVEN</span></td>
-                  <td class="font-mono">Elevated HoldCo Flow</td>
-                  <td class="font-mono">48 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>TATA MOTORS LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: TATAMOTORS</span>
-                    </div>
-                  </td>
-                  <td>Automotive / EV Platforms</td>
-                  <td class="font-mono">&#8377;18,200 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Normal (4.1%)</td>
-                  <td class="font-mono">31 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>RELIANCE INDUSTRIES LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: RELIANCE</span>
-                    </div>
-                  </td>
-                  <td>Energy &amp; Transition</td>
-                  <td class="font-mono">&#8377;1,35,000 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Jio/Retail Intracompany</td>
-                  <td class="font-mono">42 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>HINDUSTAN AERONAUTICS</strong>
-                      <span class="ticker-badge font-mono">NSE: HAL</span>
-                    </div>
-                  </td>
-                  <td>Defense &amp; Aerospace</td>
-                  <td class="font-mono">&#8377;3,400 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">MoD Sovereign</td>
-                  <td class="font-mono">-18 Days (Advance)</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>BHARAT FORGE LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: BHARATFORG</span>
-                    </div>
-                  </td>
-                  <td>Defense &amp; Aerospace</td>
-                  <td class="font-mono">&#8377;1,280 Cr</td>
-                  <td><span class="badge-status neutral">ANNEXURE 3(ix) COVENANTS</span></td>
-                  <td class="font-mono">European Subsidiaries</td>
-                  <td class="font-mono">96 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>VEDANTA LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: VEDL</span>
-                    </div>
-                  </td>
-                  <td>Mining &amp; Resources</td>
-                  <td class="font-mono">&#8377;14,100 Cr</td>
-                  <td><span class="badge-status caution">ANNEXURE 3(v) HOLDCO DEBT</span></td>
-                  <td class="font-mono">Heavy Parent Inflow</td>
-                  <td class="font-mono">52 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>COAL INDIA LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: COALINDIA</span>
-                    </div>
-                  </td>
-                  <td>Energy &amp; Transition</td>
-                  <td class="font-mono">&#8377;16,500 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">PSU Thermal Utilities</td>
-                  <td class="font-mono">24 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>DIXON TECHNOLOGIES LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: DIXON</span>
-                    </div>
-                  </td>
-                  <td>Electronics Contract Mfg</td>
-                  <td class="font-mono">&#8377;850 Cr</td>
-                  <td><span class="badge-status neutral">PLI GRANT DEPENDENT</span></td>
-                  <td class="font-mono">Clean</td>
-                  <td class="font-mono">18 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>MAZAGON DOCK SHIPBUILDERS</strong>
-                      <span class="ticker-badge font-mono">NSE: MAZDOCK</span>
-                    </div>
-                  </td>
-                  <td>Defense &amp; Aerospace</td>
-                  <td class="font-mono">&#8377;1,150 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Indian Navy Contracts</td>
-                  <td class="font-mono">-42 Days (Govt Cash)</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>ULTRATECH CEMENT LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: ULTRACEMCO</span>
-                    </div>
-                  </td>
-                  <td>Infrastructure Incubator</td>
-                  <td class="font-mono">&#8377;9,800 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Normal (2.8%)</td>
-                  <td class="font-mono">38 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>SOLAR INDUSTRIES INDIA</strong>
-                      <span class="ticker-badge font-mono">NSE: SOLARINDS</span>
-                    </div>
-                  </td>
-                  <td>Defense &amp; Aerospace</td>
-                  <td class="font-mono">&#8377;1,420 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Normal (3.5%)</td>
-                  <td class="font-mono">72 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>INFOSYS LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: INFY</span>
-                    </div>
-                  </td>
-                  <td>Enterprise Technology</td>
-                  <td class="font-mono">&#8377;2,600 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Zero RPT Flags</td>
-                  <td class="font-mono">68 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>TATA POWER CO LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: TATAPOWER</span>
-                    </div>
-                  </td>
-                  <td>Energy &amp; Transition</td>
-                  <td class="font-mono">&#8377;14,500 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Normal (2.1%)</td>
-                  <td class="font-mono">54 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>JSW STEEL LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: JSWSTEEL</span>
-                    </div>
-                  </td>
-                  <td>Heavy Engineering</td>
-                  <td class="font-mono">&#8377;20,000 Cr</td>
-                  <td><span class="badge-status caution">ANNEXURE CL. IX(C) &amp; XI</span></td>
-                  <td class="font-mono">Promoter Pledge (14.2%)</td>
-                  <td class="font-mono">48 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>BHARAT ELECTRONICS LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: BEL</span>
-                    </div>
-                  </td>
-                  <td>Defense &amp; Aerospace</td>
-                  <td class="font-mono">&#8377;1,800 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Clean Defense PSU</td>
-                  <td class="font-mono">-28 Days (Adv. Collections)</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>NTPC LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: NTPC</span>
-                    </div>
-                  </td>
-                  <td>Energy &amp; Transition</td>
-                  <td class="font-mono">&#8377;28,000 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Inter-Govt PPA</td>
-                  <td class="font-mono">62 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>POWER GRID CORP OF INDIA</strong>
-                      <span class="ticker-badge font-mono">NSE: POWERGRID</span>
-                    </div>
-                  </td>
-                  <td>Energy &amp; Transition</td>
-                  <td class="font-mono">&#8377;15,000 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Regulated Tariff Model</td>
-                  <td class="font-mono">42 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>CG POWER &amp; INDUSTRIAL</strong>
-                      <span class="ticker-badge font-mono">NSE: CGPOWER</span>
-                    </div>
-                  </td>
-                  <td>Heavy Engineering</td>
-                  <td class="font-mono">&#8377;3,200 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / TURNAROUND</span></td>
-                  <td class="font-mono">Murugappa Clean Escrow</td>
-                  <td class="font-mono">36 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>BHARAT PETROLEUM CORP</strong>
-                      <span class="ticker-badge font-mono">NSE: BPCL</span>
-                    </div>
-                  </td>
-                  <td>Energy &amp; Transition</td>
-                  <td class="font-mono">&#8377;16,000 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">PSU Fuel Marketing</td>
-                  <td class="font-mono">12 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>TITAGARH RAIL SYSTEMS</strong>
-                      <span class="ticker-badge font-mono">NSE: TITAGARH</span>
-                    </div>
-                  </td>
-                  <td>Defense &amp; Aerospace</td>
-                  <td class="font-mono">&#8377;980 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">JV with Italian Parent</td>
-                  <td class="font-mono">64 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>LTIMINDTREE LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: LTIM</span>
-                    </div>
-                  </td>
-                  <td>Enterprise Technology</td>
-                  <td class="font-mono">&#8377;1,400 Cr</td>
-                  <td><span class="badge-status optimal">CLEAN / UNQUALIFIED</span></td>
-                  <td class="font-mono">Group Inter-company Deals</td>
-                  <td class="font-mono">74 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="entity-cell">
-                      <strong>HINDUSTAN COPPER LTD</strong>
-                      <span class="ticker-badge font-mono">NSE: HINDCOPPER</span>
-                    </div>
-                  </td>
-                  <td>Heavy Engineering</td>
-                  <td class="font-mono">&#8377;720 Cr</td>
-                  <td><span class="badge-status caution">ANNEXURE CL. VII (ROYALTY)</span></td>
-                  <td class="font-mono">Ministry of Mines Disclosures</td>
-                  <td class="font-mono">58 Days</td>
-                  <td><a href="https://cosmofeed.com" target="_blank" rel="noopener noreferrer" class="btn-table-action">View Teardown &rarr;</a></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Section 2: CARO 2020 Forensic Clause Breakdown -->
-        <section class="report-section" id="sec-caro-decoder">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">02 /</span>
-            <h3 class="section-title">Companies (Auditor's Report) Order, 2020: Red Flag Decoder</h3>
-          </div>
-          <p class="section-desc">
-            Statutory auditor reporting clauses under MCA Section 143(11) used by our forensic engine to flag capital allocation leakage and audit qualifications.
-          </p>
-
-          <div class="table-wrapper">
-            <table class="forensic-table" aria-label="CARO 2020 Clause Reference Table">
-              <thead>
-                <tr>
-                  <th scope="col">CARO 2020 Clause</th>
-                  <th scope="col">Statutory Focus</th>
-                  <th scope="col">Forensic Red Flag Significance</th>
-                  <th scope="col">Engine Weight</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Clause 3(i)(c)</strong></td>
-                  <td>Title deeds of immovable property</td>
-                  <td>Discloses property held in promoters' personal names rather than company balance sheet</td>
-                  <td><span class="badge-status caution">HIGH RISK</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(ii)(b)</strong></td>
-                  <td>Working capital limit &gt;&#8377;5 Cr against inventory</td>
-                  <td>Quarterly returns submitted to banks differ from audited books of accounts</td>
-                  <td><span class="badge-status caution">HIGH RISK</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(iii)</strong></td>
-                  <td>Unsecured loans to promoters / related parties</td>
-                  <td>Terms and conditions of loans granted prejudicial to company interest or overdue &gt;90 days</td>
-                  <td><span class="badge-status caution">CRITICAL FLAG</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(v)</strong></td>
-                  <td>Acceptance of public deposits under Section 73</td>
-                  <td>Unlicensed shadow banking deposit taking without RBI/MCA liquidity reserves</td>
-                  <td><span class="badge-status caution">CRITICAL FLAG</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(ix)(a)</strong></td>
-                  <td>Default in repayment of loans or borrowings</td>
-                  <td>Lender covenant breaches, interest roll-overs, or impending NCLT IBC filings</td>
-                  <td><span class="badge-status caution">CRITICAL FLAG</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(ix)(e)</strong></td>
-                  <td>Short-term funds used for long-term capex</td>
-                  <td>Asset-liability duration mismatch risking liquidity squeeze or sudden commercial paper defaults</td>
-                  <td><span class="badge-status caution">HIGH RISK</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(xi)(a)</strong></td>
-                  <td>Fraud noticed or reported during the year</td>
-                  <td>Whistleblower disclosures, material misappropriation, or forensic audits</td>
-                  <td><span class="badge-status caution">CRITICAL FLAG</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(xiv)</strong></td>
-                  <td>Internal audit system adequacy</td>
-                  <td>Absence or obstruction of internal auditors commensurate with company size</td>
-                  <td><span class="badge-status neutral">MONITOR</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(xvii)</strong></td>
-                  <td>Cash losses incurred in FY &amp; preceding FY</td>
-                  <td>Operating losses before non-cash depreciation eating through equity capital buffer</td>
-                  <td><span class="badge-status caution">HIGH RISK</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Clause 3(xix)</strong></td>
-                  <td>Capability to meet liabilities (Solvency)</td>
-                  <td>Statutory auditor doubt on entity's ability to settle current liabilities falling due within 1 year</td>
-                  <td><span class="badge-status caution">CRITICAL FLAG</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Section 3: Related-Party Transaction (RPT) Channeling & MCA Section 188 Risk Matrix -->
-        <section class="report-section" id="sec-rpt-matrix">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">03 /</span>
-            <h3 class="section-title">Related-Party Transaction (RPT) Channeling &amp; MCA Section 188 Risk Matrix</h3>
-          </div>
-          <p class="section-desc">
-            Forensic analysis of corporate channels used by listed Indian conglomerates to divert capital, brand royalties, and corporate guarantees to unlisted promoter entities.
-          </p>
-
-          <div class="table-wrapper">
-            <table class="forensic-table" aria-label="RPT Channeling and Risk Matrix">
-              <thead>
-                <tr>
-                  <th scope="col">RPT Channel Typology</th>
-                  <th scope="col">Corporate Mechanism</th>
-                  <th scope="col">Statutory Threshold (SEBI LODR Reg 23)</th>
-                  <th scope="col">Forensic Leakage Risk</th>
-                  <th scope="col">Governance Rating</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Brand Royalty &amp; Trademark Fees</strong></td>
-                  <td>Operating co pays 1.5%&ndash;4.0% of gross revenues to unlisted promoter trust for brand logo usage</td>
-                  <td>Approval if &gt;5% of annual consolidated turnover</td>
-                  <td>Diverts operational margins before minority dividend calculation</td>
-                  <td><span class="badge-status caution">ELEVATED DRAG</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Promoter Group Corporate Guarantees</strong></td>
-                  <td>Listed co pledges balance sheet assets to guarantee offshore subsidiary project debt</td>
-                  <td>Subject to Section 186 board limit caps (60% paid-up cap or 100% free reserves)</td>
-                  <td>Contingent liability explosion if offshore project encounters cost overruns</td>
-                  <td><span class="badge-status caution">HIGH CONTINGENCY</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Inter-Corporate Deposits (ICDs)</strong></td>
-                  <td>Short-term surplus cash parked with sister firms at below SBI benchmark lending rates</td>
-                  <td>Section 185 strict bans on director interest entities</td>
-                  <td>Capital trapped in illiquid group entities during sector downturns</td>
-                  <td><span class="badge-status caution">CRITICAL RISK</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Captive EPC Sourcing</strong></td>
-                  <td>Listed utility awards multi-thousand crore engineering contracts to promoter unlisted entity</td>
-                  <td>Arm's length test + audit committee prior approval</td>
-                  <td>Margin siphoning away from public shareholders into private promoter pockets</td>
-                  <td><span class="badge-status caution">HIGH LEAKAGE</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Promoter Real Estate Leasing</strong></td>
-                  <td>Headquarters or plant land leased from promoter family trusts at premium metro rates</td>
-                  <td>Annual independent valuer fairness certificate required</td>
-                  <td>Steady guaranteed non-operating rental yields for promoter family</td>
-                  <td><span class="badge-status neutral">MODERATE MONITOR</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="prose-content">
-            <p>
-              <strong>The SEBI LODR Regulation 23(4) Shield:</strong> Under SEBI (Listing Obligations and Disclosure Requirements), any related party transaction exceeding <strong>&#8377;1,000 Crore or 10% of consolidated turnover</strong> requires mandatory prior approval of public shareholders, wherein interested promoter entities are legally barred from voting. Our automated monitor detects impending breaches before annual shareholder voting meetings.
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 4: Operating Cash Flow (CFO) vs. Net Profit (PAT) Divergence Tracker -->
-        <section class="report-section" id="sec-cfo-pat">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">04 /</span>
-            <h3 class="section-title">Cash Flow Integrity: CFO vs. Reported PAT Divergence Analysis</h3>
-          </div>
-          <p class="section-desc">
-            Quantitative comparison of Cash Flow from Operations (CFO) against reported Net Profit (PAT) to identify unbilled revenue accruals and aggressive revenue recognition under Ind AS 115.
-          </p>
-
-          <div class="table-wrapper">
-            <table class="forensic-table" aria-label="Cash Flow vs PAT Divergence Tracker">
-              <thead>
-                <tr>
-                  <th scope="col">Conglomerate Group</th>
-                  <th scope="col">3-Yr Cumulative PAT</th>
-                  <th scope="col">3-Yr Cumulative CFO</th>
-                  <th scope="col">CFO / PAT Conversion Ratio</th>
-                  <th scope="col">Working Capital Trapping Pattern</th>
-                  <th scope="col">Forensic Assessment</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Larsen &amp; Toubro (LT)</strong></td>
-                  <td class="font-mono">&#8377;34,800 Cr</td>
-                  <td class="font-mono">&#8377;36,200 Cr</td>
-                  <td class="font-mono"><strong>1.04x</strong></td>
-                  <td>Healthy milestone customer collections &amp; international billing</td>
-                  <td><span class="badge-status optimal">EXCELLENT CASH INTEGRITY</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Bharat Heavy Electricals (BHEL)</strong></td>
-                  <td class="font-mono">&#8377;1,240 Cr</td>
-                  <td class="font-mono">-&#8377;2,850 Cr</td>
-                  <td class="font-mono"><strong>-2.30x</strong></td>
-                  <td>Massive state discom receivables trapped in overdue retentions</td>
-                  <td><span class="badge-status caution">NEGATIVE CASH CONVERSION</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Suzlon Energy (SUZLON)</strong></td>
-                  <td class="font-mono">&#8377;2,100 Cr</td>
-                  <td class="font-mono">&#8377;1,420 Cr</td>
-                  <td class="font-mono"><strong>0.68x</strong></td>
-                  <td>Component procurement lead-times &amp; wind park grid sync delays</td>
-                  <td><span class="badge-status neutral">MODERATE CONVERSION</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Reliance Industries (RELIANCE)</strong></td>
-                  <td class="font-mono">&#8377;198,000 Cr</td>
-                  <td class="font-mono">&#8377;284,000 Cr</td>
-                  <td class="font-mono"><strong>1.43x</strong></td>
-                  <td>Massive retail and telecom cash subscription inflows front-loaded</td>
-                  <td><span class="badge-status optimal">PRISTINE CASH MULTIPLIER</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Adani Enterprises (ADANIENT)</strong></td>
-                  <td class="font-mono">&#8377;9,400 Cr</td>
-                  <td class="font-mono">&#8377;6,100 Cr</td>
-                  <td class="font-mono"><strong>0.65x</strong></td>
-                  <td>Heavy incubator working capital absorbed by greenfield airport &amp; solar capex</td>
-                  <td><span class="badge-status caution">HIGH CAPEX ABSORPTION</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="prose-content">
-            <p>
-              <strong>Forensic Interpretation Rule:</strong> When a listed industrial enterprise reports surging net profit (PAT) for multiple quarters while operating cash flow (CFO) is flat or deeply negative (conversion ratio &lt; 0.60x), it indicates aggressive revenue recognition on unbilled contracts or mounting uncollected dues from state power distribution companies (discoms).
-            </p>
-          </div>
-        </section>
-
-        <!-- Section 5: Forensic Scraping Methodology & Data Pipeline -->
-        <section class="report-section" id="sec-methodology">
-          <div class="section-badge-header">
-            <span class="section-num font-mono">05 /</span>
-            <h3 class="section-title">Forensic Ingestion Architecture: Dual-GPU Scraping Pipeline</h3>
-          </div>
-          <p class="section-desc">
-            Technical pipeline specifications for automated ingestion and multi-pass validation of BSE/NSE statutory gazettes.
-          </p>
-
-          <div class="methodology-card">
-            <h4 class="methodology-title">Automated XBRL Ingestion &amp; Optical Character Recognition (OCR)</h4>
-            <p>
-              Our ingestion pipeline pulls raw XBRL and PDF filings directly from the National Stock Exchange (NSE NEAPS) and Bombay Stock Exchange (BSE Corporate Announcements) APIs. Unstructured scanned auditor notes are processed through PyMuPDF and Tesseract OCR running on dedicated local Nvidia RTX VRAM.
-            </p>
-            <div class="architecture-grid" style="margin-top: 16px;">
-              <div class="arch-card">
-                <div class="arch-card-header">
-                  <span class="arch-badge">STAGE 01</span>
-                  <span class="arch-title">Document Vectorization</span>
-                </div>
-                <p class="arch-desc">
-                  300-page annual report segmented into balance sheet tables, contingent liabilities notes, and auditor annexures using structured text embeddings.
-                </p>
-              </div>
-              <div class="arch-card">
-                <div class="arch-card-header">
-                  <span class="arch-badge">STAGE 02</span>
-                  <span class="arch-title">Local Model Scrubbing</span>
-                </div>
-                <p class="arch-desc">
-                  Llama-3-8B local model isolates CARO 2020 clause numbers, stripping non-material marketing copy and boilerplate corporate social responsibility text.
-                </p>
-              </div>
-              <div class="arch-card">
-                <div class="arch-card-header">
-                  <span class="arch-badge">STAGE 03</span>
-                  <span class="arch-title">Legal Synthesis</span>
-                </div>
-                <p class="arch-desc">
-                  Isolated clauses scored against MCA Companies Act benchmarks to generate the red flag ratings presented in this evaluation matrix.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-        </article>
-      </section>
-
-      <!-- ================= MANDATORY FOOTER (Hardcoded Legal Disclaimers) ================= -->
+      <!-- Mandatory Institutional Footer -->
       <footer class="institutional-footer" id="sec-footer">
         <div class="footer-grid">
           <div class="footer-col-main">
@@ -1785,12 +254,12 @@
           </div>
           
           <div class="footer-col-links">
-            <div class="footer-links-title">STATUTORY & PRIVACY</div>
+            <div class="footer-links-title">STATUTORY &amp; PRIVACY</div>
             <ul class="footer-nav-list">
-              <li><a href="#terms" class="footer-link">Terms & Conditions</a></li>
+              <li><a href="#terms" class="footer-link">Terms &amp; Conditions</a></li>
               <li><a href="#privacy" class="footer-link">Privacy Policy (No Third-Party Data Selling)</a></li>
               <li><a href="#fair-dealing" class="footer-link">Fair Dealing Compliance</a></li>
-              <li><a href="#licensing" class="footer-link">Cosmofeed & Merchant Terms</a></li>
+              <li><a href="#licensing" class="footer-link">Cosmofeed &amp; Merchant Terms</a></li>
             </ul>
           </div>
         </div>
@@ -1800,10 +269,9 @@
           <span class="speed-badge font-mono">&#9889; 100/100 LIGHTHOUSE ZERO-BLOAT</span>
         </div>
       </footer>
-
     </div>
   </main>
 
-  <script src="script.js?v=3.3"></script>
+  <script src="script.js?v=3.4"></script>
 </body>
 </html>
