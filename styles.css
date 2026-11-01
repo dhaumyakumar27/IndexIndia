@@ -2946,6 +2946,111 @@ body.theme-dark .doubt-pill-key {
   font-weight: 600;
 }
 
+/* DuckDuckGo Engine Action Bar & Web Enrichment */
+.doubt-ddg-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.doubt-ddg-bar-label {
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.doubt-ddg-actions {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.doubt-ddg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  line-height: 1.2;
+}
+
+.doubt-ddg-btn-ai {
+  background: rgba(222, 88, 51, 0.12);
+  border: 1px solid rgba(222, 88, 51, 0.35);
+  color: #ff7043;
+}
+
+.doubt-ddg-btn-ai:hover {
+  background: rgba(222, 88, 51, 0.22);
+  border-color: #ff8a65;
+  color: #ffab91;
+  transform: translateY(-1px);
+}
+
+body.theme-light .doubt-ddg-btn-ai {
+  background: rgba(222, 88, 51, 0.08);
+  border: 1px solid rgba(222, 88, 51, 0.3);
+  color: #c8411b;
+}
+
+body.theme-light .doubt-ddg-btn-ai:hover {
+  background: rgba(222, 88, 51, 0.16);
+  border-color: #c8411b;
+  color: #b03410;
+}
+
+.doubt-ddg-btn-web {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.doubt-ddg-btn-web:hover {
+  background: var(--bg-surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.doubt-ddg-btn .ddg-icon {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.doubt-ddg-btn .ddg-arrow {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.doubt-web-enrichment {
+  background: rgba(0, 168, 150, 0.06);
+  border-left: 2.5px solid var(--status-optimal);
+  padding: 7px 10px;
+  border-radius: 0 4px 4px 0;
+  margin-top: 4px;
+}
+
+body.theme-light .doubt-web-enrichment {
+  background: rgba(0, 168, 150, 0.09);
+}
+
 /* Footer */
 .doubt-tile-footer {
   padding: 8px 14px;

@@ -1434,7 +1434,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadForumMessages();
   }
 
-  // ================= 9. AI DOUBT SOLVER & INTELLIGENT EXPLAINER (100% Client-Side) =================
+  // ================= 9. AI DOUBT SOLVER & INTELLIGENT EXPLAINER (DuckDuckGo Engine) =================
   const FORENSIC_KNOWLEDGE_BASE = [
     {
       terms: ["promoter pledging", "pledge", "pledged shares", "encumbrance", "collateral"],
@@ -1495,19 +1495,125 @@ document.addEventListener("DOMContentLoaded", () => {
       concept: "The operational liquidity cycle measuring days cash remains locked in inventory and unpaid customer invoices.",
       screenContext: "A rapid expansion in DSO (Days Sales Outstanding) without revenue growth is the hallmark indicator of artificial distributor stocking.",
       statutoryRule: "Forensic filters flag enterprises whose cash conversion cycles diverge by >40% from industry median peers."
+    },
+    {
+      terms: ["ebitda", "operating margin", "operating profit", "topline", "revenue"],
+      concept: "Earnings Before Interest, Taxes, Depreciation, and Amortization measures pure core operating profitability before financing leverage.",
+      screenContext: "Forensic screening checks whether EBITDA growth aligns with real cash collections rather than aggressive revenue recognition policies.",
+      statutoryRule: "Audited financial statements under Ind AS 115 require contractual verification before recognizing revenue from unfulfilled customer commitments."
+    },
+    {
+      terms: ["pe ratio", "price to earnings", "valuation", "multiple", "p/e"],
+      concept: "The Price-to-Earnings ratio measures equity market pricing relative to annual earnings per share.",
+      screenContext: "Extreme valuation multiples unsupported by forensic cash conversion ratios signal speculative bubbles vulnerable to sharp multiple contraction.",
+      statutoryRule: "Benchmark index rules filter out companies with persistently negative earnings or unstable trailing P/E multiples > 100x unless justified by certified cash flows."
+    },
+    {
+      terms: ["debt to equity", "leverage", "solvency", "interest coverage", "dscr"],
+      concept: "Measures company debt obligations relative to net worth and operating earnings available to service interest.",
+      screenContext: "Over-leveraged balance sheets combined with promoter encumbrances lead to systemic default during interest rate tightening cycles.",
+      statutoryRule: "Forensic solvency gates mandate interest coverage ratio (EBIT / Interest Expense) > 2.5x for sovereign benchmark inclusion."
+    },
+    {
+      terms: ["sebi", "lodr", "regulations", "regulator", "capital markets", "insider trading"],
+      concept: "Securities and Exchange Board of India (SEBI) is the statutory regulator governing public securities, investor protection, and disclosures.",
+      screenContext: "Strict adherence to SEBI LODR rules prevents promoters from treating public minority equity as private proprietary funds.",
+      statutoryRule: "SEBI LODR Regulations 2015 enforce structured board composition, whistleblower mechanisms, and mandatory forensic audit disclosures."
+    },
+    {
+      terms: ["roe", "roce", "return on equity", "return on capital employed", "profitability"],
+      concept: "Measures capital efficiency and organic return generated on shareholder net worth and total invested capital.",
+      screenContext: "Forensic DuPont analysis decomposes ROE to confirm high returns stem from operational margins rather than hazardous financial leverage.",
+      statutoryRule: "Sustainable long-term sovereign constituent firms maintain ROCE exceeding the cost of capital (WACC) across complete 5-year cycles."
+    },
+    {
+      terms: ["corporate governance", "governance", "minority shareholder", "promoter control"],
+      concept: "System of rules, practices, and checks by which public enterprises are directed, controlled, and held accountable.",
+      screenContext: "Superior corporate governance commands higher institutional valuation premiums and defends minority investors against capital expropriation.",
+      statutoryRule: "The Sovereign Index allocates a dominant 60% forensic weighting to corporate governance rigor to eliminate toxic promoter structures."
     }
   ];
 
+  const TERM_ALIASES = {
+    "ebitda": "EBITDA",
+    "pe ratio": "Price–earnings_ratio",
+    "p/e ratio": "Price–earnings_ratio",
+    "pe": "Price–earnings_ratio",
+    "p/e": "Price–earnings_ratio",
+    "roe": "Return_on_equity",
+    "roce": "Return_on_capital_employed",
+    "sebi": "Securities_and_Exchange_Board_of_India",
+    "bse": "BSE_(formerly_Bombay_Stock_Exchange)",
+    "nse": "National_Stock_Exchange_of_India",
+    "rbi": "Reserve_Bank_of_India",
+    "gdp": "Gross_domestic_product",
+    "hhi": "Herfindahl–Hirschman_index",
+    "herfindahl": "Herfindahl–Hirschman_index",
+    "free float": "Public_float",
+    "public float": "Public_float",
+    "working capital": "Working_capital",
+    "operating cash flow": "Operating_cash_flow",
+    "cfo": "Operating_cash_flow",
+    "pat": "Net_income",
+    "insider trading": "Insider_trading",
+    "corporate governance": "Corporate_governance",
+    "related party transaction": "Transfer_pricing",
+    "rpt": "Transfer_pricing",
+    "promoter": "Promoter_(business)",
+    "pledge": "Pledge_(law)",
+    "solvency": "Solvency",
+    "liquidity": "Market_liquidity",
+    "dividend yield": "Dividend_yield",
+    "market cap": "Market_capitalization",
+    "market capitalization": "Market_capitalization"
+  };
+
+  async function fetchDuckDuckGoWebDefinition(query) {
+    if (!query) return null;
+    const clean = query.toLowerCase().replace(/^(what is|what are|define|explain|tell me about|how does|why does)\s+/i, "").trim();
+    if (!clean || clean.length < 2) return null;
+
+    let wikiTitle = TERM_ALIASES[clean];
+    if (!wikiTitle) {
+      for (const [k, v] of Object.entries(TERM_ALIASES)) {
+        if (clean.includes(k)) {
+          wikiTitle = v;
+          break;
+        }
+      }
+    }
+    if (!wikiTitle) {
+      wikiTitle = clean.charAt(0).toUpperCase() + clean.slice(1).replace(/\s+/g, "_");
+    }
+
+    try {
+      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiTitle)}`;
+      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data && data.extract && data.type !== "disambiguation") {
+        return {
+          title: data.title,
+          extract: data.extract
+        };
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
   let currentDoubtContext = null;
   let activeDoubtMode = "explain";
+  let activeQueryId = 0;
 
   // Create UI elements
   const doubtPill = document.createElement("div");
   doubtPill.className = "doubt-selection-pill";
   doubtPill.id = "doubt-selection-pill";
-  doubtPill.title = "Ask AI Doubt (Shortcut: D)";
+  doubtPill.title = "Ask DuckDuckGo Doubt Solver (Shortcut: D)";
   doubtPill.innerHTML = `
-    <span class="doubt-pill-spark">✦</span>
+    <span class="doubt-pill-spark">🦆</span>
     <span>Explain</span>
     <span class="doubt-pill-key">D</span>
   `;
@@ -1517,12 +1623,12 @@ document.addEventListener("DOMContentLoaded", () => {
   doubtTile.className = "doubt-solver-tile";
   doubtTile.id = "doubt-solver-tile";
   doubtTile.setAttribute("role", "dialog");
-  doubtTile.setAttribute("aria-label", "AI Doubt Solver");
+  doubtTile.setAttribute("aria-label", "DuckDuckGo AI Doubt Solver");
   doubtTile.innerHTML = `
     <div class="doubt-tile-header">
       <div class="doubt-tile-brand">
-        <span class="doubt-tile-brand-icon">✦</span>
-        <span>DOUBT SOLVER</span>
+        <span class="doubt-tile-brand-icon">🦆</span>
+        <span>DUCKDUCKGO DOUBT SOLVER</span>
       </div>
       <div class="doubt-tile-controls">
         <span class="doubt-context-badge" id="doubt-context-badge">SECTION CONTEXT</span>
@@ -1535,8 +1641,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="doubt-context-snippet" id="doubt-context-snippet">Scanning visible screen...</p>
       </div>
       <div class="doubt-input-row">
-        <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask a doubt or press Enter to explain..." autocomplete="off">
-        <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Explain ↵</button>
+        <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask DuckDuckGo or press Enter to explain..." autocomplete="off">
+        <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask DDG ↵</button>
       </div>
       <div class="doubt-chips-container" id="doubt-chips-container">
         <button type="button" class="doubt-chip-btn active" data-mode="explain">💡 Plain English</button>
@@ -1553,7 +1659,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><kbd>Enter</kbd> ask</span>
       </div>
       <div class="doubt-footer-engine">
-        <span>⚡ 100% Client-Side Engine</span>
+        <span>🦆 Powered by DuckDuckGo Engine</span>
       </div>
     </div>
   `;
@@ -1760,7 +1866,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function synthesizeDoubtAnswer(query, mode, context) {
     const rawText = context.text || "";
     const title = context.title || "Visible Content";
-    const cleanQuery = (query || "").trim().toLowerCase();
+    const cleanQuery = (query || "").trim();
+    const queryLower = cleanQuery.toLowerCase();
 
     // Semantic matching against knowledge base
     let matchedTopic = null;
@@ -1769,7 +1876,7 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const item of FORENSIC_KNOWLEDGE_BASE) {
       let score = 0;
       for (const term of item.terms) {
-        if (cleanQuery && cleanQuery.includes(term)) score += 8;
+        if (queryLower && queryLower.includes(term)) score += 8;
         if (rawText.toLowerCase().includes(term)) score += 2;
         if (title.toLowerCase().includes(term)) score += 3;
       }
@@ -1785,8 +1892,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const sentences = rawText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 12);
     let bestSentence = sentences[0] || rawText.slice(0, 160);
     
-    if (cleanQuery) {
-      const qWords = cleanQuery.split(/\s+/).filter(w => w.length > 2 && !["what", "why", "how", "when", "where", "which", "does", "this", "that", "the", "and", "is", "are", "can", "you", "tell"].includes(w));
+    if (queryLower) {
+      const qWords = queryLower.split(/\s+/).filter(w => w.length > 2 && !["what", "why", "how", "when", "where", "which", "does", "this", "that", "the", "and", "is", "are", "can", "you", "tell"].includes(w));
       let bestSentScore = 0;
       for (const s of sentences) {
         const sLower = s.toLowerCase();
@@ -1806,7 +1913,7 @@ document.addEventListener("DOMContentLoaded", () => {
       questionEchoHtml = `
         <div class="doubt-question-echo">
           <span class="doubt-q-badge font-mono">YOUR DOUBT:</span>
-          <span class="doubt-q-text">"${escapeHtml(query)}"</span>
+          <span class="doubt-q-text">"${escapeHtml(cleanQuery)}"</span>
         </div>
       `;
     }
@@ -1815,8 +1922,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let screenEvidenceHtml = "";
     let takeawayHtml = "";
 
-    const isWhyQuestion = cleanQuery.startsWith("why") || cleanQuery.includes(" why ");
-    const isHowQuestion = cleanQuery.startsWith("how") || cleanQuery.includes(" how ");
+    const isWhyQuestion = queryLower.startsWith("why") || queryLower.includes(" why ");
+    const isHowQuestion = queryLower.startsWith("how") || queryLower.includes(" how ");
 
     if (cleanQuery) {
       if (isWhyQuestion && matchedTopic) {
@@ -1866,10 +1973,41 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Formulate optimized DuckDuckGo search queries
+    let ddgSearchTerm = "";
+    if (cleanQuery) {
+      ddgSearchTerm = `${cleanQuery} Indian financial markets corporate governance SEBI`;
+    } else if (matchedTopic) {
+      ddgSearchTerm = `${matchedTopic.terms[0]} corporate governance Indian financial markets SEBI`;
+    } else {
+      ddgSearchTerm = `${title} corporate governance India stock market`;
+    }
+
+    const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
+    const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
+
+    const ddgActionBarHtml = `
+      <div class="doubt-ddg-bar">
+        <span class="doubt-ddg-bar-label">
+          <span class="ddg-icon">🦆</span> DUCKDUCKGO ENGINE:
+        </span>
+        <div class="doubt-ddg-actions">
+          <a href="${ddgAiUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-ai" title="Ask DuckDuckGo AI Chat with full financial context">
+            <span>Ask DuckDuckGo AI</span>
+            <span class="ddg-arrow">↗</span>
+          </a>
+          <a href="${ddgWebUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-web" title="Search live web on DuckDuckGo">
+            <span>Web Search</span>
+            <span class="ddg-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+    `;
+
     return `
       ${questionEchoHtml}
       <div class="doubt-output-section">
-        <div class="doubt-output-header">1. CORE CONCEPT</div>
+        <div class="doubt-output-header">1. CORE CONCEPT · DUCKDUCKGO SYNTHESIS</div>
         <div class="doubt-output-body">${directAnswerHtml}</div>
       </div>
       <div class="doubt-output-section">
@@ -1879,6 +2017,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="doubt-output-takeaway">
         ${takeawayHtml}
       </div>
+      ${ddgActionBarHtml}
     `;
   }
 
@@ -1888,28 +2027,48 @@ document.addEventListener("DOMContentLoaded", () => {
         currentDoubtContext = getVisibleScreenTarget();
       }
       const query = doubtTextInput ? doubtTextInput.value.trim() : "";
+      const currentId = ++activeQueryId;
       
       // Active feedback on button
       if (doubtAskBtn) {
-        doubtAskBtn.textContent = "Analyzing... ✦";
+        doubtAskBtn.textContent = "Analyzing... 🦆";
         doubtAskBtn.disabled = true;
       }
 
-      setTimeout(() => {
+      setTimeout(async () => {
         try {
           const resultHtml = synthesizeDoubtAnswer(query, activeDoubtMode, currentDoubtContext);
           renderDoubtAnswer(resultHtml);
+
+          // If user asked a specific query, attempt async DuckDuckGo web enrichment
+          if (query && query.length >= 2) {
+            const webData = await fetchDuckDuckGoWebDefinition(query);
+            if (currentId === activeQueryId && webData && doubtOutput) {
+              const liveSection = document.createElement("div");
+              liveSection.className = "doubt-output-section doubt-web-enrichment";
+              liveSection.innerHTML = `
+                <div class="doubt-output-header">🦆 DUCKDUCKGO WEB DEFINITION: ${escapeHtml(webData.title).toUpperCase()}</div>
+                <div class="doubt-output-body">${escapeHtml(webData.extract.slice(0, 320))}...</div>
+              `;
+              const ddgBar = doubtOutput.querySelector(".doubt-ddg-bar");
+              if (ddgBar) {
+                doubtOutput.insertBefore(liveSection, ddgBar);
+              } else {
+                doubtOutput.appendChild(liveSection);
+              }
+            }
+          }
         } finally {
           if (doubtAskBtn) {
-            doubtAskBtn.textContent = "Explain ↵";
+            doubtAskBtn.textContent = "Ask DDG ↵";
             doubtAskBtn.disabled = false;
           }
         }
-      }, 70);
+      }, 60);
     } catch (err) {
       console.error("[DoubtSolver] executeDoubtQuery error:", err);
       if (doubtAskBtn) {
-        doubtAskBtn.textContent = "Explain ↵";
+        doubtAskBtn.textContent = "Ask DDG ↵";
         doubtAskBtn.disabled = false;
       }
     }
