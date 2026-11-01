@@ -24,8 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const treeScrubIndicator = document.getElementById("tree-scrub-indicator");
   const railTreeStatus = document.getElementById("rail-tree-status");
 
-  // Determine active page index among treeNodes
-  let activeNodeIdx = treeNodes.findIndex((n) => n.classList.contains("active"));
+  // Determine active page/section index among treeNodes
+  let activeNodeIdx = -1;
+  if (window.location.hash) {
+    activeNodeIdx = treeNodes.findIndex((n) => n.getAttribute("href") === window.location.hash);
+  }
+  if (activeNodeIdx === -1) {
+    activeNodeIdx = treeNodes.findIndex((n) => n.classList.contains("active"));
+  }
   if (activeNodeIdx === -1) {
     const currentFile = pathname.split("/").pop() || "index.html";
     activeNodeIdx = treeNodes.findIndex((n) => {
@@ -166,6 +172,14 @@ document.addEventListener("DOMContentLoaded", () => {
       tickMarks.forEach((tick, i) => tick.classList.toggle("active", i === activeTickIdx));
     }
 
+    // Also highlight active section in the main document if corresponding card exists
+    const href = targetNode.getAttribute("href") || "";
+    if (href.startsWith("#")) {
+      document.querySelectorAll(".story-node-section, .page-directory-section").forEach((sec) => sec.classList.remove("is-active-section"));
+      const activeEl = document.querySelector(href);
+      if (activeEl) activeEl.classList.add("is-active-section");
+    }
+
     scrollTreeToNode(targetNode);
     updateTreeTelemetryUI();
   }
@@ -173,8 +187,25 @@ document.addEventListener("DOMContentLoaded", () => {
   function navigateToNode(index) {
     highlightTreeNode(index);
     const targetNode = treeNodes[currentSubIndex];
-    if (targetNode && targetNode.getAttribute("href")) {
-      window.location.href = targetNode.getAttribute("href");
+    if (!targetNode) return;
+    const href = targetNode.getAttribute("href");
+    if (!href) return;
+
+    if (href.startsWith("#")) {
+      const targetEl = document.querySelector(href);
+      if (targetEl) {
+        const headerOffset = 76;
+        const elPos = targetEl.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+        window.scrollTo({
+          top: Math.max(0, elPos),
+          behavior: "smooth"
+        });
+        if (history.pushState) {
+          history.pushState(null, null, href);
+        }
+      }
+    } else {
+      window.location.href = href;
     }
   }
 
@@ -243,10 +274,48 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   treeNodes.forEach((node, idx) => {
-    node.addEventListener("click", () => {
-      highlightTreeNode(idx);
+    node.addEventListener("click", (e) => {
+      const href = node.getAttribute("href") || "";
+      if (href.startsWith("#")) {
+        e.preventDefault();
+        navigateToNode(idx);
+      } else {
+        highlightTreeNode(idx);
+      }
     });
   });
+
+  // Dynamic ScrollSpy for in-page section anchors
+  const hasInPageTree = treeNodes.some((n) => (n.getAttribute("href") || "").startsWith("#"));
+  if (hasInPageTree) {
+    let scrollSpyScheduled = false;
+    function runScrollSpy() {
+      scrollSpyScheduled = false;
+      const scrollPos = window.scrollY + 120;
+      let matchedIdx = 0;
+
+      for (let i = 0; i < treeNodes.length; i++) {
+        const href = treeNodes[i].getAttribute("href") || "";
+        if (href.startsWith("#")) {
+          const el = document.querySelector(href);
+          if (el && el.offsetTop <= scrollPos) {
+            matchedIdx = i;
+          }
+        }
+      }
+
+      if (matchedIdx !== currentSubIndex && !isWheeling) {
+        highlightTreeNode(matchedIdx);
+      }
+    }
+
+    window.addEventListener("scroll", () => {
+      if (!scrollSpyScheduled) {
+        scrollSpyScheduled = true;
+        requestAnimationFrame(runScrollSpy);
+      }
+    }, { passive: true });
+  }
 
   // Quick scrub strip drag
   if (treeScrubStrip) {
@@ -429,6 +498,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       closeTreeExplicitly(); // Guarantee directory tree is NOT shown
+
+      if (hasInPageTree && treeNodes.length > 0) {
+        let targetIdx = currentSubIndex;
+        if (e.key === "ArrowDown") {
+          targetIdx = Math.min(treeNodes.length - 1, currentSubIndex + 1);
+        } else {
+          targetIdx = Math.max(0, currentSubIndex - 1);
+        }
+        navigateToNode(targetIdx);
+        return;
+      }
 
       const allSectionPages = [
         "index.html",

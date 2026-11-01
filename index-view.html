@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Index Landing — IndexIndian Institutional Research Hub</title>
   <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
-  <link rel="stylesheet" href="styles.css?v=4.1">
+  <link rel="stylesheet" href="styles.css?v=4.2">
 </head>
 <body class="theme-light">
 
@@ -205,14 +205,11 @@
   <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
   <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
     <div class="rail-track" id="rail-track">
-      <div class="tick-mark" data-index="0" title="Guide Landing"></div>
-      <div class="tick-mark" data-index="1" title="Founder"></div>
-      <div class="tick-mark" data-index="2" title="Investor"></div>
-      <div class="tick-mark" data-index="3" title="Bottleneck"></div>
-      <div class="tick-mark active" data-index="4" title="Index Landing"></div>
-      <div class="tick-mark" data-index="5" title="Graph"></div>
-      <div class="tick-mark" data-index="6" title="Directory"></div>
-      <div class="tick-mark" data-index="7" title="Source"></div>
+      <div class="tick-mark active" data-index="0" data-target="#sec-index-overview" title="Index Performance"></div>
+      <div class="tick-mark" data-index="1" data-target="#sec-weights" title="Sector Weights"></div>
+      <div class="tick-mark" data-index="2" data-target="#sec-rebalance" title="Rebalancing Rules"></div>
+      <div class="tick-mark" data-index="3" data-target="#forum-section" title="Comments Directory Stream"></div>
+      <div class="tick-mark" data-index="4" data-target="#sec-footer" title="Statutory Archive"></div>
     </div>
 
     <!-- Hover Flyout Directory Tree Panel -->
@@ -220,7 +217,7 @@
       <div class="rail-tree-header" id="rail-tree-header">
         <div class="rail-tree-header-meta">
           <span class="rail-tree-tag font-mono">SECTIONS</span>
-          <span class="rail-tree-status font-mono" id="rail-tree-status">05 / 08</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 05</span>
         </div>
         <div class="rail-tree-header-actions">
           <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin drawer open (Space)" aria-label="Pin Directory Tree" aria-pressed="false">
@@ -235,56 +232,36 @@
 
       <div class="rail-tree-body">
         <div class="tree-content-scroll" id="tree-content-scroll">
-          <div class="tree-section-header">GUIDE SUITE</div>
-          <a href="index.html" class="tree-node" data-index="0">
+          <div class="tree-section-header">SOVEREIGN INDEX TERMINAL</div>
+          <a href="#sec-index-overview" class="tree-node active" data-index="0">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/landing</span>
+            <span class="tree-icon">&#128200;</span>
+            <span class="tree-name font-mono">01. Index Performance Matrix</span>
             <span class="tree-badge font-mono">01</span>
           </a>
-          <a href="founder.html" class="tree-node" data-index="1">
+          <a href="#sec-weights" class="tree-node" data-index="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/founder</span>
+            <span class="tree-icon">&#9878;&#65039;</span>
+            <span class="tree-name font-mono">02. Sector Capitalization Weights</span>
             <span class="tree-badge font-mono">02</span>
           </a>
-          <a href="investor.html" class="tree-node" data-index="2">
+          <a href="#sec-rebalance" class="tree-node" data-index="2">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/investor</span>
+            <span class="tree-icon">&#128260;</span>
+            <span class="tree-name font-mono">03. Quarterly Rebalancing Rules</span>
             <span class="tree-badge font-mono">03</span>
           </a>
-          <a href="bottleneck.html" class="tree-node" data-index="3">
-            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/bottleneck</span>
+          <a href="#forum-section" class="tree-node" data-index="3">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128172;</span>
+            <span class="tree-name font-mono">04. Comments Directory Stream</span>
             <span class="tree-badge font-mono">04</span>
           </a>
-
-          <div class="tree-section-header">INDEX SUITE</div>
-          <a href="index-view.html" class="tree-node active" data-index="4">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/landing</span>
-            <span class="tree-badge font-mono">05</span>
-          </a>
-          <a href="graph.html" class="tree-node" data-index="5">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/graph</span>
-            <span class="tree-badge font-mono">06</span>
-          </a>
-          <a href="directory.html" class="tree-node" data-index="6">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/directory</span>
-            <span class="tree-badge font-mono">07</span>
-          </a>
-          <a href="source.html" class="tree-node" data-index="7">
+          <a href="#sec-footer" class="tree-node" data-index="4">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/source</span>
-            <span class="tree-badge font-mono">08</span>
+            <span class="tree-name font-mono">05. Statutory Disclaimer</span>
+            <span class="tree-badge font-mono">05</span>
           </a>
         </div>
         <div class="tree-scrub-strip" id="tree-scrub-strip">
@@ -301,17 +278,58 @@
         <span class="tag-monochrome">[NSE / BSE FORENSIC INDEX]</span>
         <span class="tag-meta">SUITE: INDEX</span>
         <span class="meta-separator">&bull;</span>
-        <span class="tag-meta">VERSION 3.4</span>
+        <span class="tag-meta">PERSPECTIVE: LANDING</span>
+        <span class="meta-separator">&bull;</span>
+        <span class="tag-meta">STRUCTURE: 5-NODE TREE</span>
       </div>
 
-      <h1 class="institutional-title">Index Landing</h1>
+      <h1 class="institutional-title">Sovereign Governance Index Terminal</h1>
       <p class="dossier-lead">Forensic Governance &amp; Intelligence index across listed Indian enterprises.</p>
 
-      <div class="canvas-empty-state">
-        <span class="canvas-tag font-mono">[READY FOR CONTENT]</span>
-        <h2 class="canvas-title">Index Landing</h2>
-        <p class="canvas-desc">Modular canvas ready for forensic conglomerate indices, auditor red-flag radars, and capital flow analytics.</p>
-      </div>
+      <!-- Section 01: Index Overview -->
+      <section id="sec-index-overview" class="page-directory-section" data-node-idx="0">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[INDEX // SECTION 01]</span>
+          <span class="story-node-anchor font-mono">#sec-index-overview</span>
+        </div>
+        <h3 class="story-section-title">&#128200; 01 — Sovereign Index Performance Matrix</h3>
+        <p class="story-narrative-lead">Equal-weighted vs. market-cap weighted institutional benchmark tracking governance quality, board independence ratios, related-party transaction volumes, and audit committee tenures.</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">BENCHMARK: NIFTY 500 FORENSIC</span>
+          <span class="story-tag">WEIGHTING: GOVERNANCE-ADJUSTED</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
+
+      <!-- Section 02: Sector Weights -->
+      <section id="sec-weights" class="page-directory-section" data-node-idx="1">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[INDEX // SECTION 02]</span>
+          <span class="story-node-anchor font-mono">#sec-weights</span>
+        </div>
+        <h3 class="story-section-title">&#9878;&#65039; 02 — Sector Capitalization Weights</h3>
+        <p class="story-narrative-lead">Parametric sector allocation matrices across BFSI, infrastructure, IT services, heavy manufacturing, and consumer durables with promoter pledge stress limits.</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">COVERAGE: 14 SECTORS</span>
+          <span class="story-tag">CAP: 25% SINGLE-SECTOR CAP</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
+
+      <!-- Section 03: Rebalancing Rules -->
+      <section id="sec-rebalance" class="page-directory-section" data-node-idx="2">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[INDEX // SECTION 03]</span>
+          <span class="story-node-anchor font-mono">#sec-rebalance</span>
+        </div>
+        <h3 class="story-section-title">&#128260; 03 — Quarterly Rebalancing Rules</h3>
+        <p class="story-narrative-lead">Formal reconstitution methodology executed on the last trading day of March, June, September, and December with automated exclusion triggers for statutory auditor resignations.</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">CADENCE: QUARTERLY</span>
+          <span class="story-tag">TRIGGER: AUDITOR RESIGNATION</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
       <!-- ================= DIRECTORY TREE FORUM ================= -->
       <section class="institutional-forum-section" id="forum-section" aria-label="Directory Tree Comments">
         <div class="forum-header">
@@ -367,6 +385,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=4.1"></script>
+  <script src="script.js?v=4.2"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Founder — IndexIndian Institutional Research Hub</title>
   <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
-  <link rel="stylesheet" href="styles.css?v=4.1">
+  <link rel="stylesheet" href="styles.css?v=4.2">
 </head>
 <body class="theme-light">
 
@@ -205,14 +205,11 @@
   <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
   <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
     <div class="rail-track" id="rail-track">
-      <div class="tick-mark" data-index="0" title="Guide Landing"></div>
-      <div class="tick-mark active" data-index="1" title="Founder"></div>
-      <div class="tick-mark" data-index="2" title="Investor"></div>
-      <div class="tick-mark" data-index="3" title="Bottleneck"></div>
-      <div class="tick-mark" data-index="4" title="Index Landing"></div>
-      <div class="tick-mark" data-index="5" title="Graph"></div>
-      <div class="tick-mark" data-index="6" title="Directory"></div>
-      <div class="tick-mark" data-index="7" title="Source"></div>
+      <div class="tick-mark active" data-index="0" data-target="#sec-cap-table" title="Equity Cap-Tables"></div>
+      <div class="tick-mark" data-index="1" data-target="#sec-vesting" title="Vesting Schedules"></div>
+      <div class="tick-mark" data-index="2" data-target="#sec-compliance" title="MCA Compliance Protocols"></div>
+      <div class="tick-mark" data-index="3" data-target="#forum-section" title="Comments Directory Stream"></div>
+      <div class="tick-mark" data-index="4" data-target="#sec-footer" title="Statutory Archive"></div>
     </div>
 
     <!-- Hover Flyout Directory Tree Panel -->
@@ -220,7 +217,7 @@
       <div class="rail-tree-header" id="rail-tree-header">
         <div class="rail-tree-header-meta">
           <span class="rail-tree-tag font-mono">SECTIONS</span>
-          <span class="rail-tree-status font-mono" id="rail-tree-status">02 / 08</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 05</span>
         </div>
         <div class="rail-tree-header-actions">
           <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin drawer open (Space)" aria-label="Pin Directory Tree" aria-pressed="false">
@@ -235,56 +232,36 @@
 
       <div class="rail-tree-body">
         <div class="tree-content-scroll" id="tree-content-scroll">
-          <div class="tree-section-header">GUIDE SUITE</div>
-          <a href="index.html" class="tree-node" data-index="0">
+          <div class="tree-section-header">FOUNDER DILIGENCE REPOSITORY</div>
+          <a href="#sec-cap-table" class="tree-node active" data-index="0">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/landing</span>
+            <span class="tree-icon">&#128202;</span>
+            <span class="tree-name font-mono">01. Equity Cap-Tables</span>
             <span class="tree-badge font-mono">01</span>
           </a>
-          <a href="founder.html" class="tree-node active" data-index="1">
+          <a href="#sec-vesting" class="tree-node" data-index="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/founder</span>
+            <span class="tree-icon">&#9201;</span>
+            <span class="tree-name font-mono">02. Vesting Schedules</span>
             <span class="tree-badge font-mono">02</span>
           </a>
-          <a href="investor.html" class="tree-node" data-index="2">
+          <a href="#sec-compliance" class="tree-node" data-index="2">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/investor</span>
+            <span class="tree-icon">&#128220;</span>
+            <span class="tree-name font-mono">03. MCA Compliance Protocols</span>
             <span class="tree-badge font-mono">03</span>
           </a>
-          <a href="bottleneck.html" class="tree-node" data-index="3">
-            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/bottleneck</span>
+          <a href="#forum-section" class="tree-node" data-index="3">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128172;</span>
+            <span class="tree-name font-mono">04. Comments Directory Stream</span>
             <span class="tree-badge font-mono">04</span>
           </a>
-
-          <div class="tree-section-header">INDEX SUITE</div>
-          <a href="index-view.html" class="tree-node" data-index="4">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/landing</span>
-            <span class="tree-badge font-mono">05</span>
-          </a>
-          <a href="graph.html" class="tree-node" data-index="5">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/graph</span>
-            <span class="tree-badge font-mono">06</span>
-          </a>
-          <a href="directory.html" class="tree-node" data-index="6">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/directory</span>
-            <span class="tree-badge font-mono">07</span>
-          </a>
-          <a href="source.html" class="tree-node" data-index="7">
+          <a href="#sec-footer" class="tree-node" data-index="4">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/source</span>
-            <span class="tree-badge font-mono">08</span>
+            <span class="tree-name font-mono">05. Statutory Disclaimer</span>
+            <span class="tree-badge font-mono">05</span>
           </a>
         </div>
         <div class="tree-scrub-strip" id="tree-scrub-strip">
@@ -302,16 +279,57 @@
         <span class="tag-meta">SUITE: GUIDE</span>
         <span class="meta-separator">&bull;</span>
         <span class="tag-meta">PERSPECTIVE: FOUNDER</span>
+        <span class="meta-separator">&bull;</span>
+        <span class="tag-meta">STRUCTURE: 5-NODE TREE</span>
       </div>
 
       <h1 class="institutional-title">Founder Governance &amp; Structuring</h1>
       <p class="dossier-lead">Institutional cap table frameworks, equity vesting architectures, and founder risk controls.</p>
 
-      <div class="canvas-empty-state">
-        <span class="canvas-tag font-mono">[READY FOR CONTENT]</span>
-        <h2 class="canvas-title">Founder</h2>
-        <p class="canvas-desc">Modular canvas ready for founder equity models, statutory filing checklists, and operational governance frameworks.</p>
-      </div>
+      <!-- Section 01: Cap Table -->
+      <section id="sec-cap-table" class="page-directory-section" data-node-idx="0">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[DILIGENCE // SECTION 01]</span>
+          <span class="story-node-anchor font-mono">#sec-cap-table</span>
+        </div>
+        <h3 class="story-section-title">&#128202; 01 — Equity Allocation &amp; Cap-Table Matrices</h3>
+        <p class="story-narrative-lead">Parametric founder equity allocation models, ESOP pool dilution mechanics (pre- vs. post-money), anti-dilution triggers, and secondary sale statutory compliance checklists for Indian entities.</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">MODEL: 80/20 PRE-SERIES A</span>
+          <span class="story-tag">STATUTE: COMPANIES ACT 2013</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
+
+      <!-- Section 02: Vesting Schedules -->
+      <section id="sec-vesting" class="page-directory-section" data-node-idx="1">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[DILIGENCE // SECTION 02]</span>
+          <span class="story-node-anchor font-mono">#sec-vesting</span>
+        </div>
+        <h3 class="story-section-title">&#9201; 02 — Vesting Schedules &amp; Governance Charters</h3>
+        <p class="story-narrative-lead">Four-year reverse vesting schedules with one-year cliffs, good-leaver vs. bad-leaver arbitration definitions, accelerated single/double-trigger change-of-control clauses, and founder dispute resolution mechanisms.</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">TIMELINE: 48-MONTH CLIFF</span>
+          <span class="story-tag">TRIGGER: DOUBLE-TRIGGER COC</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
+
+      <!-- Section 03: MCA Compliance -->
+      <section id="sec-compliance" class="page-directory-section" data-node-idx="2">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[DILIGENCE // SECTION 03]</span>
+          <span class="story-node-anchor font-mono">#sec-compliance</span>
+        </div>
+        <h3 class="story-section-title">&#128220; 03 — MCA Statutory Filing Protocols</h3>
+        <p class="story-narrative-lead">Complete statutory calendar for MCA-21 e-filings, DIR-3 KYC director verifications, AOC-4 financial statement submissions, MGT-7 annual return filings, and board resolution ratification schedules.</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">PORTAL: MCA-21 V3</span>
+          <span class="story-tag">CADENCE: STATUTORY ANNUAL</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
       <!-- ================= DIRECTORY TREE FORUM ================= -->
       <section class="institutional-forum-section" id="forum-section" aria-label="Directory Tree Comments">
         <div class="forum-header">
@@ -367,6 +385,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=4.1"></script>
+  <script src="script.js?v=4.2"></script>
 </body>
 </html>

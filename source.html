@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Source — IndexIndian Institutional Research Hub</title>
   <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
-  <link rel="stylesheet" href="styles.css?v=4.1">
+  <link rel="stylesheet" href="styles.css?v=4.2">
 </head>
 <body class="theme-light">
 
@@ -205,14 +205,11 @@
   <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
   <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
     <div class="rail-track" id="rail-track">
-      <div class="tick-mark" data-index="0" title="Guide Landing"></div>
-      <div class="tick-mark" data-index="1" title="Founder"></div>
-      <div class="tick-mark" data-index="2" title="Investor"></div>
-      <div class="tick-mark" data-index="3" title="Bottleneck"></div>
-      <div class="tick-mark" data-index="4" title="Index Landing"></div>
-      <div class="tick-mark" data-index="5" title="Graph"></div>
-      <div class="tick-mark" data-index="6" title="Directory"></div>
-      <div class="tick-mark active" data-index="7" title="Source"></div>
+      <div class="tick-mark active" data-index="0" data-target="#sec-gazette" title="Gazette Notifications"></div>
+      <div class="tick-mark" data-index="1" data-target="#sec-rbi" title="RBI Circulars"></div>
+      <div class="tick-mark" data-index="2" data-target="#sec-tribunals" title="Tribunal Judgments"></div>
+      <div class="tick-mark" data-index="3" data-target="#forum-section" title="Comments Directory Stream"></div>
+      <div class="tick-mark" data-index="4" data-target="#sec-footer" title="Statutory Archive"></div>
     </div>
 
     <!-- Hover Flyout Directory Tree Panel -->
@@ -220,7 +217,7 @@
       <div class="rail-tree-header" id="rail-tree-header">
         <div class="rail-tree-header-meta">
           <span class="rail-tree-tag font-mono">SECTIONS</span>
-          <span class="rail-tree-status font-mono" id="rail-tree-status">08 / 08</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 05</span>
         </div>
         <div class="rail-tree-header-actions">
           <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin drawer open (Space)" aria-label="Pin Directory Tree" aria-pressed="false">
@@ -235,56 +232,36 @@
 
       <div class="rail-tree-body">
         <div class="tree-content-scroll" id="tree-content-scroll">
-          <div class="tree-section-header">GUIDE SUITE</div>
-          <a href="index.html" class="tree-node" data-index="0">
+          <div class="tree-section-header">PRIMARY SOURCES &amp; CITATIONS</div>
+          <a href="#sec-gazette" class="tree-node active" data-index="0">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/landing</span>
+            <span class="tree-icon">&#128220;</span>
+            <span class="tree-name font-mono">01. Gazette of India Notifications</span>
             <span class="tree-badge font-mono">01</span>
           </a>
-          <a href="founder.html" class="tree-node" data-index="1">
+          <a href="#sec-rbi" class="tree-node" data-index="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/founder</span>
+            <span class="tree-icon">&#127974;</span>
+            <span class="tree-name font-mono">02. RBI Regulatory Circulars</span>
             <span class="tree-badge font-mono">02</span>
           </a>
-          <a href="investor.html" class="tree-node" data-index="2">
+          <a href="#sec-tribunals" class="tree-node" data-index="2">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/investor</span>
+            <span class="tree-icon">&#9878;&#65039;</span>
+            <span class="tree-name font-mono">03. Judicial &amp; Tribunal Records</span>
             <span class="tree-badge font-mono">03</span>
           </a>
-          <a href="bottleneck.html" class="tree-node" data-index="3">
-            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">guide/bottleneck</span>
+          <a href="#forum-section" class="tree-node" data-index="3">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128172;</span>
+            <span class="tree-name font-mono">04. Comments Directory Stream</span>
             <span class="tree-badge font-mono">04</span>
           </a>
-
-          <div class="tree-section-header">INDEX SUITE</div>
-          <a href="index-view.html" class="tree-node" data-index="4">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/landing</span>
-            <span class="tree-badge font-mono">05</span>
-          </a>
-          <a href="graph.html" class="tree-node" data-index="5">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/graph</span>
-            <span class="tree-badge font-mono">06</span>
-          </a>
-          <a href="directory.html" class="tree-node" data-index="6">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/directory</span>
-            <span class="tree-badge font-mono">07</span>
-          </a>
-          <a href="source.html" class="tree-node active" data-index="7">
+          <a href="#sec-footer" class="tree-node" data-index="4">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#128196;</span>
-            <span class="tree-name font-mono">index/source</span>
-            <span class="tree-badge font-mono">08</span>
+            <span class="tree-name font-mono">05. Statutory Disclaimer</span>
+            <span class="tree-badge font-mono">05</span>
           </a>
         </div>
         <div class="tree-scrub-strip" id="tree-scrub-strip">
@@ -302,16 +279,57 @@
         <span class="tag-meta">SUITE: INDEX</span>
         <span class="meta-separator">&bull;</span>
         <span class="tag-meta">PERSPECTIVE: SOURCE</span>
+        <span class="meta-separator">&bull;</span>
+        <span class="tag-meta">STRUCTURE: 5-NODE TREE</span>
       </div>
 
       <h1 class="institutional-title">Statutory Source &amp; Regulatory Filing Archive</h1>
       <p class="dossier-lead">Primary source MCA filings, auditor qualifications, and regulatory forensic repository.</p>
 
-      <div class="canvas-empty-state">
-        <span class="canvas-tag font-mono">[READY FOR CONTENT]</span>
-        <h2 class="canvas-title">Source</h2>
-        <p class="canvas-desc">Modular canvas ready for MCA-21 document archives, CARO statutory qualification decoders, and SEBI regulatory orders.</p>
-      </div>
+      <!-- Section 01: Gazette -->
+      <section id="sec-gazette" class="page-directory-section" data-node-idx="0">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[SOURCE // SECTION 01]</span>
+          <span class="story-node-anchor font-mono">#sec-gazette</span>
+        </div>
+        <h3 class="story-section-title">&#128220; 01 — Gazette of India Notifications</h3>
+        <p class="story-narrative-lead">Archival repository of Extraordinary Gazette notifications published by the Ministry of Corporate Affairs, Department of Financial Services, and Central Board of Direct Taxes (CBDT).</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">SOURCE: EGZ EXTRAORDINARY</span>
+          <span class="story-tag">JURISDICTION: UNION OF INDIA</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
+
+      <!-- Section 02: RBI Circulars -->
+      <section id="sec-rbi" class="page-directory-section" data-node-idx="1">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[SOURCE // SECTION 02]</span>
+          <span class="story-node-anchor font-mono">#sec-rbi</span>
+        </div>
+        <h3 class="story-section-title">&#127974; 02 — RBI Regulatory Circulars &amp; Master Directions</h3>
+        <p class="story-narrative-lead">Master directions on Non-Banking Financial Companies (NBFC) scale-based regulation, Foreign Exchange Management Act (FEMA) compounding orders, and external commercial borrowing (ECB) limits.</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">REGULATOR: RESERVE BANK OF INDIA</span>
+          <span class="story-tag">DIRECTIVE: MASTER DIRECTION 2023</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
+
+      <!-- Section 03: Judicial Records -->
+      <section id="sec-tribunals" class="page-directory-section" data-node-idx="2">
+        <div class="story-section-meta font-mono">
+          <span class="story-section-tag">[SOURCE // SECTION 03]</span>
+          <span class="story-node-anchor font-mono">#sec-tribunals</span>
+        </div>
+        <h3 class="story-section-title">&#9878;&#65039; 03 — Judicial Precedents &amp; Tribunal Records</h3>
+        <p class="story-narrative-lead">Full-text searchable orders from the Supreme Court of India, Delhi High Court Commercial Division, Bombay High Court Company Bench, and National Company Law Appellate Tribunal (NCLAT).</p>
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">COURTS: SC / HC / NCLAT</span>
+          <span class="story-tag">INDEXING: HEADNOTES &amp; PRECEDENTS</span>
+          <span class="story-tag status-ready">[READY FOR CONTENT]</span>
+        </div>
+      </section>
       <!-- ================= DIRECTORY TREE FORUM ================= -->
       <section class="institutional-forum-section" id="forum-section" aria-label="Directory Tree Comments">
         <div class="forum-header">
@@ -367,6 +385,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=4.1"></script>
+  <script src="script.js?v=4.2"></script>
 </body>
 </html>
