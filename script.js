@@ -640,4 +640,319 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // ==========================================================================
+  // 8. ANONYMOUS IST RESEARCH FORUM MODULE (SUPABASE + LOCAL FALLBACK)
+  // ==========================================================================
+  // When you obtain your project credentials from supabase.com:
+  // 1. Enter your Project URL in SUPABASE_CONFIG.url
+  // 2. Enter your "anon" "public" key in SUPABASE_CONFIG.anonKey
+  // 3. Run the SQL table migration snippet in Supabase SQL editor
+  // Until configured, this automatically operates with 100% zero-friction local storage.
+  const SUPABASE_CONFIG = {
+    url: "",        // e.g. "https://abcdefghijklmn.supabase.co"
+    anonKey: "",    // e.g. "eyJhbGciOi..."
+    tableName: "forum_messages",
+    retentionDays: 30
+  };
+
+  function getIndianStandardTimeNow() {
+    return new Date().toLocaleTimeString("en-GB", {
+      timeZone: "Asia/Kolkata",
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+  }
+
+  function getIndianStandardDateTimeString(dateInput) {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "Recent";
+    const dateStr = d.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+    const timeStr = d.toLocaleTimeString("en-GB", {
+      timeZone: "Asia/Kolkata",
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    return `${dateStr}, ${timeStr} IST`;
+  }
+
+  function getISTUsername() {
+    return `ANON_${getIndianStandardTimeNow()}_IST`;
+  }
+
+  function getForumPageId() {
+    const p = window.location.pathname.toLowerCase().split("/").pop() || "index.html";
+    if (p.includes("index-view")) return "index-view";
+    if (p.includes("graph")) return "graph";
+    if (p.includes("directory")) return "directory";
+    if (p.includes("source")) return "source";
+    if (p.includes("founder")) return "founder";
+    if (p.includes("investor")) return "investor";
+    if (p.includes("bottleneck")) return "bottleneck";
+    return "guide";
+  }
+
+  function getLocalForumMessages(pageId, cutoffMs) {
+    try {
+      const raw = localStorage.getItem(`indexindian_forum_${pageId}`);
+      if (!raw) return [];
+      const list = JSON.parse(raw);
+      const valid = list.filter((m) => {
+        const t = new Date(m.created_at).getTime();
+        return !isNaN(t) && t >= cutoffMs;
+      });
+      if (valid.length !== list.length) {
+        localStorage.setItem(`indexindian_forum_${pageId}`, JSON.stringify(valid));
+      }
+      return valid;
+    } catch (e) {
+      console.warn("[IndexIndian Forum] Error reading local forum storage:", e);
+      return [];
+    }
+  }
+
+  function saveLocalForumMessage(pageId, username, message, createdAtISO) {
+    try {
+      const cutoffMs = Date.now() - (SUPABASE_CONFIG.retentionDays * 86400 * 1000);
+      const current = getLocalForumMessages(pageId, cutoffMs);
+      const newEntry = {
+        id: `local_${Date.now()}`,
+        page_id: pageId,
+        username: username,
+        message: message,
+        created_at: createdAtISO
+      };
+      current.unshift(newEntry);
+      const trimmed = current.slice(0, 100);
+      localStorage.setItem(`indexindian_forum_${pageId}`, JSON.stringify(trimmed));
+      return newEntry;
+    } catch (e) {
+      console.warn("[IndexIndian Forum] Error saving local forum message:", e);
+      return null;
+    }
+  }
+
+  function escapeForumHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function renderForumMessages(messages, container) {
+    if (!container) return;
+    if (!messages || messages.length === 0) {
+      container.innerHTML = `
+        <div class="forum-empty-state font-mono">
+          NO INTEL BROADCASTS LOGGED YET FOR THIS CANVAS. BE THE FIRST TO CONTRIBUTE.
+        </div>
+      `;
+      return;
+    }
+
+    const html = messages.map((m) => {
+      const formattedTime = getIndianStandardDateTimeString(m.created_at);
+      const safeAuthor = escapeForumHtml(m.username || "ANON_IST");
+      const safePage = escapeForumHtml((m.page_id || "INTEL").toUpperCase());
+      const safeContent = escapeForumHtml(m.message || "");
+
+      return `
+        <article class="forum-message-card" data-id="${escapeForumHtml(String(m.id || ''))}">
+          <div class="msg-meta-row font-mono">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="msg-author-badge">${safeAuthor}</span>
+              <span class="msg-page-tag">[${safePage}]</span>
+            </div>
+            <time class="msg-timestamp" datetime="${escapeForumHtml(m.created_at || '')}">${formattedTime}</time>
+          </div>
+          <div class="msg-text-content">${safeContent}</div>
+        </article>
+      `;
+    }).join("");
+
+    container.innerHTML = html;
+  }
+
+  async function loadForumMessages() {
+    const listEl = document.getElementById("forum-messages-list");
+    if (!listEl) return;
+
+    const pageId = getForumPageId();
+    const cutoffMs = Date.now() - (SUPABASE_CONFIG.retentionDays * 86400 * 1000);
+    const isSupabaseLive = Boolean(
+      SUPABASE_CONFIG.url &&
+      SUPABASE_CONFIG.anonKey &&
+      !SUPABASE_CONFIG.url.includes("YOUR_") &&
+      SUPABASE_CONFIG.url.startsWith("https://")
+    );
+
+    let messages = [];
+
+    if (isSupabaseLive) {
+      try {
+        const cutoffISO = new Date(cutoffMs).toISOString();
+        const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}?page_id=eq.${encodeURIComponent(pageId)}&created_at=gte.${cutoffISO}&order=created_at.desc&limit=50`;
+        const res = await fetch(endpoint, {
+          headers: {
+            "apikey": SUPABASE_CONFIG.anonKey,
+            "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`
+          }
+        });
+
+        if (res.ok) {
+          messages = await res.json();
+        } else {
+          console.warn("[IndexIndian Forum] Supabase fetch status:", res.status, "using local fallback");
+          messages = getLocalForumMessages(pageId, cutoffMs);
+        }
+      } catch (err) {
+        console.warn("[IndexIndian Forum] Supabase network error, using local fallback:", err);
+        messages = getLocalForumMessages(pageId, cutoffMs);
+      }
+    } else {
+      messages = getLocalForumMessages(pageId, cutoffMs);
+    }
+
+    renderForumMessages(messages, listEl);
+  }
+
+  async function broadcastForumMessage(rawText) {
+    const text = rawText.trim();
+    if (!text) return false;
+
+    const pageId = getForumPageId();
+    const username = getISTUsername();
+    const nowISO = new Date().toISOString();
+
+    const isSupabaseLive = Boolean(
+      SUPABASE_CONFIG.url &&
+      SUPABASE_CONFIG.anonKey &&
+      !SUPABASE_CONFIG.url.includes("YOUR_") &&
+      SUPABASE_CONFIG.url.startsWith("https://")
+    );
+
+    if (isSupabaseLive) {
+      try {
+        const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}`;
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_CONFIG.anonKey,
+            "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+          },
+          body: JSON.stringify({
+            page_id: pageId,
+            username: username,
+            message: text,
+            created_at: nowISO
+          })
+        });
+
+        if (!res.ok) {
+          console.warn("[IndexIndian Forum] Supabase post failed, caching locally");
+          saveLocalForumMessage(pageId, username, text, nowISO);
+        }
+      } catch (err) {
+        console.warn("[IndexIndian Forum] Network error during post, caching locally:", err);
+        saveLocalForumMessage(pageId, username, text, nowISO);
+      }
+    } else {
+      saveLocalForumMessage(pageId, username, text, nowISO);
+    }
+
+    await loadForumMessages();
+    return true;
+  }
+
+  const forumForm = document.getElementById("forum-composer");
+  const forumInput = document.getElementById("forum-input");
+  const forumSendBtn = document.getElementById("forum-send-btn");
+  const forumRefreshBtn = document.getElementById("forum-refresh-btn");
+  const composerCharCounter = document.getElementById("composer-char-counter");
+  const currentIstUsernameEl = document.getElementById("current-ist-username");
+  const btnIstTimeEl = document.getElementById("btn-ist-time");
+
+  // Real-time IST username clock ticker
+  function tickForumClock() {
+    const istTime = getIndianStandardTimeNow();
+    if (currentIstUsernameEl) {
+      currentIstUsernameEl.textContent = `ANON_${istTime}_IST`;
+    }
+    if (btnIstTimeEl) {
+      btnIstTimeEl.textContent = `${istTime} IST`;
+    }
+  }
+  tickForumClock();
+  setInterval(tickForumClock, 1000);
+
+  // Character counter
+  if (forumInput && composerCharCounter) {
+    forumInput.addEventListener("input", () => {
+      const len = forumInput.value.length;
+      composerCharCounter.textContent = `${len} / 300`;
+    });
+  }
+
+  // Submit handler
+  async function handleForumSubmit() {
+    if (!forumInput) return;
+    const text = forumInput.value.trim();
+    if (!text) return;
+
+    if (forumSendBtn) {
+      forumSendBtn.disabled = true;
+      const btnText = forumSendBtn.querySelector(".btn-text");
+      if (btnText) btnText.textContent = "SENDING...";
+    }
+
+    try {
+      await broadcastForumMessage(text);
+      forumInput.value = "";
+      if (composerCharCounter) composerCharCounter.textContent = "0 / 300";
+    } finally {
+      if (forumSendBtn) {
+        forumSendBtn.disabled = false;
+        const btnText = forumSendBtn.querySelector(".btn-text");
+        if (btnText) btnText.textContent = "BROADCAST";
+      }
+    }
+  }
+
+  if (forumForm) {
+    forumForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      handleForumSubmit();
+    });
+  }
+
+  // Ctrl+Enter or Cmd+Enter to send from inside textarea
+  if (forumInput) {
+    forumInput.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleForumSubmit();
+      }
+    });
+  }
+
+  if (forumRefreshBtn) {
+    forumRefreshBtn.addEventListener("click", () => {
+      loadForumMessages();
+    });
+  }
+
+  // Initial load
+  if (document.getElementById("forum-messages-list")) {
+    loadForumMessages();
+  }
 });

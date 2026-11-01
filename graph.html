@@ -101,6 +101,10 @@
               <span class="shortcut-desc">Close Open Overlays</span>
               <span class="shortcut-keys"><kbd>Esc</kbd></span>
             </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Send Forum Broadcast</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>&crarr;</kbd></span>
+            </div>
           </div>
         </div>
       </div>
@@ -312,6 +316,48 @@
         <h2 class="canvas-title">Graph</h2>
         <p class="canvas-desc">Modular canvas ready for D3 interactive entity graphs, subsidiary linkage webs, and capital flow diagrams.</p>
       </div>
+
+      <!-- ================= ANONYMOUS IST RESEARCH FORUM STREAM ================= -->
+      <section class="institutional-forum-section" id="forum-section" aria-label="Community Research Stream">
+        <div class="forum-header">
+          <div class="forum-header-meta">
+            <span class="forum-tag font-mono">[RESEARCH FORUM &bull; INTEL STREAM]</span>
+            <span class="forum-rule-badge font-mono">30-DAY RETENTION &bull; NO ACCOUNTS</span>
+          </div>
+          <div class="forum-user-identity" id="forum-identity-bar" title="Your username generated directly from Indian Standard Time">
+            <span class="identity-dot" aria-hidden="true"></span>
+            <span class="identity-label font-mono">IDENTITY:</span>
+            <span class="identity-username font-mono" id="current-ist-username">ANON_--:--:--_IST</span>
+          </div>
+        </div>
+
+        <!-- Chat messages container -->
+        <div class="forum-messages-container" id="forum-messages-list" role="feed" aria-live="polite">
+          <div class="forum-loading-state font-mono" id="forum-loading-indicator">Synchronizing forum intelligence stream...</div>
+        </div>
+
+        <!-- Forum input composer -->
+        <form class="forum-composer-form" id="forum-composer" autocomplete="off">
+          <div class="composer-top-bar font-mono">
+            <span class="composer-hint">Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> or click Broadcast to send</span>
+            <span class="composer-char-count" id="composer-char-counter">0 / 300</span>
+          </div>
+          <div class="composer-input-row">
+            <textarea class="forum-textarea" id="forum-input" rows="2" maxlength="300" placeholder="Contribute to public research discussion... (Identity tagged automatically with Indian Standard Time)"></textarea>
+            <button type="submit" class="forum-send-btn" id="forum-send-btn">
+              <span class="btn-text">BROADCAST</span>
+              <span class="btn-time-tag font-mono" id="btn-ist-time">IST</span>
+            </button>
+          </div>
+          <div class="composer-footer font-mono">
+            <span class="footer-privacy-text">&bull; Zero trackers &bull; Timestamp is your username &bull; Auto-purged after 30 days</span>
+            <button type="button" class="forum-refresh-btn" id="forum-refresh-btn" title="Refresh conversation stream">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              SYNC FEED
+            </button>
+          </div>
+        </form>
+      </section>
 
       <!-- Mandatory Institutional Footer -->
       <footer class="institutional-footer" id="sec-footer">
