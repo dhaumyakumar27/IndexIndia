@@ -13,10 +13,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Keyboard shortcut Tab switches between Guide landing <=> Index landing
   const targetOtherSuiteUrl = isIndexSuite ? "guide.html" : "index.html";
 
-  // Forward declarations for Doubt Solver so global listeners can invoke them
+  // Forward declarations for Doubt Solver & Command Palette so global listeners can invoke them
   let toggleDoubtSolver = function() {};
   let openDoubtSolver = function() {};
   let closeDoubtSolver = function() {};
+  let toggleCommandPalette = function() {};
+  let openCommandPalette = function() {};
+  let closeCommandPalette = function() {};
+  let clearFinderHighlights = function() {};
+  let nextFinderMatch = function() {};
+  let prevFinderMatch = function() {};
+  let isFinderActive = function() { return false; };
 
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
   const railNavigator = document.getElementById("rail-navigator");
@@ -667,6 +674,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // 5b. "Space" toggles Universal Command Palette (strictly alone, no modifiers)
+    if ((e.code === "Space" || e.key === " ") && noModifiers) {
+      e.preventDefault();
+      toggleCommandPalette();
+      return;
+    }
+
     // 6. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree (strictly Ctrl/Meta alone, no Shift, no Alt)
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
@@ -762,13 +776,28 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 11. Escape closes all open panels, menus, directory tree, and Doubt Solver (strictly alone)
+    // 10b. In-Page Finder Active Navigation (Enter -> next match, Shift+Enter -> prev match)
+    if (isFinderActive()) {
+      if (e.key === "Enter" && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          prevFinderMatch();
+        } else {
+          nextFinderMatch();
+        }
+        return;
+      }
+    }
+
+    // 11. Escape closes all open panels, menus, directory tree, Doubt Solver, Command Palette, and Finder
     if (e.key === "Escape" && noModifiers) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       closeTreeExplicitly();
       closeDoubtSolver();
+      closeCommandPalette();
+      clearFinderHighlights();
       return;
     }
   });
@@ -2774,4 +2803,704 @@ document.addEventListener("DOMContentLoaded", () => {
     doubtOpenedByHover = false;
     origToggleDoubt();
   };
+
+  // ================= 11. UNIVERSAL COMMAND PALETTE & IN-PAGE FINDER (Triggered by Space) =================
+  let paletteBackdrop = null;
+  let paletteInput = null;
+  let paletteResultsList = null;
+  let paletteCurrentItems = [];
+  let paletteSelectedIndex = 0;
+
+  // In-Page Finder state
+  finderMatches = [];
+  let currentFinderMatchIdx = 0;
+  let currentFinderQuery = "";
+
+  // 1. Build Command Palette DOM
+  paletteBackdrop = document.createElement("div");
+  paletteBackdrop.id = "command-palette-backdrop";
+  paletteBackdrop.className = "command-palette-backdrop";
+  paletteBackdrop.setAttribute("aria-hidden", "true");
+  paletteBackdrop.innerHTML = `
+    <div class="command-palette-dialog" id="command-palette-dialog" role="dialog" aria-modal="true" aria-label="Universal Command Palette">
+      <div class="palette-search-header">
+        <span class="palette-search-icon">🔍</span>
+        <input type="text" class="palette-search-input" id="palette-search-input" placeholder="Type a command, setting, section, or search page..." autocomplete="off" spellcheck="false" />
+        <kbd class="palette-esc-badge" id="palette-esc-btn" title="Close (Esc)">ESC</kbd>
+      </div>
+      <div class="palette-results-list" id="palette-results-list" role="listbox"></div>
+      <div class="palette-footer">
+        <div class="palette-footer-hints">
+          <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+          <span><kbd>↵</kbd> Select</span>
+          <span><kbd>ESC</kbd> Close</span>
+          <span><kbd>Space</kbd> Toggle</span>
+        </div>
+        <div class="palette-footer-brand">INDEX INDIAN COMMAND</div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(paletteBackdrop);
+
+  paletteInput = paletteBackdrop.querySelector("#palette-search-input");
+  paletteResultsList = paletteBackdrop.querySelector("#palette-results-list");
+  const paletteEscBtn = paletteBackdrop.querySelector("#palette-esc-btn");
+
+  // 2. Build In-Page Finder Floating Bar DOM
+  inpageFinderBar = document.createElement("div");
+  inpageFinderBar.id = "inpage-finder-bar";
+  inpageFinderBar.className = "inpage-finder-bar";
+  inpageFinderBar.setAttribute("role", "search");
+  inpageFinderBar.setAttribute("aria-label", "In-Page Finder");
+  inpageFinderBar.innerHTML = `
+    <span class="finder-icon">🔍</span>
+    <span class="finder-query-text" id="finder-query-text">""</span>
+    <span class="finder-match-count font-mono" id="finder-match-count">0 of 0</span>
+    <div class="finder-nav-btns">
+      <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)">▲</button>
+      <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)">▼</button>
+    </div>
+    <button type="button" class="finder-close-btn" id="finder-close-btn" title="Close Finder (Esc)">&times;</button>
+  `;
+  document.body.appendChild(inpageFinderBar);
+
+  const finderQueryText = inpageFinderBar.querySelector("#finder-query-text");
+  const finderMatchCount = inpageFinderBar.querySelector("#finder-match-count");
+  const finderBtnPrev = inpageFinderBar.querySelector("#finder-btn-prev");
+  const finderBtnNext = inpageFinderBar.querySelector("#finder-btn-next");
+  const finderCloseBtn = inpageFinderBar.querySelector("#finder-close-btn");
+
+  isFinderActive = function() {
+    return Boolean(inpageFinderBar && inpageFinderBar.classList.contains("is-visible") && finderMatches.length > 0);
+  };
+
+  // Helper Functions for Settings Actions
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      document.body.classList.add("theme-dark");
+      document.body.classList.remove("theme-light");
+      localStorage.setItem("indexindian_theme", "dark");
+      if (contrastToggle) contrastToggle.checked = true;
+    } else {
+      document.body.classList.remove("theme-dark");
+      document.body.classList.add("theme-light");
+      localStorage.setItem("indexindian_theme", "light");
+      if (contrastToggle) contrastToggle.checked = false;
+    }
+  }
+
+  function toggleThemeMode() {
+    const isDark = document.body.classList.contains("theme-dark");
+    applyTheme(isDark ? "light" : "dark");
+  }
+
+  function applyFontSize(size) {
+    document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
+    document.documentElement.classList.add(`font-size-${size}`);
+    localStorage.setItem("indexindian_font_size", size);
+    if (fontSizeLabel) fontSizeLabel.textContent = size.charAt(0).toUpperCase() + size.slice(1);
+    const activeItem = document.querySelector(`#list-font-size .dropdown-item[data-val="${size}"]`);
+    if (activeItem) {
+      document.querySelectorAll("#list-font-size .dropdown-item").forEach((el) => el.classList.remove("active"));
+      activeItem.classList.add("active");
+    }
+  }
+
+  function applyFontStyle(style) {
+    document.body.classList.remove("font-style-reading", "font-style-typewriter");
+    document.body.classList.add(`font-style-${style}`);
+    localStorage.setItem("indexindian_font_style", style);
+    if (fontStyleLabel) fontStyleLabel.textContent = style === "reading" ? "Long Reading" : "Typewriter";
+    const activeItem = document.querySelector(`#list-font-style .dropdown-item[data-val="${style}"]`);
+    if (activeItem) {
+      document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
+      activeItem.classList.add("active");
+    }
+  }
+
+  function toggleBackgroundGrid() {
+    document.body.classList.toggle("no-grid");
+    if (gridToggle) gridToggle.checked = !document.body.classList.contains("no-grid");
+  }
+
+  function navigateToSectionAnchor(hash) {
+    closeCommandPalette();
+    try {
+      const targetEl = document.querySelector(hash);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        targetEl.classList.add("section-focus-pulse");
+        setTimeout(() => targetEl.classList.remove("section-focus-pulse"), 1800);
+        history.replaceState(null, "", hash);
+      } else {
+        window.location.hash = hash;
+      }
+    } catch (_) {
+      window.location.hash = hash;
+    }
+  }
+
+  // 3. In-Page Highlighting & Walker Engine
+  clearFinderHighlights = function() {
+    const marks = Array.from(document.querySelectorAll("mark.finder-match"));
+    marks.forEach((mark) => {
+      const parent = mark.parentNode;
+      if (parent) {
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+      }
+    });
+    finderMatches = [];
+    currentFinderMatchIdx = 0;
+    currentFinderQuery = "";
+    if (inpageFinderBar) inpageFinderBar.classList.remove("is-visible");
+  };
+
+  function countInPageMatches(query) {
+    if (!query || query.trim().length < 2) return 0;
+    const root = document.querySelector(".content-area") || document.querySelector("main") || document.body;
+    const text = root.innerText || root.textContent || "";
+    const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const matches = text.match(new RegExp(escaped, "gi"));
+    return matches ? matches.length : 0;
+  }
+
+  function highlightInPageText(query) {
+    clearFinderHighlights();
+    if (!query || query.trim().length < 2) return 0;
+    const trimmed = query.trim();
+    currentFinderQuery = trimmed;
+
+    const root = document.querySelector(".content-area") || document.querySelector("main") || document.body;
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tag = parent.tagName.toUpperCase();
+          if (["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "SELECT", "BUTTON", "NOSCRIPT"].includes(tag)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (
+            parent.closest(".command-palette-backdrop") ||
+            parent.closest(".inpage-finder-bar") ||
+            parent.closest(".doubt-solver-tile") ||
+            parent.closest(".top-nav") ||
+            parent.closest(".rail-navigator")
+          ) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    const textNodes = [];
+    let currentNode = walker.nextNode();
+    while (currentNode) {
+      textNodes.push(currentNode);
+      currentNode = walker.nextNode();
+    }
+
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "gi");
+
+    textNodes.forEach((node) => {
+      const text = node.nodeValue;
+      if (!regex.test(text)) return;
+      regex.lastIndex = 0;
+
+      const frag = document.createDocumentFragment();
+      let lastIdx = 0;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIdx) {
+          frag.appendChild(document.createTextNode(text.slice(lastIdx, match.index)));
+        }
+        const mark = document.createElement("mark");
+        mark.className = "finder-match";
+        mark.textContent = match[0];
+        frag.appendChild(mark);
+        finderMatches.push(mark);
+        lastIdx = regex.lastIndex;
+      }
+      if (lastIdx < text.length) {
+        frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+      }
+      if (node.parentNode) {
+        node.parentNode.replaceChild(frag, node);
+      }
+    });
+
+    if (finderMatches.length > 0) {
+      currentFinderMatchIdx = 0;
+      updateFinderUI();
+      showFinderMatch(0);
+      if (inpageFinderBar) inpageFinderBar.classList.add("is-visible");
+    }
+
+    return finderMatches.length;
+  }
+
+  function updateFinderUI() {
+    if (finderQueryText) finderQueryText.textContent = `"${currentFinderQuery}"`;
+    if (finderMatchCount) {
+      if (finderMatches.length > 0) {
+        finderMatchCount.textContent = `${currentFinderMatchIdx + 1} of ${finderMatches.length}`;
+      } else {
+        finderMatchCount.textContent = "0 matches";
+      }
+    }
+  }
+
+  function showFinderMatch(index) {
+    if (finderMatches.length === 0) return;
+    currentFinderMatchIdx = (index + finderMatches.length) % finderMatches.length;
+    finderMatches.forEach((m, i) => {
+      m.classList.toggle("finder-match-active", i === currentFinderMatchIdx);
+    });
+    updateFinderUI();
+    const target = finderMatches[currentFinderMatchIdx];
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  nextFinderMatch = function() {
+    if (finderMatches.length === 0) return;
+    showFinderMatch(currentFinderMatchIdx + 1);
+  };
+
+  prevFinderMatch = function() {
+    if (finderMatches.length === 0) return;
+    showFinderMatch(currentFinderMatchIdx - 1);
+  };
+
+  finderBtnNext.addEventListener("click", nextFinderMatch);
+  finderBtnPrev.addEventListener("click", prevFinderMatch);
+  finderCloseBtn.addEventListener("click", clearFinderHighlights);
+
+  // 4. Build Universal Registry
+  function getCommandsRegistry() {
+    return [
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🌓",
+        title: "Toggle Dark / Light Theme",
+        subtitle: "Switch between high-contrast light and dark display modes",
+        badge: "Theme",
+        keywords: "dark mode light mode theme contrast appearance night day black white",
+        isDefault: true,
+        action: () => toggleThemeMode()
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "☀️",
+        title: "Switch to Light Mode",
+        subtitle: "Clean institutional paper-white contrast",
+        badge: "Light",
+        keywords: "light mode white paper day bright",
+        isDefault: false,
+        action: () => applyTheme("light")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🌙",
+        title: "Switch to Dark Mode",
+        subtitle: "OLED dark mode with high-contrast text",
+        badge: "Dark",
+        keywords: "dark mode black night oled dim",
+        isDefault: false,
+        action: () => applyTheme("dark")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🔤",
+        title: "Font Size: Small (85%)",
+        subtitle: "Dense financial dossier scaling",
+        badge: "Font",
+        keywords: "font size small compact text scale zoom dense",
+        isDefault: false,
+        action: () => applyFontSize("small")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🔤",
+        title: "Font Size: Medium (Default 100%)",
+        subtitle: "Balanced reading scale",
+        badge: "Font",
+        keywords: "font size medium default normal standard text scale",
+        isDefault: false,
+        action: () => applyFontSize("medium")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🔤",
+        title: "Font Size: Large (115%)",
+        subtitle: "Enlarged presentation text scale",
+        badge: "Font",
+        keywords: "font size large big zoom text scale",
+        isDefault: false,
+        action: () => applyFontSize("large")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "📖",
+        title: "Font Style: Long Reading (Serif)",
+        subtitle: "Institutional editorial serif typography",
+        badge: "Serif",
+        keywords: "font style serif reading editorial typography book",
+        isDefault: false,
+        action: () => applyFontStyle("reading")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "⌨️",
+        title: "Font Style: Typewriter (Monospace)",
+        subtitle: "Bloomberg terminal typewriter monospace font",
+        badge: "Mono",
+        keywords: "font style typewriter monospace code terminal courier",
+        isDefault: false,
+        action: () => applyFontStyle("typewriter")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "▦",
+        title: "Toggle Background Grid",
+        subtitle: "Show or hide subtle background precision grid",
+        badge: "Grid",
+        keywords: "grid lines background toggle display layout",
+        isDefault: false,
+        action: () => toggleBackgroundGrid()
+      },
+      {
+        category: "NAVIGATION & PANELS",
+        icon: "⚙️",
+        title: "Display Settings Panel",
+        subtitle: "Contrast, typography, and visual preferences",
+        badge: "]",
+        keywords: "settings display preferences options config contrast font",
+        isDefault: true,
+        action: () => {
+          if (settingsWrapper) {
+            if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
+            if (accountWrapper) accountWrapper.classList.remove("is-open");
+            settingsWrapper.classList.toggle("is-open");
+          }
+        }
+      },
+      {
+        category: "NAVIGATION & PANELS",
+        icon: "👤",
+        title: "Account Dossier & Profile",
+        subtitle: "Institutional user ID, clearance role, and sessions",
+        badge: "[",
+        keywords: "account profile dossier role user login clearance",
+        isDefault: true,
+        action: () => {
+          if (accountWrapper) {
+            if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
+            if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+            accountWrapper.classList.toggle("is-open");
+          }
+        }
+      },
+      {
+        category: "NAVIGATION & PANELS",
+        icon: "⌨️",
+        title: "Keyboard Shortcuts Cheatsheet",
+        subtitle: "Complete institutional keyboard navigation reference",
+        badge: "?",
+        keywords: "shortcuts keyboard cheatsheet keys hotkeys help commands",
+        isDefault: true,
+        action: () => {
+          if (shortcutsWrapper) {
+            if (accountWrapper) accountWrapper.classList.remove("is-open");
+            if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+            shortcutsWrapper.classList.toggle("is-open");
+          }
+        }
+      },
+      {
+        category: "NAVIGATION & PANELS",
+        icon: "🌳",
+        title: "Directory Sections Tree",
+        subtitle: "Quick-scrub tree navigator sticked to left side",
+        badge: "N",
+        keywords: "directory tree rail sections table of contents drawer navigation",
+        isDefault: true,
+        action: () => openTreeExplicitly(true)
+      },
+      {
+        category: "NAVIGATION & PANELS",
+        icon: "🦆",
+        title: "DuckDuckGo AI Doubt Solver",
+        subtitle: "Ask questions, resolve market doubts, and scan screen",
+        badge: "M",
+        keywords: "doubt solver duckduckgo ddg ai explainer question ask search",
+        isDefault: true,
+        action: () => openDoubtSolver()
+      },
+      {
+        category: "NAVIGATION & PANELS",
+        icon: "🔀",
+        title: isIndexSuite ? "Switch to Guide Suite (Narrative)" : "Switch to Index Suite (Market Hub)",
+        subtitle: isIndexSuite ? "Jump to Guide Landing (Acts I – VI)" : "Jump to Index Landing (B2B Data)",
+        badge: "Hold Tab",
+        keywords: "switch suite guide index tab toggle landing",
+        isDefault: true,
+        action: () => {
+          window.location.href = targetOtherSuiteUrl;
+        }
+      }
+    ];
+  }
+
+  function getPageSectionsRegistry() {
+    const sections = [];
+
+    // Current page sections from treeNodes
+    treeNodes.forEach((node) => {
+      const href = node.getAttribute("href") || "";
+      const label = node.querySelector(".tree-label, .tree-node-title")?.textContent?.trim() || node.textContent.trim();
+      const num = node.querySelector(".tree-num")?.textContent?.trim() || "";
+      if (label && href) {
+        sections.push({
+          category: "DIRECTORY & SECTIONS",
+          icon: "📂",
+          title: num ? `${num} ${label}` : label,
+          subtitle: href.startsWith("#") ? `In-Page Anchor (${href})` : `Navigate to ${href}`,
+          badge: href.startsWith("#") ? "Anchor" : "Page",
+          keywords: `section chapter act ${label} ${href}`,
+          isDefault: true,
+          action: () => {
+            if (href.startsWith("#")) {
+              navigateToSectionAnchor(href);
+            } else {
+              window.location.href = href;
+            }
+          }
+        });
+      }
+    });
+
+    // Core Hubs & Modular Directories
+    const HUB_PAGES = [
+      { title: "Guide Landing — Complete Institutional Narrative", file: "guide.html", sub: "Acts I – VI Narrative & Case Study", kw: "guide story narrative prologue acts" },
+      { title: "Founder Dossier — Promoter Concentration & Pledging", file: "founder.html", sub: "Equity dilution, family trusts, pledge dynamics", kw: "founder promoter shares pledge trusts equity" },
+      { title: "Investor Dossier — Institutional Flow Analysis", file: "investor.html", sub: "FII vs DII allocation & institutional flows", kw: "investor fii dii foreign domestic capital flows" },
+      { title: "Bottleneck Matrix — Regulatory Chokepoints", file: "bottleneck.html", sub: "SEBI, RBI, MCA systemic friction points", kw: "bottleneck regulatory chokepoint sebi rbi mca friction" },
+      { title: "Index Landing — Market Capitalization Hub", file: "index.html", sub: "Indian equity markets overview & indices", kw: "index market marketcap valuation multiples" },
+      { title: "Graph Network — Ownership Webs & Circular Cross-Holdings", file: "graph.html", sub: "Ultimate beneficial ownership spider web", kw: "graph network ownership cross holding web corporate" },
+      { title: "Corporate Directory — Comprehensive Entity Registry", file: "directory.html", sub: "Nifty 50, Midcap, and categorized companies", kw: "directory corporate entities list companies database" },
+      { title: "Sources & Methodology — Disclosures & API Feeds", file: "source.html", sub: "Exchange filings, research papers, legal citations", kw: "sources methodology references citations exchange sebi filings api" }
+    ];
+
+    HUB_PAGES.forEach((hub) => {
+      const isCurrent = currentFile === hub.file;
+      sections.push({
+        category: "PAGES & DIRECTORIES",
+        icon: isCurrent ? "📍" : "📄",
+        title: hub.title,
+        subtitle: isCurrent ? "Currently viewing this page" : hub.sub,
+        badge: isCurrent ? "Current" : "Go",
+        keywords: `${hub.kw} ${hub.title} ${hub.file}`,
+        isDefault: !isCurrent,
+        action: () => {
+          if (!isCurrent) window.location.href = hub.file;
+        }
+      });
+    });
+
+    return sections;
+  }
+
+  // 5. Palette Render & Search
+  function renderPaletteResults(query) {
+    const q = (query || "").trim().toLowerCase();
+    paletteResultsList.innerHTML = "";
+    paletteCurrentItems = [];
+
+    // In-Page Finder Dynamic Result if query length >= 2
+    if (q.length >= 2) {
+      const pageMatchesCount = countInPageMatches(q);
+      const inPageFinderItem = {
+        category: "IN-PAGE FINDER",
+        icon: "🔍",
+        title: `Find in Page: "${query.trim()}"`,
+        subtitle: `${pageMatchesCount} match${pageMatchesCount === 1 ? "" : "es"} found on current page. Press Enter to navigate.`,
+        badge: "Jump",
+        keywords: q,
+        isDefault: true,
+        action: () => {
+          closeCommandPalette();
+          highlightInPageText(query.trim());
+        }
+      };
+      paletteCurrentItems.push(inPageFinderItem);
+    }
+
+    const commands = getCommandsRegistry();
+    const sections = getPageSectionsRegistry();
+
+    const filteredCommands = commands.filter((cmd) => {
+      if (!q) return cmd.isDefault;
+      const titleMatch = cmd.title.toLowerCase().includes(q);
+      const keywordsMatch = cmd.keywords && cmd.keywords.toLowerCase().includes(q);
+      return titleMatch || keywordsMatch;
+    });
+
+    const filteredSections = sections.filter((sec) => {
+      if (!q) return sec.isDefault;
+      const titleMatch = sec.title.toLowerCase().includes(q);
+      const subMatch = sec.subtitle && sec.subtitle.toLowerCase().includes(q);
+      const kwMatch = sec.keywords && sec.keywords.toLowerCase().includes(q);
+      return titleMatch || subMatch || kwMatch;
+    });
+
+    filteredCommands.forEach((c) => paletteCurrentItems.push(c));
+    filteredSections.forEach((s) => paletteCurrentItems.push(s));
+
+    if (paletteCurrentItems.length === 0) {
+      paletteResultsList.innerHTML = `
+        <div class="palette-empty-state">
+          <p>No commands, settings, or sections matching "<strong>${escapeHtml(query)}</strong>"</p>
+          <p style="font-size: 0.78rem; margin-top: 6px; opacity: 0.7;">Try searching for <em>dark mode</em>, <em>font size</em>, <em>shortcuts</em>, or a section name.</p>
+        </div>
+      `;
+      paletteSelectedIndex = -1;
+      return;
+    }
+
+    let currentGroup = "";
+    paletteCurrentItems.forEach((item, index) => {
+      if (item.category !== currentGroup) {
+        currentGroup = item.category;
+        const groupHeader = document.createElement("div");
+        groupHeader.className = "palette-group-title";
+        groupHeader.textContent = currentGroup;
+        paletteResultsList.appendChild(groupHeader);
+      }
+
+      const itemEl = document.createElement("div");
+      itemEl.className = "palette-item" + (index === 0 ? " is-selected" : "");
+      itemEl.setAttribute("role", "option");
+      itemEl.setAttribute("data-index", String(index));
+      itemEl.innerHTML = `
+        <div class="palette-item-left">
+          <span class="palette-item-icon">${item.icon || "▸"}</span>
+          <div class="palette-item-text">
+            <span class="palette-item-title">${escapeHtml(item.title)}</span>
+            ${item.subtitle ? `<span class="palette-item-subtitle">${escapeHtml(item.subtitle)}</span>` : ""}
+          </div>
+        </div>
+        <div class="palette-item-right">
+          ${item.badge ? `<span class="palette-item-badge">${escapeHtml(item.badge)}</span>` : ""}
+        </div>
+      `;
+
+      itemEl.addEventListener("click", () => {
+        executePaletteItem(index);
+      });
+
+      itemEl.addEventListener("mouseenter", () => {
+        setPaletteSelectedIndex(index);
+      });
+
+      paletteResultsList.appendChild(itemEl);
+    });
+
+    paletteSelectedIndex = 0;
+  }
+
+  function setPaletteSelectedIndex(index) {
+    if (paletteCurrentItems.length === 0) return;
+    paletteSelectedIndex = Math.max(0, Math.min(index, paletteCurrentItems.length - 1));
+    const allItemEls = paletteResultsList.querySelectorAll(".palette-item");
+    allItemEls.forEach((el, i) => {
+      const isSelected = i === paletteSelectedIndex;
+      el.classList.toggle("is-selected", isSelected);
+      if (isSelected) {
+        el.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }
+
+  function executePaletteItem(index) {
+    const item = paletteCurrentItems[index];
+    if (!item) return;
+    if (typeof item.action === "function") {
+      closeCommandPalette();
+      item.action();
+    }
+  }
+
+  openCommandPalette = function() {
+    if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
+    if (accountWrapper) accountWrapper.classList.remove("is-open");
+    if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+    closeTreeExplicitly();
+    closeDoubtSolver();
+
+    paletteBackdrop.classList.add("is-open");
+    paletteBackdrop.setAttribute("aria-hidden", "false");
+    paletteInput.value = "";
+    renderPaletteResults("");
+    setTimeout(() => {
+      paletteInput.focus();
+      paletteInput.select();
+    }, 40);
+  };
+
+  closeCommandPalette = function() {
+    paletteBackdrop.classList.remove("is-open");
+    paletteBackdrop.setAttribute("aria-hidden", "true");
+    paletteInput.blur();
+  };
+
+  toggleCommandPalette = function() {
+    if (paletteBackdrop.classList.contains("is-open")) {
+      closeCommandPalette();
+    } else {
+      openCommandPalette();
+    }
+  };
+
+  window.toggleCommandPalette = toggleCommandPalette;
+  window.openCommandPalette = openCommandPalette;
+  window.closeCommandPalette = closeCommandPalette;
+
+  // Palette Input & Navigation Listeners
+  paletteInput.addEventListener("input", (e) => {
+    renderPaletteResults(e.target.value);
+  });
+
+  paletteInput.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setPaletteSelectedIndex(paletteSelectedIndex + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setPaletteSelectedIndex(paletteSelectedIndex - 1);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      executePaletteItem(paletteSelectedIndex);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closeCommandPalette();
+    }
+  });
+
+  if (paletteEscBtn) {
+    paletteEscBtn.addEventListener("click", closeCommandPalette);
+  }
+
+  paletteBackdrop.addEventListener("mousedown", (e) => {
+    if (e.target === paletteBackdrop) {
+      closeCommandPalette();
+    }
+  });
 });
