@@ -11,7 +11,7 @@
   <!-- <script defer data-domain="indexindian.com" src="https://plausible.io/js/script.js"></script> -->
   <!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "CLOUDFLARE_ANALYTICS_TOKEN"}'></script> -->
 
-  <link rel="stylesheet" href="styles.css?v=2.9">
+  <link rel="stylesheet" href="styles.css?v=3.0">
 </head>
 <body class="theme-light">
 
@@ -20,10 +20,10 @@
     <div class="nav-left">
       <!-- Wireframe: Segmented switch button on top left [Guide | Index] -->
       <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
-        <button type="button" class="switch-btn active" id="btn-guide" role="tab" aria-selected="true" aria-controls="guide-view" data-view="guide">
+        <button type="button" class="switch-btn active" id="btn-guide" role="tab" aria-selected="true" aria-controls="guide-view" data-view="guide" title="Switch to Guide (Tab)">
           Guide
         </button>
-        <button type="button" class="switch-btn" id="btn-index" role="tab" aria-selected="false" aria-controls="index-view" data-view="index">
+        <button type="button" class="switch-btn" id="btn-index" role="tab" aria-selected="false" aria-controls="index-view" data-view="index" title="Switch to Index (Tab)">
           Index
         </button>
       </nav>
@@ -33,7 +33,7 @@
     <div class="nav-right">
       <!-- 1. ACCOUNT BUTTON & HOVER PANEL -->
       <div class="panel-trigger-wrapper" id="account-wrapper">
-        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier">
+        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier ( [ )">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
@@ -69,7 +69,7 @@
 
       <!-- 2. SETTINGS BUTTON & HOVER PANEL -->
       <div class="panel-trigger-wrapper" id="settings-wrapper">
-        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings">
+        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" title="Display Settings ( ] )">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -166,11 +166,11 @@
           <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 48</span>
         </div>
         <div class="rail-tree-header-actions">
-          <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin sidebar open (or press T)" aria-label="Pin Directory Tree" aria-pressed="false">
+          <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin drawer open (Space or T)" aria-label="Pin Directory Tree" aria-pressed="false">
             <span class="btn-pin-icon">&#128204;</span>
             <span class="font-mono">PIN</span>
           </button>
-          <button type="button" class="rail-header-btn close-btn" id="btn-close-tree" title="Close drawer (Esc)" aria-label="Close Directory Tree">
+          <button type="button" class="rail-header-btn close-btn" id="btn-close-tree" title="Close drawer (Esc or Space)" aria-label="Close Directory Tree">
             <span class="font-mono">&times;</span>
           </button>
         </div>
@@ -1786,6 +1786,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=2.9"></script>
+  <script src="script.js?v=3.0"></script>
 </body>
 </html>

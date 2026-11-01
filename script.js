@@ -356,39 +356,109 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Global Keyboard Shortcuts (Terminal mode: T toggles drawer, Esc closes)
+  // ================= TOP RIGHT ACCOUNT & SETTINGS PANELS =================
+  const accountWrapper = document.getElementById("account-wrapper");
+  const accountBtn = document.getElementById("account-btn");
+  const settingsWrapper = document.getElementById("settings-wrapper");
+  const settingsBtn = document.getElementById("settings-btn");
+
+  if (accountBtn) {
+    accountBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+      if (accountWrapper) accountWrapper.classList.toggle("is-open");
+    });
+  }
+
+  if (settingsBtn) {
+    settingsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (accountWrapper) accountWrapper.classList.remove("is-open");
+      if (settingsWrapper) settingsWrapper.classList.toggle("is-open");
+    });
+  }
+
+  // Click outside closes account & settings flyouts
+  document.addEventListener("click", (e) => {
+    if (accountWrapper && !accountWrapper.contains(e.target)) {
+      accountWrapper.classList.remove("is-open");
+    }
+    if (settingsWrapper && !settingsWrapper.contains(e.target)) {
+      settingsWrapper.classList.remove("is-open");
+    }
+  });
+
+  // ================= GLOBAL KEYBOARD SHORTCUTS (Terminal Mode) =================
   document.addEventListener("keydown", (e) => {
-    // Ignore when user is typing in form inputs
+    // Ignore shortcuts when user is actively typing in form inputs
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
-    if (e.key === "t" || e.key === "T") {
+    // 1. Tab switches between Guide <=> Index
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const isGuideActive = btnGuide && btnGuide.classList.contains("active");
+      const targetView = isGuideActive ? "index" : "guide";
+      switchView(targetView);
+      return;
+    }
+
+    // 2. "[" toggles Account
+    if (e.key === "[") {
+      e.preventDefault();
+      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+      if (accountWrapper) accountWrapper.classList.toggle("is-open");
+      return;
+    }
+
+    // 3. "]" toggles Settings
+    if (e.key === "]") {
+      e.preventDefault();
+      if (accountWrapper) accountWrapper.classList.remove("is-open");
+      if (settingsWrapper) settingsWrapper.classList.toggle("is-open");
+      return;
+    }
+
+    // 4. "Space" opens/toggles Directory Tree (also 'T' alias)
+    if (e.code === "Space" || e.key === " " || e.key === "t" || e.key === "T") {
       e.preventDefault();
       togglePinTree();
-    } else if (e.key === "Escape") {
-      if (isPinned || railNavigator?.classList.contains("is-open")) {
-        togglePinTree(false);
-        if (railNavigator) railNavigator.classList.remove("is-open", "is-pinned");
-        if (railTrack) railTrack.classList.remove("is-hidden");
-        if (railTreePanel) railTreePanel.classList.remove("is-open");
+      return;
+    }
+
+    // 5. ArrowDown / ArrowUp (and j/k aliases) navigate sections and glide document
+    if (e.key === "ArrowDown" || e.key === "j") {
+      e.preventDefault();
+      if (!railNavigator?.classList.contains("is-open") && !isPinned) {
+        openRailPanel();
       }
-    } else if (e.key === "j" || e.key === "ArrowDown") {
-      // Step to next section smoothly if tree drawer is open
-      if (railNavigator?.classList.contains("is-open") || isPinned) {
-        e.preventDefault();
-        currentSubIndex = Math.min(currentSubIndex + 1, treeNodes.length - 1);
-        selectTreeNode(treeNodes[currentSubIndex], true);
-        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
-        navigateToSection(ratio);
+      currentSubIndex = Math.min(currentSubIndex + 1, treeNodes.length - 1);
+      selectTreeNode(treeNodes[currentSubIndex], true);
+      const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
+      navigateToSection(ratio);
+      return;
+    }
+
+    if (e.key === "ArrowUp" || e.key === "k") {
+      e.preventDefault();
+      if (!railNavigator?.classList.contains("is-open") && !isPinned) {
+        openRailPanel();
       }
-    } else if (e.key === "k" || e.key === "ArrowUp") {
-      // Step to previous section smoothly if tree drawer is open
-      if (railNavigator?.classList.contains("is-open") || isPinned) {
-        e.preventDefault();
-        currentSubIndex = Math.max(currentSubIndex - 1, 0);
-        selectTreeNode(treeNodes[currentSubIndex], true);
-        const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
-        navigateToSection(ratio);
-      }
+      currentSubIndex = Math.max(currentSubIndex - 1, 0);
+      selectTreeNode(treeNodes[currentSubIndex], true);
+      const ratio = currentSubIndex / Math.max(treeNodes.length - 1, 1);
+      navigateToSection(ratio);
+      return;
+    }
+
+    // 6. Escape closes all open panels, menus, and unpins drawer
+    if (e.key === "Escape") {
+      if (accountWrapper) accountWrapper.classList.remove("is-open");
+      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+      togglePinTree(false);
+      if (railNavigator) railNavigator.classList.remove("is-open", "is-pinned");
+      if (railTrack) railTrack.classList.remove("is-hidden");
+      if (railTreePanel) railTreePanel.classList.remove("is-open");
+      return;
     }
   });
 
@@ -401,6 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.addEventListener("mouseleave", () => {
       // Close any open inner custom dropdowns
       customDropdowns.forEach((dd) => dd.classList.remove("is-open"));
+      wrapper.classList.remove("is-open");
       if (document.activeElement && wrapper.contains(document.activeElement)) {
         document.activeElement.blur();
       }

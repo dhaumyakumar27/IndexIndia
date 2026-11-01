@@ -293,7 +293,8 @@ body.theme-dark .switch-btn.active {
 }
 
 .icon-btn:hover,
-.panel-trigger-wrapper:hover .icon-btn {
+.panel-trigger-wrapper:hover .icon-btn,
+.panel-trigger-wrapper.is-open .icon-btn {
   background-color: var(--bg-inverted);
   color: var(--text-on-inverted);
   transform: translateY(-1px);
@@ -496,8 +497,9 @@ body.theme-dark .dropdown-item:hover {
   margin: 10px 0;
 }
 
-/* Expand strictly on hover only — immediately closes when cursor leaves */
-.panel-trigger-wrapper:hover .hover-flyout-panel {
+/* Expand on hover or when toggled via keyboard shortcut '[' / ']' */
+.panel-trigger-wrapper:hover .hover-flyout-panel,
+.panel-trigger-wrapper.is-open .hover-flyout-panel {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
