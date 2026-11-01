@@ -723,7 +723,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function saveLocalForumMessage(pageId, username, message, createdAtISO) {
+  function saveLocalForumMessage(pageId, username, message, createdAtISO, parentId = null) {
     try {
       const cutoffMs = Date.now() - (SUPABASE_CONFIG.retentionDays * 86400 * 1000);
       const current = getLocalForumMessages(pageId, cutoffMs);
@@ -732,6 +732,7 @@ document.addEventListener("DOMContentLoaded", () => {
         page_id: pageId,
         username: username,
         message: message,
+        parent_id: parentId,
         created_at: createdAtISO
       };
       current.push(newEntry);
@@ -750,36 +751,125 @@ document.addEventListener("DOMContentLoaded", () => {
     return div.innerHTML;
   }
 
+  // Build 2-level directory tree hierarchy
+  function buildCommentTree(messages) {
+    const map = new Map();
+    const roots = [];
+
+    // Pass 1: Parse parent IDs and clean comment text
+    messages.forEach((m) => {
+      let parentId = null;
+      let cleanText = (m.message || "").trim();
+
+      if (m.parent_id !== undefined && m.parent_id !== null) {
+        parentId = String(m.parent_id);
+      } else {
+        const match = cleanText.match(/^\[re:([^\]]+)\]\s*/i);
+        if (match) {
+          parentId = match[1].trim();
+          cleanText = cleanText.slice(match[0].length).trim();
+        }
+      }
+
+      const node = {
+        id: m.id,
+        username: m.username || "ANON_IST",
+        text: cleanText,
+        parentId: parentId,
+        children: [],
+        depth: 0
+      };
+      map.set(String(m.id), node);
+      map.set(Number(m.id), node);
+    });
+
+    // Pass 2: Connect children to parents, capping depth at 2 sub-sections
+    messages.forEach((m) => {
+      const node = map.get(String(m.id));
+      let parent = null;
+
+      if (node.parentId) {
+        parent = map.get(String(node.parentId)) || map.get(Number(node.parentId));
+        // Fallback: If parentId was from a local_ session, attach to preceding message
+        if (!parent && typeof node.parentId === "string" && node.parentId.startsWith("local_")) {
+          const currIdx = messages.findIndex((x) => String(x.id) === String(node.id));
+          if (currIdx > 0) {
+            parent = map.get(String(messages[currIdx - 1].id));
+          }
+        }
+      }
+
+      if (parent) {
+        if (parent.depth < 2) {
+          node.depth = parent.depth + 1;
+        } else {
+          node.depth = 2; // Capped at depth 2 (2 sub-directory sections)
+        }
+        parent.children.push(node);
+      } else {
+        node.depth = 0;
+        roots.push(node);
+      }
+    });
+
+    return roots;
+  }
+
+  // Render individual tree node (compact, username + comment only)
+  function renderTreeNodeHtml(node, isLastChild) {
+    const safeAuthor = escapeForumHtml(node.username);
+    const safeContent = escapeForumHtml(node.text);
+    const branchSymbol = isLastChild ? "└──" : "├──";
+    const canReply = node.depth < 2; // Up to 2 sub-directory sections
+
+    const replyButtonHtml = canReply
+      ? `<button type="button" class="tree-reply-trigger font-mono" data-id="${node.id}" data-author="${safeAuthor}" title="Reply to ${safeAuthor}">[reply]</button>`
+      : "";
+
+    let childrenHtml = "";
+    if (node.children && node.children.length > 0) {
+      const childCount = node.children.length;
+      const childItemsHtml = node.children.map((child, idx) => {
+        return renderTreeNodeHtml(child, idx === childCount - 1);
+      }).join("");
+
+      childrenHtml = `<div class="tree-children" id="tree-children-${node.id}">${childItemsHtml}</div>`;
+    } else {
+      childrenHtml = `<div class="tree-children" id="tree-children-${node.id}" style="display:none;"></div>`;
+    }
+
+    return `
+      <div class="tree-node-item" data-id="${node.id}" data-depth="${node.depth}">
+        <div class="tree-node-row">
+          <span class="tree-branch-symbol font-mono">${branchSymbol}</span>
+          <span class="tree-node-author font-mono">${safeAuthor}<span class="tree-node-colon">:</span></span>
+          <span class="tree-node-text">${safeContent}</span>
+          ${replyButtonHtml}
+        </div>
+        <div class="tree-reply-slot" id="reply-slot-${node.id}"></div>
+        ${childrenHtml}
+      </div>
+    `;
+  }
+
   function renderForumMessages(messages, container) {
     if (!container) return;
     if (!messages || messages.length === 0) {
       container.innerHTML = `
         <div class="forum-empty-state font-mono">
-          NO INTEL BROADCASTS LOGGED YET FOR THIS CANVAS. BE THE FIRST TO CONTRIBUTE.
+          └── [DIRECTORY EMPTY] NO COMMENTS POSTED YET. BROADCAST A MAIN THREAD BELOW.
         </div>
       `;
       return;
     }
 
-    const html = messages.map((m) => {
-      const formattedTime = getIndianStandardDateTimeString(m.created_at);
-      const safeAuthor = escapeForumHtml(m.username || "ANON_IST");
-      const safePage = escapeForumHtml((m.page_id || "INTEL").toUpperCase());
-      const safeContent = escapeForumHtml(m.message || "");
-
-      return `
-        <article class="forum-message-card" data-id="${escapeForumHtml(String(m.id || ''))}">
-          <div class="msg-meta-row font-mono">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="msg-author-badge">${safeAuthor}</span>
-              <span class="msg-page-tag">[${safePage}]</span>
-            </div>
-            <time class="msg-timestamp" datetime="${escapeForumHtml(m.created_at || '')}">${formattedTime}</time>
-          </div>
-          <div class="msg-text-content">${safeContent}</div>
-        </article>
-      `;
-    }).join("");
+    const roots = buildCommentTree(messages);
+    const totalRoots = roots.length;
+    const html = `
+      <div class="tree-forum-feed" id="tree-forum-feed">
+        ${roots.map((rootNode, idx) => renderTreeNodeHtml(rootNode, idx === totalRoots - 1)).join("")}
+      </div>
+    `;
 
     container.innerHTML = html;
   }
@@ -828,13 +918,14 @@ document.addEventListener("DOMContentLoaded", () => {
     renderForumMessages(messages, listEl);
   }
 
-  async function broadcastForumMessage(rawText) {
+  async function broadcastForumMessage(rawText, parentId = null) {
     const text = rawText.trim();
     if (!text) return false;
 
     const pageId = getForumPageId();
     const username = getISTUsername();
     const nowISO = new Date().toISOString();
+    const finalMessage = parentId ? `[re:${parentId}] ${text}` : text;
 
     const isSupabaseLive = Boolean(
       SUPABASE_CONFIG.url &&
@@ -858,21 +949,21 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify({
             page_id: pageId,
             username: username,
-            message: text,
+            message: finalMessage,
             created_at: nowISO
           })
         });
 
         if (!res.ok) {
           console.warn("[IndexIndian Forum] Supabase post failed, caching locally");
-          saveLocalForumMessage(pageId, username, text, nowISO);
+          saveLocalForumMessage(pageId, username, finalMessage, nowISO, parentId);
         }
       } catch (err) {
         console.warn("[IndexIndian Forum] Network error during post, caching locally:", err);
-        saveLocalForumMessage(pageId, username, text, nowISO);
+        saveLocalForumMessage(pageId, username, finalMessage, nowISO, parentId);
       }
     } else {
-      saveLocalForumMessage(pageId, username, text, nowISO);
+      saveLocalForumMessage(pageId, username, finalMessage, nowISO, parentId);
     }
 
     await loadForumMessages();
@@ -900,7 +991,7 @@ document.addEventListener("DOMContentLoaded", () => {
   tickForumClock();
   setInterval(tickForumClock, 1000);
 
-  // Character counter
+  // Character counter for main composer
   if (forumInput && composerCharCounter) {
     forumInput.addEventListener("input", () => {
       const len = forumInput.value.length;
@@ -908,7 +999,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Submit handler
+  // Submit handler for main composer (root thread)
   async function handleForumSubmit() {
     if (!forumInput) return;
     const text = forumInput.value.trim();
@@ -916,8 +1007,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (forumSendBtn) {
       forumSendBtn.disabled = true;
-      const btnText = forumSendBtn.querySelector(".btn-text");
-      if (btnText) btnText.textContent = "SENDING...";
+      forumSendBtn.textContent = "SENDING...";
     }
 
     try {
@@ -927,8 +1017,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       if (forumSendBtn) {
         forumSendBtn.disabled = false;
-        const btnText = forumSendBtn.querySelector(".btn-text");
-        if (btnText) btnText.textContent = "BROADCAST";
+        forumSendBtn.textContent = "SEND";
       }
     }
   }
@@ -940,7 +1029,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Ctrl+Enter or Cmd+Enter to send from inside textarea
+  // Ctrl+Enter or Cmd+Enter to send from inside main textarea
   if (forumInput) {
     forumInput.addEventListener("keydown", (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -949,6 +1038,82 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Inline Reply Handling: Click [reply] to open inline composer
+  document.addEventListener("click", (e) => {
+    const replyBtn = e.target.closest(".tree-reply-trigger");
+    if (!replyBtn) return;
+
+    e.preventDefault();
+    const commentId = replyBtn.getAttribute("data-id");
+    const author = replyBtn.getAttribute("data-author") || "ANON";
+    const slot = document.getElementById(`reply-slot-${commentId}`);
+    if (!slot) return;
+
+    // Toggle: if already open, close it
+    if (slot.querySelector(".tree-inline-composer")) {
+      slot.innerHTML = "";
+      return;
+    }
+
+    // Close any other open reply slots
+    document.querySelectorAll(".tree-reply-slot").forEach((s) => { s.innerHTML = ""; });
+
+    // Open inline composer
+    slot.innerHTML = `
+      <form class="tree-inline-composer" data-parent-id="${commentId}">
+        <span class="tree-branch-symbol font-mono">└──</span>
+        <span class="tree-replying-tag font-mono">REPLY TO ${escapeForumHtml(author)}:</span>
+        <input type="text" class="tree-inline-input font-mono" maxlength="300" placeholder="Type reply (Enter to send)..." autocomplete="off" />
+        <button type="submit" class="tree-inline-submit font-mono">REPLY</button>
+        <button type="button" class="tree-inline-cancel font-mono" title="Cancel">&times;</button>
+      </form>
+    `;
+
+    const input = slot.querySelector(".tree-inline-input");
+    if (input) {
+      input.focus();
+      input.addEventListener("keydown", (ev) => {
+        if (ev.key === "Escape") {
+          slot.innerHTML = "";
+        }
+      });
+    }
+  });
+
+  // Handle inline reply form submission
+  document.addEventListener("submit", async (e) => {
+    const inlineForm = e.target.closest(".tree-inline-composer");
+    if (!inlineForm) return;
+
+    e.preventDefault();
+    const parentId = inlineForm.getAttribute("data-parent-id");
+    const input = inlineForm.querySelector(".tree-inline-input");
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    const submitBtn = inlineForm.querySelector(".tree-inline-submit");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "...";
+    }
+
+    try {
+      await broadcastForumMessage(text, parentId);
+    } finally {
+      inlineForm.remove();
+    }
+  });
+
+  // Handle inline reply cancel button
+  document.addEventListener("click", (e) => {
+    const cancelBtn = e.target.closest(".tree-inline-cancel");
+    if (!cancelBtn) return;
+    e.preventDefault();
+    const composer = cancelBtn.closest(".tree-inline-composer");
+    if (composer) composer.remove();
+  });
 
   if (forumRefreshBtn) {
     forumRefreshBtn.addEventListener("click", () => {
