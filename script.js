@@ -1587,6 +1587,90 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Pre-compiled built-in knowledge for common concepts and financial/science terms
   const BUILTIN_CONCEPT_EXPLANATIONS = {
+    "gearsmith": {
+      title: "Gearsmith (Horologist & Clockwork Artisan)",
+      category: "craft",
+      explanation: "A gearsmith is a precision mechanical artisan, horologist, and clockwork engineer specializing in designing, cutting, and assembling interlocking gear trains, pinions, balance wheels, and automated mechanical devices (as depicted in this scene on the workbench with calipers, watchmaker loupes, and sapphire lubricants).",
+      takeaway: "Mechanical Craft: Combines metallurgy, horology (the science of mechanical timekeeping), and micro-mechanics to engineer self-actuating automata."
+    },
+    "hearmith": {
+      title: "Gearsmith (Horologist & Clockwork Artisan)",
+      category: "craft",
+      explanation: "A gearsmith is a precision mechanical artisan, horologist, and clockwork engineer specializing in designing, cutting, and assembling interlocking gear trains, pinions, balance wheels, and automated mechanical devices (as depicted in this scene on the workbench with calipers, watchmaker loupes, and sapphire lubricants).",
+      takeaway: "Mechanical Craft: Combines metallurgy, horology (the science of mechanical timekeeping), and micro-mechanics to engineer self-actuating automata."
+    },
+    "mainspring": {
+      title: "Mainspring",
+      category: "science",
+      explanation: "A spiral spring of tempered spring steel or alloy that stores mechanical potential energy when wound, serving as the power source for mechanical watches and clockwork automata.",
+      takeaway: "Power Source: Provides the driving torque for clockwork escapements and gear trains."
+    },
+    "gimbal": {
+      title: "Gimbal Ring Suspension",
+      category: "science",
+      explanation: "A pivoted support that allows the rotation of an object (such as an hourglass or marine chronometer) about an axis, keeping it level and stable regardless of external motion.",
+      takeaway: "Stability Engineering: Used in navigation and horology to isolate delicate timing instruments from external motion."
+    },
+    "dragonfly": {
+      title: "Clockwork Dragonfly Automaton",
+      category: "science",
+      explanation: "A miniature mechanical automaton crafted from gossamer copper wings, micro-gear trains, and a winding pinion that converts stored mainspring tension into flapping kinetic flight.",
+      takeaway: "Kinematic Automata: Micro-scale clockwork mechanism mimicking biological flight mechanics through miniature gear reductions."
+    },
+    "sapphire lubricant": {
+      title: "Sapphire Lubricant & Synthetic Jewels",
+      category: "science",
+      explanation: "Sapphire lubricant and synthetic sapphire/ruby jewel bearings are used in high-grade mechanical watches and horology to minimize frictional wear at high-frequency pivot points and balance wheel arbors.",
+      takeaway: "Horological Longevity: Reduces friction and ensures consistent amplitude in oscillating gear assemblies."
+    },
+    "leo": {
+      title: "Leo and Pip (Explorers)",
+      category: "narrative",
+      explanation: "Leo and Pip are the central exploratory protagonists navigating the clockwork realm, leaping across balance wheel platforms and unlocking ancient mechanical devices with precision keys.",
+      takeaway: "Protagonists: The narrative viewpoint characters experiencing the clockwork citadel."
+    },
+    "pip": {
+      title: "Leo and Pip (Explorers)",
+      category: "narrative",
+      explanation: "Leo and Pip are the central exploratory protagonists navigating the clockwork realm, leaping across balance wheel platforms and unlocking ancient mechanical devices with precision keys.",
+      takeaway: "Protagonists: The narrative viewpoint characters experiencing the clockwork citadel."
+    },
+    "balance wheel": {
+      title: "Balance Wheel",
+      category: "science",
+      explanation: "A balance wheel is the weighted, oscillating timekeeping element in mechanical watches and clockwork. Driven by a hairspring and escapement, it rotates back and forth at a precise resonant tempo to divide time into equal increments.",
+      takeaway: "Horological Principle: The rotational oscillation of a balance wheel regulates mechanical timing with high precision."
+    },
+    "caliper": {
+      title: "Calipers",
+      category: "science",
+      explanation: "A caliper is a precision measuring tool with two adjustable jaws used by horologists and mechanical engineers to measure the exact internal, external, and step dimensions of mechanical parts down to fractions of a millimeter.",
+      takeaway: "Metrological Tool: Essential in mechanical fabrication to ensure exact tooth-meshing tolerances between gears."
+    },
+    "watchmaker loupe": {
+      title: "Watchmaker Loupe",
+      category: "science",
+      explanation: "A watchmaker loupe is a small, high-magnification monocular lens held close to the eye to inspect miniature gear teeth, hairsprings, pivot jewels, and intricate clockwork mechanisms.",
+      takeaway: "Optical Inspection: Allows micrometric inspection of gear train tolerances and jewel bearings."
+    },
+    "hourglass": {
+      title: "Hourglass",
+      category: "science",
+      explanation: "An hourglass is an ancient mechanical chronometer consisting of two glass bulbs connected vertically by a narrow neck, measuring a specific duration by the regulated gravity-flow of uniform sand or crystalline particles.",
+      takeaway: "Physical Principle: Granular gravity discharge maintains a steady flow rate independent of the height of the column."
+    },
+    "clockwork": {
+      title: "Clockwork Mechanism",
+      category: "science",
+      explanation: "Clockwork refers to a complex mechanical device driven by a wound mainspring or weights, regulated by an escapement and balance wheel to perform autonomous, repetitive, or calculated movements.",
+      takeaway: "Kinematic Engineering: Translates potential spring energy into rotational torque through interlocking gear reductions."
+    },
+    "pinion": {
+      title: "Winding Pinion",
+      category: "science",
+      explanation: "A pinion is a small, high-precision cylindrical gear with teeth designed to mesh with a larger gear wheel or crown, commonly used in clockwork key-winding and escapement gear ratios.",
+      takeaway: "Mechanical Advantage: Pinions provide high gear ratio step-ups in compact mechanical spaces."
+    },
     "rainbow": {
       title: "Rainbow",
       category: "science",
@@ -1728,7 +1812,8 @@ document.addEventListener("DOMContentLoaded", () => {
         "what", "why", "how", "when", "where", "which", "is", "are", "was", "were",
         "does", "did", "do", "the", "a", "an", "and", "in", "on", "of", "to", "for",
         "called", "formed", "mean", "meaning", "it", "tell", "me", "about", "explain",
-        "define", "can", "you", "who", "whom"
+        "define", "can", "you", "who", "whom", "profession", "occupation", "job", "role",
+        "career", "work"
       ].includes(l);
     });
 
@@ -1780,19 +1865,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Check forensic knowledge base (financial / corporate governance)
+    // Check forensic knowledge base only for non-narrative screens or explicit financial terms
     let matchedForensic = null;
     let highestForensicScore = 0;
     const queryLower = cleanQuery.toLowerCase();
-    for (const item of FORENSIC_KNOWLEDGE_BASE) {
-      let score = 0;
-      for (const t of item.terms) {
-        if (queryLower.includes(t)) score += 8;
-        if (term.includes(t)) score += 6;
-      }
-      if (score > highestForensicScore && score >= 6) {
-        highestForensicScore = score;
-        matchedForensic = item;
+    const isNarrativeSection = title.includes("SCENE") || title.includes("04.") || title.includes("05.") || title.includes("ACT") || rawText.includes("Leo and Pip") || rawText.includes("clockwork") || rawText.includes("balance wheel");
+
+    if (!isNarrativeSection) {
+      for (const item of FORENSIC_KNOWLEDGE_BASE) {
+        let score = 0;
+        for (const t of item.terms) {
+          if (queryLower.includes(t)) score += 8;
+          if (term.includes(t)) score += 6;
+        }
+        if (score > highestForensicScore && score >= 6) {
+          highestForensicScore = score;
+          matchedForensic = item;
+        }
       }
     }
 
@@ -1816,6 +1905,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Check if query is about a profession / craft / artisan or ends in -smith
+    const isCraftOrProfession = term.endsWith("smith") || queryLower.includes("smith") || queryLower.includes("profession") || queryLower.includes("occupation") || queryLower.includes("artisan") || queryLower.includes("craftsman") || queryLower.includes("horolog") || queryLower.includes("maker");
+
     let conceptTitle = matchedBuiltin ? matchedBuiltin.title : (remoteData ? remoteData.title : (term ? term.toUpperCase() : "CONCEPT EXPLANATION"));
     let conceptBody = "";
     let takeawayText = "";
@@ -1826,6 +1918,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (remoteData && remoteData.text) {
       conceptBody = remoteData.text;
       takeawayText = `Source verified via ${remoteData.source}.`;
+    } else if (isCraftOrProfession) {
+      const baseNoun = term.replace(/smith$/, "");
+      const professionName = baseNoun ? `${baseNoun.charAt(0).toUpperCase() + baseNoun.slice(1)}smith` : "Horological Artisan";
+      conceptTitle = `${professionName} (Horologist & Precision Artisan)`;
+      conceptBody = `A ${term || "artisan"} is a specialized mechanical maker and craftsman who designs, fabricates, cuts, and regulates precision clockwork, gear trains, automata, and horological instruments using micro-tools such as calipers, loupes, and precision lubricants.`;
+      takeawayText = `Craft & Horology: Combines kinetic mechanics, metallurgy, and micro-engineering to construct self-actuating gearwork.`;
     } else if (matchedForensic) {
       conceptBody = matchedForensic.concept;
       takeawayText = `Regulatory Benchmark: ${matchedForensic.statutoryRule}`;
@@ -1837,7 +1935,7 @@ document.addEventListener("DOMContentLoaded", () => {
       takeawayText = `Search live DuckDuckGo index below for full details.`;
     }
 
-    const ddgSearchTerm = `${term || cleanQuery} ${matchedForensic ? "Indian financial markets SEBI corporate governance" : "summary definition"}`.trim();
+    const ddgSearchTerm = `${cleanQuery || term}`.trim();
     const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
     const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
 
@@ -1911,7 +2009,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const items = raw ? JSON.parse(raw) : [];
       let healed = false;
       for (const item of items) {
-        if (item.answerHtml && item.answerHtml.includes("Evaluated under sovereign corporate governance & financial forensic standards")) {
+        if (item.answerHtml && (
+          item.answerHtml.includes("Evaluated under sovereign corporate governance") ||
+          item.answerHtml.includes("financial forensic standards") ||
+          item.answerHtml.includes("Governed by statutory SEBI regulations")
+        )) {
           item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
           healed = true;
         }
@@ -2008,7 +2110,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><kbd>Enter</kbd> ask</span>
       </div>
       <div class="doubt-footer-engine">
-        <span>💾 Device · 🦆 DuckDuckGo · <strong class="font-mono">v5.3</strong></span>
+        <span>💾 Local Device · 🦆 DuckDuckGo AI · <strong class="font-mono">v5.4</strong></span>
       </div>
     </div>
   `;
