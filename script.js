@@ -281,16 +281,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Direct click / hover listeners on individual tick marks
   if (railTrack) {
     tickMarks.forEach((tick, i) => {
+      // Hovering a tick opens the rail panel without altering the active scrolled section
       tick.addEventListener("mouseenter", () => {
-        isUserScrubbing = true;
         openRailPanel();
-        tickMarks.forEach((t) => t.classList.remove("active"));
-        tick.classList.add("active");
-        const ratio = i / Math.max(tickMarks.length - 1, 1);
-        const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
-        if (treeNodes[nodeIdx]) {
-          selectTreeNode(treeNodes[nodeIdx], true);
-        }
       });
 
       tick.addEventListener("click", (e) => {
@@ -305,26 +298,12 @@ document.addEventListener("DOMContentLoaded", () => {
     railTreePanel.addEventListener("mouseenter", openRailPanel);
     railTreePanel.addEventListener("mouseleave", () => closeRailPanel(350));
 
-    // Hover decoupling: Only update on deliberate cursor movement, NEVER during swipe
+    // Cursor hover DOES NOT highlight or bold the section.
+    // Only the scrolled section is in bold text.
     treeNodes.forEach((node, i) => {
-      node.addEventListener("mouseenter", (e) => {
-        if (isWheeling) return; // Block programmatic scroll moving elements under cursor
-        if (e.movementX === 0 && e.movementY === 0) return; // Ignore synthetic stationary cursor events
-        selectTreeNode(node, false);
-      });
-
-      node.addEventListener("mousemove", (e) => {
-        if (isWheeling) return;
-        if (e.movementX === 0 && e.movementY === 0) return;
-        if (!node.classList.contains("active")) {
-          selectTreeNode(node, false);
-        }
-      });
-
       // Clicking any node navigates directly to that section
       node.addEventListener("click", (e) => {
         e.stopPropagation();
-        selectTreeNode(node, false);
         const ratio = i / Math.max(treeNodes.length - 1, 1);
         navigateToSection(ratio);
       });
@@ -644,10 +623,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tick.classList.toggle("active", i === activeIdx);
       });
 
-      // Keep tree active node in sync with page position when user isn't scrubbing or hovering
+      // Keep tree active node in sync with scroll position (always bold the scrolled section)
       const nodeIdx = Math.round(ratio * (treeNodes.length - 1));
-      const isNavHovered = (railNavigator && railNavigator.matches(":hover")) || (railTreePanel && railTreePanel.matches(":hover")) || isPinned;
-      if (treeNodes[nodeIdx] && !isNavHovered) {
+      if (treeNodes[nodeIdx]) {
         treeNodes.forEach((n) => n.classList.remove("active"));
         treeNodes[nodeIdx].classList.add("active");
         currentSubIndex = nodeIdx;

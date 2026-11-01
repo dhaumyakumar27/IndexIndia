@@ -922,8 +922,7 @@ body.theme-dark .tree-scrub-strip:hover .tree-scrub-indicator {
   color: var(--text-secondary);
 }
 
-/* Black Bold Highlighting (No red) */
-.tree-node:hover,
+/* Black Bold Highlighting ONLY for active scrolled section */
 .tree-node.active {
   background-color: rgba(0, 0, 0, 0.06);
   border-left: 3.5px solid #000000;
@@ -931,12 +930,24 @@ body.theme-dark .tree-scrub-strip:hover .tree-scrub-indicator {
   font-weight: 800 !important;
 }
 
-body.theme-dark .tree-node:hover,
 body.theme-dark .tree-node.active {
   background-color: rgba(255, 255, 255, 0.1);
   border-left: 3.5px solid #FFFFFF;
   color: #FFFFFF !important;
   font-weight: 800 !important;
+}
+
+/* Subtle non-bold hover for cursor guidance — NOT bold */
+.tree-node:hover:not(.active) {
+  background-color: rgba(0, 0, 0, 0.03);
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+body.theme-dark .tree-node:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: #FFFFFF;
+  font-weight: 400;
 }
 
 .tree-node.is-main-branch {
