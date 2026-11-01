@@ -13,6 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Keyboard shortcut Tab switches between Guide landing <=> Index landing
   const targetOtherSuiteUrl = isIndexSuite ? "guide.html" : "index.html";
 
+  // Forward declarations for Doubt Solver so global listeners can invoke them
+  let toggleDoubtSolver = function() {};
+  let openDoubtSolver = function() {};
+  let closeDoubtSolver = function() {};
+
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
   const railNavigator = document.getElementById("rail-navigator");
   const railTrack = document.getElementById("rail-track");
@@ -750,12 +755,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 10. Shortcut 'D': Toggle AI Doubt Solver (strictly alone)
-    if ((e.key === "d" || e.key === "D") && noModifiers) {
+    // 10. Shortcut 'D': Toggle AI Doubt Solver (KeyD or 'd'/'D', no Ctrl, Alt, Meta)
+    if ((e.code === "KeyD" || e.key?.toLowerCase() === "d") && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
-      if (typeof toggleDoubtSolver === "function") {
-        toggleDoubtSolver();
-      }
+      toggleDoubtSolver();
       return;
     }
 
@@ -765,9 +768,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       closeTreeExplicitly();
-      if (typeof closeDoubtSolver === "function") {
-        closeDoubtSolver();
-      }
+      closeDoubtSolver();
       return;
     }
   });
@@ -1572,52 +1573,65 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getVisibleScreenTarget() {
-    const selection = window.getSelection();
-    const selectedText = selection ? selection.toString().trim() : "";
-    if (selectedText.length >= 2) {
-      const parentSection = selection.anchorNode?.parentElement?.closest("section, div[id]");
-      const sectionTitle = parentSection?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "";
-      return {
-        type: "selection",
-        title: sectionTitle ? `SELECTION in ${sectionTitle}` : "SELECTED EXCERPT",
-        text: selectedText
-      };
-    }
-
-    let sectionEl = null;
-    if (treeNodes && treeNodes[currentSubIndex]) {
-      const href = treeNodes[currentSubIndex].getAttribute("href");
-      if (href && href.startsWith("#")) {
-        sectionEl = document.querySelector(href);
+    try {
+      const selection = window.getSelection();
+      const selectedText = selection ? selection.toString().trim() : "";
+      if (selectedText.length >= 2) {
+        const parentSection = selection.anchorNode?.parentElement?.closest("section, div[id]");
+        const sectionTitle = parentSection?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "";
+        return {
+          type: "selection",
+          title: sectionTitle ? `SELECTION in ${sectionTitle}` : "SELECTED EXCERPT",
+          text: selectedText
+        };
       }
-    }
 
-    if (!sectionEl) {
-      const sections = Array.from(document.querySelectorAll("section[id], .content-area > div"));
-      const scrollPos = window.scrollY + 100;
-      for (const sec of sections) {
-        const top = sec.offsetTop;
-        const height = sec.offsetHeight;
-        if (scrollPos >= top && scrollPos < top + height) {
-          sectionEl = sec;
-          break;
+      let sectionEl = null;
+      if (treeNodes && treeNodes[currentSubIndex]) {
+        const href = treeNodes[currentSubIndex].getAttribute("href");
+        if (href && href.startsWith("#") && href.length > 1) {
+          try {
+            sectionEl = document.querySelector(href);
+          } catch (_) {
+            sectionEl = null;
+          }
         }
       }
-      if (!sectionEl && sections.length > 0) sectionEl = sections[0];
+
+      if (!sectionEl) {
+        const sections = Array.from(document.querySelectorAll("section[id], .content-area > div, .institutional-title"));
+        const scrollPos = window.scrollY + 100;
+        for (const sec of sections) {
+          const top = sec.offsetTop;
+          const height = sec.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            sectionEl = sec;
+            break;
+          }
+        }
+        if (!sectionEl && sections.length > 0) sectionEl = sections[0];
+      }
+
+      const title = sectionEl?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "Visible Section";
+      const paragraphs = Array.from(sectionEl?.querySelectorAll("p, li, .story-narrative-lead, .story-meta-tags, td, th") || [])
+        .map(p => p.textContent.trim())
+        .filter(t => t.length > 0)
+        .join(" ");
+
+      const text = paragraphs.length > 0 ? paragraphs : (sectionEl?.textContent?.replace(/\s+/g, " ").trim() || "Institutional research dossier content.");
+      return {
+        type: "section",
+        title: title.replace(/^[^\w\s]+/, "").trim() || "Screen Content",
+        text: text
+      };
+    } catch (err) {
+      console.warn("[DoubtSolver] getVisibleScreenTarget error:", err);
+      return {
+        type: "section",
+        title: "Visible Content",
+        text: "Select any text or ask a question about this screen."
+      };
     }
-
-    const title = sectionEl?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "Visible Section";
-    const paragraphs = Array.from(sectionEl?.querySelectorAll("p, li, .story-narrative-lead, .story-meta-tags, td, th") || [])
-      .map(p => p.textContent.trim())
-      .filter(t => t.length > 0)
-      .join(" ");
-
-    const text = paragraphs.length > 0 ? paragraphs : (sectionEl?.textContent?.replace(/\s+/g, " ").trim() || "Institutional research dossier content.");
-    return {
-      type: "section",
-      title: title.replace(/^[^\w\s]+/, "").trim(),
-      text: text
-    };
   }
 
   function handleTextSelection() {
@@ -1673,37 +1687,70 @@ document.addEventListener("DOMContentLoaded", () => {
     openDoubtSolver();
   });
 
-  function openDoubtSolver(contextOverride) {
-    doubtPill.classList.remove("is-visible");
-    currentDoubtContext = contextOverride || getVisibleScreenTarget();
-    
-    doubtContextBadge.textContent = currentDoubtContext.title.toUpperCase();
-    doubtContextBadge.title = currentDoubtContext.title;
-    doubtContextSnippet.textContent = currentDoubtContext.text;
-
-    doubtTile.classList.add("is-open");
-
-    executeDoubtQuery();
-
-    setTimeout(() => {
-      doubtTextInput.focus();
-      doubtTextInput.select();
-    }, 60);
+  const doubtNavBtn = document.getElementById("doubt-nav-btn");
+  if (doubtNavBtn) {
+    doubtNavBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleDoubtSolver();
+    });
   }
 
-  function closeDoubtSolver() {
-    doubtTile.classList.remove("is-open");
-    doubtPill.classList.remove("is-visible");
-    doubtTextInput.blur();
-  }
+  openDoubtSolver = function(contextOverride) {
+    try {
+      if (doubtPill) doubtPill.classList.remove("is-visible");
+      currentDoubtContext = contextOverride || getVisibleScreenTarget() || {
+        type: "section",
+        title: "Visible Content",
+        text: "Select any text or ask a question about this screen."
+      };
+      
+      if (doubtContextBadge) {
+        doubtContextBadge.textContent = (currentDoubtContext.title || "CONTENT").toUpperCase();
+        doubtContextBadge.title = currentDoubtContext.title || "";
+      }
+      if (doubtContextSnippet) {
+        doubtContextSnippet.textContent = currentDoubtContext.text || "Scanning visible screen...";
+      }
 
-  function toggleDoubtSolver() {
-    if (doubtTile.classList.contains("is-open")) {
+      if (doubtTile) {
+        doubtTile.classList.add("is-open");
+      }
+
+      executeDoubtQuery();
+
+      setTimeout(() => {
+        if (doubtTextInput) {
+          doubtTextInput.focus();
+          doubtTextInput.select();
+        }
+      }, 50);
+    } catch (err) {
+      console.error("[DoubtSolver] openDoubtSolver error:", err);
+    }
+  };
+
+  closeDoubtSolver = function() {
+    try {
+      if (doubtTile) doubtTile.classList.remove("is-open");
+      if (doubtPill) doubtPill.classList.remove("is-visible");
+      if (doubtTextInput) doubtTextInput.blur();
+    } catch (err) {
+      console.error("[DoubtSolver] closeDoubtSolver error:", err);
+    }
+  };
+
+  toggleDoubtSolver = function() {
+    if (doubtTile && doubtTile.classList.contains("is-open")) {
       closeDoubtSolver();
     } else {
       openDoubtSolver();
     }
-  }
+  };
+
+  // Expose on window for direct access
+  window.toggleDoubtSolver = toggleDoubtSolver;
+  window.openDoubtSolver = openDoubtSolver;
+  window.closeDoubtSolver = closeDoubtSolver;
 
   function synthesizeDoubtAnswer(query, mode, context) {
     const rawText = context.text || "";

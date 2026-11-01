@@ -2559,6 +2559,19 @@ body.theme-dark .compact-composer-input:focus {
    Compact, Forensic, Monochromatic Institutional Tile & Selection Pill
    ========================================================================== */
 
+/* 0. Top Nav Doubt Trigger Button */
+.doubt-nav-trigger {
+  font-size: 1.15rem;
+  color: var(--accent);
+  position: relative;
+}
+
+.doubt-nav-trigger:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
 /* 1. Floating Text-Selection Pill */
 .doubt-selection-pill {
   position: absolute;
