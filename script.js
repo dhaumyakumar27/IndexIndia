@@ -13,13 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Keyboard shortcut Tab switches between Guide landing <=> Index landing
   const targetOtherSuiteUrl = isIndexSuite ? "guide.html" : "index.html";
 
-  // Forward declarations for Doubt Solver & Command Palette so global listeners can invoke them
+  // Forward declarations for Doubt Solver & Top Nav Search so global listeners can invoke them
   let toggleDoubtSolver = function() {};
   let openDoubtSolver = function() {};
   let closeDoubtSolver = function() {};
-  let toggleCommandPalette = function() {};
-  let openCommandPalette = function() {};
-  let closeCommandPalette = function() {};
+  let focusNavSearchBar = function() {};
+  let closeNavSearchResults = function() {};
   let clearFinderHighlights = function() {};
   let nextFinderMatch = function() {};
   let prevFinderMatch = function() {};
@@ -674,10 +673,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 5b. "Space" toggles Universal Command Palette (strictly alone, no modifiers)
-    if ((e.code === "Space" || e.key === " ") && noModifiers) {
+    // 5b. "/" focuses Universal Top Search Bar (strictly alone, KeySlash or '/')
+    if ((e.code === "Slash" || e.key === "/") && noModifiers) {
       e.preventDefault();
-      toggleCommandPalette();
+      focusNavSearchBar();
       return;
     }
 
@@ -796,7 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       closeTreeExplicitly();
       closeDoubtSolver();
-      closeCommandPalette();
+      closeNavSearchResults();
       clearFinderHighlights();
       return;
     }
@@ -2804,65 +2803,59 @@ document.addEventListener("DOMContentLoaded", () => {
     origToggleDoubt();
   };
 
-  // ================= 11. UNIVERSAL COMMAND PALETTE & IN-PAGE FINDER (Triggered by Space) =================
-  let paletteBackdrop = null;
-  let paletteInput = null;
-  let paletteResultsList = null;
+  // ================= 11. RIGID TOP-NAV SEARCH BAR & COMMAND PALETTE (Triggered by /) =================
+  let navSearchBarWrapper = document.getElementById("nav-search-bar-wrapper");
+  let navSearchInput = document.getElementById("nav-search-input");
+  let navSearchResultsDropdown = document.getElementById("nav-search-results-dropdown");
   let paletteCurrentItems = [];
-  let paletteSelectedIndex = 0;
+  let paletteSelectedIndex = -1;
 
   // In-Page Finder state
   finderMatches = [];
   let currentFinderMatchIdx = 0;
   let currentFinderQuery = "";
 
-  // 1. Build Command Palette DOM
-  paletteBackdrop = document.createElement("div");
-  paletteBackdrop.id = "command-palette-backdrop";
-  paletteBackdrop.className = "command-palette-backdrop";
-  paletteBackdrop.setAttribute("aria-hidden", "true");
-  paletteBackdrop.innerHTML = `
-    <div class="command-palette-dialog" id="command-palette-dialog" role="dialog" aria-modal="true" aria-label="Universal Command Palette">
-      <div class="palette-search-header">
-        <span class="palette-search-icon">🔍</span>
-        <input type="text" class="palette-search-input" id="palette-search-input" placeholder="Type a command, setting, section, or search page..." autocomplete="off" spellcheck="false" />
-        <kbd class="palette-esc-badge" id="palette-esc-btn" title="Close (Esc)">ESC</kbd>
-      </div>
-      <div class="palette-results-list" id="palette-results-list" role="listbox"></div>
-      <div class="palette-footer">
-        <div class="palette-footer-hints">
-          <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
-          <span><kbd>↵</kbd> Select</span>
-          <span><kbd>ESC</kbd> Close</span>
-          <span><kbd>Space</kbd> Toggle</span>
+  // If search bar is not in HTML, dynamically inject it into .nav-left beside .view-switcher
+  if (!navSearchBarWrapper) {
+    const navLeft = document.querySelector(".nav-left");
+    if (navLeft) {
+      navSearchBarWrapper = document.createElement("div");
+      navSearchBarWrapper.id = "nav-search-bar-wrapper";
+      navSearchBarWrapper.className = "nav-search-bar-wrapper";
+      navSearchBarWrapper.innerHTML = `
+        <div class="nav-search-bar" id="nav-search-bar">
+          <span class="nav-search-icon">🔍</span>
+          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="Search website, shortcuts, sections... (/)" autocomplete="off" spellcheck="false" />
+          <kbd class="nav-search-kbd" title="Press / to search">/</kbd>
         </div>
-        <div class="palette-footer-brand">INDEX INDIAN COMMAND</div>
+        <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+      `;
+      navLeft.appendChild(navSearchBarWrapper);
+      navSearchInput = navSearchBarWrapper.querySelector("#nav-search-input");
+      navSearchResultsDropdown = navSearchBarWrapper.querySelector("#nav-search-results-dropdown");
+    }
+  }
+
+  // Build In-Page Finder Floating Bar DOM
+  inpageFinderBar = document.getElementById("inpage-finder-bar");
+  if (!inpageFinderBar) {
+    inpageFinderBar = document.createElement("div");
+    inpageFinderBar.id = "inpage-finder-bar";
+    inpageFinderBar.className = "inpage-finder-bar";
+    inpageFinderBar.setAttribute("role", "search");
+    inpageFinderBar.setAttribute("aria-label", "In-Page Finder");
+    inpageFinderBar.innerHTML = `
+      <span class="finder-icon">🔍</span>
+      <span class="finder-query-text" id="finder-query-text">""</span>
+      <span class="finder-match-count font-mono" id="finder-match-count">0 of 0</span>
+      <div class="finder-nav-btns">
+        <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)">▲</button>
+        <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)">▼</button>
       </div>
-    </div>
-  `;
-  document.body.appendChild(paletteBackdrop);
-
-  paletteInput = paletteBackdrop.querySelector("#palette-search-input");
-  paletteResultsList = paletteBackdrop.querySelector("#palette-results-list");
-  const paletteEscBtn = paletteBackdrop.querySelector("#palette-esc-btn");
-
-  // 2. Build In-Page Finder Floating Bar DOM
-  inpageFinderBar = document.createElement("div");
-  inpageFinderBar.id = "inpage-finder-bar";
-  inpageFinderBar.className = "inpage-finder-bar";
-  inpageFinderBar.setAttribute("role", "search");
-  inpageFinderBar.setAttribute("aria-label", "In-Page Finder");
-  inpageFinderBar.innerHTML = `
-    <span class="finder-icon">🔍</span>
-    <span class="finder-query-text" id="finder-query-text">""</span>
-    <span class="finder-match-count font-mono" id="finder-match-count">0 of 0</span>
-    <div class="finder-nav-btns">
-      <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)">▲</button>
-      <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)">▼</button>
-    </div>
-    <button type="button" class="finder-close-btn" id="finder-close-btn" title="Close Finder (Esc)">&times;</button>
-  `;
-  document.body.appendChild(inpageFinderBar);
+      <button type="button" class="finder-close-btn" id="finder-close-btn" title="Close Finder (Esc)">&times;</button>
+    `;
+    document.body.appendChild(inpageFinderBar);
+  }
 
   const finderQueryText = inpageFinderBar.querySelector("#finder-query-text");
   const finderMatchCount = inpageFinderBar.querySelector("#finder-match-count");
@@ -2924,7 +2917,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function navigateToSectionAnchor(hash) {
-    closeCommandPalette();
+    closeNavSearchResults();
     try {
       const targetEl = document.querySelector(hash);
       if (targetEl) {
@@ -2940,7 +2933,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 3. In-Page Highlighting & Walker Engine
+  // In-Page Highlighting & Walker Engine
   clearFinderHighlights = function() {
     const marks = Array.from(document.querySelectorAll("mark.finder-match"));
     marks.forEach((mark) => {
@@ -2985,7 +2978,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return NodeFilter.FILTER_REJECT;
           }
           if (
-            parent.closest(".command-palette-backdrop") ||
+            parent.closest(".nav-search-bar-wrapper") ||
             parent.closest(".inpage-finder-bar") ||
             parent.closest(".doubt-solver-tile") ||
             parent.closest(".top-nav") ||
@@ -3079,127 +3072,87 @@ document.addEventListener("DOMContentLoaded", () => {
     showFinderMatch(currentFinderMatchIdx - 1);
   };
 
-  finderBtnNext.addEventListener("click", nextFinderMatch);
-  finderBtnPrev.addEventListener("click", prevFinderMatch);
-  finderCloseBtn.addEventListener("click", clearFinderHighlights);
+  if (finderBtnNext) finderBtnNext.addEventListener("click", nextFinderMatch);
+  if (finderBtnPrev) finderBtnPrev.addEventListener("click", prevFinderMatch);
+  if (finderCloseBtn) finderCloseBtn.addEventListener("click", clearFinderHighlights);
 
-  // 4. Build Universal Registry
-  function getCommandsRegistry() {
+  // Universal Registries
+  function getAllShortcutBindings() {
     return [
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "🌓",
-        title: "Toggle Dark / Light Theme",
-        subtitle: "Switch between high-contrast light and dark display modes",
-        badge: "Theme",
-        keywords: "dark mode light mode theme contrast appearance night day black white",
-        isDefault: true,
-        action: () => toggleThemeMode()
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Step Section Directly",
+        subtitle: "Move directly up or down sections without opening directory drawer",
+        badge: "Ctrl + ↓ / ↑",
+        keywords: "step section directly move next previous section jump ctrl down up arrow shortcut binding"
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "☀️",
-        title: "Switch to Light Mode",
-        subtitle: "Clean institutional paper-white contrast",
-        badge: "Light",
-        keywords: "light mode white paper day bright",
-        isDefault: false,
-        action: () => applyTheme("light")
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Cycle Sub-Pages (x | y | z)",
+        subtitle: "Tab through contextual sub-views (Graph | Directory | Source)",
+        badge: "Tab",
+        keywords: "cycle sub pages tab perspective views graph directory source shortcut binding"
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "🌙",
-        title: "Switch to Dark Mode",
-        subtitle: "OLED dark mode with high-contrast text",
-        badge: "Dark",
-        keywords: "dark mode black night oled dim",
-        isDefault: false,
-        action: () => applyTheme("dark")
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Switch Guide <=> Index Suite",
+        subtitle: "Switch between Guide institutional narrative and Index market intelligence",
+        badge: "Hold Tab",
+        keywords: "switch suite guide index hold tab long press toggle suite landing shortcut binding"
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "🔤",
-        title: "Font Size: Small (85%)",
-        subtitle: "Dense financial dossier scaling",
-        badge: "Font",
-        keywords: "font size small compact text scale zoom dense",
-        isDefault: false,
-        action: () => applyFontSize("small")
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Move Act (I | II | III | IV | V | VI)",
+        subtitle: "Jump directly through narrative story acts without opening drawer",
+        badge: "Shift + ↓ / ↑",
+        keywords: "move act shift down up jump chapter acts narrative story shortcut binding"
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "🔤",
-        title: "Font Size: Medium (Default 100%)",
-        subtitle: "Balanced reading scale",
-        badge: "Font",
-        keywords: "font size medium default normal standard text scale",
-        isDefault: false,
-        action: () => applyFontSize("medium")
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Scroll Page Smoothly",
+        subtitle: "Continuous delayless page scrolling with zero subpixel font jump",
+        badge: "↓ / ↑",
+        keywords: "scroll page smoothly arrow down up keyboard scroll navigation shortcut binding"
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "🔤",
-        title: "Font Size: Large (115%)",
-        subtitle: "Enlarged presentation text scale",
-        badge: "Font",
-        keywords: "font size large big zoom text scale",
-        isDefault: false,
-        action: () => applyFontSize("large")
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Directory Tree Drawer",
+        subtitle: "Toggle section tree drawer sticked to the left side of page",
+        badge: "N",
+        keywords: "directory tree drawer sections table of contents navigation sticked left side shortcut binding",
+        action: () => openTreeExplicitly(true)
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "📖",
-        title: "Font Style: Long Reading (Serif)",
-        subtitle: "Institutional editorial serif typography",
-        badge: "Serif",
-        keywords: "font style serif reading editorial typography book",
-        isDefault: false,
-        action: () => applyFontStyle("reading")
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Universal Search & Command Palette",
+        subtitle: "Focus top search bar to search website, shortcuts, settings, and sections",
+        badge: "/",
+        keywords: "universal search command palette search bar slash find everything shortcut binding",
+        action: () => focusNavSearchBar()
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "⌨️",
-        title: "Font Style: Typewriter (Monospace)",
-        subtitle: "Bloomberg terminal typewriter monospace font",
-        badge: "Mono",
-        keywords: "font style typewriter monospace code terminal courier",
-        isDefault: false,
-        action: () => applyFontStyle("typewriter")
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "DuckDuckGo Doubt Solver",
+        subtitle: "Toggle AI doubt solver drawer sticked to the right side of page",
+        badge: "M",
+        keywords: "doubt solver doubt ai duckduckgo ddg questions answers right drawer sticked right side shortcut binding",
+        action: () => openDoubtSolver()
       },
       {
-        category: "SETTINGS & APPEARANCE",
-        icon: "▦",
-        title: "Toggle Background Grid",
-        subtitle: "Show or hide subtle background precision grid",
-        badge: "Grid",
-        keywords: "grid lines background toggle display layout",
-        isDefault: false,
-        action: () => toggleBackgroundGrid()
-      },
-      {
-        category: "NAVIGATION & PANELS",
-        icon: "⚙️",
-        title: "Display Settings Panel",
-        subtitle: "Contrast, typography, and visual preferences",
-        badge: "]",
-        keywords: "settings display preferences options config contrast font",
-        isDefault: true,
-        action: () => {
-          if (settingsWrapper) {
-            if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-            if (accountWrapper) accountWrapper.classList.remove("is-open");
-            settingsWrapper.classList.toggle("is-open");
-          }
-        }
-      },
-      {
-        category: "NAVIGATION & PANELS",
-        icon: "👤",
-        title: "Account Dossier & Profile",
-        subtitle: "Institutional user ID, clearance role, and sessions",
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Account Dossier",
+        subtitle: "Toggle institutional profile, user clearance role, and sessions",
         badge: "[",
-        keywords: "account profile dossier role user login clearance",
-        isDefault: true,
+        keywords: "account dossier profile clearance role user session brackets shortcut binding",
         action: () => {
           if (accountWrapper) {
             if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
@@ -3209,13 +3162,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       },
       {
-        category: "NAVIGATION & PANELS",
-        icon: "⌨️",
-        title: "Keyboard Shortcuts Cheatsheet",
-        subtitle: "Complete institutional keyboard navigation reference",
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Display Settings Panel",
+        subtitle: "Toggle high-contrast themes, typography scale, and font styles",
+        badge: "]",
+        keywords: "display settings panel preferences contrast font size style typography brackets shortcut binding",
+        action: () => {
+          if (settingsWrapper) {
+            if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
+            if (accountWrapper) accountWrapper.classList.remove("is-open");
+            settingsWrapper.classList.toggle("is-open");
+          }
+        }
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Shortcuts Cheatsheet",
+        subtitle: "Open the complete institutional keyboard shortcuts reference",
         badge: "?",
-        keywords: "shortcuts keyboard cheatsheet keys hotkeys help commands",
-        isDefault: true,
+        keywords: "shortcuts panel cheatsheet keyboard reference help question mark shortcut binding",
         action: () => {
           if (shortcutsWrapper) {
             if (accountWrapper) accountWrapper.classList.remove("is-open");
@@ -3225,13 +3192,120 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       },
       {
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Close Open Overlays",
+        subtitle: "Dismiss all open drawers, flyouts, and in-page highlight finders",
+        badge: "Esc",
+        keywords: "close escape dismiss overlays drawers panels highlights cancel shortcut binding",
+        action: () => {
+          closeTreeExplicitly();
+          closeDoubtSolver();
+          closeNavSearchResults();
+          clearFinderHighlights();
+        }
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⚡",
+        title: "Send Forum Broadcast",
+        subtitle: "Publish query or finding to the anonymous institutional forum",
+        badge: "Ctrl + ↵",
+        keywords: "send forum broadcast publish post enter ctrl return comment shortcut binding"
+      }
+    ];
+  }
+
+  function getCommandsRegistry() {
+    return [
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🌓",
+        title: "Toggle Dark / Light Theme",
+        subtitle: "Switch between high-contrast light and dark display modes",
+        badge: "Theme",
+        keywords: "dark mode light mode theme contrast appearance night day black white",
+        action: () => toggleThemeMode()
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "☀️",
+        title: "Switch to Light Mode",
+        subtitle: "Clean institutional paper-white contrast",
+        badge: "Light",
+        keywords: "light mode white paper day bright",
+        action: () => applyTheme("light")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🌙",
+        title: "Switch to Dark Mode",
+        subtitle: "OLED dark mode with high-contrast text",
+        badge: "Dark",
+        keywords: "dark mode black night oled dim",
+        action: () => applyTheme("dark")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🔤",
+        title: "Font Size: Small (85%)",
+        subtitle: "Dense financial dossier scaling",
+        badge: "Font",
+        keywords: "font size small compact text scale zoom dense",
+        action: () => applyFontSize("small")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🔤",
+        title: "Font Size: Medium (Default 100%)",
+        subtitle: "Balanced reading scale",
+        badge: "Font",
+        keywords: "font size medium default normal standard text scale",
+        action: () => applyFontSize("medium")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "🔤",
+        title: "Font Size: Large (115%)",
+        subtitle: "Enlarged presentation text scale",
+        badge: "Font",
+        keywords: "font size large big zoom text scale",
+        action: () => applyFontSize("large")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "📖",
+        title: "Font Style: Long Reading (Serif)",
+        subtitle: "Institutional editorial serif typography",
+        badge: "Serif",
+        keywords: "font style serif reading editorial typography book",
+        action: () => applyFontStyle("reading")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "⌨️",
+        title: "Font Style: Typewriter (Monospace)",
+        subtitle: "Bloomberg terminal typewriter monospace font",
+        badge: "Mono",
+        keywords: "font style typewriter monospace code terminal courier",
+        action: () => applyFontStyle("typewriter")
+      },
+      {
+        category: "SETTINGS & APPEARANCE",
+        icon: "▦",
+        title: "Toggle Background Grid",
+        subtitle: "Show or hide subtle background precision grid",
+        badge: "Grid",
+        keywords: "grid lines background toggle display layout",
+        action: () => toggleBackgroundGrid()
+      },
+      {
         category: "NAVIGATION & PANELS",
         icon: "🌳",
         title: "Directory Sections Tree",
-        subtitle: "Quick-scrub tree navigator sticked to left side",
+        subtitle: "Toggle section tree drawer sticked to left side",
         badge: "N",
         keywords: "directory tree rail sections table of contents drawer navigation",
-        isDefault: true,
         action: () => openTreeExplicitly(true)
       },
       {
@@ -3241,7 +3315,6 @@ document.addEventListener("DOMContentLoaded", () => {
         subtitle: "Ask questions, resolve market doubts, and scan screen",
         badge: "M",
         keywords: "doubt solver duckduckgo ddg ai explainer question ask search",
-        isDefault: true,
         action: () => openDoubtSolver()
       },
       {
@@ -3251,7 +3324,6 @@ document.addEventListener("DOMContentLoaded", () => {
         subtitle: isIndexSuite ? "Jump to Guide Landing (Acts I – VI)" : "Jump to Index Landing (B2B Data)",
         badge: "Hold Tab",
         keywords: "switch suite guide index tab toggle landing",
-        isDefault: true,
         action: () => {
           window.location.href = targetOtherSuiteUrl;
         }
@@ -3275,7 +3347,6 @@ document.addEventListener("DOMContentLoaded", () => {
           subtitle: href.startsWith("#") ? `In-Page Anchor (${href})` : `Navigate to ${href}`,
           badge: href.startsWith("#") ? "Anchor" : "Page",
           keywords: `section chapter act ${label} ${href}`,
-          isDefault: true,
           action: () => {
             if (href.startsWith("#")) {
               navigateToSectionAnchor(href);
@@ -3308,7 +3379,6 @@ document.addEventListener("DOMContentLoaded", () => {
         subtitle: isCurrent ? "Currently viewing this page" : hub.sub,
         badge: isCurrent ? "Current" : "Go",
         keywords: `${hub.kw} ${hub.title} ${hub.file}`,
-        isDefault: !isCurrent,
         action: () => {
           if (!isCurrent) window.location.href = hub.file;
         }
@@ -3318,57 +3388,79 @@ document.addEventListener("DOMContentLoaded", () => {
     return sections;
   }
 
-  // 5. Palette Render & Search
-  function renderPaletteResults(query) {
+  // Render Search Results (NO recommended list when empty, only appears when query typed)
+  function renderSearchResults(query) {
     const q = (query || "").trim().toLowerCase();
-    paletteResultsList.innerHTML = "";
-    paletteCurrentItems = [];
+    if (!navSearchResultsDropdown) return;
 
-    // In-Page Finder Dynamic Result if query length >= 2
+    if (q.length === 0) {
+      // Per user request: do NOT make recommended list appear beneath search bar
+      navSearchResultsDropdown.classList.remove("is-open");
+      navSearchResultsDropdown.innerHTML = "";
+      paletteCurrentItems = [];
+      paletteSelectedIndex = -1;
+      return;
+    }
+
+    navSearchResultsDropdown.innerHTML = "";
+    paletteCurrentItems = [];
+    navSearchResultsDropdown.classList.add("is-open");
+
+    // 1. In-Page Finder Dynamic Result if query length >= 2
     if (q.length >= 2) {
       const pageMatchesCount = countInPageMatches(q);
       const inPageFinderItem = {
-        category: "IN-PAGE FINDER",
+        category: "IN-PAGE TEXT SEARCH",
         icon: "🔍",
-        title: `Find in Page: "${query.trim()}"`,
-        subtitle: `${pageMatchesCount} match${pageMatchesCount === 1 ? "" : "es"} found on current page. Press Enter to navigate.`,
-        badge: "Jump",
+        title: `Find on page: "${query.trim()}"`,
+        subtitle: pageMatchesCount > 0 ? `${pageMatchesCount} occurrences highlighted with soft orange theme` : "Search whole page text",
+        badge: pageMatchesCount > 0 ? `${pageMatchesCount} matches` : "Find",
         keywords: q,
-        isDefault: true,
         action: () => {
-          closeCommandPalette();
+          closeNavSearchResults();
           highlightInPageText(query.trim());
         }
       };
       paletteCurrentItems.push(inPageFinderItem);
     }
 
+    const shortcuts = getAllShortcutBindings();
     const commands = getCommandsRegistry();
     const sections = getPageSectionsRegistry();
 
+    // 2. Filter Shortcuts
+    const filteredShortcuts = shortcuts.filter((sc) => {
+      const titleMatch = sc.title.toLowerCase().includes(q);
+      const subMatch = sc.subtitle.toLowerCase().includes(q);
+      const kwMatch = sc.keywords.toLowerCase().includes(q);
+      const badgeMatch = sc.badge.toLowerCase().includes(q);
+      return titleMatch || subMatch || kwMatch || badgeMatch;
+    });
+
+    // 3. Filter Commands
     const filteredCommands = commands.filter((cmd) => {
-      if (!q) return cmd.isDefault;
       const titleMatch = cmd.title.toLowerCase().includes(q);
-      const keywordsMatch = cmd.keywords && cmd.keywords.toLowerCase().includes(q);
+      const keywordsMatch = cmd.keywords.toLowerCase().includes(q);
       return titleMatch || keywordsMatch;
     });
 
+    // 4. Filter Sections & Pages
     const filteredSections = sections.filter((sec) => {
-      if (!q) return sec.isDefault;
       const titleMatch = sec.title.toLowerCase().includes(q);
       const subMatch = sec.subtitle && sec.subtitle.toLowerCase().includes(q);
       const kwMatch = sec.keywords && sec.keywords.toLowerCase().includes(q);
       return titleMatch || subMatch || kwMatch;
     });
 
+    filteredShortcuts.forEach((s) => paletteCurrentItems.push(s));
     filteredCommands.forEach((c) => paletteCurrentItems.push(c));
     filteredSections.forEach((s) => paletteCurrentItems.push(s));
 
     if (paletteCurrentItems.length === 0) {
-      paletteResultsList.innerHTML = `
+      navSearchResultsDropdown.innerHTML = `
         <div class="palette-empty-state">
-          <p>No commands, settings, or sections matching "<strong>${escapeHtml(query)}</strong>"</p>
-          <p style="font-size: 0.78rem; margin-top: 6px; opacity: 0.7;">Try searching for <em>dark mode</em>, <em>font size</em>, <em>shortcuts</em>, or a section name.</p>
+          <p>No results matching "<strong>${escapeHtml(query)}</strong>"</p>
+          <p style="font-size: 0.72rem; margin-top: 5px; opacity: 0.7;">Try searching for <em>step section</em>, <em>dark mode</em>, <em>doubt</em>, or an act.</p>
         </div>
       `;
       paletteSelectedIndex = -1;
@@ -3382,7 +3474,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const groupHeader = document.createElement("div");
         groupHeader.className = "palette-group-title";
         groupHeader.textContent = currentGroup;
-        paletteResultsList.appendChild(groupHeader);
+        navSearchResultsDropdown.appendChild(groupHeader);
       }
 
       const itemEl = document.createElement("div");
@@ -3410,16 +3502,16 @@ document.addEventListener("DOMContentLoaded", () => {
         setPaletteSelectedIndex(index);
       });
 
-      paletteResultsList.appendChild(itemEl);
+      navSearchResultsDropdown.appendChild(itemEl);
     });
 
     paletteSelectedIndex = 0;
   }
 
   function setPaletteSelectedIndex(index) {
-    if (paletteCurrentItems.length === 0) return;
+    if (paletteCurrentItems.length === 0 || !navSearchResultsDropdown) return;
     paletteSelectedIndex = Math.max(0, Math.min(index, paletteCurrentItems.length - 1));
-    const allItemEls = paletteResultsList.querySelectorAll(".palette-item");
+    const allItemEls = navSearchResultsDropdown.querySelectorAll(".palette-item");
     allItemEls.forEach((el, i) => {
       const isSelected = i === paletteSelectedIndex;
       el.classList.toggle("is-selected", isSelected);
@@ -3432,75 +3524,64 @@ document.addEventListener("DOMContentLoaded", () => {
   function executePaletteItem(index) {
     const item = paletteCurrentItems[index];
     if (!item) return;
+    closeNavSearchResults();
     if (typeof item.action === "function") {
-      closeCommandPalette();
       item.action();
     }
   }
 
-  openCommandPalette = function() {
-    if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-    if (accountWrapper) accountWrapper.classList.remove("is-open");
-    if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-    closeTreeExplicitly();
-    closeDoubtSolver();
-
-    paletteBackdrop.classList.add("is-open");
-    paletteBackdrop.setAttribute("aria-hidden", "false");
-    paletteInput.value = "";
-    renderPaletteResults("");
-    setTimeout(() => {
-      paletteInput.focus();
-      paletteInput.select();
-    }, 40);
-  };
-
-  closeCommandPalette = function() {
-    paletteBackdrop.classList.remove("is-open");
-    paletteBackdrop.setAttribute("aria-hidden", "true");
-    paletteInput.blur();
-  };
-
-  toggleCommandPalette = function() {
-    if (paletteBackdrop.classList.contains("is-open")) {
-      closeCommandPalette();
-    } else {
-      openCommandPalette();
+  focusNavSearchBar = function() {
+    if (navSearchInput) {
+      navSearchInput.focus();
+      navSearchInput.select();
     }
   };
 
-  window.toggleCommandPalette = toggleCommandPalette;
-  window.openCommandPalette = openCommandPalette;
-  window.closeCommandPalette = closeCommandPalette;
-
-  // Palette Input & Navigation Listeners
-  paletteInput.addEventListener("input", (e) => {
-    renderPaletteResults(e.target.value);
-  });
-
-  paletteInput.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setPaletteSelectedIndex(paletteSelectedIndex + 1);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setPaletteSelectedIndex(paletteSelectedIndex - 1);
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      executePaletteItem(paletteSelectedIndex);
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      closeCommandPalette();
+  closeNavSearchResults = function() {
+    if (navSearchResultsDropdown) {
+      navSearchResultsDropdown.classList.remove("is-open");
+      navSearchResultsDropdown.innerHTML = "";
     }
-  });
+    if (navSearchInput) {
+      navSearchInput.blur();
+    }
+    paletteCurrentItems = [];
+    paletteSelectedIndex = -1;
+  };
 
-  if (paletteEscBtn) {
-    paletteEscBtn.addEventListener("click", closeCommandPalette);
+  window.focusNavSearchBar = focusNavSearchBar;
+  window.closeNavSearchResults = closeNavSearchResults;
+
+  if (navSearchInput) {
+    navSearchInput.addEventListener("input", (e) => {
+      renderSearchResults(e.target.value);
+    });
+
+    navSearchInput.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setPaletteSelectedIndex(paletteSelectedIndex + 1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setPaletteSelectedIndex(paletteSelectedIndex - 1);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (paletteSelectedIndex >= 0 && paletteSelectedIndex < paletteCurrentItems.length) {
+          executePaletteItem(paletteSelectedIndex);
+        } else if (navSearchInput.value.trim().length >= 2) {
+          closeNavSearchResults();
+          highlightInPageText(navSearchInput.value.trim());
+        }
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        closeNavSearchResults();
+      }
+    });
   }
 
-  paletteBackdrop.addEventListener("mousedown", (e) => {
-    if (e.target === paletteBackdrop) {
-      closeCommandPalette();
+  document.addEventListener("mousedown", (e) => {
+    if (navSearchBarWrapper && !navSearchBarWrapper.contains(e.target)) {
+      closeNavSearchResults();
     }
   });
 });
