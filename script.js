@@ -1935,40 +1935,11 @@ document.addEventListener("DOMContentLoaded", () => {
       takeawayText = `Search live DuckDuckGo index below for full details.`;
     }
 
-    const ddgSearchTerm = `${cleanQuery || term}`.trim();
-    const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
-    const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
-
-    const ddgActionBarHtml = `
-      <div class="doubt-ddg-bar">
-        <span class="doubt-ddg-bar-label">
-          <span class="ddg-icon">🦆</span> DUCKDUCKGO ENGINE:
-        </span>
-        <div class="doubt-ddg-actions">
-          <a href="${ddgAiUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-ai" title="Ask DuckDuckGo AI about this doubt">
-            <span>Ask DuckDuckGo AI</span>
-            <span class="ddg-arrow">↗</span>
-          </a>
-          <a href="${ddgWebUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-web" title="Search live web on DuckDuckGo">
-            <span>Web Search</span>
-            <span class="ddg-arrow">↗</span>
-          </a>
-        </div>
-      </div>
-    `;
-
     return `
       <div class="doubt-plain-answer">
         <div class="doubt-plain-text font-serif">
           ${conceptTitle ? `<strong>${escapeHtml(conceptTitle)}:</strong> ` : ""}${escapeHtml(conceptBody)}
         </div>
-        ${takeawayText ? `
-          <div class="doubt-plain-takeaway font-mono">
-            <span class="doubt-takeaway-badge">✦ TAKEAWAY:</span>
-            <span>${escapeHtml(takeawayText)}</span>
-          </div>
-        ` : ""}
-        ${ddgActionBarHtml}
       </div>
     `;
   }
@@ -2016,7 +1987,9 @@ document.addEventListener("DOMContentLoaded", () => {
           item.answerHtml.includes("Governed by statutory SEBI regulations") ||
           item.answerHtml.includes("Visible Reference:") ||
           item.answerHtml.includes("LIVE SCREEN ANALYSIS") ||
-          item.answerHtml.includes("doubt-output-section")
+          item.answerHtml.includes("doubt-output-section") ||
+          item.answerHtml.includes("doubt-ddg-bar") ||
+          item.answerHtml.includes("doubt-plain-takeaway")
         )) {
           item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
           healed = true;
@@ -2108,13 +2081,19 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="doubt-output-container" id="doubt-output-container"></div>
     </div>
     <div class="doubt-tile-footer">
-      <div class="doubt-footer-shortcuts">
-        <span><kbd>D</kbd> toggle</span>
-        <span><kbd>Esc</kbd> close</span>
-        <span><kbd>Enter</kbd> ask</span>
+      <div class="doubt-footer-ddg-actions">
+        <a href="https://duckduckgo.com/?q=DuckDuckGo+AI&ia=chat" target="_blank" rel="noopener noreferrer" class="doubt-footer-ddg-btn doubt-footer-ddg-ai" id="doubt-footer-ai-btn" title="Ask DuckDuckGo AI">
+          <span class="ddg-icon">🦆</span>
+          <span>Ask DuckDuckGo AI</span>
+          <span class="ddg-arrow">↗</span>
+        </a>
+        <a href="https://duckduckgo.com" target="_blank" rel="noopener noreferrer" class="doubt-footer-ddg-btn doubt-footer-ddg-web" id="doubt-footer-web-btn" title="Search on DuckDuckGo Web">
+          <span>Web Search</span>
+          <span class="ddg-arrow">↗</span>
+        </a>
       </div>
-      <div class="doubt-footer-engine">
-        <span>💾 Local Device · 🦆 DuckDuckGo AI · <strong class="font-mono">v5.5</strong></span>
+      <div class="doubt-footer-engine font-mono">
+        <span>💾 Local Device · <strong class="font-mono">v5.6</strong></span>
       </div>
     </div>
   `;
@@ -2125,6 +2104,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const doubtAskBtn = doubtTile.querySelector("#doubt-ask-btn");
   const doubtChips = doubtTile.querySelectorAll(".doubt-chip-btn");
   const doubtOutput = doubtTile.querySelector("#doubt-output-container");
+
+  function updateFooterDdgLinks(query) {
+    const aiBtn = doubtTile.querySelector("#doubt-footer-ai-btn");
+    const webBtn = doubtTile.querySelector("#doubt-footer-web-btn");
+    const term = (query || (doubtTextInput ? doubtTextInput.value : "") || (currentDoubtContext ? currentDoubtContext.title : "") || "IndexIndia").trim();
+    if (aiBtn) aiBtn.href = `https://duckduckgo.com/?q=${encodeURIComponent(term)}&ia=chat`;
+    if (webBtn) webBtn.href = `https://duckduckgo.com/?q=${encodeURIComponent(term)}`;
+  }
 
   function escapeHtml(str) {
     if (!str) return "";
@@ -2530,6 +2517,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (doubtTile) {
         doubtTile.classList.add("is-open");
       }
+      updateFooterDdgLinks();
 
       if (activeDoubtMode === "doubts") {
         renderDoubtsView();
@@ -2620,6 +2608,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const currentHistory = getLocalDoubtsHistory();
         const updatedHistory = [newRecord, ...currentHistory];
         saveLocalDoubtsHistory(updatedHistory);
+        updateFooterDdgLinks(trimmed);
 
         if (doubtTextInput) doubtTextInput.value = "";
         renderDoubtsView();
@@ -2649,6 +2638,10 @@ document.addEventListener("DOMContentLoaded", () => {
   doubtAskBtn.addEventListener("click", () => {
     const q = doubtTextInput ? doubtTextInput.value : "";
     askDoubt(q);
+  });
+
+  doubtTextInput.addEventListener("input", () => {
+    updateFooterDdgLinks(doubtTextInput.value);
   });
 
   doubtTextInput.addEventListener("keydown", (e) => {

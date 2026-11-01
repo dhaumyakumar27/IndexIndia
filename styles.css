@@ -3407,14 +3407,74 @@ body.theme-light .doubt-web-enrichment {
   flex-shrink: 0;
 }
 
-.doubt-footer-shortcuts {
+.doubt-footer-ddg-actions {
   display: inline-flex;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.doubt-footer-shortcuts span kbd {
-  font-size: 0.62rem;
-  padding: 1px 3px;
+.doubt-footer-ddg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  line-height: 1.2;
+}
+
+.doubt-footer-ddg-ai {
+  background: rgba(222, 88, 51, 0.12);
+  border: 1px solid rgba(222, 88, 51, 0.35);
+  color: #ff7043;
+}
+
+.doubt-footer-ddg-ai:hover {
+  background: rgba(222, 88, 51, 0.22);
+  border-color: #ff8a65;
+  color: #ffab91;
+  transform: translateY(-1px);
+}
+
+body.theme-light .doubt-footer-ddg-ai {
+  background: rgba(222, 88, 51, 0.08);
+  border: 1px solid rgba(222, 88, 51, 0.3);
+  color: #c8411b;
+}
+
+body.theme-light .doubt-footer-ddg-ai:hover {
+  background: rgba(222, 88, 51, 0.16);
+  border-color: #c8411b;
+  color: #b03410;
+}
+
+.doubt-footer-ddg-web {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.doubt-footer-ddg-web:hover {
+  background: var(--bg-surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.doubt-footer-ddg-btn .ddg-icon {
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.doubt-footer-ddg-btn .ddg-arrow {
+  font-size: 0.6rem;
+  opacity: 0.75;
 }
 
 .doubt-footer-engine {
