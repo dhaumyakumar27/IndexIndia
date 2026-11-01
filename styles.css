@@ -788,17 +788,35 @@ body.theme-dark .dropdown-item:hover {
    LEFT RAIL (Pure Static Reference Ticks)
    ========================================================================== */
 /* ==========================================================================
-   LEFT RAIL NAVIGATOR (Persistent Container)
+   LEFT RAIL NAVIGATOR (Persistent Container - Sticked to Left, Scaling Top-to-Bottom)
    ========================================================================== */
 .rail-navigator {
   position: fixed;
   left: 0;
   top: var(--nav-height);
   bottom: 0;
+  height: calc(100vh - var(--nav-height));
   width: 0;
-  z-index: 200;
+  z-index: 950;
   pointer-events: none;
-  transition: width 0.2s ease;
+  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Edge Hover Sensors (Force Directory Tree & Doubt Solver to appear) */
+.edge-sensor-zone {
+  position: fixed;
+  top: var(--nav-height);
+  bottom: 0;
+  width: 14px;
+  z-index: 900;
+  pointer-events: auto;
+  background: transparent;
+}
+.edge-sensor-left {
+  left: 0;
+}
+.edge-sensor-right {
+  right: 0;
 }
 
 /* Explicitly opened or pinned expansion */
@@ -874,7 +892,7 @@ body.theme-dark .tick-mark.active {
   box-shadow: 16px 0 44px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  z-index: 250;
+  z-index: 950;
   display: flex;
   flex-direction: column;
   opacity: 0;

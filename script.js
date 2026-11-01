@@ -660,8 +660,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 5. "Space" opens/closes Directory Tree (strictly alone)
-    if ((e.code === "Space" || e.key === " ") && noModifiers) {
+    // 5. "N" opens/closes Directory Tree (strictly alone, KeyN or 'n'/'N', no Ctrl, Alt, Meta)
+    if ((e.code === "KeyN" || e.key?.toLowerCase() === "n") && noModifiers) {
       e.preventDefault();
       toggleTree();
       return;
@@ -755,8 +755,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 10. Shortcut 'D': Toggle AI Doubt Solver (KeyD or 'd'/'D', no Ctrl, Alt, Meta)
-    if ((e.code === "KeyD" || e.key?.toLowerCase() === "d") && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    // 10. Shortcut 'M': Toggle DuckDuckGo Doubt Solver (KeyM or 'm'/'M', no Ctrl, Alt, Meta)
+    if ((e.code === "KeyM" || e.key?.toLowerCase() === "m") && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       toggleDoubtSolver();
       return;
@@ -2051,11 +2051,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const doubtPill = document.createElement("div");
   doubtPill.className = "doubt-selection-pill";
   doubtPill.id = "doubt-selection-pill";
-  doubtPill.title = "Ask DuckDuckGo Doubt Solver (Shortcut: D)";
+  doubtPill.title = "Ask DuckDuckGo Doubt Solver (Shortcut: M)";
   doubtPill.innerHTML = `
     <span class="doubt-pill-spark">🦆</span>
     <span>Explain</span>
-    <span class="doubt-pill-key">D</span>
+    <span class="doubt-pill-key">M</span>
   `;
   document.body.appendChild(doubtPill);
 
@@ -2651,4 +2651,127 @@ document.addEventListener("DOMContentLoaded", () => {
       closeDoubtSolver();
     }
   });
+
+  // ================= 10. EDGE HOVER TRIGGER SYSTEM (Left: Directory Tree, Right: Doubt AI) =================
+  // Force directory tree & duckduckgo doubt solver to appear as floating windows by moving cursor to the very end of sides
+  let treeOpenedByHover = false;
+  let doubtOpenedByHover = false;
+  let doubtLeaveTimer = null;
+
+  // Create invisible edge sensor zones for immediate pointer detection
+  const edgeSensorLeft = document.createElement("div");
+  edgeSensorLeft.id = "edge-sensor-left";
+  edgeSensorLeft.className = "edge-sensor-zone edge-sensor-left";
+  edgeSensorLeft.setAttribute("aria-hidden", "true");
+  document.body.appendChild(edgeSensorLeft);
+
+  const edgeSensorRight = document.createElement("div");
+  edgeSensorRight.id = "edge-sensor-right";
+  edgeSensorRight.className = "edge-sensor-zone edge-sensor-right";
+  edgeSensorRight.setAttribute("aria-hidden", "true");
+  document.body.appendChild(edgeSensorRight);
+
+  function triggerLeftEdgeTree() {
+    if (!isTreeCurrentlyOpen()) {
+      treeOpenedByHover = true;
+      if (railNavigator) railNavigator.classList.remove("is-closed");
+      openRailPanel();
+    }
+  }
+
+  function triggerRightEdgeDoubt() {
+    if (!doubtTile.classList.contains("is-open")) {
+      doubtOpenedByHover = true;
+      openDoubtSolver();
+    }
+  }
+
+  function handleDoubtHoverLeave() {
+    if (!doubtOpenedByHover) return;
+    if (doubtTextInput && document.activeElement === doubtTextInput) return;
+    if (doubtTextInput && doubtTextInput.value.trim().length > 0) return;
+
+    if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
+    doubtLeaveTimer = setTimeout(() => {
+      const isTileHovered = doubtTile && doubtTile.matches(":hover");
+      const isInputFocused = doubtTextInput && document.activeElement === doubtTextInput;
+      if (!isTileHovered && !isInputFocused && doubtOpenedByHover) {
+        closeDoubtSolver();
+        doubtOpenedByHover = false;
+      }
+    }, 380);
+  }
+
+  // Edge Sensor DOM Listeners
+  edgeSensorLeft.addEventListener("mouseenter", () => {
+    triggerLeftEdgeTree();
+  });
+
+  edgeSensorRight.addEventListener("mouseenter", () => {
+    triggerRightEdgeDoubt();
+  });
+
+  // Global mousemove for rapid cursor flicks to the absolute edge
+  window.addEventListener("mousemove", (e) => {
+    if (e.buttons !== 0) return; // Don't trigger if user is dragging/selecting text or dragging scrollbar
+
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    const winWidth = window.innerWidth;
+
+    // Left Edge Trigger (<= 14px): open Directory Tree
+    if (clientX <= 14 && clientY >= 50) {
+      triggerLeftEdgeTree();
+    }
+
+    // Right Edge Trigger (>= winWidth - 14px): open Doubt AI
+    if (clientX >= winWidth - 14 && clientY >= 50) {
+      triggerRightEdgeDoubt();
+    }
+
+    // If Tree was opened by edge hover and is not pinned: close when mouse leaves panel to the right
+    if (treeOpenedByHover && !isPinned && isTreeCurrentlyOpen()) {
+      if (clientX > 390) {
+        closeRailPanel(220);
+        treeOpenedByHover = false;
+      }
+    }
+
+    // If Doubt Solver was opened by edge hover: check if mouse moved away to the left
+    if (doubtOpenedByHover && doubtTile && doubtTile.classList.contains("is-open")) {
+      if (clientX < winWidth - 440) {
+        handleDoubtHoverLeave();
+      }
+    }
+  }, { passive: true });
+
+  // When user enters doubtTile, cancel any leave timer
+  if (doubtTile) {
+    doubtTile.addEventListener("mouseenter", () => {
+      if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
+    });
+    doubtTile.addEventListener("mouseleave", () => {
+      handleDoubtHoverLeave();
+    });
+    // If user clicks anywhere inside the tile or focuses input, make it stay open
+    doubtTile.addEventListener("focusin", () => {
+      doubtOpenedByHover = false;
+    });
+    doubtTile.addEventListener("mousedown", () => {
+      doubtOpenedByHover = false;
+    });
+  }
+
+  // Ensure shortcut toggles reset the hover flags
+  const origToggleTree = toggleTree;
+  toggleTree = function(forceState) {
+    treeOpenedByHover = false;
+    origToggleTree(forceState);
+  };
+
+  const origToggleDoubt = toggleDoubtSolver;
+  toggleDoubtSolver = function() {
+    doubtOpenedByHover = false;
+    origToggleDoubt();
+  };
 });
