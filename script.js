@@ -1681,6 +1681,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  doubtPill.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
   doubtPill.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1757,13 +1762,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = context.title || "Visible Content";
     const cleanQuery = (query || "").trim().toLowerCase();
 
+    // Semantic matching against knowledge base
     let matchedTopic = null;
     let highestScore = 0;
 
     for (const item of FORENSIC_KNOWLEDGE_BASE) {
       let score = 0;
       for (const term of item.terms) {
-        if (cleanQuery && cleanQuery.includes(term)) score += 5;
+        if (cleanQuery && cleanQuery.includes(term)) score += 8;
         if (rawText.toLowerCase().includes(term)) score += 2;
         if (title.toLowerCase().includes(term)) score += 3;
       }
@@ -1774,18 +1780,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const numbersFound = rawText.match(/(\d+(?:\.\d+)?%|\$\d+|\b\d+\s*(?:days|crore|months|years|bps)\b)/gi) || [];
-    const uniqueNumbers = Array.from(new Set(numbersFound)).slice(0, 4);
+    const uniqueNumbers = Array.from(new Set(numbersFound)).slice(0, 5);
 
-    const sentences = rawText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 15);
+    const sentences = rawText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 12);
     let bestSentence = sentences[0] || rawText.slice(0, 160);
+    
     if (cleanQuery) {
-      const qWords = cleanQuery.split(/\s+/).filter(w => w.length > 2);
+      const qWords = cleanQuery.split(/\s+/).filter(w => w.length > 2 && !["what", "why", "how", "when", "where", "which", "does", "this", "that", "the", "and", "is", "are", "can", "you", "tell"].includes(w));
       let bestSentScore = 0;
       for (const s of sentences) {
         const sLower = s.toLowerCase();
         let sScore = 0;
         for (const w of qWords) {
-          if (sLower.includes(w)) sScore++;
+          if (sLower.includes(w)) sScore += 2;
         }
         if (sScore > bestSentScore) {
           bestSentScore = sScore;
@@ -1794,55 +1801,80 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    let conceptHtml = "";
-    let screenHtml = "";
+    let questionEchoHtml = "";
+    if (cleanQuery) {
+      questionEchoHtml = `
+        <div class="doubt-question-echo">
+          <span class="doubt-q-badge font-mono">YOUR DOUBT:</span>
+          <span class="doubt-q-text">"${escapeHtml(query)}"</span>
+        </div>
+      `;
+    }
+
+    let directAnswerHtml = "";
+    let screenEvidenceHtml = "";
     let takeawayHtml = "";
 
-    if (mode === "regulatory") {
-      conceptHtml = matchedTopic
-        ? `<strong>Statutory Framework:</strong> ${matchedTopic.statutoryRule}`
-        : `<strong>Regulatory Compliance:</strong> Governed by SEBI (Listing Obligations and Disclosure Requirements) Regulations and Companies Act statutory disclosure mandates.`;
-      screenHtml = `<strong>Screen Red Flag Check:</strong> Monitored under institutional forensic auditing rules to prevent minority shareholder wealth erosion.`;
-      takeawayHtml = `<strong>Audit Benchmark:</strong> Any non-compliance or qualification in this section prompts an immediate governance risk rating downgrade.`;
-    } else if (mode === "keypoint") {
-      conceptHtml = `<strong>Primary Metric Target:</strong> ${uniqueNumbers.length > 0 ? `Key thresholds tracked on this screen: ${uniqueNumbers.map(n => `<span class="doubt-highlight-tag">${escapeHtml(n)}</span>`).join(" ")}.` : `Core institutional standard established for ${escapeHtml(title)}.`}`;
-      screenHtml = `<strong>Core Finding:</strong> "${escapeHtml(bestSentence.slice(0, 180))}..."`;
-      takeawayHtml = `<strong>Quantitative Takeaway:</strong> Deviations from this benchmark signal anomalous financial reporting or heightened systemic volatility.`;
-    } else if (mode === "formula") {
-      conceptHtml = matchedTopic && matchedTopic.terms.includes("hhi")
-        ? `<strong>Concentration Formula:</strong> <span class="doubt-highlight-tag">HHI = &Sigma; s<sub>i</sub><sup>2</sup></span> where <em>s<sub>i</sub></em> is the percentage weight of each constituent sector.`
-        : `<strong>Weighting &amp; Scoring Logic:</strong> Weighted against multi-factor governance criteria (60% Corporate Governance + 40% Forensic Solvency metrics).`;
-      screenHtml = `<strong>Screen Mechanics:</strong> Uses a 25% single-sector cap with +/- 2.5% buffer bands to eliminate index churn and liquidity slippage.`;
-      takeawayHtml = `<strong>Mathematical Guarantee:</strong> Eliminates disproportionate skew from mega-cap enterprise concentration.`;
-    } else {
-      // Default: Plain English Explanation (Mode: "explain" or custom query)
-      if (cleanQuery && matchedTopic) {
-        conceptHtml = `<strong>Concept Breakdown:</strong> ${matchedTopic.concept}`;
-        screenHtml = `<strong>Visible Screen Application:</strong> ${matchedTopic.screenContext} (Referencing: "<em>${escapeHtml(bestSentence.slice(0, 140))}...</em>")`;
-        takeawayHtml = `<strong>Forensic Takeaway:</strong> ${matchedTopic.statutoryRule}`;
-      } else if (cleanQuery) {
-        conceptHtml = `<strong>Question Resolution:</strong> Explaining "${escapeHtml(query)}" based on the visible ${escapeHtml(title)} data.`;
-        screenHtml = `<strong>Direct Context Match:</strong> "${escapeHtml(bestSentence.slice(0, 200))}..."`;
-        takeawayHtml = `<strong>Institutional Interpretation:</strong> Reflects the sovereign research methodology applied across the ${isIndexSuite ? "Index Terminal" : "Guide Dossier"}.`;
+    const isWhyQuestion = cleanQuery.startsWith("why") || cleanQuery.includes(" why ");
+    const isHowQuestion = cleanQuery.startsWith("how") || cleanQuery.includes(" how ");
+
+    if (cleanQuery) {
+      if (isWhyQuestion && matchedTopic) {
+        directAnswerHtml = `<strong>Why this exists:</strong> ${matchedTopic.screenContext}`;
+        screenEvidenceHtml = `<strong>Screen Context:</strong> In <strong>${escapeHtml(title)}</strong>, this principle guards against governance breakdown: "<em>${escapeHtml(bestSentence.slice(0, 160))}...</em>"`;
+        takeawayHtml = `<strong>Statutory Rationale:</strong> ${matchedTopic.statutoryRule}`;
+      } else if (isHowQuestion && matchedTopic) {
+        directAnswerHtml = `<strong>Operational Mechanic:</strong> ${matchedTopic.concept}`;
+        screenEvidenceHtml = `<strong>Execution Rule:</strong> "<em>${escapeHtml(bestSentence.slice(0, 160))}...</em>"`;
+        takeawayHtml = `<strong>Statutory Standard:</strong> ${matchedTopic.statutoryRule}`;
       } else if (matchedTopic) {
-        conceptHtml = `<strong>Plain English Concept:</strong> ${matchedTopic.concept}`;
-        screenHtml = `<strong>Visible On Your Screen:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
-        takeawayHtml = `<strong>Why It Matters:</strong> ${matchedTopic.screenContext}`;
+        directAnswerHtml = `<strong>Concept Analysis:</strong> ${matchedTopic.concept}`;
+        screenEvidenceHtml = `<strong>Visible Screen Application:</strong> ${matchedTopic.screenContext} (Referencing: "<em>${escapeHtml(bestSentence.slice(0, 150))}...</em>")`;
+        takeawayHtml = `<strong>Forensic Standard:</strong> ${matchedTopic.statutoryRule}`;
       } else {
-        conceptHtml = `<strong>Overview:</strong> This section defines the structural forensic rules and institutional research standards for <strong>${escapeHtml(title)}</strong>.`;
-        screenHtml = `<strong>Context Excerpt:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
-        takeawayHtml = `<strong>Key Takeaway:</strong> Designed for rapid forensic vetting without promotional or speculative bias.`;
+        directAnswerHtml = `<strong>Direct Context Explanation:</strong> Based on the visible content in <strong>${escapeHtml(title)}</strong>, this section sets out forensic parameters directly applicable to institutional research.`;
+        screenEvidenceHtml = `<strong>Visible Excerpt:</strong> "<em>${escapeHtml(bestSentence.slice(0, 190))}...</em>"`;
+        takeawayHtml = `<strong>Forensic Takeaway:</strong> Analyzed under the sovereign research methodology to eliminate speculative bias.`;
+      }
+    } else {
+      if (mode === "regulatory") {
+        directAnswerHtml = matchedTopic
+          ? `<strong>Statutory Mandate:</strong> ${matchedTopic.statutoryRule}`
+          : `<strong>Regulatory Compliance:</strong> Governed by SEBI (Listing Obligations and Disclosure Requirements) Regulations and Companies Act statutory disclosure mandates.`;
+        screenEvidenceHtml = `<strong>Compliance Monitor:</strong> Audited under institutional governance rules to prevent minority shareholder wealth erosion.`;
+        takeawayHtml = `<strong>Audit Benchmark:</strong> Any qualification or failure in this metric triggers an automatic governance risk downgrade.`;
+      } else if (mode === "keypoint") {
+        directAnswerHtml = `<strong>Primary Metric Target:</strong> ${uniqueNumbers.length > 0 ? `Key thresholds tracked on this screen: ${uniqueNumbers.map(n => `<span class="doubt-highlight-tag">${escapeHtml(n)}</span>`).join(" ")}.` : `Core institutional standard established for ${escapeHtml(title)}.`}`;
+        screenEvidenceHtml = `<strong>Primary Screen Evidence:</strong> "${escapeHtml(bestSentence.slice(0, 180))}..."`;
+        takeawayHtml = `<strong>Quantitative Takeaway:</strong> Deviations from this benchmark signal heightened systemic risk.`;
+      } else if (mode === "formula") {
+        directAnswerHtml = matchedTopic && matchedTopic.terms.includes("hhi")
+          ? `<strong>Concentration Formula:</strong> <span class="doubt-highlight-tag">HHI = &Sigma; s<sub>i</sub><sup>2</sup></span> where <em>s<sub>i</sub></em> is the percentage weight of each constituent sector.`
+          : `<strong>Weighting &amp; Scoring Logic:</strong> Multi-factor governance score: 60% Corporate Governance + 40% Forensic Solvency metrics.`;
+        screenEvidenceHtml = `<strong>Portfolio Mechanics:</strong> Enforces a 25% single-sector cap with +/- 2.5% buffer bands to eliminate churn.`;
+        takeawayHtml = `<strong>Mathematical Guarantee:</strong> Eliminates disproportionate skew from mega-cap enterprise concentration.`;
+      } else {
+        if (matchedTopic) {
+          directAnswerHtml = `<strong>Plain English Concept:</strong> ${matchedTopic.concept}`;
+          screenEvidenceHtml = `<strong>Visible On Your Screen:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
+          takeawayHtml = `<strong>Why It Matters:</strong> ${matchedTopic.screenContext}`;
+        } else {
+          directAnswerHtml = `<strong>Overview:</strong> Defines structural forensic rules and institutional research standards for <strong>${escapeHtml(title)}</strong>.`;
+          screenEvidenceHtml = `<strong>Context Excerpt:</strong> "${escapeHtml(bestSentence.slice(0, 170))}..."`;
+          takeawayHtml = `<strong>Forensic Watchout:</strong> Designed for rapid institutional vetting without promotional or speculative bias.`;
+        }
       }
     }
 
     return `
+      ${questionEchoHtml}
       <div class="doubt-output-section">
         <div class="doubt-output-header">1. CORE CONCEPT</div>
-        <div class="doubt-output-body">${conceptHtml}</div>
+        <div class="doubt-output-body">${directAnswerHtml}</div>
       </div>
       <div class="doubt-output-section">
-        <div class="doubt-output-header">2. VISIBLE CONTEXT</div>
-        <div class="doubt-output-body">${screenHtml}</div>
+        <div class="doubt-output-header">2. VISIBLE EVIDENCE &amp; CONTEXT</div>
+        <div class="doubt-output-body">${screenEvidenceHtml}</div>
       </div>
       <div class="doubt-output-takeaway">
         ${takeawayHtml}
@@ -1851,12 +1883,36 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function executeDoubtQuery() {
-    if (!currentDoubtContext) {
-      currentDoubtContext = getVisibleScreenTarget();
+    try {
+      if (!currentDoubtContext) {
+        currentDoubtContext = getVisibleScreenTarget();
+      }
+      const query = doubtTextInput ? doubtTextInput.value.trim() : "";
+      
+      // Active feedback on button
+      if (doubtAskBtn) {
+        doubtAskBtn.textContent = "Analyzing... ✦";
+        doubtAskBtn.disabled = true;
+      }
+
+      setTimeout(() => {
+        try {
+          const resultHtml = synthesizeDoubtAnswer(query, activeDoubtMode, currentDoubtContext);
+          renderDoubtAnswer(resultHtml);
+        } finally {
+          if (doubtAskBtn) {
+            doubtAskBtn.textContent = "Explain ↵";
+            doubtAskBtn.disabled = false;
+          }
+        }
+      }, 70);
+    } catch (err) {
+      console.error("[DoubtSolver] executeDoubtQuery error:", err);
+      if (doubtAskBtn) {
+        doubtAskBtn.textContent = "Explain ↵";
+        doubtAskBtn.disabled = false;
+      }
     }
-    const query = doubtTextInput.value.trim();
-    const resultHtml = synthesizeDoubtAnswer(query, activeDoubtMode, currentDoubtContext);
-    renderDoubtAnswer(resultHtml);
   }
 
   function renderDoubtAnswer(html) {

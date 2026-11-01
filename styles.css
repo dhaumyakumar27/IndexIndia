@@ -2873,6 +2873,34 @@ body.theme-dark .doubt-pill-key {
   gap: 9px;
 }
 
+/* Question Echo Badge */
+.doubt-question-echo {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent);
+  padding: 6px 10px;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.doubt-q-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.doubt-q-text {
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
 .doubt-output-section {
   display: flex;
   flex-direction: column;
