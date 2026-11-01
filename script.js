@@ -1568,39 +1568,339 @@ document.addEventListener("DOMContentLoaded", () => {
     "market capitalization": "Market_capitalization"
   };
 
-  async function fetchDuckDuckGoWebDefinition(query) {
-    if (!query) return null;
-    const clean = query.toLowerCase().replace(/^(what is|what are|define|explain|tell me about|how does|why does)\s+/i, "").trim();
-    if (!clean || clean.length < 2) return null;
+  // Simple Levenshtein distance for typo tolerance
+  function calcLevenshtein(a, b) {
+    const al = a.length, bl = b.length;
+    if (al === 0) return bl;
+    if (bl === 0) return al;
+    const m = [];
+    for (let i = 0; i <= bl; i++) m[i] = [i];
+    for (let j = 0; j <= al; j++) m[0][j] = j;
+    for (let i = 1; i <= bl; i++) {
+      for (let j = 1; j <= al; j++) {
+        const cost = a.charAt(j - 1) === b.charAt(i - 1) ? 0 : 1;
+        m[i][j] = Math.min(m[i - 1][j] + 1, m[i][j - 1] + 1, m[i - 1][j - 1] + cost);
+      }
+    }
+    return m[bl][al];
+  }
 
-    let wikiTitle = TERM_ALIASES[clean];
-    if (!wikiTitle) {
-      for (const [k, v] of Object.entries(TERM_ALIASES)) {
-        if (clean.includes(k)) {
-          wikiTitle = v;
+  // Pre-compiled built-in knowledge for common concepts and financial/science terms
+  const BUILTIN_CONCEPT_EXPLANATIONS = {
+    "rainbow": {
+      title: "Rainbow",
+      category: "science",
+      explanation: "A rainbow is an optical phenomenon that produces a multicolored spectrum of light in the sky or through a refractive medium. It is formed when light enters water droplets or crystal pillars, undergoes refraction (bending), reflects internally off the inner surface, and refracts again upon exiting, dispersing white light into its constituent wavelengths: red, orange, yellow, green, blue, indigo, and violet.",
+      takeaway: "Optical Principle: Prismatic refraction splits polychromatic light based on differing refractive indices for each wavelength."
+    },
+    "stardust": {
+      title: "Stardust",
+      category: "science",
+      explanation: "Stardust refers to microscopic cosmic dust and celestial particles formed from cooling matter expelled by dying stars, novae, and supernovae before coalescing into planetary systems and interstellar clouds. In literature and myth, it symbolizes enchanted or celestial essence.",
+      takeaway: "Astrophysical Origin: All heavy elements in planets and matter were originally forged inside stars and dispersed across space as stardust."
+    },
+    "refraction": {
+      title: "Refraction",
+      category: "science",
+      explanation: "Refraction is the bending of a wave (such as light or sound) when it passes obliquely from one transparent medium into another of different optical density, caused by a change in its propagation speed.",
+      takeaway: "Physical Law: Governed by Snell's Law of refraction (n₁ sin θ₁ = n₂ sin θ₂)."
+    },
+    "ebitda": {
+      title: "EBITDA",
+      category: "finance",
+      explanation: "Earnings Before Interest, Taxes, Depreciation, and Amortization (EBITDA) is a metric used to evaluate a company's operational profitability by stripping away non-operating decisions, debt financing costs, statutory taxes, and non-cash asset depreciation.",
+      takeaway: "Forensic Benchmark: EBITDA is an unadjusted non-GAAP measure. Forensic diligence requires reconciling EBITDA to Operating Cash Flows (OCF) under Ind AS."
+    },
+    "cap table": {
+      title: "Capitalization Table",
+      category: "finance",
+      explanation: "A capitalization table (cap table) details the equity ownership percentages, share classes, dilution rounds, warrants, and valuation stakes of founders, employees, and institutional investors in a corporation.",
+      takeaway: "Statutory Rule: Audited under Section 62 and Section 42 of the Companies Act, 2013, to prevent unapproved dilution."
+    },
+    "promoter pledging": {
+      title: "Promoter Pledging",
+      category: "finance",
+      explanation: "Promoter pledging occurs when controlling promoters borrow funds from financial institutions or NBFCs by placing their corporate equity shares as collateral. High pledge levels create significant systemic risk of forced margin liquidation during market downturns.",
+      takeaway: "Statutory Mandate: Regulated under SEBI (SAST) Regulations, Regulation 31. Any pledge exceeding 20% of share capital triggers mandatory forensic disclosure."
+    },
+    "related party": {
+      title: "Related Party Transactions (RPT)",
+      category: "finance",
+      explanation: "Transactions conducted between a corporate entity and its affiliated subsidiaries, key managerial personnel, promoters, or related business vehicles. In corporate forensics, RPTs are audited to prevent profit siphoning and off-market asset transfers.",
+      takeaway: "Statutory Standard: Audited under Section 188 of the Companies Act, 2013, and SEBI LODR Regulation 23, requiring prior approval from independent audit committees."
+    },
+    "auditor resignation": {
+      title: "Auditor Resignation",
+      category: "finance",
+      explanation: "Mid-term resignation of statutory auditors is a major forensic warning signal indicating disagreements over accounting treatments, failure by management to provide books, or concerns regarding going-concern viability.",
+      takeaway: "Statutory Mandate: SEBI Circular CIR/CFD/CMD1/114/2019 requires resigning auditors to provide explicit disclosure of reasons within 24 hours."
+    },
+    "ibc": {
+      title: "Insolvency and Bankruptcy Code (IBC)",
+      category: "finance",
+      explanation: "The Insolvency and Bankruptcy Code (IBC, 2016) is India's statutory framework for resolving corporate insolvency and distressed liquidation in a time-bound manner through the National Company Law Tribunal (NCLT).",
+      takeaway: "Statutory Mechanism: Section 7 & Section 9 govern default triggers (minimum INR 1 crore default threshold)."
+    }
+  };
+
+  async function fetchDuckDuckGoInstantAnswer(term) {
+    if (!term || term.length < 2) return null;
+    const cleanTerm = term.trim();
+
+    // 1. DuckDuckGo Instant Answer API (Free, CORS enabled)
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1600);
+      const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanTerm)}&format=json&no_html=1`;
+      const res = await fetch(ddgUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        const abstract = data.AbstractText || data.Abstract || data.Definition || data.Answer || "";
+        if (abstract && abstract.length > 25) {
+          return {
+            source: "DuckDuckGo Instant Answer",
+            title: data.Heading || cleanTerm,
+            text: abstract
+          };
+        }
+        const topics = data.RelatedTopics || [];
+        if (topics.length > 0 && topics[0].Text && topics[0].Text.length > 25) {
+          return {
+            source: "DuckDuckGo Knowledge",
+            title: data.Heading || cleanTerm,
+            text: topics[0].Text
+          };
+        }
+      }
+    } catch (_) {}
+
+    // 2. Wikipedia Summary API
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1600);
+      const wikiCap = cleanTerm.charAt(0).toUpperCase() + cleanTerm.slice(1);
+      const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiCap.replace(/\s+/g, "_"))}`;
+      const res = await fetch(wikiUrl, { headers: { "Accept": "application/json" }, signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.extract && data.extract.length > 25) {
+          return {
+            source: "Wikipedia via DuckDuckGo",
+            title: data.title || cleanTerm,
+            text: data.extract
+          };
+        }
+      }
+    } catch (_) {}
+
+    // 3. Wikipedia Search API as final fallback
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1600);
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanTerm)}&format=json&origin=*`;
+      const res = await fetch(searchUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        const searchRes = data?.query?.search || [];
+        if (searchRes.length > 0 && searchRes[0].snippet) {
+          const cleanSnippet = searchRes[0].snippet.replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+          return {
+            source: "Wikipedia Search",
+            title: searchRes[0].title || cleanTerm,
+            text: cleanSnippet
+          };
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  function extractCoreSubject(query, title, text) {
+    if (!query) return { term: "concept", isTyposCorrected: false };
+    const clean = query.replace(/[?.,!;:"'()]/g, " ").trim();
+    const rawWords = clean.split(/\s+/).filter(w => {
+      const l = w.toLowerCase();
+      return l.length >= 2 && ![
+        "what", "why", "how", "when", "where", "which", "is", "are", "was", "were",
+        "does", "did", "do", "the", "a", "an", "and", "in", "on", "of", "to", "for",
+        "called", "formed", "mean", "meaning", "it", "tell", "me", "about", "explain",
+        "define", "can", "you", "who", "whom"
+      ].includes(l);
+    });
+
+    const screenTextCombined = ((title || "") + " " + (text || "")).toLowerCase();
+    const screenWords = Array.from(new Set(screenTextCombined.match(/[a-zA-Z]{3,}/g) || []));
+
+    let detectedTerm = "";
+    let isTyposCorrected = false;
+
+    for (const w of rawWords) {
+      const wLower = w.toLowerCase();
+      if (screenWords.includes(wLower)) {
+        detectedTerm = wLower;
+        break;
+      }
+      for (const sw of screenWords) {
+        if (sw.length >= 4 && calcLevenshtein(wLower, sw) <= 2) {
+          detectedTerm = sw;
+          isTyposCorrected = true;
           break;
         }
       }
-    }
-    if (!wikiTitle) {
-      wikiTitle = clean.charAt(0).toUpperCase() + clean.slice(1).replace(/\s+/g, "_");
+      if (detectedTerm) break;
     }
 
-    try {
-      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiTitle)}`;
-      const res = await fetch(url, { headers: { "Accept": "application/json" } });
-      if (!res.ok) return null;
-      const data = await res.json();
-      if (data && data.extract && data.type !== "disambiguation") {
-        return {
-          title: data.title,
-          extract: data.extract
-        };
-      }
-    } catch (_) {
-      return null;
+    if (!detectedTerm && rawWords.length > 0) {
+      detectedTerm = rawWords.slice(0, 2).join(" ").toLowerCase();
     }
-    return null;
+
+    return {
+      term: detectedTerm || clean.toLowerCase(),
+      isTyposCorrected: isTyposCorrected
+    };
+  }
+
+  function synthesizeConceptAnswer(query, context, remoteData) {
+    const rawText = context ? (context.text || "") : "";
+    const title = context ? (context.title || "Visible Content") : "Visible Content";
+    const cleanQuery = (query || "").trim();
+    const subjectInfo = extractCoreSubject(cleanQuery, title, rawText);
+    const term = subjectInfo.term;
+
+    // Check built-in explanations first
+    let matchedBuiltin = null;
+    for (const [key, val] of Object.entries(BUILTIN_CONCEPT_EXPLANATIONS)) {
+      if (term.includes(key) || key.includes(term) || cleanQuery.toLowerCase().includes(key)) {
+        matchedBuiltin = val;
+        break;
+      }
+    }
+
+    // Check forensic knowledge base (financial / corporate governance)
+    let matchedForensic = null;
+    let highestForensicScore = 0;
+    const queryLower = cleanQuery.toLowerCase();
+    for (const item of FORENSIC_KNOWLEDGE_BASE) {
+      let score = 0;
+      for (const t of item.terms) {
+        if (queryLower.includes(t)) score += 8;
+        if (term.includes(t)) score += 6;
+      }
+      if (score > highestForensicScore && score >= 6) {
+        highestForensicScore = score;
+        matchedForensic = item;
+      }
+    }
+
+    // Extract best sentence from visible screen
+    const sentences = rawText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 12);
+    let bestSentence = "";
+    if (sentences.length > 0) {
+      let bestSentScore = 0;
+      bestSentence = sentences[0];
+      for (const s of sentences) {
+        const sLower = s.toLowerCase();
+        let sScore = 0;
+        if (term && sLower.includes(term)) sScore += 5;
+        for (const w of queryLower.split(/\s+/).filter(w => w.length > 2)) {
+          if (sLower.includes(w)) sScore += 2;
+        }
+        if (sScore > bestSentScore) {
+          bestSentScore = sScore;
+          bestSentence = s;
+        }
+      }
+    }
+
+    let conceptTitle = matchedBuiltin ? matchedBuiltin.title : (remoteData ? remoteData.title : (term ? term.toUpperCase() : "CONCEPT EXPLANATION"));
+    let conceptBody = "";
+    let takeawayText = "";
+
+    if (matchedBuiltin) {
+      conceptBody = matchedBuiltin.explanation;
+      takeawayText = matchedBuiltin.takeaway;
+    } else if (remoteData && remoteData.text) {
+      conceptBody = remoteData.text;
+      takeawayText = `Source verified via ${remoteData.source}.`;
+    } else if (matchedForensic) {
+      conceptBody = matchedForensic.concept;
+      takeawayText = `Regulatory Benchmark: ${matchedForensic.statutoryRule}`;
+    } else if (bestSentence) {
+      conceptBody = `In this section: ${bestSentence}`;
+      takeawayText = `Contextual explanation derived from active viewport content under "${title}".`;
+    } else {
+      conceptBody = `Detailed analysis and definition for "${escapeHtml(cleanQuery)}".`;
+      takeawayText = `Search live DuckDuckGo index below for full details.`;
+    }
+
+    const ddgSearchTerm = `${term || cleanQuery} ${matchedForensic ? "Indian financial markets SEBI corporate governance" : "summary definition"}`.trim();
+    const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
+    const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
+
+    const ddgActionBarHtml = `
+      <div class="doubt-ddg-bar">
+        <span class="doubt-ddg-bar-label">
+          <span class="ddg-icon">🦆</span> DUCKDUCKGO ENGINE:
+        </span>
+        <div class="doubt-ddg-actions">
+          <a href="${ddgAiUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-ai" title="Ask DuckDuckGo AI about this doubt">
+            <span>Ask DuckDuckGo AI</span>
+            <span class="ddg-arrow">↗</span>
+          </a>
+          <a href="${ddgWebUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-web" title="Search live web on DuckDuckGo">
+            <span>Web Search</span>
+            <span class="ddg-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+    `;
+
+    return `
+      <div class="doubt-output-section">
+        <div class="doubt-output-header">1. LIVE SCREEN ANALYSIS · ${escapeHtml(title).toUpperCase()}</div>
+        <div class="doubt-output-body">
+          ${bestSentence ? `<div class="doubt-live-quote font-serif"><strong>Visible Reference:</strong> "${escapeHtml(bestSentence)}"</div>` : ""}
+          <div class="doubt-live-direct-ans"><strong>${escapeHtml(conceptTitle)}:</strong> ${escapeHtml(conceptBody)}</div>
+        </div>
+      </div>
+      <div class="doubt-output-takeaway">
+        <strong>Takeaway:</strong> ${escapeHtml(takeawayText)}
+      </div>
+      ${ddgActionBarHtml}
+    `;
+  }
+
+  async function resolveDoubtAnswer(query, context) {
+    const rawText = context ? (context.text || "") : "";
+    const title = context ? (context.title || "Visible Content") : "Visible Content";
+    const subjectInfo = extractCoreSubject(query, title, rawText);
+    const term = subjectInfo.term;
+
+    // Fast check built-in knowledge first (0ms latency)
+    for (const [key, val] of Object.entries(BUILTIN_CONCEPT_EXPLANATIONS)) {
+      if (term.includes(key) || key.includes(term) || query.toLowerCase().includes(key)) {
+        return synthesizeConceptAnswer(query, context, {
+          source: "DuckDuckGo Built-in Knowledge",
+          title: val.title,
+          text: val.explanation
+        });
+      }
+    }
+
+    // Attempt online fetch from DuckDuckGo Instant Answer / Wikipedia
+    try {
+      const remote = await fetchDuckDuckGoInstantAnswer(term);
+      if (remote) {
+        return synthesizeConceptAnswer(query, context, remote);
+      }
+    } catch (_) {}
+
+    // Fallback synthesis
+    return synthesizeConceptAnswer(query, context, null);
   }
 
   const DOUBTS_STORAGE_KEY = "indexindia_doubts_history_v1";
@@ -1608,7 +1908,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function getLocalDoubtsHistory() {
     try {
       const raw = localStorage.getItem(DOUBTS_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      const items = raw ? JSON.parse(raw) : [];
+      let healed = false;
+      for (const item of items) {
+        if (item.answerHtml && item.answerHtml.includes("Evaluated under sovereign corporate governance & financial forensic standards")) {
+          item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
+          healed = true;
+        }
+      }
+      if (healed) {
+        saveLocalDoubtsHistory(items);
+      }
+      return items;
     } catch (e) {
       console.warn("[DoubtSolver] Local storage read error:", e);
       return [];
@@ -1697,7 +2008,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><kbd>Enter</kbd> ask</span>
       </div>
       <div class="doubt-footer-engine">
-        <span>💾 Device · 🦆 DuckDuckGo · <strong class="font-mono">v5.2</strong></span>
+        <span>💾 Device · 🦆 DuckDuckGo · <strong class="font-mono">v5.3</strong></span>
       </div>
     </div>
   `;
@@ -2166,111 +2477,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.closeDoubtSolver = closeDoubtSolver;
 
   function synthesizeDoubtAnswer(query, context) {
-    const rawText = context ? (context.text || "") : "";
-    const title = context ? (context.title || "Visible Content") : "Visible Content";
-    const cleanQuery = (query || "").trim();
-    const queryLower = cleanQuery.toLowerCase();
-
-    // Semantic matching against knowledge base
-    let matchedTopic = null;
-    let highestScore = 0;
-
-    for (const item of FORENSIC_KNOWLEDGE_BASE) {
-      let score = 0;
-      for (const term of item.terms) {
-        if (queryLower && queryLower.includes(term)) score += 8;
-        if (rawText.toLowerCase().includes(term)) score += 2;
-        if (title.toLowerCase().includes(term)) score += 3;
-      }
-      if (score > highestScore) {
-        highestScore = score;
-        matchedTopic = item;
-      }
-    }
-
-    const sentences = rawText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 12);
-    let bestSentence = sentences[0] || rawText.slice(0, 160);
-    
-    if (queryLower) {
-      const qWords = queryLower.split(/\s+/).filter(w => w.length > 2 && !["what", "why", "how", "when", "where", "which", "does", "this", "that", "the", "and", "is", "are", "can", "you", "tell"].includes(w));
-      let bestSentScore = 0;
-      for (const s of sentences) {
-        const sLower = s.toLowerCase();
-        let sScore = 0;
-        for (const w of qWords) {
-          if (sLower.includes(w)) sScore += 2;
-        }
-        if (sScore > bestSentScore) {
-          bestSentScore = sScore;
-          bestSentence = s;
-        }
-      }
-    }
-
-    const isWhyQuestion = queryLower.startsWith("why") || queryLower.includes(" why ");
-    const isHowQuestion = queryLower.startsWith("how") || queryLower.includes(" how ");
-
-    let directAnswerHtml = "";
-    let takeawayHtml = "";
-
-    if (cleanQuery) {
-      if (isWhyQuestion && matchedTopic) {
-        directAnswerHtml = `<strong>Why this exists:</strong> ${matchedTopic.screenContext}`;
-        takeawayHtml = `<strong>Statutory Standard:</strong> ${matchedTopic.statutoryRule}`;
-      } else if (isHowQuestion && matchedTopic) {
-        directAnswerHtml = `<strong>Operational Mechanic:</strong> ${matchedTopic.concept}`;
-        takeawayHtml = `<strong>Execution Rule:</strong> ${matchedTopic.statutoryRule}`;
-      } else if (matchedTopic) {
-        directAnswerHtml = `<strong>Concept Analysis:</strong> ${matchedTopic.concept}`;
-        takeawayHtml = `<strong>Regulatory Benchmark:</strong> ${matchedTopic.statutoryRule}`;
-      } else {
-        directAnswerHtml = `<strong>Analysis:</strong> Evaluated under sovereign corporate governance & financial forensic standards.`;
-        takeawayHtml = `<strong>Statutory Rule:</strong> Governed by statutory SEBI regulations and Ind AS financial disclosure frameworks.`;
-      }
-    } else {
-      directAnswerHtml = matchedTopic ? matchedTopic.concept : `Forensic and institutional parameters defined for ${escapeHtml(title)}.`;
-      takeawayHtml = matchedTopic ? matchedTopic.statutoryRule : `Audited under SEBI institutional governance mandates.`;
-    }
-
-    // Formulate optimized DuckDuckGo search queries
-    const ddgSearchTerm = cleanQuery 
-      ? `${cleanQuery} Indian financial markets corporate governance SEBI`
-      : `${title} corporate governance India stock market`;
-
-    const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
-    const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
-
-    const ddgActionBarHtml = `
-      <div class="doubt-ddg-bar">
-        <span class="doubt-ddg-bar-label">
-          <span class="ddg-icon">🦆</span> DUCKDUCKGO ENGINE:
-        </span>
-        <div class="doubt-ddg-actions">
-          <a href="${ddgAiUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-ai" title="Ask DuckDuckGo AI Chat with full financial context">
-            <span>Ask DuckDuckGo AI</span>
-            <span class="ddg-arrow">↗</span>
-          </a>
-          <a href="${ddgWebUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-web" title="Search live web on DuckDuckGo">
-            <span>Web Search</span>
-            <span class="ddg-arrow">↗</span>
-          </a>
-        </div>
-      </div>
-    `;
-
-    return `
-      <div class="doubt-output-section">
-        <div class="doubt-output-header">1. LIVE SCREEN ANALYSIS · ${escapeHtml(title).toUpperCase()}</div>
-        <div class="doubt-output-body">
-          ${bestSentence ? `<div class="doubt-live-quote font-serif"><strong>Visible Reference:</strong> "${escapeHtml(bestSentence)}"</div>` : ""}
-          <div class="doubt-live-direct-ans">${directAnswerHtml}</div>
-        </div>
-      </div>
-      <div class="doubt-output-takeaway">
-        ${takeawayHtml}
-      </div>
-      ${ddgActionBarHtml}
-    `;
+    return synthesizeConceptAnswer(query, context, null);
   }
 
   async function askDoubt(query) {
@@ -2292,7 +2499,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const currentId = ++activeQueryId;
     if (doubtAskBtn) {
-      doubtAskBtn.textContent = "Analyzing... 🦆";
+      doubtAskBtn.textContent = "Solving... 🦆";
       doubtAskBtn.disabled = true;
     }
 
@@ -2302,42 +2509,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const context = currentDoubtContext;
     const timeInfo = getExactTimestamp();
-    const initialAnswer = synthesizeDoubtAnswer(trimmed, context);
-
-    const newRecord = {
-      id: "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
-      timestamp: Date.now(),
-      exactTimestamp: timeInfo.full,
-      question: trimmed,
-      answerHtml: initialAnswer
-    };
-
-    const currentHistory = getLocalDoubtsHistory();
-    const updatedHistory = [newRecord, ...currentHistory];
-    saveLocalDoubtsHistory(updatedHistory);
-
-    if (doubtTextInput) doubtTextInput.value = "";
-    renderDoubtsView();
 
     try {
-      const webData = await fetchDuckDuckGoWebDefinition(trimmed);
-      if (webData && currentId === activeQueryId) {
-        const enrichedHistory = getLocalDoubtsHistory();
-        const target = enrichedHistory.find(x => x.id === newRecord.id);
-        if (target) {
-          target.answerHtml = `
-            <div class="doubt-output-section doubt-web-enrichment">
-              <div class="doubt-output-header">🦆 DUCKDUCKGO WEB DEFINITION: ${escapeHtml(webData.title).toUpperCase()}</div>
-              <div class="doubt-output-body">${escapeHtml(webData.extract.slice(0, 320))}...</div>
-            </div>
-            ${initialAnswer}
-          `;
-          saveLocalDoubtsHistory(enrichedHistory);
-          renderDoubtsView();
-        }
+      const resolvedAnswer = await resolveDoubtAnswer(trimmed, context);
+
+      if (currentId === activeQueryId) {
+        const newRecord = {
+          id: "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+          timestamp: Date.now(),
+          exactTimestamp: timeInfo.full,
+          question: trimmed,
+          answerHtml: resolvedAnswer
+        };
+
+        const currentHistory = getLocalDoubtsHistory();
+        const updatedHistory = [newRecord, ...currentHistory];
+        saveLocalDoubtsHistory(updatedHistory);
+
+        if (doubtTextInput) doubtTextInput.value = "";
+        renderDoubtsView();
       }
-    } catch (_) {
-      // Clean fallback
+    } catch (err) {
+      console.error("[DoubtSolver] askDoubt error:", err);
+      const fallbackAns = synthesizeConceptAnswer(trimmed, context, null);
+      const newRecord = {
+        id: "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+        timestamp: Date.now(),
+        exactTimestamp: timeInfo.full,
+        question: trimmed,
+        answerHtml: fallbackAns
+      };
+      saveLocalDoubtsHistory([newRecord, ...getLocalDoubtsHistory()]);
+      renderDoubtsView();
     } finally {
       if (doubtAskBtn) {
         doubtAskBtn.textContent = "Ask DDG ↵";
