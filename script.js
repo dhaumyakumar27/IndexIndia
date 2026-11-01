@@ -158,6 +158,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }, delay);
   }
 
+  let activeSectionEl = null;
+
   function highlightTreeNode(index) {
     if (treeNodes.length === 0) return;
     currentSubIndex = Math.min(Math.max(0, index), treeNodes.length - 1);
@@ -175,12 +177,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Also highlight active section in the main document if corresponding card exists
     const href = targetNode.getAttribute("href") || "";
     if (href.startsWith("#")) {
-      document.querySelectorAll(".story-node-section, .page-directory-section").forEach((sec) => sec.classList.remove("is-active-section"));
       const activeEl = document.querySelector(href);
-      if (activeEl) activeEl.classList.add("is-active-section");
+      if (activeEl !== activeSectionEl) {
+        if (activeSectionEl) activeSectionEl.classList.remove("is-active-section");
+        if (activeEl) activeEl.classList.add("is-active-section");
+        activeSectionEl = activeEl;
+      }
     }
 
-    scrollTreeToNode(targetNode);
+    if (isTreeCurrentlyOpen()) {
+      scrollTreeToNode(targetNode);
+    }
     updateTreeTelemetryUI();
   }
 
@@ -348,11 +355,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const hasInPageTree = treeNodes.some((n) => (n.getAttribute("href") || "").startsWith("#"));
   if (hasInPageTree) {
     let scrollSpyScheduled = false;
-    function runScrollSpy() {
-      scrollSpyScheduled = false;
-      const scrollPos = window.scrollY + 120;
-      let matchedIdx = 0;
+    let sectionTargets = [];
 
+    function updateSectionOffsets() {
+      sectionTargets = [];
       for (let i = 0; i < treeNodes.length; i++) {
         const href = treeNodes[i].getAttribute("href") || "";
         if (href.startsWith("#")) {
@@ -360,10 +366,28 @@ document.addEventListener("DOMContentLoaded", () => {
           if (el) {
             const prev = el.previousElementSibling;
             const checkEl = (prev && prev.classList.contains("story-act-divider")) ? prev : el;
-            if (checkEl.offsetTop <= scrollPos) {
-              matchedIdx = i;
-            }
+            sectionTargets.push({
+              index: i,
+              offsetTop: checkEl.offsetTop
+            });
           }
+        }
+      }
+    }
+
+    updateSectionOffsets();
+    window.addEventListener("resize", updateSectionOffsets, { passive: true });
+
+    function runScrollSpy() {
+      scrollSpyScheduled = false;
+      const scrollPos = window.scrollY + 120;
+      let matchedIdx = 0;
+
+      for (let i = 0; i < sectionTargets.length; i++) {
+        if (sectionTargets[i].offsetTop <= scrollPos) {
+          matchedIdx = sectionTargets[i].index;
+        } else {
+          break;
         }
       }
 
@@ -485,82 +509,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const otherSuiteBtn = isIndexSuite ? document.getElementById("btn-guide") : document.getElementById("btn-index");
     if (otherSuiteBtn) otherSuiteBtn.classList.remove("tab-hold-target");
-  }
-
-  // Smooth keyboard scrolling engine for ArrowUp / ArrowDown
-  // Replaces jerky 90px instant jumps and eliminates OS keyboard repeat delay when held
-  let smoothScrollRaf = null;
-  let activeArrowDirection = 0; // +1 = down, -1 = up, 0 = idle
-  let smoothVelocity = 0;
-  let isArrowHeld = false;
-  let lastFrameTime = 0;
-
-  const MAX_CRUISE_SPEED = 11; // pixels per frame at 60fps (~660px/sec cruising speed)
-  const TAP_INITIAL_VELOCITY = 4.8; // gentle initial impulse on tap (~42px total displacement)
-  const ACCELERATION = 0.5; // smooth ramp-up to cruising speed while held (reaches cruise in ~200ms)
-  const FRICTION = 0.88; // silky deceleration on key release (~150ms ease-out)
-
-  function stepSmoothScroll(timestamp) {
-    const elapsed = lastFrameTime ? Math.min(timestamp - lastFrameTime, 32) : 16.667;
-    lastFrameTime = timestamp;
-    const timeScale = elapsed / 16.667; // Normalized to 60fps
-
-    if (isArrowHeld) {
-      if (smoothVelocity < MAX_CRUISE_SPEED) {
-        smoothVelocity = Math.min(MAX_CRUISE_SPEED, smoothVelocity + ACCELERATION * timeScale);
-      }
-    } else {
-      smoothVelocity *= Math.pow(FRICTION, timeScale);
-    }
-
-    if (smoothVelocity > 0.3) {
-      const deltaY = activeArrowDirection * smoothVelocity * timeScale;
-      const prevScrollY = window.scrollY;
-      window.scrollBy(0, deltaY);
-
-      // Stop if at top or bottom boundary
-      if (Math.abs(window.scrollY - prevScrollY) < 0.2 && deltaY !== 0) {
-        smoothVelocity = 0;
-        activeArrowDirection = 0;
-        smoothScrollRaf = null;
-        lastFrameTime = 0;
-        return;
-      }
-
-      smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
-    } else {
-      smoothVelocity = 0;
-      activeArrowDirection = 0;
-      smoothScrollRaf = null;
-      lastFrameTime = 0;
-    }
-  }
-
-  function startSmoothScroll(direction) {
-    activeArrowDirection = direction;
-    isArrowHeld = true;
-    if (smoothVelocity < TAP_INITIAL_VELOCITY) {
-      smoothVelocity = TAP_INITIAL_VELOCITY;
-    }
-    if (!smoothScrollRaf) {
-      lastFrameTime = 0;
-      smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
-    }
-  }
-
-  function stopSmoothScroll() {
-    isArrowHeld = false;
-  }
-
-  function cancelSmoothScrollImmediately() {
-    isArrowHeld = false;
-    smoothVelocity = 0;
-    activeArrowDirection = 0;
-    if (smoothScrollRaf) {
-      cancelAnimationFrame(smoothScrollRaf);
-      smoothScrollRaf = null;
-    }
-    lastFrameTime = 0;
   }
 
   document.addEventListener("keydown", (e) => {
@@ -706,22 +654,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 8. Normal Arrow Up / Down: Smooth gliding page motion (strictly alone, no modifiers)
-    // Eliminates sudden jerky 90px jumps and removes OS keyboard repeat delay when held
-    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && noModifiers) {
-      e.preventDefault();
-      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1);
-      return;
-    }
-
-    // 9. Enter inside open tree navigates to current node (strictly alone)
+    // 8. Enter inside open tree navigates to current node (strictly alone)
     if (e.key === "Enter" && noModifiers && isTreeCurrentlyOpen()) {
       e.preventDefault();
       navigateToNode(currentSubIndex);
       return;
     }
 
-    // 10. Escape closes all open panels, menus, and directory tree (strictly alone)
+    // 9. Escape closes all open panels, menus, and directory tree (strictly alone)
     if (e.key === "Escape" && noModifiers) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
@@ -733,12 +673,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keyup", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
-
-    if (e.key === "ArrowDown" && activeArrowDirection === 1) {
-      stopSmoothScroll();
-    } else if (e.key === "ArrowUp" && activeArrowDirection === -1) {
-      stopSmoothScroll();
-    }
 
     if (e.key === "Tab") {
       // Must trigger if and only if NO modifier key (Ctrl, Shift, Alt, Meta) was pressed
@@ -782,14 +716,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("blur", () => {
     clearTabTimers();
     isTabLongPressTriggered = false;
-    cancelSmoothScrollImmediately();
   });
-
-  window.addEventListener("wheel", () => {
-    if (smoothScrollRaf) {
-      cancelSmoothScrollImmediately();
-    }
-  }, { passive: true });
 
   // ================= 5. THEME, FONT SIZE & FONT STYLE PERSISTENCE =================
   const btnFontSizeTrigger = document.getElementById("btn-font-size-trigger");
