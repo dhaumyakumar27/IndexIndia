@@ -2982,6 +2982,41 @@ body.theme-dark .doubt-pill-key {
   line-height: 1.45;
 }
 
+.doubt-plain-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.81rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.doubt-plain-text {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+.doubt-plain-takeaway {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  background: var(--bg-surface-subtle);
+  border-left: 2.5px solid var(--accent);
+  padding: 6px 9px;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.doubt-plain-takeaway .doubt-takeaway-badge {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
 /* Key Takeaway Card */
 .doubt-takeaway-card {
   display: flex;

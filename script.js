@@ -1958,17 +1958,18 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     return `
-      <div class="doubt-output-section">
-        <div class="doubt-output-header">1. LIVE SCREEN ANALYSIS · ${escapeHtml(title).toUpperCase()}</div>
-        <div class="doubt-output-body">
-          ${bestSentence ? `<div class="doubt-live-quote font-serif"><strong>Visible Reference:</strong> "${escapeHtml(bestSentence)}"</div>` : ""}
-          <div class="doubt-live-direct-ans"><strong>${escapeHtml(conceptTitle)}:</strong> ${escapeHtml(conceptBody)}</div>
+      <div class="doubt-plain-answer">
+        <div class="doubt-plain-text font-serif">
+          ${conceptTitle ? `<strong>${escapeHtml(conceptTitle)}:</strong> ` : ""}${escapeHtml(conceptBody)}
         </div>
+        ${takeawayText ? `
+          <div class="doubt-plain-takeaway font-mono">
+            <span class="doubt-takeaway-badge">✦ TAKEAWAY:</span>
+            <span>${escapeHtml(takeawayText)}</span>
+          </div>
+        ` : ""}
+        ${ddgActionBarHtml}
       </div>
-      <div class="doubt-output-takeaway">
-        <strong>Takeaway:</strong> ${escapeHtml(takeawayText)}
-      </div>
-      ${ddgActionBarHtml}
     `;
   }
 
@@ -2012,7 +2013,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (item.answerHtml && (
           item.answerHtml.includes("Evaluated under sovereign corporate governance") ||
           item.answerHtml.includes("financial forensic standards") ||
-          item.answerHtml.includes("Governed by statutory SEBI regulations")
+          item.answerHtml.includes("Governed by statutory SEBI regulations") ||
+          item.answerHtml.includes("Visible Reference:") ||
+          item.answerHtml.includes("LIVE SCREEN ANALYSIS") ||
+          item.answerHtml.includes("doubt-output-section")
         )) {
           item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
           healed = true;
@@ -2110,7 +2114,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><kbd>Enter</kbd> ask</span>
       </div>
       <div class="doubt-footer-engine">
-        <span>💾 Local Device · 🦆 DuckDuckGo AI · <strong class="font-mono">v5.4</strong></span>
+        <span>💾 Local Device · 🦆 DuckDuckGo AI · <strong class="font-mono">v5.5</strong></span>
       </div>
     </div>
   `;
@@ -2352,28 +2356,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!history || history.length === 0) {
       doubtOutput.innerHTML = `
-        <div class="doubt-live-context-bar font-mono">
-          <span class="doubt-context-indicator">● LIVE SCREEN</span>
-          <span class="doubt-context-title">${escapeHtml(title)}</span>
-        </div>
         <div class="doubt-blank-page">
           <div class="doubt-blank-icon">🦆</div>
           <div class="doubt-blank-title">Doubts History</div>
-          <p class="doubt-blank-sub">This section is completely private. Type your doubt above and press Enter to solve it. Questions, answers, and exact timestamps are stored strictly on your device.</p>
-          <div class="doubt-blank-live-box">
-            <span class="doubt-blank-live-label font-mono">VISIBLE IN VIEWPORT RIGHT NOW:</span>
-            <div class="doubt-blank-live-text font-serif">"${escapeHtml(excerpt)}"</div>
-          </div>
+          <p class="doubt-blank-sub">Ask any doubt in the box above and press Enter. Questions, plain English answers, and exact timestamps are stored strictly on your device.</p>
         </div>
       `;
       return;
     }
 
     let html = `
-      <div class="doubt-live-context-bar font-mono">
-        <span class="doubt-context-indicator">● LIVE SCREEN</span>
-        <span class="doubt-context-title">${escapeHtml(title)}</span>
-      </div>
       <div class="doubt-history-actions-bar">
         <span class="doubt-history-count font-mono">${history.length} DOUBT${history.length > 1 ? "S" : ""} RECORDED ON THIS DEVICE</span>
         <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
@@ -2472,7 +2464,8 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }
 
-    const ddgSearchTerm = `${title} Indian financial markets corporate governance SEBI summary`;
+    const isNarrative = title.includes("SCENE") || title.includes("04.") || title.includes("05.") || title.includes("ACT") || rawText.includes("Leo and Pip") || rawText.includes("clockwork");
+    const ddgSearchTerm = isNarrative ? `${title} summary explanation` : `${title} Indian financial markets corporate governance SEBI summary`;
     const ddgAiUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}&ia=chat`;
     const ddgWebUrl = `https://duckduckgo.com/?q=${encodeURIComponent(ddgSearchTerm)}`;
 
