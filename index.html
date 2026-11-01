@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Guide Landing — IndexIndian Institutional Research Hub</title>
+  <title>Index Landing — IndexIndian Institutional Research Hub</title>
   <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
   <link rel="stylesheet" href="styles.css?v=4.6">
 </head>
@@ -15,10 +15,10 @@
     <div class="nav-left">
       <!-- Segmented switch button on top left [Guide | Index] -->
       <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
-        <a href="index.html" class="switch-btn active" id="btn-guide" role="tab" aria-selected="true" title="Guide Suite (Hold Tab to switch)">
+        <a href="guide.html" class="switch-btn" id="btn-guide" role="tab" aria-selected="false" title="Switch to Guide (Hold Tab)">
           Guide
         </a>
-        <a href="index-view.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false" title="Switch to Index (Hold Tab)">
+        <a href="index.html" class="switch-btn active" id="btn-index" role="tab" aria-selected="true" title="Index Suite (Hold Tab to switch)">
           Index
         </a>
       </nav>
@@ -26,13 +26,13 @@
 
     <!-- Top Right Sub-Nav, Account and Settings -->
     <div class="nav-right">
-      <!-- Contextual Sub-Nav: Guide Suite [ Founder | Investor | Bottleneck ] -->
-      <nav class="sub-nav-group" id="sub-nav-guide" aria-label="Guide Perspectives">
-        <a href="founder.html" class="sub-nav-btn" id="btn-sub-founder" title="Founder (Tab)">Founder</a>
+      <!-- Contextual Sub-Nav: Index Suite [ Graph | Directory | Source ] -->
+      <nav class="sub-nav-group" id="sub-nav-index" aria-label="Index Perspectives">
+        <a href="graph.html" class="sub-nav-btn" id="btn-sub-graph" title="Graph (Tab)">Graph</a>
         <span class="sub-nav-sep font-mono">|</span>
-        <a href="investor.html" class="sub-nav-btn" id="btn-sub-investor" title="Investor (Tab)">Investor</a>
+        <a href="directory.html" class="sub-nav-btn" id="btn-sub-directory" title="Directory (Tab)">Directory</a>
         <span class="sub-nav-sep font-mono">|</span>
-        <a href="bottleneck.html" class="sub-nav-btn" id="btn-sub-bottleneck" title="Bottleneck (Tab)">Bottleneck</a>
+        <a href="source.html" class="sub-nav-btn" id="btn-sub-source" title="Source (Tab)">Source</a>
       </nav>
 
       <!-- SHORTCUTS BUTTON & HOVER PANEL (Between x|y|z and Account) -->
@@ -209,9 +209,9 @@
   <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
   <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
     <div class="rail-track" id="rail-track">
-      <div class="tick-mark active" data-index="0" data-target="#sec-overview" title="Research Overview"></div>
-      <div class="tick-mark" data-index="1" data-target="#sec-methodology" title="Forensic Methodology"></div>
-      <div class="tick-mark" data-index="2" data-target="#sec-taxonomy" title="Regulatory Taxonomy"></div>
+      <div class="tick-mark active" data-index="0" data-target="#sec-index-overview" title="Index Performance"></div>
+      <div class="tick-mark" data-index="1" data-target="#sec-weights" title="Sector Weights"></div>
+      <div class="tick-mark" data-index="2" data-target="#sec-rebalance" title="Rebalancing Rules"></div>
       <div class="tick-mark" data-index="3" data-target="#forum-section" title="Comments Directory Stream"></div>
       <div class="tick-mark" data-index="4" data-target="#sec-footer" title="Statutory Archive"></div>
     </div>
@@ -236,23 +236,23 @@
 
       <div class="rail-tree-body">
         <div class="tree-content-scroll" id="tree-content-scroll">
-          <div class="tree-section-header">GUIDE DOSSIER REPOSITORY</div>
-          <a href="#sec-overview" class="tree-node active" data-index="0">
+          <div class="tree-section-header">SOVEREIGN INDEX TERMINAL</div>
+          <a href="#sec-index-overview" class="tree-node active" data-index="0">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128214;</span>
-            <span class="tree-name font-mono">01. Research Terminal Overview</span>
+            <span class="tree-icon">&#128200;</span>
+            <span class="tree-name font-mono">01. Index Performance Matrix</span>
             <span class="tree-badge font-mono">01</span>
           </a>
-          <a href="#sec-methodology" class="tree-node" data-index="1">
+          <a href="#sec-weights" class="tree-node" data-index="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#129517;</span>
-            <span class="tree-name font-mono">02. Forensic Methodologies</span>
+            <span class="tree-icon">&#9878;&#65039;</span>
+            <span class="tree-name font-mono">02. Sector Capitalization Weights</span>
             <span class="tree-badge font-mono">02</span>
           </a>
-          <a href="#sec-taxonomy" class="tree-node" data-index="2">
+          <a href="#sec-rebalance" class="tree-node" data-index="2">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128450;&#65039;</span>
-            <span class="tree-name font-mono">03. Governance Taxonomy</span>
+            <span class="tree-icon">&#128260;</span>
+            <span class="tree-name font-mono">03. Quarterly Rebalancing Rules</span>
             <span class="tree-badge font-mono">03</span>
           </a>
           <a href="#forum-section" class="tree-node" data-index="3">
@@ -279,58 +279,58 @@
   <main class="main-viewport-wrapper">
     <div class="content-area">
       <div class="report-meta-strip font-mono">
-        <span class="tag-monochrome">[GUIDE DOSSIER]</span>
-        <span class="tag-meta">SUITE: GUIDE</span>
+        <span class="tag-monochrome">[NSE / BSE FORENSIC INDEX]</span>
+        <span class="tag-meta">SUITE: INDEX</span>
         <span class="meta-separator">&bull;</span>
         <span class="tag-meta">PERSPECTIVE: LANDING</span>
         <span class="meta-separator">&bull;</span>
         <span class="tag-meta">STRUCTURE: 5-NODE TREE</span>
       </div>
 
-      <h1 class="institutional-title">Guide Landing &amp; Research Terminal</h1>
-      <p class="dossier-lead">Primary research terminal and educational methodologies portal for corporate governance and forensic diligence.</p>
+      <h1 class="institutional-title">Sovereign Governance Index Terminal</h1>
+      <p class="dossier-lead">Forensic Governance &amp; Intelligence index across listed Indian enterprises.</p>
 
-      <!-- Section 01: Overview -->
-      <section id="sec-overview" class="page-directory-section" data-node-idx="0">
+      <!-- Section 01: Index Overview -->
+      <section id="sec-index-overview" class="page-directory-section" data-node-idx="0">
         <div class="story-section-meta font-mono">
-          <span class="story-section-tag">[TERMINAL // SECTION 01]</span>
-          <span class="story-node-anchor font-mono">#sec-overview</span>
+          <span class="story-section-tag">[INDEX // SECTION 01]</span>
+          <span class="story-node-anchor font-mono">#sec-index-overview</span>
         </div>
-        <h3 class="story-section-title">&#128214; 01 — Sovereign Research Terminal Overview</h3>
-        <p class="story-narrative-lead">Unified institutional research portal providing corporate architecture models, regulatory forensics, and founder-investor alignment frameworks across the Indian corporate lifecycle.</p>
+        <h3 class="story-section-title">&#128200; 01 — Sovereign Index Performance Matrix</h3>
+        <p class="story-narrative-lead">Equal-weighted vs. market-cap weighted institutional benchmark tracking governance quality, board independence ratios, related-party transaction volumes, and audit committee tenures.</p>
         <div class="story-meta-tags font-mono">
-          <span class="story-tag">SCOPE: PAN-INDIA CORPORATE</span>
-          <span class="story-tag">INTERFACE: ZERO-BLOAT</span>
+          <span class="story-tag">BENCHMARK: NIFTY 500 FORENSIC</span>
+          <span class="story-tag">WEIGHTING: GOVERNANCE-ADJUSTED</span>
           <span class="story-tag status-ready">[READY FOR CONTENT]</span>
         </div>
       </section>
 
-      <!-- Section 02: Methodology -->
-      <section id="sec-methodology" class="page-directory-section" data-node-idx="1">
+      <!-- Section 02: Sector Weights -->
+      <section id="sec-weights" class="page-directory-section" data-node-idx="1">
         <div class="story-section-meta font-mono">
-          <span class="story-section-tag">[TERMINAL // SECTION 02]</span>
-          <span class="story-node-anchor font-mono">#sec-methodology</span>
+          <span class="story-section-tag">[INDEX // SECTION 02]</span>
+          <span class="story-node-anchor font-mono">#sec-weights</span>
         </div>
-        <h3 class="story-section-title">&#129517; 02 — Forensic Investigation Methodology</h3>
-        <p class="story-narrative-lead">Multi-layered verification protocols linking primary MCA filings, gazette notifications, SEBI enforcement orders, and NCLT tribunal records into an integrated forensic matrix.</p>
+        <h3 class="story-section-title">&#9878;&#65039; 02 — Sector Capitalization Weights</h3>
+        <p class="story-narrative-lead">Parametric sector allocation matrices across BFSI, infrastructure, IT services, heavy manufacturing, and consumer durables with promoter pledge stress limits.</p>
         <div class="story-meta-tags font-mono">
-          <span class="story-tag">SOURCES: TRIPLE-VERIFIED</span>
-          <span class="story-tag">CADENCE: CONTINUOUS TELEMETRY</span>
+          <span class="story-tag">COVERAGE: 14 SECTORS</span>
+          <span class="story-tag">CAP: 25% SINGLE-SECTOR CAP</span>
           <span class="story-tag status-ready">[READY FOR CONTENT]</span>
         </div>
       </section>
 
-      <!-- Section 03: Taxonomy -->
-      <section id="sec-taxonomy" class="page-directory-section" data-node-idx="2">
+      <!-- Section 03: Rebalancing Rules -->
+      <section id="sec-rebalance" class="page-directory-section" data-node-idx="2">
         <div class="story-section-meta font-mono">
-          <span class="story-section-tag">[TERMINAL // SECTION 03]</span>
-          <span class="story-node-anchor font-mono">#sec-taxonomy</span>
+          <span class="story-section-tag">[INDEX // SECTION 03]</span>
+          <span class="story-node-anchor font-mono">#sec-rebalance</span>
         </div>
-        <h3 class="story-section-title">&#128450;&#65039; 03 — Governance Taxonomy &amp; Entity Classification</h3>
-        <p class="story-narrative-lead">Hierarchical taxonomy covering private limited entities, public unlisted conglomerates, Section 8 non-profits, LLP structures, and sovereign investment holding vehicles.</p>
+        <h3 class="story-section-title">&#128260; 03 — Quarterly Rebalancing Rules</h3>
+        <p class="story-narrative-lead">Formal reconstitution methodology executed on the last trading day of March, June, September, and December with automated exclusion triggers for statutory auditor resignations.</p>
         <div class="story-meta-tags font-mono">
-          <span class="story-tag">TAXONOMY: ISO-COMPLIANT</span>
-          <span class="story-tag">ENTITIES: 8 STATUTORY CLASSES</span>
+          <span class="story-tag">CADENCE: QUARTERLY</span>
+          <span class="story-tag">TRIGGER: AUDITOR RESIGNATION</span>
           <span class="story-tag status-ready">[READY FOR CONTENT]</span>
         </div>
       </section>

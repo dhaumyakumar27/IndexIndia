@@ -6,10 +6,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ================= 1. PAGE CONTEXT & VIEW DETECTION =================
   const pathname = window.location.pathname.toLowerCase();
-  const isIndexSuite = pathname.includes("index-view") || pathname.includes("graph") || pathname.includes("directory") || pathname.includes("source");
+  const currentFile = pathname.split("/").pop() || "index.html";
+  const isGuideSuite = pathname.includes("guide") || pathname.includes("founder") || pathname.includes("investor") || pathname.includes("bottleneck");
+  const isIndexSuite = !isGuideSuite;
 
   // Keyboard shortcut Tab switches between Guide landing <=> Index landing
-  const targetOtherSuiteUrl = isIndexSuite ? "index.html" : "index-view.html";
+  const targetOtherSuiteUrl = isIndexSuite ? "guide.html" : "index.html";
 
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
   const railNavigator = document.getElementById("rail-navigator");
@@ -677,18 +679,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const allSectionPages = [
-        "index.html",
+        "guide.html",
         "founder.html",
         "investor.html",
         "bottleneck.html",
-        "index-view.html",
+        "index.html",
         "graph.html",
         "directory.html",
         "source.html"
       ];
 
       const currentFile = pathname.split("/").pop().toLowerCase() || "index.html";
-      let currIdx = allSectionPages.findIndex((p) => currentFile === p || (currentFile === "guide.html" && p === "index.html"));
+      let currIdx = allSectionPages.findIndex((p) => currentFile === p || (currentFile === "" && p === "index.html"));
       if (currIdx === -1) {
         currIdx = allSectionPages.findIndex((p) => currentFile.includes(p.replace(".html", "")));
       }
@@ -987,14 +989,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getForumPageId() {
     const p = window.location.pathname.toLowerCase().split("/").pop() || "index.html";
-    if (p.includes("index-view")) return "index-view";
-    if (p.includes("graph")) return "graph";
-    if (p.includes("directory")) return "directory";
-    if (p.includes("source")) return "source";
+    if (p.includes("guide")) return "guide";
     if (p.includes("founder")) return "founder";
     if (p.includes("investor")) return "investor";
     if (p.includes("bottleneck")) return "bottleneck";
-    return "guide";
+    if (p.includes("graph")) return "graph";
+    if (p.includes("directory")) return "directory";
+    if (p.includes("source")) return "source";
+    return "index";
   }
 
   function getLocalForumMessages(pageId, cutoffMs) {
