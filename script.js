@@ -487,6 +487,82 @@ document.addEventListener("DOMContentLoaded", () => {
     if (otherSuiteBtn) otherSuiteBtn.classList.remove("tab-hold-target");
   }
 
+  // Smooth keyboard scrolling engine for ArrowUp / ArrowDown
+  // Replaces jerky 90px instant jumps and eliminates OS keyboard repeat delay when held
+  let smoothScrollRaf = null;
+  let activeArrowDirection = 0; // +1 = down, -1 = up, 0 = idle
+  let smoothVelocity = 0;
+  let isArrowHeld = false;
+  let lastFrameTime = 0;
+
+  const MAX_CRUISE_SPEED = 11; // pixels per frame at 60fps (~660px/sec cruising speed)
+  const TAP_INITIAL_VELOCITY = 4.8; // gentle initial impulse on tap (~42px total displacement)
+  const ACCELERATION = 0.5; // smooth ramp-up to cruising speed while held (reaches cruise in ~200ms)
+  const FRICTION = 0.88; // silky deceleration on key release (~150ms ease-out)
+
+  function stepSmoothScroll(timestamp) {
+    const elapsed = lastFrameTime ? Math.min(timestamp - lastFrameTime, 32) : 16.667;
+    lastFrameTime = timestamp;
+    const timeScale = elapsed / 16.667; // Normalized to 60fps
+
+    if (isArrowHeld) {
+      if (smoothVelocity < MAX_CRUISE_SPEED) {
+        smoothVelocity = Math.min(MAX_CRUISE_SPEED, smoothVelocity + ACCELERATION * timeScale);
+      }
+    } else {
+      smoothVelocity *= Math.pow(FRICTION, timeScale);
+    }
+
+    if (smoothVelocity > 0.3) {
+      const deltaY = activeArrowDirection * smoothVelocity * timeScale;
+      const prevScrollY = window.scrollY;
+      window.scrollBy(0, deltaY);
+
+      // Stop if at top or bottom boundary
+      if (Math.abs(window.scrollY - prevScrollY) < 0.2 && deltaY !== 0) {
+        smoothVelocity = 0;
+        activeArrowDirection = 0;
+        smoothScrollRaf = null;
+        lastFrameTime = 0;
+        return;
+      }
+
+      smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
+    } else {
+      smoothVelocity = 0;
+      activeArrowDirection = 0;
+      smoothScrollRaf = null;
+      lastFrameTime = 0;
+    }
+  }
+
+  function startSmoothScroll(direction) {
+    activeArrowDirection = direction;
+    isArrowHeld = true;
+    if (smoothVelocity < TAP_INITIAL_VELOCITY) {
+      smoothVelocity = TAP_INITIAL_VELOCITY;
+    }
+    if (!smoothScrollRaf) {
+      lastFrameTime = 0;
+      smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
+    }
+  }
+
+  function stopSmoothScroll() {
+    isArrowHeld = false;
+  }
+
+  function cancelSmoothScrollImmediately() {
+    isArrowHeld = false;
+    smoothVelocity = 0;
+    activeArrowDirection = 0;
+    if (smoothScrollRaf) {
+      cancelAnimationFrame(smoothScrollRaf);
+      smoothScrollRaf = null;
+    }
+    lastFrameTime = 0;
+  }
+
   document.addEventListener("keydown", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
@@ -630,16 +706,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 8. Normal Arrow Up / Down: Move / scroll page with zero delay (strictly alone, no modifiers)
-    if (e.key === "ArrowDown" && noModifiers) {
+    // 8. Normal Arrow Up / Down: Smooth gliding page motion (strictly alone, no modifiers)
+    // Eliminates sudden jerky 90px jumps and removes OS keyboard repeat delay when held
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && noModifiers) {
       e.preventDefault();
-      window.scrollBy({ top: 90, behavior: "auto" });
-      return;
-    }
-
-    if (e.key === "ArrowUp" && noModifiers) {
-      e.preventDefault();
-      window.scrollBy({ top: -90, behavior: "auto" });
+      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1);
       return;
     }
 
@@ -662,6 +733,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keyup", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+
+    if (e.key === "ArrowDown" && activeArrowDirection === 1) {
+      stopSmoothScroll();
+    } else if (e.key === "ArrowUp" && activeArrowDirection === -1) {
+      stopSmoothScroll();
+    }
 
     if (e.key === "Tab") {
       // Must trigger if and only if NO modifier key (Ctrl, Shift, Alt, Meta) was pressed
@@ -705,7 +782,14 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("blur", () => {
     clearTabTimers();
     isTabLongPressTriggered = false;
+    cancelSmoothScrollImmediately();
   });
+
+  window.addEventListener("wheel", () => {
+    if (smoothScrollRaf) {
+      cancelSmoothScrollImmediately();
+    }
+  }, { passive: true });
 
   // ================= 5. THEME, FONT SIZE & FONT STYLE PERSISTENCE =================
   const btnFontSizeTrigger = document.getElementById("btn-font-size-trigger");
