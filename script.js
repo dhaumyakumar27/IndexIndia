@@ -410,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 5. "Space" opens/closes Directory Tree
-    if (e.code === "Space" || e.key === " " || e.key === "t" || e.key === "T") {
+    if (e.code === "Space" || e.key === " ") {
       e.preventDefault();
       toggleTree();
       return;
@@ -450,14 +450,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 7. Normal Arrow Up / Down (and j / k): Move / scroll page with zero delay
-    if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
+    // 7. Normal Arrow Up / Down: Move / scroll page with zero delay
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       window.scrollBy({ top: 90, behavior: "auto" });
       return;
     }
 
-    if (e.key === "ArrowUp" || e.key === "k" || e.key === "K") {
+    if (e.key === "ArrowUp") {
       e.preventDefault();
       window.scrollBy({ top: -90, behavior: "auto" });
       return;
