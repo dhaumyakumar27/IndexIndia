@@ -1755,6 +1755,179 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // Comprehensive Linguistic Lexicon (Antonyms, Synonyms, Definitions for Word Queries)
+  const LINGUISTIC_LEXICON = {
+    whisper: {
+      term: "Whisper",
+      definition: "To speak very softly using one's breath without vibrating the vocal cords, producing a quiet, rustling sound.",
+      synonyms: ["murmur", "mumble", "breathe", "hush", "susurrate", "rustle", "undertone", "sigh"],
+      antonyms: ["shout", "scream", "yell", "roar", "bellow", "howl", "clamor", "shriek", "cry out", "boom"],
+      explanation: "The primary opposite words (antonyms) for \"whisper\" are shout, scream, yell, roar, bellow, howl, clamor, shriek, and cry out. While a whisper minimizes acoustic volume to near inaudibility, its opposites represent high-volume, resonant vocal emissions."
+    },
+    prologue: {
+      term: "Prologue",
+      definition: "An introductory section, preface, or scene that establishes the background, lore, and opening context of a literary or theatrical narrative.",
+      synonyms: ["prelude", "preface", "foreword", "introduction", "preamble", "proem", "overture", "front matter"],
+      antonyms: ["epilogue", "afterword", "postscript", "conclusion", "coda", "finale"],
+      explanation: "Common synonyms for \"prologue\" include prelude, preface, foreword, introduction, preamble, proem, and overture. Its direct structural counterpart and opposite is the epilogue (or afterword)."
+    },
+    epilogue: {
+      term: "Epilogue",
+      definition: "A concluding chapter or section at the end of a work that rounds out the narrative or reveals the final fates of characters.",
+      synonyms: ["afterword", "coda", "postscript", "conclusion", "postlude", "finale"],
+      antonyms: ["prologue", "preface", "introduction", "prelude", "foreword"],
+      explanation: "Synonyms for \"epilogue\" include afterword, coda, postscript, conclusion, and finale. Its direct opposite is the prologue."
+    },
+    loose: {
+      term: "Loose",
+      definition: "Not firmly or tightly fixed, bound, or held in place; slack or unfastened.",
+      synonyms: ["slack", "unfastened", "detached", "movable", "unsecured", "wobbly"],
+      antonyms: ["tight", "firm", "secure", "fastened", "rigid", "fixed"],
+      explanation: "Direct opposites for \"loose\" are tight, firm, secure, fastened, fixed, and rigid."
+    },
+    silent: {
+      term: "Silent",
+      definition: "Making or accompanied by no sound; completely quiet or hushed.",
+      synonyms: ["quiet", "hushed", "soundless", "still", "mute", "inaudible"],
+      antonyms: ["loud", "noisy", "resonant", "boisterous", "clamorous", "deafening"],
+      explanation: "Direct opposites for \"silent\" are loud, noisy, resonant, clamorous, boisterous, and deafening."
+    },
+    ancient: {
+      term: "Ancient",
+      definition: "Belonging to the very distant past and no longer in existence; of great age.",
+      synonyms: ["antique", "archaic", "primordial", "venerable", "timeworn", "age-old"],
+      antonyms: ["modern", "contemporary", "novel", "current", "new", "recent"],
+      explanation: "Direct opposites for \"ancient\" are modern, contemporary, recent, novel, and new."
+    },
+    dark: {
+      term: "Dark",
+      definition: "With little or no light.",
+      synonyms: ["dim", "shadowy", "gloomy", "murky", "obscure", "somber"],
+      antonyms: ["bright", "light", "luminous", "radiant", "illuminated", "brilliant"],
+      explanation: "Direct opposites for \"dark\" are bright, light, luminous, radiant, and illuminated."
+    },
+    clockwork: {
+      term: "Clockwork",
+      definition: "A mechanism with a spring and toothed gear wheels, similar to that of a mechanical clock; operating with smooth mechanical regularity.",
+      synonyms: ["mechanism", "gearwork", "horology", "automaton", "escapement", "precision mechanics"],
+      antonyms: ["manual", "electronic", "digital", "irregular", "erratic", "chaotic"],
+      explanation: "Related mechanical terms include gearwork, horology, escapement, and automata. Opposites include electronic, digital, or irregular mechanisms."
+    },
+    sentinel: {
+      term: "Sentinel",
+      definition: "A guard or watchman whose job is to stand and keep watch.",
+      synonyms: ["guard", "watchman", "protector", "lookout", "warden", "guardian"],
+      antonyms: ["infiltrator", "attacker", "intruder", "assailant"],
+      explanation: "Synonyms for \"sentinel\" include guard, watchman, lookout, warden, and guardian."
+    },
+    constellation: {
+      term: "Constellation",
+      definition: "A recognizable group of stars traditionally named after its perceived form.",
+      synonyms: ["asterism", "star pattern", "stellar cluster", "galaxy"],
+      antonyms: ["void", "nebula"],
+      explanation: "A recognizable celestial star pattern (e.g., Ursa Minor, Ursa Major, Cassiopeia)."
+    },
+    compass: {
+      term: "Compass",
+      definition: "A navigational instrument containing a magnetized pointer that indicates the direction of magnetic north.",
+      synonyms: ["navigator", "magnetic indicator", "azimuth gauge", "direction finder"],
+      antonyms: ["disorientation", "wanderer"],
+      explanation: "A navigation instrument that aligns with geomagnetic field lines to establish celestial bearings."
+    }
+  };
+
+  function detectLinguisticQuery(rawQuery) {
+    if (!rawQuery) return null;
+    const clean = rawQuery.replace(/[?.,!;:"'()]/g, " ").trim().toLowerCase();
+    const isAntonym = /\b(opposite|opposites|antonym|antonyms|contrary|reverse)\b/i.test(clean);
+    const isSynonym = /\b(synonym|synonyms|similar\s+words?|other\s+words?)\b/i.test(clean);
+    const isDefinition = /\b(meaning|definition|what\s+is|define)\b/i.test(clean) && !isAntonym && !isSynonym;
+
+    if (!isAntonym && !isSynonym && !isDefinition) return null;
+
+    const stopWords = new Set([
+      "what", "is", "are", "the", "of", "for", "words", "word", "in", "a", "an", "tell",
+      "me", "some", "give", "opposite", "opposites", "antonym", "antonyms", "contrary",
+      "synonym", "synonyms", "similar", "meaning", "definition", "define", "game", "weirdo", "answer"
+    ]);
+
+    const tokens = clean.split(/\s+/).filter((w) => w.length > 1 && !stopWords.has(w));
+    if (tokens.length === 0) return null;
+
+    let target = tokens[0];
+    if (target.endsWith("s") && LINGUISTIC_LEXICON[target.slice(0, -1)]) {
+      target = target.slice(0, -1);
+    } else if (target === "prolouge") {
+      target = "prologue";
+    }
+
+    return {
+      type: isAntonym ? "antonym" : (isSynonym ? "synonym" : "definition"),
+      targetWord: target,
+      rawTokens: tokens
+    };
+  }
+
+  async function resolveLinguisticAnswer(query, linguisticInfo) {
+    const { type, targetWord } = linguisticInfo;
+    const upperWord = targetWord.charAt(0).toUpperCase() + targetWord.slice(1);
+
+    // 1. Built-in Lexicon lookup (0ms)
+    const lex = LINGUISTIC_LEXICON[targetWord];
+    if (lex) {
+      if (type === "antonym") {
+        return `
+          <div class="doubt-plain-answer">
+            <div class="doubt-plain-text font-serif">
+              <strong>${escapeHtml(lex.term)} (Antonyms & Opposite Words):</strong> ${escapeHtml(lex.explanation)}
+            </div>
+          </div>
+        `;
+      } else if (type === "synonym") {
+        return `
+          <div class="doubt-plain-answer">
+            <div class="doubt-plain-text font-serif">
+              <strong>${escapeHtml(lex.term)} (Synonyms):</strong> Common synonyms for "${escapeHtml(lex.term.toLowerCase())}" include: ${escapeHtml(lex.synonyms.join(", "))}. ${escapeHtml(lex.definition)}
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="doubt-plain-answer">
+            <div class="doubt-plain-text font-serif">
+              <strong>${escapeHtml(lex.term)} (Definition):</strong> ${escapeHtml(lex.definition)} Related synonyms: ${escapeHtml(lex.synonyms.slice(0, 5).join(", "))}.
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 2. Public Datamuse Linguistic API lookup (CORS-enabled)
+    try {
+      const rel = type === "antonym" ? "ant" : "syn";
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1600);
+      const res = await fetch(`https://api.datamuse.com/words?rel_${rel}=${encodeURIComponent(targetWord)}&max=8`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const wordsData = await res.json();
+        const words = (wordsData || []).map((w) => w.word).filter(Boolean);
+        if (words.length > 0) {
+          const typeLabel = type === "antonym" ? "Antonyms & Opposite Words" : "Synonyms";
+          return `
+            <div class="doubt-plain-answer">
+              <div class="doubt-plain-text font-serif">
+                <strong>${escapeHtml(upperWord)} (${typeLabel}):</strong> Common ${type === "antonym" ? "opposite words" : "synonyms"} for "${escapeHtml(targetWord)}" include: <strong>${escapeHtml(words.join(", "))}</strong>.
+              </div>
+            </div>
+          `;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   async function fetchDuckDuckGoInstantAnswer(term) {
     if (!term || term.length < 2) return null;
     const cleanTerm = term.trim();
@@ -1807,7 +1980,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (_) {}
 
-    // 3. Wikipedia Search API as final fallback
+    // 3. Wikipedia Search API as final fallback (with false-positive filter)
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 1600);
@@ -1819,11 +1992,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const searchRes = data?.query?.search || [];
         if (searchRes.length > 0 && searchRes[0].snippet) {
           const cleanSnippet = searchRes[0].snippet.replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
-          return {
-            source: "Wikipedia Search",
-            title: searchRes[0].title || cleanTerm,
-            text: cleanSnippet
-          };
+          const sLower = cleanSnippet.toLowerCase();
+          const isActorBioSnippet =
+            sLower.includes("drama pilot") ||
+            sLower.includes("cast opposite") ||
+            sLower.includes("starred opposite") ||
+            sLower.includes("announced that") ||
+            sLower.includes("left the whispers") ||
+            (sLower.includes("television series") && cleanTerm.toLowerCase().includes("opposite"));
+
+          if (!isActorBioSnippet) {
+            return {
+              source: "Wikipedia Search",
+              title: searchRes[0].title || cleanTerm,
+              text: cleanSnippet
+            };
+          }
         }
       }
     } catch (_) {}
@@ -1973,6 +2157,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function resolveDoubtAnswer(query, context) {
+    // 0. High-priority Linguistic Solver for antonyms, opposites, synonyms, word meanings
+    const linguisticInfo = detectLinguisticQuery(query);
+    if (linguisticInfo) {
+      const linguisticAns = await resolveLinguisticAnswer(query, linguisticInfo);
+      if (linguisticAns) return linguisticAns;
+    }
+
     const rawText = context ? (context.text || "") : "";
     const title = context ? (context.title || "Visible Content") : "Visible Content";
     const subjectInfo = extractCoreSubject(query, title, rawText);
@@ -2010,6 +2201,10 @@ document.addEventListener("DOMContentLoaded", () => {
       let healed = false;
       for (const item of items) {
         if (item.answerHtml && (
+          item.answerHtml.includes("Brianna Brown") ||
+          item.answerHtml.includes("drama pilot") ||
+          item.answerHtml.includes("Lily Rabe") ||
+          item.answerHtml.includes("The Whispers opposite") ||
           item.answerHtml.includes("Evaluated under sovereign corporate governance") ||
           item.answerHtml.includes("financial forensic standards") ||
           item.answerHtml.includes("Governed by statutory SEBI regulations") ||
@@ -2024,7 +2219,20 @@ document.addEventListener("DOMContentLoaded", () => {
           item.answerHtml.includes("Ask DuckDuckGo AI") ||
           item.answerHtml.includes("Web Search")
         )) {
-          item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
+          const ling = detectLinguisticQuery(item.question);
+          if (ling && LINGUISTIC_LEXICON[ling.targetWord]) {
+            const lex = LINGUISTIC_LEXICON[ling.targetWord];
+            const isAnt = ling.type === "antonym";
+            item.answerHtml = `
+              <div class="doubt-plain-answer">
+                <div class="doubt-plain-text font-serif">
+                  <strong>${lex.term} (${isAnt ? "Antonyms & Opposite Words" : "Synonyms"}):</strong> ${isAnt ? lex.explanation : ("Common synonyms: " + lex.synonyms.join(", ") + ". " + lex.definition)}
+                </div>
+              </div>
+            `;
+          } else {
+            item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
+          }
           healed = true;
         }
       }
