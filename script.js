@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateTreeTelemetryUI();
   }
 
-  function navigateToNode(index) {
+  function navigateToNode(index, preferDivider = true) {
     highlightTreeNode(index);
     const targetNode = treeNodes[currentSubIndex];
     if (!targetNode) return;
@@ -194,8 +194,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (href.startsWith("#")) {
       const targetEl = document.querySelector(href);
       if (targetEl) {
+        let scrollEl = targetEl;
+        if (preferDivider) {
+          const prevEl = targetEl.previousElementSibling;
+          if (prevEl && prevEl.classList.contains("story-act-divider")) {
+            scrollEl = prevEl;
+          }
+        }
         const headerOffset = 76;
-        const elPos = targetEl.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+        const elPos = scrollEl.getBoundingClientRect().top + window.pageYOffset - headerOffset;
         window.scrollTo({
           top: Math.max(0, elPos),
           behavior: "smooth"
@@ -207,6 +214,58 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       window.location.href = href;
     }
+  }
+
+  function getActNodeIndices() {
+    const indices = [];
+
+    // Strategy 1: Story Act dividers in main viewport (investor.html has 7 acts)
+    const actDividers = Array.from(document.querySelectorAll(".story-act-divider"));
+    if (actDividers.length > 0) {
+      actDividers.forEach((div) => {
+        let next = div.nextElementSibling;
+        while (next && !next.classList.contains("story-node-section") && !next.classList.contains("page-directory-section")) {
+          next = next.nextElementSibling;
+        }
+        if (next && next.id) {
+          const idx = treeNodes.findIndex((n) => n.getAttribute("href") === `#${next.id}`);
+          if (idx !== -1 && !indices.includes(idx)) {
+            indices.push(idx);
+          }
+        }
+      });
+    }
+
+    // Strategy 2: If no act dividers, check multiple section headers in tree drawer
+    if (indices.length <= 1) {
+      const sectionHeaders = Array.from(document.querySelectorAll("#tree-content-scroll .tree-section-header"));
+      if (sectionHeaders.length > 1) {
+        indices.length = 0;
+        sectionHeaders.forEach((hdr) => {
+          let next = hdr.nextElementSibling;
+          while (next && !next.classList.contains("tree-node")) {
+            next = next.nextElementSibling;
+          }
+          if (next && next.classList.contains("tree-node")) {
+            const idx = treeNodes.indexOf(next);
+            if (idx !== -1 && !indices.includes(idx)) {
+              indices.push(idx);
+            }
+          }
+        });
+      }
+    }
+
+    // Strategy 3: Graceful fallback for 5-node single-header pages: jump top / bottom
+    if (indices.length <= 1 && treeNodes.length > 0) {
+      indices.length = 0;
+      indices.push(0);
+      if (treeNodes.length > 1) {
+        indices.push(treeNodes.length - 1);
+      }
+    }
+
+    return indices;
   }
 
   if (btnPinTree) {
@@ -298,8 +357,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const href = treeNodes[i].getAttribute("href") || "";
         if (href.startsWith("#")) {
           const el = document.querySelector(href);
-          if (el && el.offsetTop <= scrollPos) {
-            matchedIdx = i;
+          if (el) {
+            const prev = el.previousElementSibling;
+            const checkEl = (prev && prev.classList.contains("story-act-divider")) ? prev : el;
+            if (checkEl.offsetTop <= scrollPos) {
+              matchedIdx = i;
+            }
           }
         }
       }
@@ -539,7 +602,35 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 7. Normal Arrow Up / Down: Move / scroll page with zero delay (strictly alone, no modifiers)
+    // 7. Shift + Arrow: Directly jump through Acts (I | II | III | IV ...) WITHOUT showing directory tree
+    // Strictly Shift alone, no Ctrl, Alt, Meta (zero modifier crosstalk)
+    if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      closeTreeExplicitly(); // Guarantee directory tree is NOT shown
+
+      const actIndices = getActNodeIndices();
+      if (actIndices.length > 0) {
+        if (e.key === "ArrowDown") {
+          const nextIdx = actIndices.find((idx) => idx > currentSubIndex);
+          if (nextIdx !== undefined) {
+            navigateToNode(nextIdx, true);
+          } else {
+            navigateToNode(actIndices[actIndices.length - 1], true);
+          }
+        } else {
+          const prevIndices = actIndices.filter((idx) => idx < currentSubIndex);
+          if (prevIndices.length > 0) {
+            const prevIdx = prevIndices[prevIndices.length - 1];
+            navigateToNode(prevIdx, true);
+          } else {
+            navigateToNode(actIndices[0], true);
+          }
+        }
+      }
+      return;
+    }
+
+    // 8. Normal Arrow Up / Down: Move / scroll page with zero delay (strictly alone, no modifiers)
     if (e.key === "ArrowDown" && noModifiers) {
       e.preventDefault();
       window.scrollBy({ top: 90, behavior: "auto" });
@@ -552,14 +643,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 8. Enter inside open tree navigates to current node (strictly alone)
+    // 9. Enter inside open tree navigates to current node (strictly alone)
     if (e.key === "Enter" && noModifiers && isTreeCurrentlyOpen()) {
       e.preventDefault();
       navigateToNode(currentSubIndex);
       return;
     }
 
-    // 9. Escape closes all open panels, menus, and directory tree (strictly alone)
+    // 10. Escape closes all open panels, menus, and directory tree (strictly alone)
     if (e.key === "Escape" && noModifiers) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
