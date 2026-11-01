@@ -390,63 +390,58 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 5. Arrow key & navigation handling:
-    const isInsideTree = isTreeCurrentlyOpen();
+    // 5. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree
+    if ((e.ctrlKey || e.metaKey) && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      closeTreeExplicitly(); // Guarantee directory tree is NOT shown
 
-    if (isInsideTree) {
-      if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
-        e.preventDefault();
-        highlightTreeNode(currentSubIndex + 1);
-        return;
+      const allSectionPages = [
+        "index.html",
+        "founder.html",
+        "investor.html",
+        "bottleneck.html",
+        "index-view.html",
+        "graph.html",
+        "directory.html",
+        "source.html"
+      ];
+
+      const currentFile = pathname.split("/").pop().toLowerCase() || "index.html";
+      let currIdx = allSectionPages.findIndex((p) => currentFile === p || (currentFile === "guide.html" && p === "index.html"));
+      if (currIdx === -1) {
+        currIdx = allSectionPages.findIndex((p) => currentFile.includes(p.replace(".html", "")));
       }
+      if (currIdx === -1) currIdx = 0;
 
-      if (e.key === "ArrowUp" || e.key === "k" || e.key === "K") {
-        e.preventDefault();
-        highlightTreeNode(currentSubIndex - 1);
-        return;
-      }
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-        navigateToNode(currentSubIndex);
-        return;
-      }
-
-      if (e.key === "Home") {
-        e.preventDefault();
-        highlightTreeNode(0);
-        return;
-      }
-
-      if (e.key === "End") {
-        e.preventDefault();
-        highlightTreeNode(treeNodes.length - 1);
-        return;
+      let targetIdx = currIdx;
+      if (e.key === "ArrowDown") {
+        targetIdx = (currIdx + 1) % allSectionPages.length;
+      } else {
+        targetIdx = (currIdx - 1 + allSectionPages.length) % allSectionPages.length;
       }
 
-      if (e.key === "PageDown") {
-        e.preventDefault();
-        highlightTreeNode(currentSubIndex + 3);
-        return;
-      }
+      window.location.href = allSectionPages[targetIdx];
+      return;
+    }
 
-      if (e.key === "PageUp") {
-        e.preventDefault();
-        highlightTreeNode(currentSubIndex - 3);
-        return;
-      }
-    } else {
-      if (e.key === "j" || e.key === "J") {
-        e.preventDefault();
-        window.scrollBy({ top: 90, behavior: "auto" });
-        return;
-      }
+    // 6. Normal Arrow Up / Down (and j / k): Move / scroll page with zero delay
+    if (e.key === "ArrowDown" || e.key === "j" || e.key === "J") {
+      e.preventDefault();
+      window.scrollBy({ top: 90, behavior: "auto" });
+      return;
+    }
 
-      if (e.key === "k" || e.key === "K") {
-        e.preventDefault();
-        window.scrollBy({ top: -90, behavior: "auto" });
-        return;
-      }
+    if (e.key === "ArrowUp" || e.key === "k" || e.key === "K") {
+      e.preventDefault();
+      window.scrollBy({ top: -90, behavior: "auto" });
+      return;
+    }
+
+    // 7. Enter inside open tree navigates to current node
+    if (e.key === "Enter" && isTreeCurrentlyOpen()) {
+      e.preventDefault();
+      navigateToNode(currentSubIndex);
+      return;
     }
 
     // 6. Escape closes all open panels, menus, and directory tree
