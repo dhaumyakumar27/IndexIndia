@@ -1697,7 +1697,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><kbd>Enter</kbd> ask</span>
       </div>
       <div class="doubt-footer-engine">
-        <span>💾 Stored on Device · 🦆 DuckDuckGo Engine</span>
+        <span>💾 Device · 🦆 DuckDuckGo · <strong class="font-mono">v5.2</strong></span>
       </div>
     </div>
   `;
@@ -1716,62 +1716,145 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getVisibleScreenTarget() {
     try {
+      // 1. Text Selection has highest priority if user highlighted anything
       const selection = window.getSelection();
       const selectedText = selection ? selection.toString().trim() : "";
       if (selectedText.length >= 2) {
-        const parentSection = selection.anchorNode?.parentElement?.closest("section, div[id]");
-        const sectionTitle = parentSection?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "";
+        let parentHeading = "";
+        try {
+          const anchorEl = selection.anchorNode?.nodeType === 1 ? selection.anchorNode : selection.anchorNode?.parentElement;
+          const container = anchorEl?.closest("section, article, .story-node-section, .page-directory-section, .content-area > div");
+          parentHeading = container?.querySelector(".story-section-title, h1, h2, h3, h4, .institutional-title")?.textContent?.trim() || "";
+        } catch (_) {}
+
         return {
           type: "selection",
-          title: sectionTitle ? `SELECTION in ${sectionTitle}` : "SELECTED EXCERPT",
-          text: selectedText
+          title: parentHeading ? `Selection in: ${parentHeading.replace(/^[^\w\s\u00C0-\u017F]+/, "").trim()}` : "Selected Text",
+          text: selectedText,
+          excerpt: selectedText.length > 180 ? selectedText.slice(0, 180) + "..." : selectedText
         };
       }
 
-      let sectionEl = null;
-      if (treeNodes && treeNodes[currentSubIndex]) {
-        const href = treeNodes[currentSubIndex].getAttribute("href");
-        if (href && href.startsWith("#") && href.length > 1) {
+      // 2. Real Viewport Reading Geometry
+      const vpHeight = window.innerHeight || document.documentElement.clientHeight || 800;
+      // Focus reading eye-level: between 12% and 78% down screen
+      const focusTop = vpHeight * 0.12;
+      const focusBottom = vpHeight * 0.78;
+      const eyeLine = vpHeight * 0.38;
+
+      // Collect candidate sections
+      const candidates = Array.from(document.querySelectorAll(
+        "section[id], .story-node-section, .page-directory-section, .story-section, .institutional-forum-section, .content-area > section"
+      )).filter(el => {
+        if (el.closest(".doubt-solver-tile") || el.closest(".top-nav") || el.closest(".rail-navigator")) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.height > 20 && rect.bottom > 80 && rect.top < vpHeight - 40;
+      });
+
+      let bestSection = null;
+      let maxScore = -99999;
+
+      for (const el of candidates) {
+        const rect = el.getBoundingClientRect();
+        const visibleTop = Math.max(focusTop, rect.top);
+        const visibleBottom = Math.min(focusBottom, rect.bottom);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+
+        if (visibleHeight > 0) {
+          // Eye line inclusion bonus: if eyeLine is directly inside this section
+          const spansEyeLine = (rect.top <= eyeLine && rect.bottom >= eyeLine) ? 400 : 0;
+          const center = rect.top + (rect.height / 2);
+          const distToEyeLine = Math.abs(center - eyeLine);
+          const score = visibleHeight + spansEyeLine - (distToEyeLine * 0.25);
+          if (score > maxScore) {
+            maxScore = score;
+            bestSection = el;
+          }
+        }
+      }
+
+      // Check in-page tree navigation sync if scrollspy active
+      if (!bestSection && typeof treeNodes !== "undefined" && treeNodes && treeNodes[currentSubIndex]) {
+        const href = treeNodes[currentSubIndex].getAttribute("href") || "";
+        if (href.startsWith("#") && href.length > 1) {
           try {
-            sectionEl = document.querySelector(href);
-          } catch (_) {
-            sectionEl = null;
-          }
+            const el = document.querySelector(href);
+            if (el) bestSection = el;
+          } catch (_) {}
         }
       }
 
-      if (!sectionEl) {
-        const sections = Array.from(document.querySelectorAll("section[id], .content-area > div, .institutional-title"));
-        const scrollPos = window.scrollY + 100;
-        for (const sec of sections) {
-          const top = sec.offsetTop;
-          const height = sec.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            sectionEl = sec;
-            break;
-          }
-        }
-        if (!sectionEl && sections.length > 0) sectionEl = sections[0];
+      if (!bestSection && candidates.length > 0) {
+        bestSection = candidates[0];
       }
 
-      const title = sectionEl?.querySelector(".story-section-title, h2, h3, .institutional-title")?.textContent?.trim() || "Visible Section";
-      const paragraphs = Array.from(sectionEl?.querySelectorAll("p, li, .story-narrative-lead, .story-meta-tags, td, th") || [])
-        .map(p => p.textContent.trim())
-        .filter(t => t.length > 0)
-        .join(" ");
+      // 3. Extract EXACT visible text currently inside the viewport
+      let visibleTextBlocks = [];
+      const searchContainers = bestSection ? [bestSection, document.querySelector(".content-area") || document.body] : [document.querySelector(".content-area") || document.body];
 
-      const text = paragraphs.length > 0 ? paragraphs : (sectionEl?.textContent?.replace(/\s+/g, " ").trim() || "Institutional research dossier content.");
+      for (const container of searchContainers) {
+        if (!container) continue;
+        const readableNodes = Array.from(container.querySelectorAll(
+          ".story-narrative-lead, p, li, td, th, .story-tag, .font-mono, .stat-val, .data-metric"
+        ));
+
+        for (const node of readableNodes) {
+          if (node.closest(".doubt-solver-tile") || node.closest(".top-nav") || node.closest(".rail-navigator") || node.closest("#tree-content-scroll")) continue;
+          const r = node.getBoundingClientRect();
+          if (r.bottom >= 70 && r.top <= vpHeight - 50 && r.height > 0) {
+            const txt = node.textContent.trim().replace(/\s+/g, " ");
+            if (txt.length > 5 && !visibleTextBlocks.includes(txt) && !txt.includes("DOUBT SOLVER")) {
+              visibleTextBlocks.push(txt);
+            }
+          }
+        }
+        if (visibleTextBlocks.length > 0 && container === bestSection) break;
+      }
+
+      // Fallback if no sub-elements captured
+      if (visibleTextBlocks.length === 0 && bestSection) {
+        const raw = bestSection.textContent.replace(/\s+/g, " ").trim();
+        if (raw.length > 10) visibleTextBlocks.push(raw.slice(0, 450));
+      }
+
+      // Find section heading / title
+      let title = "";
+      if (bestSection) {
+        const heading = bestSection.querySelector(".story-section-title, h1, h2, h3, h4, .institutional-title");
+        if (heading) {
+          title = heading.textContent.trim();
+        } else if (bestSection.id) {
+          title = bestSection.id.replace(/^sec-/, "").replace(/-/g, " ").toUpperCase();
+        }
+      }
+
+      if (!title) {
+        const topHeading = Array.from(document.querySelectorAll("h1, h2, h3, .story-section-title, .institutional-title"))
+          .filter(h => !h.closest(".doubt-solver-tile") && !h.closest(".top-nav"))
+          .find(h => {
+            const r = h.getBoundingClientRect();
+            return r.bottom >= 0 && r.top <= vpHeight * 0.7;
+          });
+        title = topHeading ? topHeading.textContent.trim() : document.title.split("—")[0].trim();
+      }
+
+      const cleanTitle = title.replace(/^[^\w\s\u00C0-\u017F]+/, "").trim() || "Visible Screen";
+      const cleanText = visibleTextBlocks.length > 0 ? visibleTextBlocks.join(" ") : "Visible screen content.";
+      const excerpt = visibleTextBlocks[0] || cleanText.slice(0, 160);
+
       return {
         type: "section",
-        title: title.replace(/^[^\w\s]+/, "").trim() || "Screen Content",
-        text: text
+        title: cleanTitle,
+        text: cleanText,
+        excerpt: excerpt.length > 180 ? excerpt.slice(0, 180) + "..." : excerpt
       };
     } catch (err) {
       console.warn("[DoubtSolver] getVisibleScreenTarget error:", err);
       return {
         type: "section",
-        title: "Visible Content",
-        text: "Select any text or ask a question about this screen."
+        title: document.title.split("—")[0].trim() || "Visible Screen",
+        text: "Visible content on screen.",
+        excerpt: "Visible content on screen."
       };
     }
   }
@@ -1850,18 +1933,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDoubtsView() {
     const history = getLocalDoubtsHistory();
+    const currentTarget = currentDoubtContext || getVisibleScreenTarget();
+    const title = currentTarget.title || "Visible Screen";
+    const excerpt = currentTarget.excerpt || (currentTarget.text ? currentTarget.text.slice(0, 140) + "..." : "Reading visible page content.");
+
     if (!history || history.length === 0) {
       doubtOutput.innerHTML = `
+        <div class="doubt-live-context-bar font-mono">
+          <span class="doubt-context-indicator">● LIVE SCREEN</span>
+          <span class="doubt-context-title">${escapeHtml(title)}</span>
+        </div>
         <div class="doubt-blank-page">
           <div class="doubt-blank-icon">🦆</div>
           <div class="doubt-blank-title">Doubts History</div>
           <p class="doubt-blank-sub">This section is completely private. Type your doubt above and press Enter to solve it. Questions, answers, and exact timestamps are stored strictly on your device.</p>
+          <div class="doubt-blank-live-box">
+            <span class="doubt-blank-live-label font-mono">VISIBLE IN VIEWPORT RIGHT NOW:</span>
+            <div class="doubt-blank-live-text font-serif">"${escapeHtml(excerpt)}"</div>
+          </div>
         </div>
       `;
       return;
     }
 
     let html = `
+      <div class="doubt-live-context-bar font-mono">
+        <span class="doubt-context-indicator">● LIVE SCREEN</span>
+        <span class="doubt-context-title">${escapeHtml(title)}</span>
+      </div>
       <div class="doubt-history-actions-bar">
         <span class="doubt-history-count font-mono">${history.length} DOUBT${history.length > 1 ? "S" : ""} RECORDED ON THIS DEVICE</span>
         <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
@@ -1917,20 +2016,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderKeyTakeawayView() {
-    const screenTarget = getVisibleScreenTarget();
-    const rawText = screenTarget.text || "";
-    const title = screenTarget.title || "Visible Content";
+    currentDoubtContext = getVisibleScreenTarget();
+    const rawText = currentDoubtContext.text || "";
+    const title = currentDoubtContext.title || "Visible Content";
+    const excerpt = currentDoubtContext.excerpt || (rawText.slice(0, 160) + "...");
 
     const sentences = rawText.split(/(?<=[.!?])\s+/)
       .map(s => s.trim())
-      .filter(s => s.length > 20 && !s.toLowerCase().includes("institutional research hub"));
+      .filter(s => s.length > 15 && !s.toLowerCase().includes("institutional research hub") && !s.toLowerCase().includes("all rights reserved"));
 
     const keySentences = sentences.slice(0, 3);
     if (keySentences.length === 0) {
-      keySentences.push(rawText.slice(0, 180) || "Visible screen content analyzed.");
+      keySentences.push(excerpt || "Visible screen content analyzed.");
     }
 
-    const numbersFound = rawText.match(/(\d+(?:\.\d+)?%|\$\d+|\b\d+\s*(?:days|crore|months|years|bps|x)\b)/gi) || [];
+    const numbersFound = rawText.match(/(\d+(?:\.\d+)?%|\$\d+|\b\d+\s*(?:days|crore|months|years|bps|x|lakh)\b)/gi) || [];
     const uniqueNumbers = Array.from(new Set(numbersFound)).slice(0, 5);
 
     let matchedTopic = null;
@@ -1984,9 +2084,18 @@ document.addEventListener("DOMContentLoaded", () => {
     doubtOutput.innerHTML = `
       <div class="doubt-takeaway-card">
         <div class="doubt-takeaway-header">
-          <span class="doubt-takeaway-badge font-mono">SCREEN SCAN: ${escapeHtml(title).toUpperCase()}</span>
+          <span class="doubt-takeaway-badge font-mono">LIVE SCREEN SCAN: ${escapeHtml(title).toUpperCase()}</span>
+        </div>
+        <div class="doubt-takeaway-source">
+          <span class="doubt-source-label font-mono">READING VIEWPORT:</span>
+          <span class="doubt-source-title font-mono">"${escapeHtml(title)}"</span>
+        </div>
+        <div class="doubt-takeaway-snippet">
+          <div class="doubt-snippet-label font-mono">CURRENTLY VISIBLE TEXT:</div>
+          <p class="doubt-snippet-text font-serif">"${escapeHtml(excerpt)}"</p>
         </div>
         <div class="doubt-takeaway-bullets">
+          <div class="doubt-bullets-heading font-mono">KEY TAKEAWAY POINTS:</div>
           ${keySentences.map(s => `
             <div class="doubt-takeaway-bullet">
               <span class="doubt-bullet-dot">▸</span>
@@ -1996,7 +2105,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         ${metricsHtml}
         <div class="doubt-takeaway-verdict">
-          <strong>Executive Summary:</strong> ${matchedTopic ? escapeHtml(matchedTopic.screenContext) : `Institutional parameters defined under the Sovereign Methodology to eliminate promotional and governance bias.`}
+          <strong>Synthesis:</strong> ${matchedTopic ? escapeHtml(matchedTopic.screenContext) : `Key institutional takeaways extracted directly from visible screen content under ${escapeHtml(title)}.`}
         </div>
         ${ddgActionBarHtml}
       </div>
@@ -2151,8 +2260,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       <div class="doubt-output-section">
-        <div class="doubt-output-header">1. CONCEPT EXPLANATION</div>
-        <div class="doubt-output-body">${directAnswerHtml}</div>
+        <div class="doubt-output-header">1. LIVE SCREEN ANALYSIS · ${escapeHtml(title).toUpperCase()}</div>
+        <div class="doubt-output-body">
+          ${bestSentence ? `<div class="doubt-live-quote font-serif"><strong>Visible Reference:</strong> "${escapeHtml(bestSentence)}"</div>` : ""}
+          <div class="doubt-live-direct-ans">${directAnswerHtml}</div>
+        </div>
       </div>
       <div class="doubt-output-takeaway">
         ${takeawayHtml}
@@ -2184,7 +2296,11 @@ document.addEventListener("DOMContentLoaded", () => {
       doubtAskBtn.disabled = true;
     }
 
-    const context = currentDoubtContext || getVisibleScreenTarget();
+    // Always ensure fresh screen context if user didn't make an explicit selection
+    if (!currentDoubtContext || currentDoubtContext.type !== "selection") {
+      currentDoubtContext = getVisibleScreenTarget();
+    }
+    const context = currentDoubtContext;
     const timeInfo = getExactTimestamp();
     const initialAnswer = synthesizeDoubtAnswer(trimmed, context);
 
@@ -2253,6 +2369,7 @@ document.addEventListener("DOMContentLoaded", () => {
       doubtChips.forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
       activeDoubtMode = chip.getAttribute("data-mode") || "doubts";
+      currentDoubtContext = getVisibleScreenTarget();
       if (activeDoubtMode === "doubts") {
         if (doubtTextInput) doubtTextInput.placeholder = "Ask a doubt or press Enter...";
         renderDoubtsView();
