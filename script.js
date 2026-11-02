@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const treeScrubIndicator = document.getElementById("tree-scrub-indicator");
   const railTreeStatus = document.getElementById("rail-tree-status");
   let hasInPageTree = false;
+  let currentSubIndex = 0;
   let updateSectionOffsets = function() {};
   let rebindTreeAndTicksEvents = function() {};
 
@@ -390,7 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     if (activeNodeIdx === -1) activeNodeIdx = 0;
   }
-  let currentSubIndex = activeNodeIdx;
+  currentSubIndex = activeNodeIdx;
 
 
   let isPinned = false;
@@ -3033,13 +3034,7 @@ INSTRUCTIONS:
     }
   });
 
-  const doubtNavBtn = document.getElementById("doubt-nav-btn");
-  if (doubtNavBtn) {
-    doubtNavBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      toggleDoubtSolver();
-    });
-  }
+
 
   function renderDoubtsView() {
     const history = getLocalDoubtsHistory();
@@ -3334,7 +3329,7 @@ INSTRUCTIONS:
     if (doubtTile && doubtTile.classList.contains("is-open")) {
       closeDoubtSolver();
     } else {
-      const hoveredSec = lastHoveredSection || document.querySelector(".story-node-section:hover, .page-directory-section:hover, .forum-directory-section:hover, .institutional-forum-section:hover, .content-area > section:hover");
+      const hoveredSec = lastHoveredSection || document.querySelector(".doc-section:hover, .doc-subsection:hover, .doc-subsubsection:hover, .story-node-section:hover, .page-directory-section:hover, .forum-directory-section:hover, .institutional-forum-section:hover, .content-area > section:hover");
       if (hoveredSec) {
         setDoubtContext(getSectionContext(hoveredSec));
       } else {
