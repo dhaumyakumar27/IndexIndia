@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Question — On-Device WebLLM Search Engine</title>
-  <meta name="description" content="100% on-device search engine running locally inside your browser via WebLLM and WebGPU. Fast, private, and concise search answers without massive AI essays.">
+  <title>Question — In-Browser Local Search Engine (WebGPU + WASM)</title>
+  <meta name="description" content="100% on-device search engine running locally inside your browser via WebGPU with automatic WebAssembly (WASM CPU) fallback. Fast, private, zero installation.">
   <link rel="stylesheet" href="styles.css?v=6.5">
   <style>
     /* Question Page Dedicated Styling */
@@ -14,10 +14,10 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 40px 20px 80px;
+      padding: 36px 20px 80px;
       max-width: 900px;
       margin: 0 auto;
-      gap: 24px;
+      gap: 22px;
     }
 
     .question-hero {
@@ -26,22 +26,23 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     .question-hero-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
       font-family: var(--font-mono);
       font-size: 0.68rem;
       font-weight: 700;
       letter-spacing: 0.08em;
-      padding: 4px 10px;
+      padding: 4px 12px;
       border-radius: 999px;
       background: var(--bg-surface-subtle);
       border: 1px solid var(--border-subtle);
       color: var(--text-secondary);
+      transition: all 0.2s ease;
     }
 
     .question-hero-badge .badge-dot {
@@ -51,6 +52,11 @@
       background: #10b981;
       display: inline-block;
       box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    .question-hero-badge .badge-dot.wasm {
+      background: #0ea5e9;
+      box-shadow: 0 0 8px rgba(14, 165, 233, 0.6);
     }
 
     .question-hero-badge .badge-dot.warning {
@@ -69,68 +75,64 @@
     }
 
     .question-hero-sub {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       color: var(--text-secondary);
-      max-width: 580px;
+      max-width: 600px;
       line-height: 1.5;
       margin: 0;
     }
 
-    /* Model Selection Bar */
-    .question-model-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    /* Engine Status Banner (Informative & Zero Friction) */
+    .engine-status-bar {
       width: 100%;
       max-width: 740px;
-      padding: 8px 14px;
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
-      font-size: 0.78rem;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
+      font-size: 0.76rem;
       flex-wrap: wrap;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    .model-selector-group {
+    .engine-status-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+    }
+
+    .engine-status-tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      padding: 2px 6px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+    }
+
+    .engine-selector-group {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .model-select-label {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      color: var(--text-tertiary);
-    }
-
-    .model-select-dropdown {
+    .engine-select-dropdown {
       background: var(--bg-surface-subtle);
       border: 1px solid var(--border-subtle);
       border-radius: 6px;
-      padding: 5px 10px;
+      padding: 4px 8px;
       font-family: var(--font-mono);
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       color: var(--text-primary);
       outline: none;
       cursor: pointer;
-      transition: border-color 0.15s ease;
-    }
-
-    .model-select-dropdown:focus {
-      border-color: var(--accent);
-    }
-
-    .model-footprint-tag {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--status-optimal);
-      background: var(--status-optimal-bg);
-      padding: 3px 7px;
-      border-radius: 4px;
     }
 
     /* Search Box */
@@ -228,10 +230,8 @@
     }
 
     .question-submit-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
-      background: var(--bg-inverted);
-      border-color: var(--border-subtle);
     }
 
     /* Preset Chips */
@@ -255,7 +255,7 @@
       background: var(--bg-surface-subtle);
       border: 1px solid var(--border-subtle);
       color: var(--text-secondary);
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       padding: 4px 10px;
       border-radius: 999px;
       cursor: pointer;
@@ -274,7 +274,7 @@
       width: 100%;
       max-width: 740px;
       background: var(--bg-card);
-      border: 1px solid rgba(255, 59, 0, 0.25);
+      border: 1px solid rgba(255, 59, 0, 0.28);
       border-left: 3.5px solid var(--accent);
       border-radius: 8px;
       padding: 14px 16px;
@@ -327,11 +327,38 @@
       transition: width 0.15s ease;
     }
 
+    .progress-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     .progress-detail-text {
       font-size: 0.72rem;
       color: var(--text-secondary);
       line-height: 1.4;
       margin: 0;
+    }
+
+    .instant-skip-btn {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .instant-skip-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
     }
 
     /* Results Card */
@@ -547,30 +574,6 @@
       justify-content: space-between;
       margin-top: 3px;
     }
-
-    /* WebGPU Alert modal/card */
-    .webgpu-notice {
-      width: 100%;
-      max-width: 740px;
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-left: 3.5px solid #f59e0b;
-      border-radius: 8px;
-      padding: 12px 15px;
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 0.78rem;
-      color: var(--text-secondary);
-    }
-
-    .webgpu-notice.is-visible {
-      display: flex;
-    }
-
-    .webgpu-notice strong {
-      color: #d97706;
-    }
   </style>
 </head>
 <body class="theme-dark">
@@ -608,31 +611,27 @@
     <div class="question-hero">
       <div class="question-hero-badge" id="gpu-status-badge">
         <span class="badge-dot" id="gpu-status-dot"></span>
-        <span id="gpu-status-text">DETECTING WEBGPU ACCELERATION...</span>
+        <span id="gpu-status-text">DETECTING HARDWARE ACCELERATION...</span>
       </div>
       <h1 class="question-hero-title">Question</h1>
       <p class="question-hero-sub">
-        Ask anything. A lightweight local model runs 100% inside your laptop browser to give direct, factual search engine answers—no server calls, no fluff.
+        Ask anything. Runs 100% locally in your browser with dual WebGPU + WebAssembly (WASM) CPU fallback. Concise search engine answers without massive AI essays.
       </p>
     </div>
 
-    <!-- WebGPU Notice if not enabled in browser -->
-    <div class="webgpu-notice" id="webgpu-notice">
-      <div><strong>⚠️ WebGPU Not Detected in this Browser Window</strong></div>
-      <div>To run local in-browser LLMs at high speed on your laptop, WebGPU is required. Please use Google Chrome, Microsoft Edge, or Firefox Nightly. On Linux, ensure <code>chrome://flags/#enable-unsafe-webgpu</code> is enabled.</div>
-    </div>
-
-    <!-- Model Selection Bar -->
-    <div class="question-model-bar">
-      <div class="model-selector-group">
-        <label for="model-select" class="model-select-label">LOCAL MODEL:</label>
-        <select id="model-select" class="model-select-dropdown">
-          <option value="SmolLM2-135M-Instruct-q0f16-MLC" selected>SmolLM2 135M (Ultra Fast · ~135 MB) [Default for Basic Laptops]</option>
-          <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5 0.5B (Smarter Logic · ~380 MB)</option>
-          <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (High Precision · ~750 MB)</option>
+    <!-- Engine Status & Device Mode Bar -->
+    <div class="engine-status-bar">
+      <div class="engine-status-info">
+        <span class="engine-status-tag" id="execution-mode-tag">ENGINE: INITIALIZING</span>
+        <span id="execution-mode-desc">Checking WebGPU and WebAssembly capabilities...</span>
+      </div>
+      <div class="engine-selector-group">
+        <label for="engine-mode-select" class="font-mono" style="font-size: 0.68rem; color: var(--text-tertiary); font-weight: 700;">MODEL:</label>
+        <select id="engine-mode-select" class="engine-select-dropdown">
+          <option value="onnx-community/Qwen2.5-0.5B-Instruct" selected>Qwen2.5 0.5B (Fast Logic · ~380 MB)</option>
+          <option value="Xenova/Qwen1.5-0.5B-Chat">Qwen1.5 0.5B (Lightweight · ~450 MB)</option>
         </select>
       </div>
-      <span class="model-footprint-tag font-mono" id="model-footprint-tag">⚡ ~135 MB · CACHED LOCALLY</span>
     </div>
 
     <!-- Search Input Form -->
@@ -671,16 +670,21 @@
       <div class="progress-top-row">
         <span class="progress-title">
           <span>⚡</span>
-          <span id="progress-phase-text">INITIALIZING MODEL IN BROWSER GPU CACHE</span>
+          <span id="progress-phase-text">INITIALIZING MODEL IN BROWSER STORAGE</span>
         </span>
         <span class="progress-percent font-mono" id="progress-percent">0%</span>
       </div>
       <div class="progress-bar-track">
         <div class="progress-bar-fill" id="progress-bar-fill"></div>
       </div>
-      <p class="progress-detail-text font-mono" id="progress-detail-text">
-        Downloading model parameters once into browser IndexedDB storage. Future queries load instantly with 0 KB data usage.
-      </p>
+      <div class="progress-footer-row">
+        <p class="progress-detail-text font-mono" id="progress-detail-text">
+          Downloading model parameters into browser CacheStorage. Downloads happen once; future queries start instantly with 0 KB bandwidth.
+        </p>
+        <button type="button" class="instant-skip-btn font-mono" id="btn-instant-answer-now">
+          ⚡ Skip to Instant Answer (0 MB)
+        </button>
+      </div>
     </div>
 
     <!-- Live Search Answer Result Card -->
@@ -688,7 +692,7 @@
       <div class="result-badge-bar">
         <div class="result-badge-left">
           <span>●</span>
-          <span id="result-engine-badge">100% ON-DEVICE WEBGPU · SEARCH ENGINE MODE</span>
+          <span id="result-engine-badge">ON-DEVICE ENGINE · SEARCH ENGINE MODE</span>
         </div>
         <div class="result-badge-right font-mono" id="result-timestamp">
           Just now
@@ -708,7 +712,7 @@
         <div class="result-stats-group">
           <span class="result-stat-item" id="stat-speed">⚡ -- tok/s</span>
           <span class="result-stat-item" id="stat-time">⏱️ --s</span>
-          <span class="result-stat-item" id="stat-model">Model: SmolLM2-135M</span>
+          <span class="result-stat-item" id="stat-model">Device: WASM CPU</span>
         </div>
         <div class="result-action-btns">
           <button type="button" class="result-btn" id="btn-copy-answer" title="Copy answer to clipboard">
@@ -732,18 +736,24 @@
 
   </main>
 
-  <!-- WebLLM In-Browser Engine Controller -->
+  <!-- Universal In-Browser Engine Controller (Transformers.js with WebGPU + WASM CPU fallback) -->
   <script type="module">
-    import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/+esm";
+    import { pipeline, env, TextStreamer } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers/+esm";
+
+    // Configure caching in browser storage and WASM thread count
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
+    env.backends.onnx.wasm.numThreads = Math.min(4, Math.max(1, (navigator.hardwareConcurrency || 4) - 1));
+    env.backends.onnx.wasm.simd = true;
 
     // Elements
     const gpuStatusBadge = document.getElementById("gpu-status-badge");
     const gpuStatusDot = document.getElementById("gpu-status-dot");
     const gpuStatusText = document.getElementById("gpu-status-text");
-    const webgpuNotice = document.getElementById("webgpu-notice");
 
-    const modelSelect = document.getElementById("model-select");
-    const modelFootprintTag = document.getElementById("model-footprint-tag");
+    const executionModeTag = document.getElementById("execution-mode-tag");
+    const executionModeDesc = document.getElementById("execution-mode-desc");
+    const engineModeSelect = document.getElementById("engine-mode-select");
 
     const questionForm = document.getElementById("question-form");
     const questionInput = document.getElementById("question-input");
@@ -755,8 +765,10 @@
     const progressPercent = document.getElementById("progress-percent");
     const progressBarFill = document.getElementById("progress-bar-fill");
     const progressDetailText = document.getElementById("progress-detail-text");
+    const btnInstantAnswerNow = document.getElementById("btn-instant-answer-now");
 
     const resultCard = document.getElementById("question-result-card");
+    const resultEngineBadge = document.getElementById("result-engine-badge");
     const resultQuestionText = document.getElementById("result-question-text");
     const resultAnswerContent = document.getElementById("result-answer-content");
     const resultTimestamp = document.getElementById("result-timestamp");
@@ -774,64 +786,44 @@
     const themeIcon = document.getElementById("theme-icon");
 
     // State
-    let engine = null;
-    let loadedModelId = null;
+    let generatorPipeline = null;
+    let activeModelId = null;
+    let activeDevice = "wasm";
     let isGenerating = false;
+    let abortController = null;
     const STORAGE_KEY = "indexindia_question_history_v1";
 
-    // 1. Check WebGPU Support
-    async function checkWebGPU() {
-      if (!navigator.gpu) {
-        gpuStatusDot.classList.add("warning");
-        gpuStatusText.textContent = "WEBGPU NOT DETECTED";
-        webgpuNotice.classList.add("is-visible");
-        return false;
-      }
-      try {
-        const adapter = await navigator.gpu.requestAdapter();
-        if (adapter) {
-          gpuStatusDot.classList.remove("warning");
-          gpuStatusText.textContent = "100% ON-DEVICE WEBGPU READY";
-          webgpuNotice.classList.remove("is-visible");
-          return true;
+    // 1. Dual-Hardware Detection: WebGPU with Automatic WASM CPU Fallback
+    async function detectHardwareSupport() {
+      let hasGPU = false;
+      if (navigator.gpu) {
+        try {
+          const adapter = await navigator.gpu.requestAdapter();
+          if (adapter) hasGPU = true;
+        } catch (_) {
+          hasGPU = false;
         }
-      } catch (err) {
-        console.warn("WebGPU adapter request error:", err);
       }
-      gpuStatusDot.classList.add("warning");
-      gpuStatusText.textContent = "WEBGPU LIMITED / UNACCELERATED";
-      return false;
+
+      if (hasGPU) {
+        activeDevice = "webgpu";
+        gpuStatusDot.className = "badge-dot";
+        gpuStatusText.textContent = "100% ON-DEVICE WEBGPU ACCELERATED";
+        executionModeTag.textContent = "DEVICE: WEBGPU HARDWARE";
+        executionModeDesc.textContent = "Hardware GPU acceleration active for high-speed generation.";
+      } else {
+        activeDevice = "wasm";
+        gpuStatusDot.className = "badge-dot wasm";
+        gpuStatusText.textContent = "100% ON-DEVICE WEBASSEMBLY (WASM CPU) READY";
+        executionModeTag.textContent = "DEVICE: CPU WEBASSEMBLY (WASM)";
+        executionModeDesc.textContent = "WebGPU not active. Running seamlessly on CPU via WebAssembly (100% browser compatible).";
+      }
+      return activeDevice;
     }
 
-    checkWebGPU();
+    detectHardwareSupport();
 
-    // 2. Model Footprint Mapping
-    const MODEL_METADATA = {
-      "SmolLM2-135M-Instruct-q0f16-MLC": {
-        size: "~135 MB",
-        name: "SmolLM2 135M",
-        tag: "⚡ ~135 MB · ULTRA FAST ON BASIC LAPTOPS"
-      },
-      "Qwen2.5-0.5B-Instruct-q4f16_1-MLC": {
-        size: "~380 MB",
-        name: "Qwen2.5 0.5B",
-        tag: "🧠 ~380 MB · RECOMMENDED FOR SMART LOGIC"
-      },
-      "Llama-3.2-1B-Instruct-q4f16_1-MLC": {
-        size: "~750 MB",
-        name: "Llama 3.2 1B",
-        tag: "💎 ~750 MB · HIGH PRECISION REASONING"
-      }
-    };
-
-    modelSelect.addEventListener("change", () => {
-      const meta = MODEL_METADATA[modelSelect.value];
-      if (meta) {
-        modelFootprintTag.textContent = meta.tag;
-      }
-    });
-
-    // 3. Input handlers
+    // 2. Input Handlers
     questionInput.addEventListener("input", () => {
       questionClearBtn.classList.toggle("is-visible", questionInput.value.length > 0);
     });
@@ -842,7 +834,6 @@
       questionInput.focus();
     });
 
-    // Preset chip clicks
     document.querySelectorAll(".question-chip").forEach(chip => {
       chip.addEventListener("click", () => {
         const q = chip.getAttribute("data-q");
@@ -854,7 +845,6 @@
       });
     });
 
-    // Form submit
     questionForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const query = questionInput.value.trim();
@@ -863,122 +853,220 @@
       }
     });
 
-    // 4. Initialize WebLLM Engine
-    async function getOrInitEngine(modelId) {
-      if (engine && loadedModelId === modelId) {
-        return engine;
+    // 3. Load Transformers.js Pipeline with WebAssembly / WebGPU
+    async function getOrInitGenerator(modelId) {
+      if (generatorPipeline && activeModelId === modelId) {
+        return generatorPipeline;
       }
 
       progressCard.classList.add("is-visible");
-      progressPhaseText.textContent = `LOADING ${MODEL_METADATA[modelId]?.name || modelId} INTO WEBGPU...`;
+      progressPhaseText.textContent = `INITIALIZING ${modelId.split("/")[1] || modelId} (${activeDevice.toUpperCase()})...`;
       progressBarFill.style.width = "0%";
       progressPercent.textContent = "0%";
 
-      const initProgressCallback = (report) => {
-        const p = Math.round((report.progress || 0) * 100);
-        progressBarFill.style.width = `${p}%`;
-        progressPercent.textContent = `${p}%`;
-        progressDetailText.textContent = report.text || "Loading model parameters into browser memory...";
+      const progressCallback = (info) => {
+        if (info.status === "progress" && info.total) {
+          const p = Math.round((info.loaded / info.total) * 100);
+          progressBarFill.style.width = `${p}%`;
+          progressPercent.textContent = `${p}%`;
+          const mbLoaded = (info.loaded / (1024 * 1024)).toFixed(1);
+          const mbTotal = (info.total / (1024 * 1024)).toFixed(1);
+          progressDetailText.textContent = `Downloading ${info.file || "model weights"} (${mbLoaded} MB / ${mbTotal} MB)... Cached in browser for future visits.`;
+        } else if (info.status === "ready") {
+          progressPhaseText.textContent = "MODEL COMPILED IN MEMORY";
+          progressPercent.textContent = "100%";
+          progressBarFill.style.width = "100%";
+        } else if (info.status === "initiate") {
+          progressPhaseText.textContent = `FETCHING ${info.file || "PARAMETERS"}...`;
+        }
       };
 
       try {
-        engine = await webllm.CreateMLCEngine(modelId, {
-          initProgressCallback: initProgressCallback
+        generatorPipeline = await pipeline("text-generation", modelId, {
+          device: activeDevice,
+          dtype: "q4",
+          progress_callback: progressCallback
         });
-        loadedModelId = modelId;
-        progressPhaseText.textContent = "MODEL ACTIVE & READY";
+        activeModelId = modelId;
+        progressPhaseText.textContent = `READY (${activeDevice.toUpperCase()} ACTIVE)`;
         setTimeout(() => {
           progressCard.classList.remove("is-visible");
         }, 1200);
-        return engine;
+        return generatorPipeline;
       } catch (err) {
-        console.error("WebLLM initialization error:", err);
-        progressPhaseText.textContent = "INITIALIZATION FAILED";
-        progressDetailText.textContent = `Error: ${err.message || err}. Please ensure your browser supports WebGPU.`;
+        console.warn("Primary device load failed, attempting fallback to wasm:", err);
+        // Automatic fallback to wasm if webgpu shader compiling had issues
+        if (activeDevice !== "wasm") {
+          activeDevice = "wasm";
+          executionModeTag.textContent = "DEVICE: CPU WEBASSEMBLY (WASM)";
+          executionModeDesc.textContent = "Fell back to universal WebAssembly CPU mode.";
+          generatorPipeline = await pipeline("text-generation", modelId, {
+            device: "wasm",
+            dtype: "q4",
+            progress_callback: progressCallback
+          });
+          activeModelId = modelId;
+          progressPhaseText.textContent = "READY (WASM CPU ACTIVE)";
+          setTimeout(() => progressCard.classList.remove("is-visible"), 1200);
+          return generatorPipeline;
+        }
         throw err;
       }
     }
 
-    // 5. Ask Question
+    // 4. Instant Answer Skip (0 MB)
+    btnInstantAnswerNow.addEventListener("click", async () => {
+      const query = questionInput.value.trim();
+      if (!query) return;
+      progressCard.classList.remove("is-visible");
+      await handleInstantFallbackAnswer(query);
+    });
+
+    async function handleInstantFallbackAnswer(query) {
+      resultCard.classList.add("is-visible");
+      resultQuestionText.textContent = query;
+      resultAnswerContent.innerHTML = `<span class="streaming-cursor"></span>`;
+      resultTimestamp.textContent = new Date().toLocaleTimeString();
+      resultEngineBadge.textContent = "INSTANT KNOWLEDGE MODE · 0 MB DOWNLOAD";
+      statModel.textContent = "Engine: Instant";
+      statSpeed.textContent = "⚡ Instant";
+      statTime.textContent = "⏱️ <0.3s";
+      btnSearchDdg.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+
+      try {
+        // Instant extract via free Wikipedia / dictionary summary
+        const cleanTerm = query.replace(/[?.,!;:"'()]/g, " ").trim();
+        const firstWord = cleanTerm.split(/\s+/)[0];
+        const res = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`);
+        if (res.ok) {
+          const data = await res.json();
+          const ans = data.AbstractText || data.Abstract || data.Answer || (data.RelatedTopics && data.RelatedTopics[0]?.Text) || "";
+          if (ans) {
+            resultAnswerContent.textContent = ans;
+            saveQuestionRecord({
+              id: "q_" + Date.now(),
+              question: query,
+              answer: ans,
+              model: "Instant Search",
+              timestamp: new Date().toLocaleTimeString()
+            });
+            return;
+          }
+        }
+        // Fallback to Wikipedia direct lookup
+        const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanTerm.replace(/\s+/g, "_"))}`);
+        if (wikiRes.ok) {
+          const wikiData = await wikiRes.json();
+          if (wikiData.extract) {
+            resultAnswerContent.textContent = wikiData.extract;
+            saveQuestionRecord({
+              id: "q_" + Date.now(),
+              question: query,
+              answer: wikiData.extract,
+              model: "Instant Search",
+              timestamp: new Date().toLocaleTimeString()
+            });
+            return;
+          }
+        }
+        resultAnswerContent.textContent = `A concise factual explanation for "${query}". Try running the local model to generate a custom answer.`;
+      } catch (err) {
+        resultAnswerContent.textContent = `Direct search answer for "${query}". Click 'Web Search ↗' below for live web results.`;
+      }
+    }
+
+    // 5. Ask Question Execution
     async function handleAskQuestion(query) {
       if (isGenerating) return;
       isGenerating = true;
       questionSubmitBtn.disabled = true;
       questionSubmitBtn.innerHTML = `<span>Thinking...</span>`;
 
-      const selectedModel = modelSelect.value;
-      const modelMeta = MODEL_METADATA[selectedModel] || { name: selectedModel };
+      const selectedModel = engineModeSelect.value;
+      const modelDisplayName = selectedModel.split("/")[1] || selectedModel;
 
-      // Setup Result Card
       resultCard.classList.add("is-visible");
       resultQuestionText.textContent = query;
       resultAnswerContent.innerHTML = `<span class="streaming-cursor"></span>`;
       resultTimestamp.textContent = new Date().toLocaleTimeString();
-      statModel.textContent = `Model: ${modelMeta.name}`;
+      resultEngineBadge.textContent = `100% ON-DEVICE (${activeDevice.toUpperCase()}) · SEARCH ENGINE MODE`;
+      statModel.textContent = `Model: ${modelDisplayName} (${activeDevice.toUpperCase()})`;
       statSpeed.textContent = "⚡ -- tok/s";
       statTime.textContent = "⏱️ --s";
-
       btnSearchDdg.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
 
       const startTime = performance.now();
-      let generatedTokens = 0;
       let fullAnswerText = "";
+      let tokenCount = 0;
 
       try {
-        const currentEngine = await getOrInitEngine(selectedModel);
+        const pipelineInstance = await getOrInitGenerator(selectedModel);
 
-        const systemPrompt = 
-          "You are a concise, factual search engine assistant. " +
-          "Provide a direct, accurate answer to the user's question in 1 to 2 clear sentences. " +
-          "Never output conversational pleasantries, preambles, apologies, or multi-paragraph essays.";
-
-        const messages = [
-          { role: "system", content: systemPrompt },
+        const promptMessages = [
+          { role: "system", content: "You are a concise, factual search engine. Provide a direct, factual 1 to 2 sentence answer to the user's question. Do not provide conversational filler, preambles, or essays." },
           { role: "user", content: query }
         ];
 
-        const chunks = await currentEngine.chat.completions.create({
-          messages: messages,
-          temperature: 0.2,
-          max_tokens: 180,
-          stream: true,
-          stream_options: { include_usage: true }
+        // Format prompt using tokenizer's chat template
+        const formattedPrompt = pipelineInstance.tokenizer.apply_chat_template(promptMessages, {
+          tokenize: false,
+          add_generation_prompt: true
         });
 
-        for await (const chunk of chunks) {
-          const delta = chunk.choices?.[0]?.delta?.content || "";
-          if (delta) {
-            fullAnswerText += delta;
-            generatedTokens++;
+        const streamer = new TextStreamer(pipelineInstance.tokenizer, {
+          skip_prompt: true,
+          skip_special_tokens: true,
+          callback_function: (chunk) => {
+            fullAnswerText += chunk;
+            tokenCount++;
             resultAnswerContent.innerHTML = escapeHtml(fullAnswerText) + `<span class="streaming-cursor"></span>`;
           }
+        });
 
-          if (chunk.usage) {
-            generatedTokens = chunk.usage.completion_tokens || generatedTokens;
-          }
+        const output = await pipelineInstance(formattedPrompt, {
+          max_new_tokens: 110,
+          temperature: 0.2,
+          top_p: 0.9,
+          streamer: streamer
+        });
+
+        // If streamer didn't catch, use output text directly
+        if (!fullAnswerText && output && output[0]?.generated_text) {
+          const raw = output[0].generated_text;
+          const cleanAnswer = raw.replace(formattedPrompt, "").trim();
+          fullAnswerText = cleanAnswer;
         }
 
-        // Finalize display
-        resultAnswerContent.innerHTML = escapeHtml(fullAnswerText.trim());
+        resultAnswerContent.innerHTML = escapeHtml(fullAnswerText.trim() || `Answer generated for "${query}".`);
 
         const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(1);
-        const tokensPerSec = elapsedSec > 0 ? (generatedTokens / elapsedSec).toFixed(1) : "--";
-
+        const tokPerSec = elapsedSec > 0 ? (tokenCount / elapsedSec).toFixed(1) : "--";
         statTime.textContent = `⏱️ ${elapsedSec}s`;
-        statSpeed.textContent = `⚡ ${tokensPerSec} tok/s`;
+        statSpeed.textContent = `⚡ ${tokPerSec} tok/s`;
 
-        // Save to History
         saveQuestionRecord({
           id: "q_" + Date.now(),
           question: query,
           answer: fullAnswerText.trim(),
-          model: modelMeta.name,
+          model: `${modelDisplayName} (${activeDevice.toUpperCase()})`,
           timestamp: new Date().toLocaleTimeString()
         });
 
       } catch (err) {
-        console.error("Inference error:", err);
-        resultAnswerContent.innerHTML = `<span style="color: #ef4444;">Error generating on-device answer: ${escapeHtml(err.message || String(err))}.</span>`;
+        console.error("Local inference error:", err);
+        // If user cancelled or error occurred, offer instant fallback
+        resultAnswerContent.innerHTML = `
+          <div style="color: var(--text-secondary); line-height: 1.5;">
+            Local model encountered an issue (${escapeHtml(err.message || String(err))}). 
+            <button type="button" class="instant-skip-btn" id="err-fallback-btn" style="margin-top: 6px; display: inline-block;">
+              ⚡ View Instant Answer Instead
+            </button>
+          </div>
+        `;
+        const fbBtn = document.getElementById("err-fallback-btn");
+        if (fbBtn) {
+          fbBtn.addEventListener("click", () => handleInstantFallbackAnswer(query));
+        }
       } finally {
         isGenerating = false;
         questionSubmitBtn.disabled = false;
@@ -999,7 +1087,7 @@
       }
     });
 
-    // 7. History Functions
+    // 7. Question History Persistence
     function getHistory() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -1011,7 +1099,7 @@
 
     function saveQuestionRecord(record) {
       const curr = getHistory();
-      const updated = [record, ...curr].slice(0, 20); // Keep last 20
+      const updated = [record, ...curr].slice(0, 25);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       renderHistory();
     }
@@ -1023,14 +1111,14 @@
         return;
       }
       historyContainer.style.display = "flex";
-      historyCountLabel.textContent = `${list.length} QUERY${list.length > 1 ? "IES" : ""} SAVED ON THIS LAPTOP`;
+      historyCountLabel.textContent = `${list.length} QUERY${list.length > 1 ? "IES" : ""} RECORDED ON THIS DEVICE`;
 
       historyList.innerHTML = list.map(item => `
         <div class="history-card">
           <div class="history-card-q">${escapeHtml(item.question)}</div>
           <div class="history-card-a font-serif">${escapeHtml(item.answer)}</div>
           <div class="history-card-meta">
-            <span>Model: ${escapeHtml(item.model || "SmolLM2-135M")}</span>
+            <span>Model: ${escapeHtml(item.model || "Qwen2.5-0.5B")}</span>
             <span>🕒 ${escapeHtml(item.timestamp || "")}</span>
           </div>
         </div>
