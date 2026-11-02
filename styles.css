@@ -1272,6 +1272,10 @@ body.theme-dark .tree-node.active .tree-badge {
   padding-left: 34px;
 }
 
+.tree-node[data-level="4"] {
+  padding-left: 46px;
+}
+
 /* Story Sections & In-Page Directory Anchors */
 .story-node-section,
 .page-directory-section {

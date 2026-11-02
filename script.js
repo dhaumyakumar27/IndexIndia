@@ -29,13 +29,248 @@ document.addEventListener("DOMContentLoaded", () => {
   const railTrack = document.getElementById("rail-track");
   const railTreePanel = document.getElementById("rail-tree-panel");
   const treeContentScroll = document.getElementById("tree-content-scroll");
-  const treeNodes = Array.from(document.querySelectorAll(".tree-node"));
-  const tickMarks = Array.from(document.querySelectorAll(".tick-mark"));
+  let treeNodes = Array.from(document.querySelectorAll(".tree-node"));
+  let tickMarks = Array.from(document.querySelectorAll(".tick-mark"));
   const btnPinTree = document.getElementById("btn-pin-tree");
   const btnCloseTree = document.getElementById("btn-close-tree");
   const treeScrubStrip = document.getElementById("tree-scrub-strip");
   const treeScrubIndicator = document.getElementById("tree-scrub-indicator");
   const railTreeStatus = document.getElementById("rail-tree-status");
+  let hasInPageTree = false;
+  let updateSectionOffsets = function() {};
+  let rebindTreeAndTicksEvents = function() {};
+
+  // Auto-generate directory tree by scanning core section names (e.g. 1.1, 1.1.1, 1.2.1, 01.1, etc.)
+  function autoBuildDirectoryTree() {
+    if (!treeContentScroll) return false;
+
+    const contentRoot = document.querySelector(".content-area") || document.querySelector("main") || document.querySelector("article");
+    if (!contentRoot) return false;
+
+    // Pattern to match hierarchical section numbering: e.g. 1.1, 1.1.1, 01.1, 01.1.2, 1.2.1, 01, 1, etc.
+    const SEC_NUM_REGEX = /(?:^|\s|[(\[{])(?:Section\s+)?(\d+(?:\.\d+)+|\d{1,2})\s*(?:[—–\-:.)\]}]*\s*)(.*)/i;
+    // Unicode emoji pattern at the beginning of headings
+    const EMOJI_PREFIX_REGEX = /^([\p{Extended_Pictographic}\u2600-\u27bf\u2300-\u23ff\u2b50\u2b55\uFE0F\u200D]+)\s*/u;
+
+    // Scan candidate elements in contentRoot in DOM tree order
+    const elements = Array.from(contentRoot.querySelectorAll(
+      ".story-act-divider, h1, h2, h3, h4, h5, h6, .story-section-title, .forum-title, [class*='section-title'], [data-node-idx]"
+    ));
+
+    const items = [];
+    const processedEls = new Set();
+    const seenIds = new Set();
+
+    elements.forEach((el) => {
+      if (processedEls.has(el)) return;
+
+      // Check if it is an Act / Module divider
+      if (el.classList.contains("story-act-divider")) {
+        processedEls.add(el);
+        const titleEl = el.querySelector(".story-act-title") || el.querySelector("h2, h3") || el;
+        el.querySelectorAll("*").forEach((child) => processedEls.add(child));
+        let rawTitle = titleEl.textContent.trim().replace(/\s+/g, " ");
+        // Strip badge notations like "[ACT I • NODES 01-04]"
+        rawTitle = rawTitle.replace(/\[.*?\]/g, "").trim();
+        items.push({
+          type: "module",
+          title: rawTitle.toUpperCase(),
+          el: el
+        });
+        return;
+      }
+
+      // Check if it is a heading that contains a section number
+      let rawText = el.textContent.trim().replace(/\s+/g, " ");
+      let icon = "";
+      const emojiMatch = rawText.match(EMOJI_PREFIX_REGEX);
+      if (emojiMatch) {
+        icon = emojiMatch[1];
+        rawText = rawText.slice(emojiMatch[0].length).trim();
+      }
+
+      const numMatch = rawText.match(SEC_NUM_REGEX);
+      if (numMatch) {
+        processedEls.add(el);
+        const parentSec = el.closest("section") || el.closest(".story-node-section, .page-directory-section, .forum-directory-section");
+        if (parentSec) {
+          parentSec.querySelectorAll("h1, h2, h3, h4, h5, h6, .story-section-title, .forum-title, [class*='section-title']").forEach((child) => processedEls.add(child));
+        }
+
+        const num = numMatch[1];
+        let title = numMatch[2].trim();
+        // Remove leading dashes/colons if any
+        title = title.replace(/^[—–\-:.)\]}]\s*/, "").trim();
+
+        // Determine anchor target ID
+        let targetId = (parentSec && parentSec.id) ? parentSec.id : el.id;
+        if (!targetId) {
+          targetId = "sec-" + num.replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-");
+          if (parentSec) {
+            parentSec.id = targetId;
+          } else {
+            el.id = targetId;
+          }
+        }
+
+        // Ensure unique targetId
+        let uniqueId = targetId;
+        let counter = 2;
+        while (seenIds.has(uniqueId)) {
+          uniqueId = `${targetId}-${counter++}`;
+        }
+        seenIds.add(uniqueId);
+        if (parentSec) parentSec.id = uniqueId; else el.id = uniqueId;
+
+        // Extract explicit data-level if provided
+        const explicitLevel = parseInt(el.getAttribute("data-level") || (parentSec ? parentSec.getAttribute("data-level") : null), 10);
+
+        // Smart icon fallback if no emoji was in text
+        if (!icon) {
+          const lower = title.toLowerCase();
+          if (lower.includes("audit") || lower.includes("checklist") || lower.includes("caro")) icon = "📋";
+          else if (lower.includes("portal") || lower.includes("filing") || lower.includes("mca")) icon = "📜";
+          else if (lower.includes("matrix") || lower.includes("performance") || lower.includes("index")) icon = "📊";
+          else if (lower.includes("ratio") || lower.includes("cap") || lower.includes("table") || lower.includes("bse") || lower.includes("nse")) icon = "📈";
+          else if (lower.includes("database") || lower.includes("drhp") || lower.includes("sebi")) icon = "📖";
+          else if (lower.includes("tender") || lower.includes("gem") || lower.includes("procurement")) icon = "🗄️";
+          else if (lower.includes("tax") || lower.includes("contingent") || lower.includes("warning") || lower.includes("risk")) icon = "⚠️";
+          else if (lower.includes("cash") || lower.includes("burn") || lower.includes("liquidity")) icon = "💸";
+          else if (lower.includes("pledge") || lower.includes("spiral")) icon = "📉";
+          else if (lower.includes("cycle") || lower.includes("vesting") || lower.includes("timeline")) icon = "⏱️";
+          else if (lower.includes("tech") || lower.includes("nre")) icon = "⚙️";
+          else if (lower.includes("trl") || lower.includes("sovereign")) icon = "🚀";
+          else if (lower.includes("moat") || lower.includes("homologation") || lower.includes("compliance")) icon = "🛡️";
+          else if (lower.includes("comment") || lower.includes("stream") || lower.includes("forum")) icon = "💬";
+          else if (lower.includes("disclaimer")) icon = "📑";
+          else icon = "📄";
+        }
+
+        const numParts = num.split(".");
+        items.push({
+          type: "node",
+          id: uniqueId,
+          num: num,
+          title: title,
+          displayName: title ? `${num} ${title}` : num,
+          icon: icon,
+          dots: numParts.length - 1,
+          numPartsLength: numParts.length,
+          explicitLevel: !isNaN(explicitLevel) ? explicitLevel : null,
+          el: el,
+          parentSec: parentSec
+        });
+      }
+    });
+
+    const nodeItems = items.filter((it) => it.type === "node");
+
+    // Graceful fallback: If page does NOT have numbered sections, don't destroy manual links
+    if (nodeItems.length < 2) {
+      return false;
+    }
+
+    // Calculate nesting levels dynamically based on dot count / segments
+    const minParts = Math.min(...nodeItems.map((n) => n.numPartsLength));
+    nodeItems.forEach((n) => {
+      if (n.explicitLevel) {
+        n.level = n.explicitLevel;
+      } else {
+        n.level = Math.min(Math.max((n.numPartsLength - minParts) + 1, 1), 4);
+      }
+    });
+
+    // Check signature to avoid unnecessary DOM re-renders if tree content has not changed
+    const signature = items.map((it) => it.type === "module" ? `M:${it.title}` : `N:${it.id}:${it.num}:${it.title}:${it.level}:${it.icon}`).join("|");
+    if (signature === autoBuildDirectoryTree.lastSignature) {
+      return false;
+    }
+    autoBuildDirectoryTree.lastSignature = signature;
+
+    // Helper for tree branch guides: ├──, │  ├──, └──
+    function getTreeGuide(level, isLastInBranch) {
+      if (level === 1) {
+        return isLastInBranch ? "└──" : "├──";
+      } else if (level === 2) {
+        return isLastInBranch ? "│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;├──";
+      } else if (level === 3) {
+        return isLastInBranch ? "│&nbsp;&nbsp;│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;│&nbsp;&nbsp;├──";
+      } else {
+        return isLastInBranch ? "│&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├──";
+      }
+    }
+
+    // Build the HTML for the Directory Tree
+    let treeHtml = "";
+    let nodeCounter = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type === "module") {
+        treeHtml += `<div class="tree-section-header">${item.title}</div>\n`;
+      } else {
+        const idx = nodeCounter++;
+        let isLastInBranch = true;
+        for (let j = i + 1; j < items.length; j++) {
+          const next = items[j];
+          if (next.type === "module") {
+            isLastInBranch = true;
+            break;
+          }
+          if (next.level < item.level) {
+            isLastInBranch = true;
+            break;
+          }
+          if (next.level === item.level) {
+            isLastInBranch = false;
+            break;
+          }
+          if (next.level > item.level) {
+            isLastInBranch = false;
+            break;
+          }
+        }
+
+        const guide = getTreeGuide(item.level, isLastInBranch);
+        const badge = String(idx + 1).padStart(2, "0");
+        const activeClass = idx === currentSubIndex ? " active" : "";
+
+        treeHtml += `<a href="#${item.id}" class="tree-node${activeClass}" data-index="${idx}" data-level="${item.level}">
+  <span class="tree-guide font-mono">${guide}</span>
+  <span class="tree-icon">${item.icon}</span>
+  <span class="tree-name font-mono">${item.displayName}</span>
+  <span class="tree-badge font-mono">${badge}</span>
+</a>\n`;
+      }
+    }
+
+    // Update #tree-content-scroll
+    treeContentScroll.innerHTML = treeHtml;
+
+    // Build matching ticks for #rail-ticks
+    const railTicks = document.getElementById("rail-ticks");
+    if (railTicks) {
+      let ticksHtml = "";
+      nodeItems.forEach((node, idx) => {
+        const activeClass = idx === currentSubIndex ? " active" : "";
+        ticksHtml += `<div class="tick-mark${activeClass}" data-index="${idx}" title="${node.displayName}"></div>\n`;
+      });
+      railTicks.innerHTML = ticksHtml;
+    }
+
+    // Rebind elements and event listeners
+    treeNodes = Array.from(document.querySelectorAll("#tree-content-scroll .tree-node"));
+    tickMarks = Array.from(document.querySelectorAll("#rail-ticks .tick-mark"));
+    hasInPageTree = treeNodes.some((n) => (n.getAttribute("href") || "").startsWith("#"));
+
+    if (typeof rebindTreeAndTicksEvents === "function") {
+      rebindTreeAndTicksEvents();
+    }
+    return true;
+  }
+
+  // Run initial auto-build if page has numbered sections
+  autoBuildDirectoryTree();
 
   // Determine active page/section index among treeNodes
   let activeNodeIdx = -1;
@@ -54,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeNodeIdx === -1) activeNodeIdx = 0;
   }
   let currentSubIndex = activeNodeIdx;
+
 
   let isPinned = false;
   let isWheeling = false;
@@ -342,86 +578,145 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: false });
   }
 
-  if (railTrack) {
-    tickMarks.forEach((tick, i) => {
-      tick.addEventListener("mouseenter", openRailPanel);
-      tick.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const targetNodeIdx = Math.round((i / Math.max(tickMarks.length - 1, 1)) * (treeNodes.length - 1));
-        navigateToNode(targetNodeIdx);
-      });
-    });
-  }
-
   if (railTreePanel) {
     railTreePanel.addEventListener("mouseenter", openRailPanel);
     railTreePanel.addEventListener("mouseleave", () => closeRailPanel(250));
   }
 
-  treeNodes.forEach((node, idx) => {
-    node.addEventListener("click", (e) => {
-      const href = node.getAttribute("href") || "";
-      if (href.startsWith("#")) {
-        e.preventDefault();
-        navigateToNode(idx);
-      } else {
-        highlightTreeNode(idx);
-      }
-    });
-  });
-
   // Dynamic ScrollSpy for in-page section anchors
-  const hasInPageTree = treeNodes.some((n) => (n.getAttribute("href") || "").startsWith("#"));
-  if (hasInPageTree) {
-    let scrollSpyScheduled = false;
-    let sectionTargets = [];
+  let scrollSpyScheduled = false;
+  let sectionTargets = [];
 
-    function updateSectionOffsets() {
-      sectionTargets = [];
-      for (let i = 0; i < treeNodes.length; i++) {
-        const href = treeNodes[i].getAttribute("href") || "";
+  updateSectionOffsets = function() {
+    sectionTargets = [];
+    for (let i = 0; i < treeNodes.length; i++) {
+      const href = treeNodes[i].getAttribute("href") || "";
+      if (href.startsWith("#")) {
+        const el = document.querySelector(href);
+        if (el) {
+          const prev = el.previousElementSibling;
+          const checkEl = (prev && prev.classList.contains("story-act-divider")) ? prev : el;
+          sectionTargets.push({
+            index: i,
+            offsetTop: checkEl.offsetTop
+          });
+        }
+      }
+    }
+  };
+
+  function runScrollSpy() {
+    scrollSpyScheduled = false;
+    if (!hasInPageTree || sectionTargets.length === 0) return;
+    const scrollPos = window.scrollY + 120;
+    let matchedIdx = 0;
+
+    for (let i = 0; i < sectionTargets.length; i++) {
+      if (sectionTargets[i].offsetTop <= scrollPos) {
+        matchedIdx = sectionTargets[i].index;
+      } else {
+        break;
+      }
+    }
+
+    if (matchedIdx !== currentSubIndex && !isWheeling) {
+      highlightTreeNode(matchedIdx);
+    }
+  }
+
+  window.addEventListener("resize", () => {
+    if (typeof updateSectionOffsets === "function") updateSectionOffsets();
+  }, { passive: true });
+
+  window.addEventListener("scroll", () => {
+    if (!scrollSpyScheduled) {
+      scrollSpyScheduled = true;
+      requestAnimationFrame(runScrollSpy);
+    }
+  }, { passive: true });
+
+  // Re-bind click and hover listeners to tree nodes and rail ticks
+  rebindTreeAndTicksEvents = function() {
+    treeNodes = Array.from(document.querySelectorAll("#tree-content-scroll .tree-node"));
+    tickMarks = Array.from(document.querySelectorAll("#rail-ticks .tick-mark"));
+    hasInPageTree = treeNodes.some((n) => (n.getAttribute("href") || "").startsWith("#"));
+
+    if (currentSubIndex >= treeNodes.length) {
+      currentSubIndex = Math.max(0, treeNodes.length - 1);
+    }
+
+    treeNodes.forEach((node, idx) => {
+      node.onclick = (e) => {
+        const href = node.getAttribute("href") || "";
         if (href.startsWith("#")) {
-          const el = document.querySelector(href);
-          if (el) {
-            const prev = el.previousElementSibling;
-            const checkEl = (prev && prev.classList.contains("story-act-divider")) ? prev : el;
-            sectionTargets.push({
-              index: i,
-              offsetTop: checkEl.offsetTop
-            });
+          e.preventDefault();
+          navigateToNode(idx);
+        } else {
+          highlightTreeNode(idx);
+        }
+      };
+    });
+
+    tickMarks.forEach((tick, i) => {
+      tick.onmouseenter = openRailPanel;
+      tick.onclick = (e) => {
+        e.stopPropagation();
+        const targetNodeIdx = Math.round((i / Math.max(tickMarks.length - 1, 1)) * (treeNodes.length - 1));
+        navigateToNode(targetNodeIdx);
+      };
+    });
+
+    updateSectionOffsets();
+    updateTreeTelemetryUI();
+    highlightTreeNode(currentSubIndex);
+  };
+
+  // Perform initial binding
+  rebindTreeAndTicksEvents();
+
+  // MutationObserver: automatically detects when sections/content change in the webpage
+  let autoTreeDebounceTimer = null;
+  function observeContentChanges() {
+    const target = document.querySelector(".content-area") || document.querySelector("main");
+    if (!target || typeof MutationObserver === "undefined") return;
+
+    const observer = new MutationObserver((mutations) => {
+      let hasRelevantMutation = false;
+      for (const m of mutations) {
+        if (m.type === "childList") {
+          hasRelevantMutation = true;
+          break;
+        }
+        if (m.type === "characterData") {
+          const parent = m.target.parentElement;
+          if (parent && (parent.closest("h1, h2, h3, h4, h5, h6, .story-section-title, .forum-title, .story-act-divider") || parent.matches("h1, h2, h3, h4, h5, h6"))) {
+            hasRelevantMutation = true;
+            break;
           }
         }
       }
-    }
 
-    updateSectionOffsets();
-    window.addEventListener("resize", updateSectionOffsets, { passive: true });
+      if (!hasRelevantMutation) return;
 
-    function runScrollSpy() {
-      scrollSpyScheduled = false;
-      const scrollPos = window.scrollY + 120;
-      let matchedIdx = 0;
+      if (autoTreeDebounceTimer) clearTimeout(autoTreeDebounceTimer);
+      autoTreeDebounceTimer = setTimeout(() => {
+        autoBuildDirectoryTree();
+      }, 150);
+    });
 
-      for (let i = 0; i < sectionTargets.length; i++) {
-        if (sectionTargets[i].offsetTop <= scrollPos) {
-          matchedIdx = sectionTargets[i].index;
-        } else {
-          break;
-        }
-      }
-
-      if (matchedIdx !== currentSubIndex && !isWheeling) {
-        highlightTreeNode(matchedIdx);
-      }
-    }
-
-    window.addEventListener("scroll", () => {
-      if (!scrollSpyScheduled) {
-        scrollSpyScheduled = true;
-        requestAnimationFrame(runScrollSpy);
-      }
-    }, { passive: true });
+    observer.observe(target, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
   }
+
+  observeContentChanges();
+
+  // Expose global methods for manual refresh if needed
+  window.autoBuildDirectoryTree = autoBuildDirectoryTree;
+  window.refreshDirectoryTree = autoBuildDirectoryTree;
+
 
   // Quick scrub strip drag
   if (treeScrubStrip) {
