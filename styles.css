@@ -2628,6 +2628,13 @@ body.theme-dark .doubt-pill-key {
 }
 
 /* 2. Doubt Solver Drawer (Rigid Section Sticked to Right Side of Page) */
+body.doubt-solver-open .hover-flyout-panel {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .doubt-solver-tile {
   position: fixed !important;
   right: 0 !important;
@@ -2638,7 +2645,7 @@ body.theme-dark .doubt-pill-key {
   max-width: 85vw !important;
   display: flex;
   flex-direction: column;
-  background: var(--bg-surface-elevated, var(--bg-card));
+  background-color: var(--bg-card, #FFFFFF) !important;
   border-left: 1.5px solid var(--border-primary) !important;
   border-right: none !important;
   border-top: none !important;

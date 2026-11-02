@@ -1846,15 +1846,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!rawQuery) return null;
     const clean = rawQuery.replace(/[?.,!;:"'()]/g, " ").trim().toLowerCase();
     const isAntonym = /\b(opposite|opposites|antonym|antonyms|contrary|reverse)\b/i.test(clean);
-    const isSynonym = /\b(synonym|synonyms|similar\s+words?|other\s+words?)\b/i.test(clean);
+    const isSynonym = /\b(synonym|synonyms|similar|like|related|other\s+words?)\b/i.test(clean);
     const isDefinition = /\b(meaning|definition|what\s+is|define)\b/i.test(clean) && !isAntonym && !isSynonym;
 
     if (!isAntonym && !isSynonym && !isDefinition) return null;
 
     const stopWords = new Set([
       "what", "is", "are", "the", "of", "for", "words", "word", "in", "a", "an", "tell",
-      "me", "some", "give", "opposite", "opposites", "antonym", "antonyms", "contrary",
-      "synonym", "synonyms", "similar", "meaning", "definition", "define", "game", "weirdo", "answer"
+      "me", "some", "give", "opposite", "opposites", "antonym", "antonyms", "contrary", "reverse",
+      "synonym", "synonyms", "similar", "like", "related", "other", "meaning", "definition", "define", "game", "weirdo", "answer", "about", "to"
     ]);
 
     const tokens = clean.split(/\s+/).filter((w) => w.length > 1 && !stopWords.has(w));
@@ -2007,7 +2007,18 @@ document.addEventListener("DOMContentLoaded", () => {
             sLower.includes("left the whispers") ||
             (sLower.includes("television series") && cleanTerm.toLowerCase().includes("opposite"));
 
-          if (!isActorBioSnippet) {
+          const isFirearmOrWeaponSnippet =
+            sLower.includes("cartridge") ||
+            sLower.includes("firearm") ||
+            sLower.includes("calibre") ||
+            sLower.includes("caliber") ||
+            sLower.includes("rifle") ||
+            sLower.includes("ammunition") ||
+            sLower.includes("bullet") ||
+            sLower.includes("handgun") ||
+            sLower.includes(".300 whisper");
+
+          if (!isActorBioSnippet && !isFirearmOrWeaponSnippet) {
             return {
               source: "Wikipedia Search",
               title: searchRes[0].title || cleanTerm,
@@ -2207,6 +2218,10 @@ document.addEventListener("DOMContentLoaded", () => {
       let healed = false;
       for (const item of items) {
         if (item.answerHtml && (
+          item.answerHtml.includes(".300 Whisper") ||
+          item.answerHtml.includes("cartridge in the Whisper family") ||
+          item.answerHtml.includes("7.82x34mm") ||
+          item.answerHtml.includes("J.D. Jones") ||
           item.answerHtml.includes("Brianna Brown") ||
           item.answerHtml.includes("drama pilot") ||
           item.answerHtml.includes("Lily Rabe") ||
@@ -2732,6 +2747,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.innerWidth <= 1280 && typeof closeTreeExplicitly === "function") {
         closeTreeExplicitly();
       }
+      document.body.classList.add("doubt-solver-open");
+      const openFlyouts = document.querySelectorAll(".panel-trigger-wrapper.is-open");
+      openFlyouts.forEach(f => f.classList.remove("is-open"));
+
       if (doubtPill) doubtPill.classList.remove("is-visible");
       currentDoubtContext = contextOverride || getVisibleScreenTarget() || {
         type: "section",
@@ -2762,6 +2781,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   closeDoubtSolver = function() {
     try {
+      document.body.classList.remove("doubt-solver-open");
       if (doubtTile) doubtTile.classList.remove("is-open");
       if (doubtPill) doubtPill.classList.remove("is-visible");
       if (doubtTextInput) doubtTextInput.blur();
