@@ -701,6 +701,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (autoTreeDebounceTimer) clearTimeout(autoTreeDebounceTimer);
       autoTreeDebounceTimer = setTimeout(() => {
         autoBuildDirectoryTree();
+        if (typeof injectSectionDoubtButtons === "function") {
+          injectSectionDoubtButtons();
+        }
       }, 150);
     });
 
@@ -2510,7 +2513,7 @@ INSTRUCTIONS:
           item.answerHtml.includes("Ask DuckDuckGo AI") ||
           item.answerHtml.includes("Web Search")
         )) {
-          item.answerHtml = synthesizeConceptAnswer(item.question, getVisibleScreenTarget(), null);
+          item.answerHtml = synthesizeConceptAnswer(item.question, getPageSummaryContext(), null);
           healed = true;
         }
       }
@@ -2588,6 +2591,13 @@ INSTRUCTIONS:
       </div>
     </div>
     <div class="doubt-tile-body">
+      <div class="doubt-context-strip" id="doubt-context-strip">
+        <div class="doubt-context-meta">
+          <span class="doubt-context-pill font-mono" id="doubt-context-badge">PAGE CONTEXT</span>
+          <span class="doubt-context-title font-mono" id="doubt-context-title">Page Overview</span>
+        </div>
+        <button type="button" class="doubt-context-reset-btn font-mono" id="doubt-context-reset-btn" title="Reset to Page Summary" style="display: none;">Page ↺</button>
+      </div>
       <div class="doubt-input-row">
         <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask any doubt or question..." autocomplete="off">
         <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask ↵</button>
@@ -2607,6 +2617,16 @@ INSTRUCTIONS:
   const doubtAskBtn = doubtTile.querySelector("#doubt-ask-btn");
   const doubtChips = doubtTile.querySelectorAll(".doubt-chip-btn");
   const doubtOutput = doubtTile.querySelector("#doubt-output-container");
+  const doubtContextStrip = doubtTile.querySelector("#doubt-context-strip");
+  const doubtContextBadge = doubtTile.querySelector("#doubt-context-badge");
+  const doubtContextTitle = doubtTile.querySelector("#doubt-context-title");
+  const doubtContextResetBtn = doubtTile.querySelector("#doubt-context-reset-btn");
+
+  if (doubtContextResetBtn) {
+    doubtContextResetBtn.addEventListener("click", () => {
+      setDoubtContext(getPageSummaryContext());
+    });
+  }
 
   function updateGeminiKeyButtonState() {
     if (!doubtKeyBtn) return;
@@ -2671,164 +2691,158 @@ INSTRUCTIONS:
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  function getVisibleScreenTarget() {
-    try {
-      // 1. Text Selection has highest priority if user highlighted anything
-      const selection = window.getSelection();
-      const selectedText = selection ? selection.toString().trim() : "";
-      if (selectedText.length >= 2) {
-        let parentHeading = "";
-        try {
-          const anchorEl = selection.anchorNode?.nodeType === 1 ? selection.anchorNode : selection.anchorNode?.parentElement;
-          const container = anchorEl?.closest("section, article, .story-node-section, .page-directory-section, .content-area > div");
-          parentHeading = container?.querySelector(".story-section-title, h1, h2, h3, h4, .institutional-title")?.textContent?.trim() || "";
-        } catch (_) {}
+  let lastHoveredSection = null;
 
-        return {
-          type: "selection",
-          title: parentHeading ? `Selection in: ${parentHeading.replace(/^[^\w\s\u00C0-\u017F]+/, "").trim()}` : "Selected Text",
-          text: selectedText,
-          excerpt: selectedText.length > 180 ? selectedText.slice(0, 180) + "..." : selectedText
-        };
-      }
+  // 1. Pre-given Page Summary Context (used when user hits 'M' or opens Doubt Solver without selecting a section)
+  function getPageSummaryContext() {
+    const pageTitle = (document.querySelector(".institutional-title")?.textContent.trim()) || document.title.split("—")[0].trim();
+    const abstract = document.querySelector(".dossier-lead")?.textContent.trim() || "";
+    const metaStrip = document.querySelector(".report-meta-strip")?.textContent.trim().replace(/\s+/g, " ") || "";
 
-      // 2. Real Viewport Reading Geometry
-      const vpHeight = window.innerHeight || document.documentElement.clientHeight || 800;
-      // Focus reading eye-level: between 12% and 78% down screen
-      const focusTop = vpHeight * 0.12;
-      const focusBottom = vpHeight * 0.78;
-      const eyeLine = vpHeight * 0.38;
+    // Collect all core section titles from directory tree or document
+    let topics = [];
+    if (typeof treeNodes !== "undefined" && treeNodes && treeNodes.length > 0) {
+      topics = treeNodes.map(n => {
+        const name = n.querySelector(".tree-name")?.textContent.trim() || n.textContent.trim();
+        return name;
+      }).filter(t => t.length > 0);
+    } else {
+      topics = Array.from(document.querySelectorAll(".story-section-title, .forum-title, h2, h3"))
+        .map(h => h.textContent.trim().replace(/\s+/g, " "))
+        .filter(t => t.length > 3 && !t.includes("DOUBT SOLVER"));
+    }
 
-      // Collect candidate sections
-      const candidates = Array.from(document.querySelectorAll(
-        "section[id], .story-node-section, .page-directory-section, .story-section, .institutional-forum-section, .content-area > section"
-      )).filter(el => {
-        if (el.closest(".doubt-solver-tile") || el.closest(".top-nav") || el.closest(".rail-navigator")) return false;
-        const rect = el.getBoundingClientRect();
-        return rect.height > 20 && rect.bottom > 80 && rect.top < vpHeight - 40;
-      });
+    const topicSummary = topics.slice(0, 20).join(" • ");
 
-      let bestSection = null;
-      let maxScore = -99999;
+    const summaryText = `[PAGE / GUIDE OVERVIEW CONTEXT]\nDOCUMENT: ${pageTitle}\n${metaStrip ? `METADATA: ${metaStrip}\n` : ""}${abstract ? `ABSTRACT: ${abstract}\n` : ""}\nCORE SECTIONS & ARCHITECTURE COVERED ON THIS PAGE:\n${topicSummary}`;
 
-      for (const el of candidates) {
-        const rect = el.getBoundingClientRect();
-        const visibleTop = Math.max(focusTop, rect.top);
-        const visibleBottom = Math.min(focusBottom, rect.bottom);
-        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+    return {
+      type: "page",
+      title: pageTitle,
+      text: summaryText,
+      excerpt: abstract ? (abstract.slice(0, 160) + "...") : `General platform summary covering ${topics.length} sections.`
+    };
+  }
 
-        if (visibleHeight > 0) {
-          // Eye line inclusion bonus: if eyeLine is directly inside this section
-          const spansEyeLine = (rect.top <= eyeLine && rect.bottom >= eyeLine) ? 400 : 0;
-          const center = rect.top + (rect.height / 2);
-          const distToEyeLine = Math.abs(center - eyeLine);
-          const score = visibleHeight + spansEyeLine - (distToEyeLine * 0.25);
-          if (score > maxScore) {
-            maxScore = score;
-            bestSection = el;
-          }
-        }
-      }
+  // 2. Specific Section Context (used when user hovers on a section and clicks "Ask Doubt" or presses 'M' while hovering)
+  function getSectionContext(sectionEl) {
+    if (!sectionEl) return getPageSummaryContext();
 
-      // Check in-page tree navigation sync if scrollspy active
-      if (!bestSection && typeof treeNodes !== "undefined" && treeNodes && treeNodes[currentSubIndex]) {
-        const href = treeNodes[currentSubIndex].getAttribute("href") || "";
-        if (href.startsWith("#") && href.length > 1) {
-          try {
-            const el = document.querySelector(href);
-            if (el) bestSection = el;
-          } catch (_) {}
-        }
-      }
+    const titleEl = sectionEl.querySelector(".story-section-title, .forum-title, h1, h2, h3, h4");
+    const rawTitle = titleEl ? titleEl.textContent.trim().replace(/\s+/g, " ") : (sectionEl.id || "Document Section");
+    const cleanTitle = rawTitle.replace(/^[^\w\s\u00C0-\u017F]+/, "").trim() || rawTitle;
 
-      if (!bestSection && candidates.length > 0) {
-        bestSection = candidates[0];
-      }
+    // Collect all narrative, checklists, notes, statutory filings, and data inside this section
+    const textNodes = Array.from(sectionEl.querySelectorAll(
+      ".story-narrative-lead, p, li, td, th, .story-tag, .story-section-meta, .story-meta-tags, .story-meta-col, blockquote, .forum-title"
+    )).filter(el => !el.closest(".section-doubt-btn") && !el.closest(".forum-reply-box"));
 
-      // 3. Extract EXACT visible text currently inside the viewport
-      let visibleTextBlocks = [];
-      const searchContainers = bestSection ? [bestSection, document.querySelector(".content-area") || document.body] : [document.querySelector(".content-area") || document.body];
+    let fullText = "";
+    if (textNodes.length > 0) {
+      fullText = textNodes.map(n => n.textContent.trim().replace(/\s+/g, " ")).filter(t => t.length > 0).join("\n");
+    } else {
+      const clone = sectionEl.cloneNode(true);
+      clone.querySelectorAll(".section-doubt-btn").forEach(b => b.remove());
+      fullText = clone.textContent.replace(/\s+/g, " ").trim();
+    }
 
-      for (const container of searchContainers) {
-        if (!container) continue;
-        const readableNodes = Array.from(container.querySelectorAll(
-          ".story-narrative-lead, p, li, td, th, .story-tag, .font-mono, .stat-val, .data-metric"
-        ));
+    const excerpt = textNodes[0]?.textContent.trim() || fullText.slice(0, 160);
 
-        for (const node of readableNodes) {
-          if (node.closest(".doubt-solver-tile") || node.closest(".top-nav") || node.closest(".rail-navigator") || node.closest("#tree-content-scroll")) continue;
-          const r = node.getBoundingClientRect();
-          if (r.bottom >= 70 && r.top <= vpHeight - 50 && r.height > 0) {
-            const txt = node.textContent.trim().replace(/\s+/g, " ");
-            if (txt.length > 5 && !visibleTextBlocks.includes(txt) && !txt.includes("DOUBT SOLVER")) {
-              visibleTextBlocks.push(txt);
-            }
-          }
-        }
-        if (visibleTextBlocks.length > 0 && container === bestSection) break;
-      }
+    return {
+      type: "section",
+      title: cleanTitle,
+      text: `[SECTION CONTEXT: ${cleanTitle}]\n${fullText}`,
+      excerpt: excerpt.length > 180 ? excerpt.slice(0, 180) + "..." : excerpt,
+      sectionId: sectionEl.id || ""
+    };
+  }
 
-      // Fallback if no sub-elements captured
-      if (visibleTextBlocks.length === 0 && bestSection) {
-        const raw = bestSection.textContent.replace(/\s+/g, " ").trim();
-        if (raw.length > 10) visibleTextBlocks.push(raw.slice(0, 450));
-      }
+  // 3. Get Active Doubt Context (No auto screen tracker: Section hover has priority, fallback to Page Summary)
+  function getActiveDoubtContext() {
+    if (currentDoubtContext) return currentDoubtContext;
 
-      // Find section heading / title
-      let title = "";
-      if (bestSection) {
-        const heading = bestSection.querySelector(".story-section-title, h1, h2, h3, h4, .institutional-title");
-        if (heading) {
-          title = heading.textContent.trim();
-        } else if (bestSection.id) {
-          title = bestSection.id.replace(/^sec-/, "").replace(/-/g, " ").toUpperCase();
-        }
-      }
+    const hoveredSec = lastHoveredSection || document.querySelector(
+      ".story-node-section:hover, .page-directory-section:hover, .forum-directory-section:hover, .institutional-forum-section:hover, .content-area > section:hover"
+    );
+    if (hoveredSec) {
+      return getSectionContext(hoveredSec);
+    }
+    return getPageSummaryContext();
+  }
 
-      if (!title) {
-        const topHeading = Array.from(document.querySelectorAll("h1, h2, h3, .story-section-title, .institutional-title"))
-          .filter(h => !h.closest(".doubt-solver-tile") && !h.closest(".top-nav"))
-          .find(h => {
-            const r = h.getBoundingClientRect();
-            return r.bottom >= 0 && r.top <= vpHeight * 0.7;
-          });
-        title = topHeading ? topHeading.textContent.trim() : document.title.split("—")[0].trim();
-      }
+  // 4. Update Doubt Solver UI with the active context pill and title
+  function updateDoubtContextUI() {
+    if (!doubtContextBadge || !doubtContextTitle) return;
+    const ctx = currentDoubtContext || getPageSummaryContext();
 
-      // Collect all narrative and structural text of the entire active section
-      let fullSectionText = "";
-      if (bestSection) {
-        const sectionNodes = Array.from(bestSection.querySelectorAll(
-          ".story-narrative-lead, p, li, td, th, .story-tag, .story-section-meta, .story-meta-tags, .story-meta-col, blockquote"
-        ));
-        if (sectionNodes.length > 0) {
-          fullSectionText = sectionNodes.map(n => n.textContent.trim().replace(/\s+/g, " ")).filter(t => t.length > 0).join(" ");
-        } else {
-          fullSectionText = (bestSection.innerText || bestSection.textContent || "").replace(/\s+/g, " ").trim();
-        }
-      }
-
-      const cleanTitle = title.replace(/^[^\w\s\u00C0-\u017F]+/, "").trim() || "Visible Screen";
-      const cleanText = visibleTextBlocks.length > 0 ? visibleTextBlocks.join(" ") : "Visible screen content.";
-      const richText = fullSectionText && fullSectionText.length > cleanText.length ? fullSectionText : cleanText;
-      const excerpt = visibleTextBlocks[0] || cleanText.slice(0, 160);
-
-      return {
-        type: "section",
-        title: cleanTitle,
-        text: richText,
-        excerpt: excerpt.length > 180 ? excerpt.slice(0, 180) + "..." : excerpt
-      };
-    } catch (err) {
-      console.warn("[DoubtSolver] getVisibleScreenTarget error:", err);
-      return {
-        type: "section",
-        title: document.title.split("—")[0].trim() || "Visible Screen",
-        text: "Visible content on screen.",
-        excerpt: "Visible content on screen."
-      };
+    if (ctx.type === "section") {
+      doubtContextBadge.textContent = "SECTION";
+      doubtContextTitle.textContent = ctx.title || "Section Context";
+      if (doubtContextResetBtn) doubtContextResetBtn.style.display = "inline-block";
+      if (doubtTextInput) doubtTextInput.placeholder = `Ask doubt about "${(ctx.title || "this section").slice(0, 24)}"...`;
+    } else if (ctx.type === "selection") {
+      doubtContextBadge.textContent = "SELECTION";
+      doubtContextTitle.textContent = ctx.title || "Selected Text";
+      if (doubtContextResetBtn) doubtContextResetBtn.style.display = "inline-block";
+      if (doubtTextInput) doubtTextInput.placeholder = "Ask doubt about selected text...";
+    } else {
+      doubtContextBadge.textContent = "PAGE CONTEXT";
+      doubtContextTitle.textContent = ctx.title || "Page Summary";
+      if (doubtContextResetBtn) doubtContextResetBtn.style.display = "none";
+      if (doubtTextInput) doubtTextInput.placeholder = "Ask any doubt about this guide or platform...";
     }
   }
+
+  function setDoubtContext(ctx) {
+    currentDoubtContext = ctx;
+    updateDoubtContextUI();
+  }
+
+  // 5. Open Doubt Solver specifically for a section
+  function openDoubtSolverForSection(sectionEl) {
+    const secCtx = getSectionContext(sectionEl);
+    setDoubtContext(secCtx);
+    openDoubtSolver(secCtx);
+  }
+
+  // 6. Section Hover & Floating "Ask Doubt" Button Injection
+  function injectSectionDoubtButtons() {
+    const sections = Array.from(document.querySelectorAll(
+      ".story-node-section, .page-directory-section, .forum-directory-section, .institutional-forum-section, .content-area > section"
+    ));
+
+    sections.forEach((sec) => {
+      // Track hover state for selection confirmation
+      sec.addEventListener("mouseenter", () => {
+        lastHoveredSection = sec;
+      });
+      sec.addEventListener("mouseleave", () => {
+        if (lastHoveredSection === sec) {
+          lastHoveredSection = null;
+        }
+      });
+
+      // Avoid duplicate button injection
+      if (sec.querySelector(".section-doubt-btn")) return;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "section-doubt-btn font-mono";
+      btn.title = "Ask Gemini AI a doubt about this section";
+      btn.innerHTML = `<span class="doubt-btn-icon">💬</span><span>Ask Doubt</span>`;
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openDoubtSolverForSection(sec);
+      });
+
+      sec.appendChild(btn);
+    });
+  }
+
+  // Initial injection
+  injectSectionDoubtButtons();
+
 
   function handleTextSelection() {
     const selection = window.getSelection();
@@ -3030,9 +3044,11 @@ INSTRUCTIONS:
   }
 
   function renderKeyTakeawayView() {
-    currentDoubtContext = getVisibleScreenTarget();
+    if (!currentDoubtContext) {
+      currentDoubtContext = getActiveDoubtContext();
+    }
     const rawText = currentDoubtContext.text || "";
-    const title = currentDoubtContext.title || "Visible Content";
+    const title = currentDoubtContext.title || "Document Context";
     const excerpt = currentDoubtContext.excerpt || (rawText.slice(0, 160) + "...");
 
     const sentences = rawText.split(/(?<=[.!?])\s+/)
@@ -3041,7 +3057,7 @@ INSTRUCTIONS:
 
     const keySentences = sentences.slice(0, 3);
     if (keySentences.length === 0) {
-      keySentences.push(excerpt || "Visible screen content analyzed.");
+      keySentences.push(excerpt || "Document context analyzed.");
     }
 
     const numbersFound = rawText.match(/(\d+(?:\.\d+)?%|\$\d+|\b\d+\s*(?:days|crore|months|years|bps|x|lakh)\b)/gi) || [];
@@ -3084,7 +3100,7 @@ INSTRUCTIONS:
           <span class="ddg-icon">🦆</span> DUCKDUCKGO ENGINE:
         </span>
         <div class="doubt-ddg-actions">
-          <a href="${ddgAiUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-ai" title="Ask DuckDuckGo AI about this screen">
+          <a href="${ddgAiUrl}" target="_blank" rel="noopener noreferrer" class="doubt-ddg-btn doubt-ddg-btn-ai" title="Ask DuckDuckGo AI about this context">
             <span>Ask DuckDuckGo AI</span>
             <span class="ddg-arrow">↗</span>
           </a>
@@ -3099,14 +3115,14 @@ INSTRUCTIONS:
     doubtOutput.innerHTML = `
       <div class="doubt-takeaway-card">
         <div class="doubt-takeaway-header">
-          <span class="doubt-takeaway-badge font-mono">LIVE SCREEN SCAN: ${escapeHtml(title).toUpperCase()}</span>
+          <span class="doubt-takeaway-badge font-mono">CONTEXT: ${escapeHtml(title).toUpperCase()}</span>
         </div>
         <div class="doubt-takeaway-source">
-          <span class="doubt-source-label font-mono">READING VIEWPORT:</span>
+          <span class="doubt-source-label font-mono">TARGET SCOPE:</span>
           <span class="doubt-source-title font-mono">"${escapeHtml(title)}"</span>
         </div>
         <div class="doubt-takeaway-snippet">
-          <div class="doubt-snippet-label font-mono">CURRENTLY VISIBLE TEXT:</div>
+          <div class="doubt-snippet-label font-mono">REFERENCED TEXT:</div>
           <p class="doubt-snippet-text font-serif">"${escapeHtml(excerpt)}"</p>
         </div>
         <div class="doubt-takeaway-bullets">
@@ -3120,12 +3136,13 @@ INSTRUCTIONS:
         </div>
         ${metricsHtml}
         <div class="doubt-takeaway-verdict">
-          <strong>Synthesis:</strong> ${matchedTopic ? escapeHtml(matchedTopic.screenContext) : `Key institutional takeaways extracted directly from visible screen content under ${escapeHtml(title)}.`}
+          <strong>Synthesis:</strong> ${matchedTopic ? escapeHtml(matchedTopic.screenContext) : `Key takeaways extracted directly from active context under ${escapeHtml(title)}.`}
         </div>
         ${ddgActionBarHtml}
       </div>
     `;
   }
+
 
   openDoubtSolver = function(contextOverride) {
     try {
@@ -3137,11 +3154,13 @@ INSTRUCTIONS:
       openFlyouts.forEach(f => f.classList.remove("is-open"));
 
       if (doubtPill) doubtPill.classList.remove("is-visible");
-      currentDoubtContext = contextOverride || getVisibleScreenTarget() || {
-        type: "section",
-        title: "Visible Content",
-        text: "Select any text or ask a question about this screen."
-      };
+      if (contextOverride) {
+        setDoubtContext(contextOverride);
+      } else if (!currentDoubtContext) {
+        setDoubtContext(getActiveDoubtContext());
+      } else {
+        updateDoubtContextUI();
+      }
 
       if (doubtTile) {
         doubtTile.classList.add("is-open");
@@ -3180,7 +3199,14 @@ INSTRUCTIONS:
     if (doubtTile && doubtTile.classList.contains("is-open")) {
       closeDoubtSolver();
     } else {
-      openDoubtSolver();
+      const hoveredSec = lastHoveredSection || document.querySelector(".story-node-section:hover, .page-directory-section:hover, .forum-directory-section:hover, .institutional-forum-section:hover, .content-area > section:hover");
+      if (hoveredSec) {
+        setDoubtContext(getSectionContext(hoveredSec));
+      } else {
+        // User pressed 'M' without hover selecting a section: send pre-given page summary context!
+        setDoubtContext(getPageSummaryContext());
+      }
+      openDoubtSolver(currentDoubtContext);
     }
   };
 
@@ -3217,9 +3243,9 @@ INSTRUCTIONS:
       doubtAskBtn.disabled = true;
     }
 
-    // Always ensure fresh screen context if user didn't make an explicit selection
-    if (!currentDoubtContext || currentDoubtContext.type !== "selection") {
-      currentDoubtContext = getVisibleScreenTarget();
+    // Ensure active context is present (Section Context or Page Summary)
+    if (!currentDoubtContext) {
+      currentDoubtContext = getActiveDoubtContext();
     }
     const context = currentDoubtContext;
     const timeInfo = getExactTimestamp();
@@ -3257,7 +3283,7 @@ INSTRUCTIONS:
       renderDoubtsView();
     } finally {
       if (doubtAskBtn) {
-        doubtAskBtn.textContent = "Ask Gemini ↵";
+        doubtAskBtn.textContent = "Ask ↵";
         doubtAskBtn.disabled = false;
       }
     }
@@ -3286,7 +3312,9 @@ INSTRUCTIONS:
       doubtChips.forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
       activeDoubtMode = chip.getAttribute("data-mode") || "doubts";
-      currentDoubtContext = getVisibleScreenTarget();
+      if (!currentDoubtContext) {
+        currentDoubtContext = getActiveDoubtContext();
+      }
       if (activeDoubtMode === "doubts") {
         if (doubtTextInput) doubtTextInput.placeholder = "Ask a doubt or press Enter...";
         renderDoubtsView();
@@ -3297,12 +3325,14 @@ INSTRUCTIONS:
     });
   });
 
+
   document.addEventListener("mousedown", (e) => {
     if (!doubtTile.classList.contains("is-open")) return;
-    if (!doubtTile.contains(e.target) && !doubtPill.contains(e.target)) {
+    if (!doubtTile.contains(e.target) && !doubtPill.contains(e.target) && !e.target.closest(".section-doubt-btn")) {
       closeDoubtSolver();
     }
   });
+
 
   // ================= 10. EDGE HOVER TRIGGER SYSTEM (Left: Directory Tree, Right: Doubt AI) =================
   // Force directory tree & duckduckgo doubt solver to appear as floating windows by moving cursor to the very end of sides

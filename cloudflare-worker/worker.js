@@ -58,8 +58,8 @@ export default {
       const body = await request.json().catch(() => ({}));
       const query = (body.query || body.prompt || "").toString().trim();
       const context = body.context || {};
-      const sectionTitle = (context.title || "Visible Content").toString().trim();
-      const sectionText = (context.text || "").toString().trim().slice(0, 3000);
+      const sectionTitle = (context.title || "Document Context").toString().trim();
+      const sectionText = (context.text || "").toString().trim().slice(0, 5000);
 
       if (!query) {
         return new Response(

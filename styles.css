@@ -1278,7 +1278,11 @@ body.theme-dark .tree-node.active .tree-badge {
 
 /* Story Sections & In-Page Directory Anchors */
 .story-node-section,
-.page-directory-section {
+.page-directory-section,
+.forum-directory-section,
+.institutional-forum-section,
+.content-area > section {
+  position: relative;
   scroll-margin-top: calc(var(--nav-height) + 16px);
   margin-top: 20px;
   margin-bottom: 24px;
@@ -1287,14 +1291,41 @@ body.theme-dark .tree-node.active .tree-badge {
   border-left: 3.5px solid #000000;
   border-radius: 6px;
   background: var(--bg-card);
-  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s ease,
+              border-color 0.15s ease,
+              background-color 0.15s ease;
 }
 
 body.theme-dark .story-node-section,
-body.theme-dark .page-directory-section {
+body.theme-dark .page-directory-section,
+body.theme-dark .forum-directory-section,
+body.theme-dark .institutional-forum-section,
+body.theme-dark .content-area > section {
   border-color: rgba(255, 255, 255, 0.08);
   border-left-color: #FFFFFF;
   background: rgba(255, 255, 255, 0.015);
+}
+
+/* Hover Confirmation: Section is raised slightly to confirm selection */
+.story-node-section:hover,
+.page-directory-section:hover,
+.forum-directory-section:hover,
+.institutional-forum-section:hover,
+.content-area > section:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+body.theme-dark .story-node-section:hover,
+body.theme-dark .page-directory-section:hover,
+body.theme-dark .forum-directory-section:hover,
+body.theme-dark .institutional-forum-section:hover,
+body.theme-dark .content-area > section:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .story-node-section.is-active-section,
@@ -1308,6 +1339,71 @@ body.theme-dark .page-directory-section.is-active-section {
   border-left-color: #FFFFFF;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
 }
+
+/* Floating "Ask Doubt" Button on Section Hover */
+.section-doubt-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: var(--bg-card, #ffffff);
+  border: 1.5px solid var(--border-primary, #000000);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  z-index: 10;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.theme-dark .section-doubt-btn {
+  background: #18191c;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.story-node-section:hover .section-doubt-btn,
+.page-directory-section:hover .section-doubt-btn,
+.forum-directory-section:hover .section-doubt-btn,
+.institutional-forum-section:hover .section-doubt-btn,
+.content-area > section:hover .section-doubt-btn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.section-doubt-btn:hover {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-dark .section-doubt-btn:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.section-doubt-btn .doubt-btn-icon {
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
 
 .story-section-meta {
   display: flex;
@@ -2773,6 +2869,84 @@ body.theme-dark .doubt-solver-tile {
   flex: 1;
   border-radius: 0 !important;
 }
+
+/* Active Context Indicator Strip in Doubt Solver */
+.doubt-context-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-bottom: 2px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  border-left: 3px solid #000000;
+  font-size: 0.72rem;
+  user-select: none;
+}
+
+body.theme-dark .doubt-context-strip {
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid #ffffff;
+}
+
+.doubt-context-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+}
+
+.doubt-context-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #000000;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+body.theme-dark .doubt-context-pill {
+  background: #ffffff;
+  color: #000000;
+}
+
+.doubt-context-title {
+  color: var(--text-primary);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doubt-context-reset-btn {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 2px 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.doubt-context-reset-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+}
+
+body.theme-dark .doubt-context-reset-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
 
 /* Input Row */
 .doubt-input-row {
