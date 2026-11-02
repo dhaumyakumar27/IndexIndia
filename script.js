@@ -4423,6 +4423,7 @@ INSTRUCTIONS:
   let annotationHtmlElements = document.getElementById("annotation-html-elements");
   let annotationDragPreview = document.getElementById("annotation-drag-preview");
   let selectionTooltip = document.getElementById("selection-highlight-tooltip");
+  let stickerPopover = document.getElementById("sticker-popover");
 
   const ANNOTATION_STORAGE_KEY = `indexindia_annotations_${window.location.pathname.replace(/\/$/, "") || "/"}`;
 
@@ -4431,15 +4432,18 @@ INSTRUCTIONS:
     strokes: [],
     textboxes: [],
     stickynotes: [],
-    highlights: []
+    highlights: [],
+    stickers: []
   };
 
   let annotationState = {
     isOpen: false,
-    activeTool: "sketch", // sketch | highlight | textbox | stickynote | eraser
+    activeTool: "sketch", // select | sketch | highlight | textbox | stickynote | sticker | eraser
     activeColor: "#FFE066",
     activeSize: 4,
-    currentFocusIdx: -1
+    currentFocusIdx: -1,
+    activeSticker: { type: "tag", variant: "danger", label: "⚠️ HIGH RISK" },
+    selectedElementIds: new Set()
   };
 
   function hexToRgba(hex, alpha) {
@@ -4452,6 +4456,24 @@ INSTRUCTIONS:
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  // Check if click/pointer event is within top-nav or side navigation drawers
+  function isInsideNavigationPanels(e) {
+    const topNav = document.getElementById("top-nav");
+    const topNavH = (topNav && !document.body.classList.contains("top-bar-hidden")) ? topNav.offsetHeight : 0;
+    if (e.clientY < topNavH) return true;
+    if (
+      e.target.closest(".top-nav") ||
+      e.target.closest(".rail-navigator") ||
+      e.target.closest("#doubt-solver-tile") ||
+      e.target.closest(".edit-annotation-bar") ||
+      e.target.closest(".sticker-popover") ||
+      e.target.closest(".nav-restore-float-btn")
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   // Inject Overlay Container DOM if not already present
   if (!annotationLayerContainer) {
     annotationLayerContainer = document.createElement("div");
@@ -4460,6 +4482,7 @@ INSTRUCTIONS:
       <svg id="annotation-svg-canvas"></svg>
       <div id="annotation-html-elements"></div>
       <div id="annotation-drag-preview" class="annotation-drag-preview" style="display:none;"></div>
+      <div id="annotation-selection-rect" class="annotation-selection-rect" style="display:none;"></div>
       <div id="selection-highlight-tooltip" class="selection-highlight-tooltip" style="display:none;">
         <button type="button" class="selection-highlight-btn" id="btn-quick-highlight">
           <span>🖍️</span> Highlight
@@ -4472,6 +4495,7 @@ INSTRUCTIONS:
   annotationSvgCanvas = annotationLayerContainer.querySelector("#annotation-svg-canvas");
   annotationHtmlElements = annotationLayerContainer.querySelector("#annotation-html-elements");
   annotationDragPreview = annotationLayerContainer.querySelector("#annotation-drag-preview");
+  let annotationSelectionRect = annotationLayerContainer.querySelector("#annotation-selection-rect");
   selectionTooltip = annotationLayerContainer.querySelector("#selection-highlight-tooltip");
 
   // Inject Floating Toolbar Palette DOM (styled identically to In-Page Finder bar)
@@ -4484,6 +4508,9 @@ INSTRUCTIONS:
     editAnnotationBar.innerHTML = `
       <span class="palette-drag-handle" title="Drag Palette">⋮⋮</span>
       <div class="palette-tool-group">
+        <button type="button" class="palette-tool-btn" data-tool="select" title="Select & Move (V)">
+          <span class="palette-tool-icon">↖️</span><span class="palette-tool-label">Select</span>
+        </button>
         <button type="button" class="palette-tool-btn active" data-tool="sketch" title="Pencil Sketch (P)">
           <span class="palette-tool-icon">✏️</span><span class="palette-tool-label">Sketch</span>
         </button>
@@ -4493,8 +4520,11 @@ INSTRUCTIONS:
         <button type="button" class="palette-tool-btn" data-tool="textbox" title="Free Drag-to-Select Text Box (T)">
           <span class="palette-tool-icon">🔲</span><span class="palette-tool-label">Box</span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="stickynote" title="Click-to-Place Sticky Note (S)">
+        <button type="button" class="palette-tool-btn" data-tool="stickynote" title="Click-to-Place & Drag Sticky Note (S)">
           <span class="palette-tool-icon">📌</span><span class="palette-tool-label">Note</span>
+        </button>
+        <button type="button" class="palette-tool-btn" data-tool="sticker" id="palette-btn-sticker" title="Stickers Palette (K)">
+          <span class="palette-tool-icon">🏷️</span><span class="palette-tool-label">Stickers</span>
         </button>
         <button type="button" class="palette-tool-btn" data-tool="eraser" title="Eraser / Click item to delete (X)">
           <span class="palette-tool-icon">🧹</span><span class="palette-tool-label">Eraser</span>
@@ -4540,6 +4570,42 @@ INSTRUCTIONS:
     document.body.appendChild(editAnnotationBar);
   }
 
+  // Inject Sticker Palette Popover DOM
+  if (!stickerPopover) {
+    stickerPopover = document.createElement("div");
+    stickerPopover.id = "sticker-popover";
+    stickerPopover.className = "sticker-popover";
+    stickerPopover.innerHTML = `
+      <div class="sticker-popover-header">
+        <span>FORENSIC STICKER PALETTE</span>
+        <button type="button" class="sticker-popover-close" id="btn-close-stickers">&times;</button>
+      </div>
+      <div class="sticker-section-label">AUDIT &amp; DUE DILIGENCE BADGES</div>
+      <div class="sticker-badges-grid">
+        <button type="button" class="sticker-badge-btn variant-danger" data-type="tag" data-variant="danger" data-label="⚠️ HIGH RISK">⚠️ HIGH RISK</button>
+        <button type="button" class="sticker-badge-btn variant-success" data-type="tag" data-variant="success" data-label="✅ VERIFIED">✅ VERIFIED</button>
+        <button type="button" class="sticker-badge-btn variant-danger" data-type="tag" data-variant="danger" data-label="🚨 RED FLAG">🚨 RED FLAG</button>
+        <button type="button" class="sticker-badge-btn variant-info" data-type="tag" data-variant="info" data-label="🔍 AUDIT REQ">🔍 AUDIT REQ</button>
+        <button type="button" class="sticker-badge-btn variant-warning" data-type="tag" data-variant="warning" data-label="📌 KEY FINDING">📌 KEY FINDING</button>
+        <button type="button" class="sticker-badge-btn variant-purple" data-type="tag" data-variant="purple" data-label="⚖️ COMPLIANT">⚖️ COMPLIANT</button>
+        <button type="button" class="sticker-badge-btn variant-teal" data-type="tag" data-variant="teal" data-label="💡 INSIGHT">💡 INSIGHT</button>
+        <button type="button" class="sticker-badge-btn variant-warning" data-type="tag" data-variant="warning" data-label="🛡️ MOAT">🛡️ MOAT</button>
+      </div>
+      <div class="sticker-section-label">RESEARCH ICONS &amp; STAMPS</div>
+      <div class="sticker-emojis-grid">
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="🎯" title="Target">🎯</button>
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="📈" title="Growth">📈</button>
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="📉" title="Decline">📉</button>
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="🚩" title="Red Flag">🚩</button>
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="⭐" title="Star">⭐</button>
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="🔥" title="Priority">🔥</button>
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="🏛️" title="Statutory">🏛️</button>
+        <button type="button" class="sticker-emoji-btn" data-type="emoji" data-icon="💰" title="Capital">💰</button>
+      </div>
+    `;
+    document.body.appendChild(stickerPopover);
+  }
+
   const annotationCounter = editAnnotationBar.querySelector("#annotation-counter");
   const annotationBtnPrev = editAnnotationBar.querySelector("#annotation-btn-prev");
   const annotationBtnNext = editAnnotationBar.querySelector("#annotation-btn-next");
@@ -4548,6 +4614,7 @@ INSTRUCTIONS:
   const annotationBtnClose = editAnnotationBar.querySelector("#annotation-btn-close");
   const paletteDragHandle = editAnnotationBar.querySelector(".palette-drag-handle");
   const btnQuickHighlight = selectionTooltip?.querySelector("#btn-quick-highlight");
+  const btnCloseStickers = stickerPopover.querySelector("#btn-close-stickers");
 
   function syncAnnotationCanvasDimensions() {
     if (!annotationSvgCanvas) return;
@@ -4586,14 +4653,15 @@ INSTRUCTIONS:
       (annotationsData.strokes?.length || 0) +
       (annotationsData.textboxes?.length || 0) +
       (annotationsData.stickynotes?.length || 0) +
-      (annotationsData.highlights?.length || 0);
+      (annotationsData.highlights?.length || 0) +
+      (annotationsData.stickers?.length || 0);
 
     if (total === 0) {
       annotationCounter.textContent = "0 notes";
     } else if (annotationState.currentFocusIdx >= 0 && annotationState.currentFocusIdx < total) {
       annotationCounter.textContent = `${annotationState.currentFocusIdx + 1} of ${total} notes`;
     } else {
-      annotationCounter.textContent = `${total} note${total > 1 ? "s" : ""}`;
+      annotationCounter.textContent = `${total} item${total > 1 ? "s" : ""}`;
     }
   }
 
@@ -4609,6 +4677,10 @@ INSTRUCTIONS:
     } else if (type === "stickynote") {
       annotationsData.stickynotes = annotationsData.stickynotes.filter((sn) => sn.id !== id);
       const el = annotationHtmlElements?.querySelector(`.user-annotation-stickynote[data-id="${id}"]`);
+      if (el) el.remove();
+    } else if (type === "sticker") {
+      annotationsData.stickers = (annotationsData.stickers || []).filter((stk) => stk.id !== id);
+      const el = annotationHtmlElements?.querySelector(`.user-annotation-sticker[data-id="${id}"]`);
       if (el) el.remove();
     } else if (type === "highlight") {
       annotationsData.highlights = annotationsData.highlights.filter((hl) => hl.id !== id);
@@ -4652,11 +4724,11 @@ INSTRUCTIONS:
     const content = el.querySelector(".textbox-content");
     const delBtn = el.querySelector(".textbox-delete-btn");
 
-    // Draggable header
+    // Draggable header & select-mode move
     let isMoving = false;
     let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
 
-    header.addEventListener("pointerdown", (e) => {
+    function startBoxDrag(e) {
       if (e.target === delBtn) return;
       isMoving = true;
       startX = e.pageX;
@@ -4665,7 +4737,9 @@ INSTRUCTIONS:
       initialTop = parseInt(el.style.top, 10) || tb.top;
       header.setPointerCapture(e.pointerId);
       e.stopPropagation();
-    });
+    }
+
+    header.addEventListener("pointerdown", startBoxDrag);
 
     header.addEventListener("pointermove", (e) => {
       if (!isMoving) return;
@@ -4721,7 +4795,7 @@ INSTRUCTIONS:
     return el;
   }
 
-  // --- 2. RENDER & INTERACT STICKY NOTE ---
+  // --- 2. RENDER & DRAG / EDIT STICKY NOTE ---
   function renderStickyNoteDOM(sn) {
     if (!annotationHtmlElements) return null;
     const el = document.createElement("div");
@@ -4732,32 +4806,75 @@ INSTRUCTIONS:
     el.style.setProperty("--note-color", sn.color || "#FFE066");
 
     el.innerHTML = `
-      <button type="button" class="sticky-note-pin" title="Click to view & edit note">📌</button>
+      <button type="button" class="sticky-note-pin" title="Click to edit, Drag to move location">📌</button>
       <div class="sticky-note-card">
         <div class="sticky-note-header">
-          <span class="sticky-note-time">NOTE • ${sn.time || "IST"}</span>
+          <span class="sticky-note-time">NOTE • ${sn.time || "IST"} (DRAG)</span>
           <button type="button" class="sticky-note-del-btn" title="Delete Note">&times;</button>
         </div>
         <textarea class="sticky-note-textarea" placeholder="Write sticky note here...">${sn.text || ""}</textarea>
-        <span class="sticky-note-click-hint">Hover to expand • Click to edit</span>
+        <span class="sticky-note-click-hint">Hover to expand • Click to edit • Drag to move</span>
       </div>
     `;
 
     const pin = el.querySelector(".sticky-note-pin");
+    const header = el.querySelector(".sticky-note-header");
     const textarea = el.querySelector(".sticky-note-textarea");
     const delBtn = el.querySelector(".sticky-note-del-btn");
 
-    pin.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (annotationState.activeTool === "eraser") {
-        deleteAnnotationItem(sn.id, "stickynote");
-        return;
-      }
-      el.classList.toggle("is-editing");
-      if (el.classList.contains("is-editing")) {
-        textarea.focus();
-      }
-    });
+    function setupDrag(dragTarget) {
+      let isDragging = false;
+      let startX = 0, startY = 0, initLeft = 0, initTop = 0;
+      let hasMoved = false;
+
+      dragTarget.addEventListener("pointerdown", (e) => {
+        if (e.target === delBtn) return;
+        isDragging = true;
+        hasMoved = false;
+        startX = e.pageX;
+        startY = e.pageY;
+        initLeft = parseInt(el.style.left, 10) || sn.left;
+        initTop = parseInt(el.style.top, 10) || sn.top;
+        dragTarget.setPointerCapture(e.pointerId);
+        e.stopPropagation();
+      });
+
+      dragTarget.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+        const dx = e.pageX - startX;
+        const dy = e.pageY - startY;
+        if (Math.hypot(dx, dy) > 4) {
+          hasMoved = true;
+          el.style.left = `${Math.max(0, initLeft + dx)}px`;
+          el.style.top = `${Math.max(0, initTop + dy)}px`;
+        }
+      });
+
+      const stopDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (hasMoved) {
+          sn.left = parseInt(el.style.left, 10);
+          sn.top = parseInt(el.style.top, 10);
+          saveAnnotations();
+        } else if (dragTarget === pin) {
+          if (annotationState.activeTool === "eraser") {
+            deleteAnnotationItem(sn.id, "stickynote");
+            return;
+          }
+          el.classList.toggle("is-editing");
+          if (el.classList.contains("is-editing")) {
+            textarea.focus();
+          }
+        }
+      };
+
+      dragTarget.addEventListener("pointerup", stopDrag);
+      dragTarget.addEventListener("pointercancel", stopDrag);
+    }
+
+    setupDrag(pin);
+    setupDrag(header);
 
     textarea.addEventListener("input", () => {
       sn.text = textarea.value;
@@ -4789,20 +4906,167 @@ INSTRUCTIONS:
     }
   });
 
-  // --- 3. FREE DRAG-AND-SELECT TEXT BOX TOOL ---
+  // --- 3. RENDER & DRAG STICKER ---
+  function renderStickerDOM(stk) {
+    if (!annotationHtmlElements) return null;
+    const el = document.createElement("div");
+    el.className = `user-annotation-sticker ${stk.type === "emoji" ? "is-emoji" : ""}`;
+    el.setAttribute("data-id", stk.id);
+    el.style.left = `${stk.left}px`;
+    el.style.top = `${stk.top}px`;
+
+    let innerContent = "";
+    if (stk.type === "emoji") {
+      innerContent = `<span class="sticker-inner">${stk.icon}</span>`;
+    } else {
+      innerContent = `<span class="sticker-inner sticker-badge-btn variant-${stk.variant || "warning"}">${stk.label}</span>`;
+    }
+
+    el.innerHTML = `
+      ${innerContent}
+      <button type="button" class="sticker-delete-btn" title="Delete Sticker">&times;</button>
+    `;
+
+    const delBtn = el.querySelector(".sticker-delete-btn");
+
+    // Draggable
+    let isDragging = false;
+    let startX = 0, startY = 0, initLeft = 0, initTop = 0;
+    let hasMoved = false;
+
+    el.addEventListener("pointerdown", (e) => {
+      if (e.target === delBtn) return;
+      isDragging = true;
+      hasMoved = false;
+      startX = e.pageX;
+      startY = e.pageY;
+      initLeft = parseInt(el.style.left, 10) || stk.left;
+      initTop = parseInt(el.style.top, 10) || stk.top;
+      el.setPointerCapture(e.pointerId);
+      e.stopPropagation();
+    });
+
+    el.addEventListener("pointermove", (e) => {
+      if (!isDragging) return;
+      const dx = e.pageX - startX;
+      const dy = e.pageY - startY;
+      if (Math.hypot(dx, dy) > 4) {
+        hasMoved = true;
+        el.style.left = `${Math.max(0, initLeft + dx)}px`;
+        el.style.top = `${Math.max(0, initTop + dy)}px`;
+      }
+    });
+
+    const stopDrag = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      if (hasMoved) {
+        stk.left = parseInt(el.style.left, 10);
+        stk.top = parseInt(el.style.top, 10);
+        saveAnnotations();
+      }
+    };
+
+    el.addEventListener("pointerup", stopDrag);
+    el.addEventListener("pointercancel", stopDrag);
+
+    delBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteAnnotationItem(stk.id, "sticker");
+    });
+
+    el.addEventListener("click", (e) => {
+      if (annotationState.activeTool === "eraser") {
+        e.stopPropagation();
+        deleteAnnotationItem(stk.id, "sticker");
+      }
+    });
+
+    annotationHtmlElements.appendChild(el);
+    return el;
+  }
+
+  // --- 4. RECTANGULAR SELECTION & MOVE TOOL ---
+  let isSelectingRect = false;
+  let selectStartX = 0, selectStartY = 0;
+
+  document.addEventListener("pointerdown", (e) => {
+    if (!annotationState.isOpen || annotationState.activeTool !== "select") return;
+    if (isInsideNavigationPanels(e)) return;
+    if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
+      return;
+    }
+    isSelectingRect = true;
+    selectStartX = e.pageX;
+    selectStartY = e.pageY;
+    if (annotationSelectionRect) {
+      annotationSelectionRect.style.left = `${selectStartX}px`;
+      annotationSelectionRect.style.top = `${selectStartY}px`;
+      annotationSelectionRect.style.width = "0px";
+      annotationSelectionRect.style.height = "0px";
+      annotationSelectionRect.style.display = "block";
+    }
+  });
+
+  document.addEventListener("pointermove", (e) => {
+    if (!isSelectingRect || !annotationSelectionRect) return;
+    const minX = Math.min(selectStartX, e.pageX);
+    const minY = Math.min(selectStartY, e.pageY);
+    const w = Math.abs(e.pageX - selectStartX);
+    const h = Math.abs(e.pageY - selectStartY);
+    annotationSelectionRect.style.left = `${minX}px`;
+    annotationSelectionRect.style.top = `${minY}px`;
+    annotationSelectionRect.style.width = `${w}px`;
+    annotationSelectionRect.style.height = `${h}px`;
+  });
+
+  document.addEventListener("pointerup", (e) => {
+    if (!isSelectingRect) return;
+    isSelectingRect = false;
+    if (annotationSelectionRect) {
+      annotationSelectionRect.style.display = "none";
+    }
+    const minX = Math.min(selectStartX, e.pageX);
+    const minY = Math.min(selectStartY, e.pageY);
+    const maxX = Math.max(selectStartX, e.pageX);
+    const maxY = Math.max(selectStartY, e.pageY);
+
+    // Clear previous selection
+    document.querySelectorAll(".annotation-selected").forEach((el) => el.classList.remove("annotation-selected"));
+    annotationState.selectedElementIds.clear();
+
+    if (Math.abs(maxX - minX) > 15 && Math.abs(maxY - minY) > 15) {
+      // Find intersecting textboxes, stickynotes, stickers, and strokes
+      annotationHtmlElements?.querySelectorAll(".user-annotation-textbox, .user-annotation-stickynote, .user-annotation-sticker").forEach((el) => {
+        const l = parseInt(el.style.left, 10);
+        const t = parseInt(el.style.top, 10);
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        if (l < maxX && l + w > minX && t < maxY && t + h > minY) {
+          el.classList.add("annotation-selected");
+          annotationState.selectedElementIds.add(el.getAttribute("data-id"));
+        }
+      });
+      annotationSvgCanvas?.querySelectorAll(".annotation-stroke").forEach((path) => {
+        const id = path.getAttribute("data-id");
+        const strokeData = annotationsData.strokes.find((s) => s.id === id);
+        if (strokeData && strokeData.y >= minY && strokeData.y <= maxY) {
+          path.classList.add("annotation-selected");
+          annotationState.selectedElementIds.add(id);
+        }
+      });
+    }
+  });
+
+  // --- 5. FREE DRAG-AND-SELECT TEXT BOX TOOL ---
   let isBoxDragging = false;
   let boxStartX = 0;
   let boxStartY = 0;
 
   document.addEventListener("pointerdown", (e) => {
     if (!annotationState.isOpen || annotationState.activeTool !== "textbox") return;
-    if (
-      e.target.closest(".edit-annotation-bar") ||
-      e.target.closest(".user-annotation-textbox") ||
-      e.target.closest(".user-annotation-stickynote") ||
-      e.target.closest(".top-nav") ||
-      e.target.closest(".rail-navigator")
-    ) {
+    if (isInsideNavigationPanels(e)) return;
+    if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
       return;
     }
     isBoxDragging = true;
@@ -4864,16 +5128,11 @@ INSTRUCTIONS:
     }
   });
 
-  // --- 4. CLICK-TO-PLACE STICKY NOTE TOOL ---
+  // --- 6. CLICK-TO-PLACE STICKY NOTE TOOL ---
   document.addEventListener("click", (e) => {
     if (!annotationState.isOpen || annotationState.activeTool !== "stickynote") return;
-    if (
-      e.target.closest(".edit-annotation-bar") ||
-      e.target.closest(".user-annotation-textbox") ||
-      e.target.closest(".user-annotation-stickynote") ||
-      e.target.closest(".top-nav") ||
-      e.target.closest(".rail-navigator")
-    ) {
+    if (isInsideNavigationPanels(e)) return;
+    if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
       return;
     }
     const posX = Math.max(10, e.pageX - 14);
@@ -4900,13 +5159,65 @@ INSTRUCTIONS:
     }
   });
 
-  // --- 5. PENCIL SKETCH OVERLAY DRAWING ---
+  // --- 7. CLICK-TO-STAMP STICKER TOOL ---
+  document.addEventListener("click", (e) => {
+    if (!annotationState.isOpen || annotationState.activeTool !== "sticker") return;
+    if (isInsideNavigationPanels(e)) return;
+    if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
+      return;
+    }
+    const posX = Math.max(10, e.pageX - 20);
+    const posY = Math.max(10, e.pageY - 12);
+    const active = annotationState.activeSticker || { type: "tag", variant: "danger", label: "⚠️ HIGH RISK" };
+    const newStk = {
+      id: `stk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      left: Math.round(posX),
+      top: Math.round(posY),
+      type: active.type,
+      variant: active.variant,
+      label: active.label,
+      icon: active.icon
+    };
+    if (!annotationsData.stickers) annotationsData.stickers = [];
+    annotationsData.stickers.push(newStk);
+    saveAnnotations();
+    renderStickerDOM(newStk);
+    updateAnnotationCounter();
+  });
+
+  // Sticker Popover interactions
+  stickerPopover.querySelectorAll(".sticker-badge-btn, .sticker-emoji-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const type = btn.getAttribute("data-type");
+      if (type === "emoji") {
+        annotationState.activeSticker = { type: "emoji", icon: btn.getAttribute("data-icon") };
+      } else {
+        annotationState.activeSticker = {
+          type: "tag",
+          variant: btn.getAttribute("data-variant"),
+          label: btn.getAttribute("data-label")
+        };
+      }
+      setAnnotationTool("sticker");
+      stickerPopover.classList.remove("is-open");
+    });
+  });
+
+  if (btnCloseStickers) {
+    btnCloseStickers.addEventListener("click", (e) => {
+      e.stopPropagation();
+      stickerPopover.classList.remove("is-open");
+    });
+  }
+
+  // --- 8. PENCIL SKETCH OVERLAY DRAWING & MOVE ---
   let isDrawing = false;
   let currentStrokePoints = [];
   let currentPathEl = null;
 
   function pointsToSvgPath(pts) {
-    if (pts.length === 0) return "";
+    if (!pts || pts.length === 0) return "";
     if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y} L ${pts[0].x + 0.1} ${pts[0].y + 0.1}`;
     let d = `M ${pts[0].x} ${pts[0].y}`;
     for (let i = 1; i < pts.length - 1; i++) {
@@ -4921,6 +5232,7 @@ INSTRUCTIONS:
   if (annotationSvgCanvas) {
     annotationSvgCanvas.addEventListener("pointerdown", (e) => {
       if (!annotationState.isOpen || annotationState.activeTool !== "sketch") return;
+      if (isInsideNavigationPanels(e)) return;
       if (e.button !== 0) return;
       isDrawing = true;
       annotationSvgCanvas.setPointerCapture(e.pointerId);
@@ -4950,14 +5262,16 @@ INSTRUCTIONS:
       isDrawing = false;
       if (currentPathEl && currentStrokePoints.length > 0) {
         const id = currentPathEl.getAttribute("data-id");
-        annotationsData.strokes.push({
+        const strokeObj = {
           id,
           color: annotationState.activeColor,
           size: annotationState.activeSize,
           d: currentPathEl.getAttribute("d"),
-          y: currentStrokePoints[0].y
-        });
-        currentPathEl.addEventListener("click", () => handleItemClick(id, "stroke"));
+          y: currentStrokePoints[0].y,
+          points: currentStrokePoints.map((p) => ({ x: p.x, y: p.y }))
+        };
+        annotationsData.strokes.push(strokeObj);
+        setupStrokeMoveListener(currentPathEl, strokeObj);
         saveAnnotations();
         updateAnnotationCounter();
       }
@@ -4969,7 +5283,50 @@ INSTRUCTIONS:
     annotationSvgCanvas.addEventListener("pointercancel", stopDrawing);
   }
 
-  // --- 6. TEXT HIGHLIGHTING ---
+  // Setup stroke move listener in select mode
+  function setupStrokeMoveListener(pathEl, strokeObj) {
+    let isMovingStroke = false;
+    let startX = 0, startY = 0;
+    let initialPoints = [];
+
+    pathEl.addEventListener("pointerdown", (e) => {
+      if (annotationState.activeTool === "eraser") {
+        deleteAnnotationItem(strokeObj.id, "stroke");
+        return;
+      }
+      if (annotationState.activeTool !== "select") return;
+      isMovingStroke = true;
+      startX = e.pageX;
+      startY = e.pageY;
+      initialPoints = (strokeObj.points || []).map((p) => ({ x: p.x, y: p.y }));
+      pathEl.setPointerCapture(e.pointerId);
+      e.stopPropagation();
+    });
+
+    pathEl.addEventListener("pointermove", (e) => {
+      if (!isMovingStroke || !initialPoints.length) return;
+      const dx = e.pageX - startX;
+      const dy = e.pageY - startY;
+      const updatedPts = initialPoints.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+      strokeObj.points = updatedPts;
+      const newD = pointsToSvgPath(updatedPts);
+      strokeObj.d = newD;
+      strokeObj.y = updatedPts[0].y;
+      pathEl.setAttribute("d", newD);
+    });
+
+    const stopStrokeMove = () => {
+      if (!isMovingStroke) return;
+      isMovingStroke = false;
+      saveAnnotations();
+    };
+
+    pathEl.addEventListener("pointerup", stopStrokeMove);
+    pathEl.addEventListener("pointercancel", stopStrokeMove);
+    pathEl.addEventListener("click", () => handleItemClick(strokeObj.id, "stroke"));
+  }
+
+  // --- 9. TEXT HIGHLIGHTING ---
   function applySelectionHighlight() {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
@@ -5044,7 +5401,7 @@ INSTRUCTIONS:
     }
   });
 
-  // --- 7. REHYDRATE ALL SAVED ANNOTATIONS ---
+  // --- 10. REHYDRATE ALL SAVED ANNOTATIONS ---
   function restoreSavedHighlight(hlData) {
     if (!hlData || !hlData.text) return;
     const root = document.querySelector(".content-area") || document.querySelector("main") || document.body;
@@ -5111,16 +5468,17 @@ INSTRUCTIONS:
         path.setAttribute("fill", "none");
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("stroke-linejoin", "round");
-        path.addEventListener("click", () => handleItemClick(stroke.id, "stroke"));
+        setupStrokeMoveListener(path, stroke);
         annotationSvgCanvas.appendChild(path);
       });
     }
 
-    // 2. Text Boxes & Sticky Notes
+    // 2. Text Boxes, Sticky Notes, and Stickers
     if (annotationHtmlElements) {
       annotationHtmlElements.innerHTML = "";
       annotationsData.textboxes.forEach((tb) => renderTextBoxDOM(tb));
       annotationsData.stickynotes.forEach((sn) => renderStickyNoteDOM(sn));
+      (annotationsData.stickers || []).forEach((stk) => renderStickerDOM(stk));
     }
 
     // 3. Highlights
@@ -5137,7 +5495,8 @@ INSTRUCTIONS:
           strokes: Array.isArray(parsed.strokes) ? parsed.strokes : [],
           textboxes: Array.isArray(parsed.textboxes) ? parsed.textboxes : [],
           stickynotes: Array.isArray(parsed.stickynotes) ? parsed.stickynotes : [],
-          highlights: Array.isArray(parsed.highlights) ? parsed.highlights : []
+          highlights: Array.isArray(parsed.highlights) ? parsed.highlights : [],
+          stickers: Array.isArray(parsed.stickers) ? parsed.stickers : []
         };
       }
     } catch (e) {
@@ -5147,11 +5506,11 @@ INSTRUCTIONS:
     updateAnnotationCounter();
   }
 
-  // --- 8. PREVIOUS / NEXT ANNOTATION NAVIGATION ---
+  // --- 11. PREVIOUS / NEXT ANNOTATION NAVIGATION ---
   function getAllAnnotationElements() {
     const list = [];
     if (annotationHtmlElements) {
-      annotationHtmlElements.querySelectorAll(".user-annotation-textbox, .user-annotation-stickynote").forEach((el) => {
+      annotationHtmlElements.querySelectorAll(".user-annotation-textbox, .user-annotation-stickynote, .user-annotation-sticker").forEach((el) => {
         const top = parseInt(el.style.top, 10) || el.offsetTop;
         list.push({ el, top });
       });
@@ -5206,6 +5565,7 @@ INSTRUCTIONS:
         ...annotationsData.strokes.map((s) => ({ ...s, type: "stroke" })),
         ...annotationsData.textboxes.map((tb) => ({ ...tb, type: "textbox" })),
         ...annotationsData.stickynotes.map((sn) => ({ ...sn, type: "stickynote" })),
+        ...(annotationsData.stickers || []).map((stk) => ({ ...stk, type: "sticker" })),
         ...annotationsData.highlights.map((hl) => ({ ...hl, type: "highlight" }))
       ];
       if (allItems.length === 0) return;
@@ -5218,8 +5578,8 @@ INSTRUCTIONS:
   // Clear all button
   if (annotationBtnClear) {
     annotationBtnClear.addEventListener("click", () => {
-      if (confirm("Clear all annotations, sketches, and sticky notes on this page?")) {
-        annotationsData = { version: 1, strokes: [], textboxes: [], stickynotes: [], highlights: [] };
+      if (confirm("Clear all annotations, sketches, stickers, and notes on this page?")) {
+        annotationsData = { version: 1, strokes: [], textboxes: [], stickynotes: [], highlights: [], stickers: [] };
         if (annotationSvgCanvas) annotationSvgCanvas.innerHTML = "";
         if (annotationHtmlElements) annotationHtmlElements.innerHTML = "";
         document.querySelectorAll("mark.user-annotation-highlight").forEach((m) => {
@@ -5233,7 +5593,7 @@ INSTRUCTIONS:
     });
   }
 
-  // --- 9. PALETTE DRAG HANDLER ---
+  // --- 12. PALETTE DRAG HANDLER ---
   let isDraggingPalette = false;
   let paletteOffsetX = 0;
   let paletteOffsetY = 0;
@@ -5255,6 +5615,10 @@ INSTRUCTIONS:
       const newY = Math.max(10, Math.min(window.innerHeight - editAnnotationBar.offsetHeight - 10, e.clientY - paletteOffsetY));
       editAnnotationBar.style.left = `${newX}px`;
       editAnnotationBar.style.top = `${newY}px`;
+      if (stickerPopover.classList.contains("is-open")) {
+        stickerPopover.style.left = `${newX + editAnnotationBar.offsetWidth / 2}px`;
+        stickerPopover.style.top = `${newY + 48}px`;
+      }
     });
 
     const stopPaletteDrag = () => {
@@ -5264,7 +5628,7 @@ INSTRUCTIONS:
     paletteDragHandle.addEventListener("pointercancel", stopPaletteDrag);
   }
 
-  // --- 10. TOOL / COLOR / SIZE BUTTON EVENT BINDINGS ---
+  // --- 13. TOOL / COLOR / SIZE BUTTON EVENT BINDINGS ---
   function setAnnotationTool(tool) {
     annotationState.activeTool = tool;
     editAnnotationBar.querySelectorAll(".palette-tool-btn").forEach((b) => {
@@ -5272,8 +5636,18 @@ INSTRUCTIONS:
     });
     document.body.classList.toggle("annotation-mode-sketch", tool === "sketch");
     document.body.classList.toggle("annotation-mode-eraser", tool === "eraser");
+    document.body.classList.toggle("annotation-mode-select", tool === "select");
     if (annotationSvgCanvas) {
       annotationSvgCanvas.classList.toggle("is-drawing", tool === "sketch");
+    }
+
+    if (tool === "sticker") {
+      const rect = editAnnotationBar.getBoundingClientRect();
+      stickerPopover.style.left = `${rect.left + rect.width / 2}px`;
+      stickerPopover.style.top = `${rect.bottom + 8}px`;
+      stickerPopover.classList.toggle("is-open");
+    } else {
+      stickerPopover.classList.remove("is-open");
     }
   }
 
@@ -5304,7 +5678,7 @@ INSTRUCTIONS:
     });
   });
 
-  // --- 11. OPEN / CLOSE PALETTE CONTROLS ---
+  // --- 14. OPEN / CLOSE PALETTE CONTROLS ---
   openAnnotationPanel = function() {
     annotationState.isOpen = true;
     if (editAnnotationBar) editAnnotationBar.classList.add("is-visible");
@@ -5318,10 +5692,12 @@ INSTRUCTIONS:
     annotationState.isOpen = false;
     if (editAnnotationBar) editAnnotationBar.classList.remove("is-visible");
     if (editNavBtn) editNavBtn.classList.remove("is-active");
-    document.body.classList.remove("annotation-mode-sketch", "annotation-mode-eraser");
+    if (stickerPopover) stickerPopover.classList.remove("is-open");
+    document.body.classList.remove("annotation-mode-sketch", "annotation-mode-eraser", "annotation-mode-select");
     if (annotationSvgCanvas) annotationSvgCanvas.classList.remove("is-drawing");
     if (selectionTooltip) selectionTooltip.style.display = "none";
     document.querySelectorAll(".user-annotation-stickynote.is-editing").forEach((n) => n.classList.remove("is-editing"));
+    document.querySelectorAll(".annotation-selected").forEach((el) => el.classList.remove("annotation-selected"));
   };
 
   toggleAnnotationPanel = function() {
@@ -5351,13 +5727,16 @@ INSTRUCTIONS:
     });
   }
 
-  // Keyboard shortcuts when annotation panel is open (P: sketch, H: highlight, T: textbox, S: note, X: eraser)
+  // Keyboard shortcuts when annotation panel is open (V: select, P: sketch, H: highlight, T: textbox, S: note, K: sticker, X: eraser)
   document.addEventListener("keydown", (e) => {
     if (!isAnnotationPanelActive()) return;
     if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
     const noMod = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
 
-    if ((e.code === "KeyP" || e.key?.toLowerCase() === "p") && noMod) {
+    if ((e.code === "KeyV" || e.key?.toLowerCase() === "v") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("select");
+    } else if ((e.code === "KeyP" || e.key?.toLowerCase() === "p") && noMod) {
       e.preventDefault();
       setAnnotationTool("sketch");
     } else if ((e.code === "KeyH" || e.key?.toLowerCase() === "h") && noMod) {
@@ -5369,12 +5748,26 @@ INSTRUCTIONS:
     } else if ((e.code === "KeyS" || e.key?.toLowerCase() === "s") && noMod) {
       e.preventDefault();
       setAnnotationTool("stickynote");
+    } else if ((e.code === "KeyK" || e.key?.toLowerCase() === "k") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("sticker");
     } else if ((e.code === "KeyX" || e.key?.toLowerCase() === "x") && noMod) {
       e.preventDefault();
       setAnnotationTool("eraser");
     } else if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === "z") {
       e.preventDefault();
       if (annotationBtnUndo) annotationBtnUndo.click();
+    } else if (e.key === "Delete" || e.key === "Backspace") {
+      // Delete selected elements
+      if (annotationState.selectedElementIds && annotationState.selectedElementIds.size > 0) {
+        annotationState.selectedElementIds.forEach((id) => {
+          deleteAnnotationItem(id, "textbox");
+          deleteAnnotationItem(id, "stickynote");
+          deleteAnnotationItem(id, "sticker");
+          deleteAnnotationItem(id, "stroke");
+        });
+        annotationState.selectedElementIds.clear();
+      }
     }
   });
 
