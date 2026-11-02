@@ -3691,7 +3691,7 @@ INSTRUCTIONS:
     const HUB_PAGES = [
       { title: "Guide Landing — Complete Institutional Narrative", file: "guide.html", sub: "Acts I – VI Narrative & Case Study", kw: "guide story narrative prologue acts" },
       { title: "Founder Dossier — Promoter Concentration & Pledging", file: "founder.html", sub: "Equity dilution, family trusts, pledge dynamics", kw: "founder promoter shares pledge trusts equity" },
-      { title: "Investor Dossier — Institutional Flow Analysis", file: "investor.html", sub: "FII vs DII allocation & institutional flows", kw: "investor fii dii foreign domestic capital flows" },
+      { title: "Investor Dossier — Open-Source Forensic Evaluation Directory", file: "investor.html", sub: "MCA V3, CARO 2020, Ind AS notes & liquidity stress testing", kw: "investor forensic mca aoc-4 mgt-7 caro ind as cfo ebitda deep tech trl homologation" },
       { title: "Bottleneck Matrix — Regulatory Chokepoints", file: "bottleneck.html", sub: "SEBI, RBI, MCA systemic friction points", kw: "bottleneck regulatory chokepoint sebi rbi mca friction" },
       { title: "Index Landing — Market Capitalization Hub", file: "index.html", sub: "Indian equity markets overview & indices", kw: "index market marketcap valuation multiples" },
       { title: "Graph Network — Ownership Webs & Circular Cross-Holdings", file: "graph.html", sub: "Ultimate beneficial ownership spider web", kw: "graph network ownership cross holding web corporate" },
