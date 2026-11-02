@@ -71,9 +71,19 @@ export default {
         );
       }
 
-      // Read API Key from Cloudflare Secrets
-      const apiKey = env.GEMINI_API_KEY;
-      if (!apiKey || apiKey.trim().length === 0) {
+      // Read API Key from Cloudflare Secrets (support various possible variable names/casing)
+      const apiKey = (
+        env.GEMINI_API_KEY ||
+        env.gemini_api_key ||
+        env.GEMINI_KEY ||
+        env.gemini_key ||
+        env["gemini apr"] ||
+        env["gemini api"] ||
+        env.GEMINI_API ||
+        ""
+      ).toString().trim();
+
+      if (!apiKey || apiKey.length === 0) {
         return new Response(
           JSON.stringify({
             error: "GEMINI_API_KEY secret is not set in Cloudflare Worker settings.",

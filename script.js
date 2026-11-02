@@ -2050,7 +2050,7 @@ INSTRUCTIONS:
   }
 
   // Configurable Cloudflare Worker Proxy URL (if deployed, visitors need zero keys or setup)
-  const CLOUDFLARE_WORKER_URL = "";
+  const CLOUDFLARE_WORKER_URL = "https://indexindia.dhaumyakumar27-235.workers.dev/api/doubt";
 
   function getActiveWorkerUrl() {
     return (
