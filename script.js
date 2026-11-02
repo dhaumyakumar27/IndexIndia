@@ -3524,6 +3524,17 @@ INSTRUCTIONS:
       },
       {
         category: "NAVIGATION & PANELS",
+        icon: "⚡",
+        title: "Question — On-Device Search Engine",
+        subtitle: "In-browser WebLLM search engine running 100% locally on your laptop",
+        badge: "WebLLM",
+        keywords: "question webllm search engine on device local ai llm ask questions smollm qwen search",
+        action: () => {
+          window.location.href = "question.html";
+        }
+      },
+      {
+        category: "NAVIGATION & PANELS",
         icon: "🔀",
         title: isIndexSuite ? "Switch to Guide Suite (Narrative)" : "Switch to Index Suite (Market Hub)",
         subtitle: isIndexSuite ? "Jump to Guide Landing (Acts I – VI)" : "Jump to Index Landing (B2B Data)",

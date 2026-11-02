@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question — On-Device WebLLM Search Engine</title>
+  <meta name="description" content="100% on-device search engine running locally inside your browser via WebLLM and WebGPU. Fast, private, and concise search answers without massive AI essays.">
+  <link rel="stylesheet" href="styles.css?v=6.5">
+  <style>
+    /* Question Page Dedicated Styling */
+    .question-page-wrapper {
+      min-height: calc(100vh - var(--nav-height));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px 80px;
+      max-width: 900px;
+      margin: 0 auto;
+      gap: 24px;
+    }
+
+    .question-hero {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .question-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .question-hero-badge .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    .question-hero-badge .badge-dot.warning {
+      background: #f59e0b;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+    }
+
+    .question-hero-title {
+      font-family: var(--font-mono);
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--text-primary);
+      margin: 4px 0 0;
+      text-transform: uppercase;
+    }
+
+    .question-hero-sub {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Model Selection Bar */
+    .question-model-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 740px;
+      padding: 8px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      font-size: 0.78rem;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .model-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .model-select-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+    }
+
+    .model-select-dropdown {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+
+    .model-select-dropdown:focus {
+      border-color: var(--accent);
+    }
+
+    .model-footprint-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--status-optimal);
+      background: var(--status-optimal-bg);
+      padding: 3px 7px;
+      border-radius: 4px;
+    }
+
+    /* Search Box */
+    .question-search-container {
+      width: 100%;
+      max-width: 740px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .question-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-primary);
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      transition: border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    body.theme-dark .question-input-wrapper {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .question-input-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
+    }
+
+    .question-input-icon {
+      padding: 0 14px;
+      font-size: 1.15rem;
+      color: var(--text-tertiary);
+      user-select: none;
+    }
+
+    .question-main-input {
+      flex: 1;
+      height: 52px;
+      border: none;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      color: var(--text-primary);
+      outline: none;
+      padding-right: 12px;
+    }
+
+    .question-main-input::placeholder {
+      color: var(--text-tertiary);
+      font-size: 0.92rem;
+    }
+
+    .question-clear-btn {
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      font-size: 1.3rem;
+      line-height: 1;
+      padding: 0 10px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .question-clear-btn.is-visible {
+      display: block;
+    }
+
+    .question-submit-btn {
+      height: 40px;
+      padding: 0 18px;
+      margin-right: 6px;
+      background: var(--bg-inverted);
+      color: var(--text-on-inverted);
+      border: 1px solid var(--border-primary);
+      border-radius: 7px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .question-submit-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .question-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: var(--bg-inverted);
+      border-color: var(--border-subtle);
+    }
+
+    /* Preset Chips */
+    .question-chips-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .question-chip-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      margin-right: 2px;
+    }
+
+    .question-chip {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.14s ease;
+      user-select: none;
+    }
+
+    .question-chip:hover {
+      border-color: var(--border-primary);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    /* Progress & Loading Card */
+    .question-progress-card {
+      width: 100%;
+      max-width: 740px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 59, 0, 0.25);
+      border-left: 3.5px solid var(--accent);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .question-progress-card.is-visible {
+      display: flex;
+    }
+
+    .progress-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+    }
+
+    .progress-title {
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .progress-percent {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #ff6b3d);
+      border-radius: 999px;
+      transition: width 0.15s ease;
+    }
+
+    .progress-detail-text {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    /* Results Card */
+    .question-result-card {
+      width: 100%;
+      max-width: 740px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 20px 22px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+      position: relative;
+    }
+
+    .question-result-card.is-visible {
+      display: flex;
+    }
+
+    .result-badge-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      border-bottom: 1px dashed var(--border-subtle);
+      padding-bottom: 9px;
+    }
+
+    .result-badge-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--status-optimal);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .result-badge-right {
+      color: var(--text-tertiary);
+    }
+
+    .result-question-title {
+      font-family: var(--font-sans);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .result-q-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .result-answer-content {
+      font-size: 0.96rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      min-height: 48px;
+    }
+
+    .streaming-cursor {
+      display: inline-block;
+      width: 6px;
+      height: 15px;
+      background: var(--accent);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blinkCursor 0.8s infinite;
+    }
+
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .result-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .result-stats-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .result-stat-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .result-action-btns {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result-btn {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .result-btn:hover {
+      border-color: var(--border-primary);
+      color: var(--text-primary);
+    }
+
+    /* History Feed */
+    .question-history-container {
+      width: 100%;
+      max-width: 740px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .history-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--border-subtle);
+    }
+
+    .history-title {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+    }
+
+    .history-clear-btn {
+      background: none;
+      border: 1px solid var(--border-subtle);
+      border-radius: 3px;
+      padding: 2px 7px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .history-clear-btn:hover {
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .history-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .history-card-q {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-primary);
+    }
+
+    .history-card-a {
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+
+    .history-card-meta {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-tertiary);
+      display: flex;
+      justify-content: space-between;
+      margin-top: 3px;
+    }
+
+    /* WebGPU Alert modal/card */
+    .webgpu-notice {
+      width: 100%;
+      max-width: 740px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-left: 3.5px solid #f59e0b;
+      border-radius: 8px;
+      padding: 12px 15px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .webgpu-notice.is-visible {
+      display: flex;
+    }
+
+    .webgpu-notice strong {
+      color: #d97706;
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <!-- Top Global Header / Navigation -->
+  <header class="top-nav" role="banner">
+    <div class="nav-left">
+      <a href="index.html" class="nav-brand" title="IndexIndia Platform">
+        <span class="brand-square font-mono">IX</span>
+        <span class="brand-text">IndexIndia</span>
+      </a>
+      <span class="suite-divider font-mono">/</span>
+      <span class="font-mono" style="font-size: 0.75rem; font-weight: 700; color: var(--accent);">QUESTION</span>
+    </div>
+
+    <div class="nav-center">
+      <a href="index.html" class="sub-nav-btn font-mono" style="text-decoration: none;">← Index</a>
+      <span class="sub-nav-sep font-mono">|</span>
+      <a href="guide.html" class="sub-nav-btn font-mono" style="text-decoration: none;">Guide</a>
+      <span class="sub-nav-sep font-mono">|</span>
+      <a href="graph.html" class="sub-nav-btn font-mono" style="text-decoration: none;">Graph</a>
+      <span class="sub-nav-sep font-mono">|</span>
+      <a href="directory.html" class="sub-nav-btn font-mono" style="text-decoration: none;">Directory</a>
+    </div>
+
+    <div class="nav-right">
+      <button type="button" class="icon-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Question Engine Page -->
+  <main class="question-page-wrapper" role="main">
+    
+    <div class="question-hero">
+      <div class="question-hero-badge" id="gpu-status-badge">
+        <span class="badge-dot" id="gpu-status-dot"></span>
+        <span id="gpu-status-text">DETECTING WEBGPU ACCELERATION...</span>
+      </div>
+      <h1 class="question-hero-title">Question</h1>
+      <p class="question-hero-sub">
+        Ask anything. A lightweight local model runs 100% inside your laptop browser to give direct, factual search engine answers—no server calls, no fluff.
+      </p>
+    </div>
+
+    <!-- WebGPU Notice if not enabled in browser -->
+    <div class="webgpu-notice" id="webgpu-notice">
+      <div><strong>⚠️ WebGPU Not Detected in this Browser Window</strong></div>
+      <div>To run local in-browser LLMs at high speed on your laptop, WebGPU is required. Please use Google Chrome, Microsoft Edge, or Firefox Nightly. On Linux, ensure <code>chrome://flags/#enable-unsafe-webgpu</code> is enabled.</div>
+    </div>
+
+    <!-- Model Selection Bar -->
+    <div class="question-model-bar">
+      <div class="model-selector-group">
+        <label for="model-select" class="model-select-label">LOCAL MODEL:</label>
+        <select id="model-select" class="model-select-dropdown">
+          <option value="SmolLM2-135M-Instruct-q0f16-MLC" selected>SmolLM2 135M (Ultra Fast · ~135 MB) [Default for Basic Laptops]</option>
+          <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5 0.5B (Smarter Logic · ~380 MB)</option>
+          <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (High Precision · ~750 MB)</option>
+        </select>
+      </div>
+      <span class="model-footprint-tag font-mono" id="model-footprint-tag">⚡ ~135 MB · CACHED LOCALLY</span>
+    </div>
+
+    <!-- Search Input Form -->
+    <div class="question-search-container">
+      <form id="question-form" class="question-input-wrapper" onsubmit="return false;">
+        <span class="question-input-icon">🔍</span>
+        <input 
+          type="text" 
+          id="question-input" 
+          class="question-main-input" 
+          placeholder="Ask a question about anything (e.g., Why is the sky blue? What is an artisan?)..." 
+          autocomplete="off" 
+          autofocus 
+        />
+        <button type="button" id="question-clear-btn" class="question-clear-btn" title="Clear input">&times;</button>
+        <button type="submit" id="question-submit-btn" class="question-submit-btn">
+          <span>Search</span>
+          <span class="font-mono">↵</span>
+        </button>
+      </form>
+
+      <!-- Preset Question Chips -->
+      <div class="question-chips-row">
+        <span class="question-chip-label">TRY:</span>
+        <button type="button" class="question-chip" data-q="Why is the sky blue?">Why is the sky blue?</button>
+        <button type="button" class="question-chip" data-q="What is the opposite of whisper?">Opposite of whisper</button>
+        <button type="button" class="question-chip" data-q="What does a horologist make?">What does a horologist make?</button>
+        <button type="button" class="question-chip" data-q="How does a mechanical watch balance wheel work?">Watch balance wheel</button>
+        <button type="button" class="question-chip" data-q="What is promoter pledging in corporate finance?">Promoter pledging</button>
+        <button type="button" class="question-chip" data-q="What is the capital of Australia?">Capital of Australia</button>
+      </div>
+    </div>
+
+    <!-- Initialization / Progress Card -->
+    <div class="question-progress-card" id="question-progress-card">
+      <div class="progress-top-row">
+        <span class="progress-title">
+          <span>⚡</span>
+          <span id="progress-phase-text">INITIALIZING MODEL IN BROWSER GPU CACHE</span>
+        </span>
+        <span class="progress-percent font-mono" id="progress-percent">0%</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+      </div>
+      <p class="progress-detail-text font-mono" id="progress-detail-text">
+        Downloading model parameters once into browser IndexedDB storage. Future queries load instantly with 0 KB data usage.
+      </p>
+    </div>
+
+    <!-- Live Search Answer Result Card -->
+    <div class="question-result-card" id="question-result-card">
+      <div class="result-badge-bar">
+        <div class="result-badge-left">
+          <span>●</span>
+          <span id="result-engine-badge">100% ON-DEVICE WEBGPU · SEARCH ENGINE MODE</span>
+        </div>
+        <div class="result-badge-right font-mono" id="result-timestamp">
+          Just now
+        </div>
+      </div>
+
+      <div class="result-question-title">
+        <span class="result-q-tag">Q:</span>
+        <span id="result-question-text"></span>
+      </div>
+
+      <div class="result-answer-content font-serif" id="result-answer-content">
+        <!-- Streamed response here -->
+      </div>
+
+      <div class="result-meta-bar">
+        <div class="result-stats-group">
+          <span class="result-stat-item" id="stat-speed">⚡ -- tok/s</span>
+          <span class="result-stat-item" id="stat-time">⏱️ --s</span>
+          <span class="result-stat-item" id="stat-model">Model: SmolLM2-135M</span>
+        </div>
+        <div class="result-action-btns">
+          <button type="button" class="result-btn" id="btn-copy-answer" title="Copy answer to clipboard">
+            <span>📋 Copy</span>
+          </button>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="result-btn" id="btn-search-ddg" title="Search on DuckDuckGo">
+            <span>🦆 Web Search ↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- History of Local Questions -->
+    <div class="question-history-container" id="question-history-container" style="display: none;">
+      <div class="history-header-row">
+        <span class="history-title" id="history-count-label">PAST QUERIES ON THIS LAPTOP</span>
+        <button type="button" class="history-clear-btn" id="history-clear-btn">Clear History</button>
+      </div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+
+  </main>
+
+  <!-- WebLLM In-Browser Engine Controller -->
+  <script type="module">
+    import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/+esm";
+
+    // Elements
+    const gpuStatusBadge = document.getElementById("gpu-status-badge");
+    const gpuStatusDot = document.getElementById("gpu-status-dot");
+    const gpuStatusText = document.getElementById("gpu-status-text");
+    const webgpuNotice = document.getElementById("webgpu-notice");
+
+    const modelSelect = document.getElementById("model-select");
+    const modelFootprintTag = document.getElementById("model-footprint-tag");
+
+    const questionForm = document.getElementById("question-form");
+    const questionInput = document.getElementById("question-input");
+    const questionClearBtn = document.getElementById("question-clear-btn");
+    const questionSubmitBtn = document.getElementById("question-submit-btn");
+
+    const progressCard = document.getElementById("question-progress-card");
+    const progressPhaseText = document.getElementById("progress-phase-text");
+    const progressPercent = document.getElementById("progress-percent");
+    const progressBarFill = document.getElementById("progress-bar-fill");
+    const progressDetailText = document.getElementById("progress-detail-text");
+
+    const resultCard = document.getElementById("question-result-card");
+    const resultQuestionText = document.getElementById("result-question-text");
+    const resultAnswerContent = document.getElementById("result-answer-content");
+    const resultTimestamp = document.getElementById("result-timestamp");
+    const statSpeed = document.getElementById("stat-speed");
+    const statTime = document.getElementById("stat-time");
+    const statModel = document.getElementById("stat-model");
+    const btnCopyAnswer = document.getElementById("btn-copy-answer");
+    const btnSearchDdg = document.getElementById("btn-search-ddg");
+
+    const historyContainer = document.getElementById("question-history-container");
+    const historyCountLabel = document.getElementById("history-count-label");
+    const historyList = document.getElementById("history-list");
+    const historyClearBtn = document.getElementById("history-clear-btn");
+    const themeToggleBtn = document.getElementById("theme-toggle-btn");
+    const themeIcon = document.getElementById("theme-icon");
+
+    // State
+    let engine = null;
+    let loadedModelId = null;
+    let isGenerating = false;
+    const STORAGE_KEY = "indexindia_question_history_v1";
+
+    // 1. Check WebGPU Support
+    async function checkWebGPU() {
+      if (!navigator.gpu) {
+        gpuStatusDot.classList.add("warning");
+        gpuStatusText.textContent = "WEBGPU NOT DETECTED";
+        webgpuNotice.classList.add("is-visible");
+        return false;
+      }
+      try {
+        const adapter = await navigator.gpu.requestAdapter();
+        if (adapter) {
+          gpuStatusDot.classList.remove("warning");
+          gpuStatusText.textContent = "100% ON-DEVICE WEBGPU READY";
+          webgpuNotice.classList.remove("is-visible");
+          return true;
+        }
+      } catch (err) {
+        console.warn("WebGPU adapter request error:", err);
+      }
+      gpuStatusDot.classList.add("warning");
+      gpuStatusText.textContent = "WEBGPU LIMITED / UNACCELERATED";
+      return false;
+    }
+
+    checkWebGPU();
+
+    // 2. Model Footprint Mapping
+    const MODEL_METADATA = {
+      "SmolLM2-135M-Instruct-q0f16-MLC": {
+        size: "~135 MB",
+        name: "SmolLM2 135M",
+        tag: "⚡ ~135 MB · ULTRA FAST ON BASIC LAPTOPS"
+      },
+      "Qwen2.5-0.5B-Instruct-q4f16_1-MLC": {
+        size: "~380 MB",
+        name: "Qwen2.5 0.5B",
+        tag: "🧠 ~380 MB · RECOMMENDED FOR SMART LOGIC"
+      },
+      "Llama-3.2-1B-Instruct-q4f16_1-MLC": {
+        size: "~750 MB",
+        name: "Llama 3.2 1B",
+        tag: "💎 ~750 MB · HIGH PRECISION REASONING"
+      }
+    };
+
+    modelSelect.addEventListener("change", () => {
+      const meta = MODEL_METADATA[modelSelect.value];
+      if (meta) {
+        modelFootprintTag.textContent = meta.tag;
+      }
+    });
+
+    // 3. Input handlers
+    questionInput.addEventListener("input", () => {
+      questionClearBtn.classList.toggle("is-visible", questionInput.value.length > 0);
+    });
+
+    questionClearBtn.addEventListener("click", () => {
+      questionInput.value = "";
+      questionClearBtn.classList.remove("is-visible");
+      questionInput.focus();
+    });
+
+    // Preset chip clicks
+    document.querySelectorAll(".question-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const q = chip.getAttribute("data-q");
+        if (q) {
+          questionInput.value = q;
+          questionClearBtn.classList.add("is-visible");
+          handleAskQuestion(q);
+        }
+      });
+    });
+
+    // Form submit
+    questionForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const query = questionInput.value.trim();
+      if (query) {
+        handleAskQuestion(query);
+      }
+    });
+
+    // 4. Initialize WebLLM Engine
+    async function getOrInitEngine(modelId) {
+      if (engine && loadedModelId === modelId) {
+        return engine;
+      }
+
+      progressCard.classList.add("is-visible");
+      progressPhaseText.textContent = `LOADING ${MODEL_METADATA[modelId]?.name || modelId} INTO WEBGPU...`;
+      progressBarFill.style.width = "0%";
+      progressPercent.textContent = "0%";
+
+      const initProgressCallback = (report) => {
+        const p = Math.round((report.progress || 0) * 100);
+        progressBarFill.style.width = `${p}%`;
+        progressPercent.textContent = `${p}%`;
+        progressDetailText.textContent = report.text || "Loading model parameters into browser memory...";
+      };
+
+      try {
+        engine = await webllm.CreateMLCEngine(modelId, {
+          initProgressCallback: initProgressCallback
+        });
+        loadedModelId = modelId;
+        progressPhaseText.textContent = "MODEL ACTIVE & READY";
+        setTimeout(() => {
+          progressCard.classList.remove("is-visible");
+        }, 1200);
+        return engine;
+      } catch (err) {
+        console.error("WebLLM initialization error:", err);
+        progressPhaseText.textContent = "INITIALIZATION FAILED";
+        progressDetailText.textContent = `Error: ${err.message || err}. Please ensure your browser supports WebGPU.`;
+        throw err;
+      }
+    }
+
+    // 5. Ask Question
+    async function handleAskQuestion(query) {
+      if (isGenerating) return;
+      isGenerating = true;
+      questionSubmitBtn.disabled = true;
+      questionSubmitBtn.innerHTML = `<span>Thinking...</span>`;
+
+      const selectedModel = modelSelect.value;
+      const modelMeta = MODEL_METADATA[selectedModel] || { name: selectedModel };
+
+      // Setup Result Card
+      resultCard.classList.add("is-visible");
+      resultQuestionText.textContent = query;
+      resultAnswerContent.innerHTML = `<span class="streaming-cursor"></span>`;
+      resultTimestamp.textContent = new Date().toLocaleTimeString();
+      statModel.textContent = `Model: ${modelMeta.name}`;
+      statSpeed.textContent = "⚡ -- tok/s";
+      statTime.textContent = "⏱️ --s";
+
+      btnSearchDdg.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+
+      const startTime = performance.now();
+      let generatedTokens = 0;
+      let fullAnswerText = "";
+
+      try {
+        const currentEngine = await getOrInitEngine(selectedModel);
+
+        const systemPrompt = 
+          "You are a concise, factual search engine assistant. " +
+          "Provide a direct, accurate answer to the user's question in 1 to 2 clear sentences. " +
+          "Never output conversational pleasantries, preambles, apologies, or multi-paragraph essays.";
+
+        const messages = [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: query }
+        ];
+
+        const chunks = await currentEngine.chat.completions.create({
+          messages: messages,
+          temperature: 0.2,
+          max_tokens: 180,
+          stream: true,
+          stream_options: { include_usage: true }
+        });
+
+        for await (const chunk of chunks) {
+          const delta = chunk.choices?.[0]?.delta?.content || "";
+          if (delta) {
+            fullAnswerText += delta;
+            generatedTokens++;
+            resultAnswerContent.innerHTML = escapeHtml(fullAnswerText) + `<span class="streaming-cursor"></span>`;
+          }
+
+          if (chunk.usage) {
+            generatedTokens = chunk.usage.completion_tokens || generatedTokens;
+          }
+        }
+
+        // Finalize display
+        resultAnswerContent.innerHTML = escapeHtml(fullAnswerText.trim());
+
+        const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(1);
+        const tokensPerSec = elapsedSec > 0 ? (generatedTokens / elapsedSec).toFixed(1) : "--";
+
+        statTime.textContent = `⏱️ ${elapsedSec}s`;
+        statSpeed.textContent = `⚡ ${tokensPerSec} tok/s`;
+
+        // Save to History
+        saveQuestionRecord({
+          id: "q_" + Date.now(),
+          question: query,
+          answer: fullAnswerText.trim(),
+          model: modelMeta.name,
+          timestamp: new Date().toLocaleTimeString()
+        });
+
+      } catch (err) {
+        console.error("Inference error:", err);
+        resultAnswerContent.innerHTML = `<span style="color: #ef4444;">Error generating on-device answer: ${escapeHtml(err.message || String(err))}.</span>`;
+      } finally {
+        isGenerating = false;
+        questionSubmitBtn.disabled = false;
+        questionSubmitBtn.innerHTML = `<span>Search</span><span class="font-mono">↵</span>`;
+      }
+    }
+
+    // 6. Copy Button
+    btnCopyAnswer.addEventListener("click", () => {
+      const text = resultAnswerContent.textContent || "";
+      if (text) {
+        navigator.clipboard.writeText(text).then(() => {
+          btnCopyAnswer.innerHTML = `<span>✓ Copied!</span>`;
+          setTimeout(() => {
+            btnCopyAnswer.innerHTML = `<span>📋 Copy</span>`;
+          }, 1800);
+        });
+      }
+    });
+
+    // 7. History Functions
+    function getHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveQuestionRecord(record) {
+      const curr = getHistory();
+      const updated = [record, ...curr].slice(0, 20); // Keep last 20
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = getHistory();
+      if (!list || list.length === 0) {
+        historyContainer.style.display = "none";
+        return;
+      }
+      historyContainer.style.display = "flex";
+      historyCountLabel.textContent = `${list.length} QUERY${list.length > 1 ? "IES" : ""} SAVED ON THIS LAPTOP`;
+
+      historyList.innerHTML = list.map(item => `
+        <div class="history-card">
+          <div class="history-card-q">${escapeHtml(item.question)}</div>
+          <div class="history-card-a font-serif">${escapeHtml(item.answer)}</div>
+          <div class="history-card-meta">
+            <span>Model: ${escapeHtml(item.model || "SmolLM2-135M")}</span>
+            <span>🕒 ${escapeHtml(item.timestamp || "")}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    historyClearBtn.addEventListener("click", () => {
+      if (confirm("Clear local question history on this device?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderHistory();
+      }
+    });
+
+    renderHistory();
+
+    // 8. Theme Toggle
+    function updateThemeUI() {
+      const isDark = document.body.classList.contains("theme-dark");
+      if (themeIcon) themeIcon.textContent = isDark ? "☀️" : "🌙";
+    }
+
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener("click", () => {
+        const isDark = document.body.classList.contains("theme-dark");
+        if (isDark) {
+          document.body.classList.remove("theme-dark");
+          document.body.classList.add("theme-light");
+          localStorage.setItem("indexindian_theme", "light");
+        } else {
+          document.body.classList.add("theme-dark");
+          document.body.classList.remove("theme-light");
+          localStorage.setItem("indexindian_theme", "dark");
+        }
+        updateThemeUI();
+      });
+    }
+
+    const savedTheme = localStorage.getItem("indexindian_theme");
+    if (savedTheme === "light") {
+      document.body.classList.remove("theme-dark");
+      document.body.classList.add("theme-light");
+    }
+    updateThemeUI();
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>
