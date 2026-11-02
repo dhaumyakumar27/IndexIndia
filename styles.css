@@ -370,6 +370,76 @@ body.theme-dark .sub-nav-btn.active {
   font-weight: 800 !important;
 }
 
+/* Top Nav Action Buttons: Directory Tree & AI Doubt Solver */
+.nav-header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: var(--bg-surface-subtle, rgba(0, 0, 0, 0.03));
+  border: 1.2px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.nav-header-action-btn:hover {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.nav-header-action-btn.is-active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-dark .nav-header-action-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+body.theme-dark .nav-header-action-btn:hover,
+body.theme-dark .nav-header-action-btn.is-active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.nav-header-action-btn .action-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.nav-header-action-btn .action-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: inherit;
+  margin-left: 2px;
+}
+
+body.theme-dark .nav-header-action-btn .action-kbd {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 body.theme-dark .sub-nav-sep {
   color: rgba(255, 255, 255, 0.25);
 }
@@ -823,6 +893,99 @@ body.theme-dark .dropdown-item:hover {
 }
 .edge-sensor-right {
   right: 0;
+}
+
+/* Always-Visible Floating Edge Tabs (Left: Directory Tree, Right: AI Doubt Solver) */
+.floating-edge-tab {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 5px;
+  z-index: 940;
+  background: var(--bg-card, #ffffff);
+  border: 1.5px solid var(--border-primary, #000000);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.15s ease,
+              color 0.15s ease,
+              box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.floating-edge-tab.floating-edge-left {
+  left: 0;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+}
+
+.floating-edge-tab.floating-edge-right {
+  right: 0;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+}
+
+body.theme-dark .floating-edge-tab {
+  background: #18191c;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+.floating-edge-tab:hover {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  transform: translateY(-50%) scale(1.05);
+}
+
+body.theme-dark .floating-edge-tab:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.floating-edge-tab.is-active {
+  display: none !important;
+}
+
+.floating-edge-tab .tab-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.floating-edge-tab .tab-title {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.floating-edge-tab.floating-edge-right .tab-title {
+  transform: none;
+}
+
+.floating-edge-tab .tab-kbd {
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: inherit;
+  margin-top: 2px;
+}
+
+body.theme-dark .floating-edge-tab .tab-kbd {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Explicitly opened or pinned expansion */

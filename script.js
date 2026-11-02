@@ -452,6 +452,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
 
+    const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+    const floatingTreeTab = document.getElementById("floating-tree-tab");
+    if (navTreeBtn) navTreeBtn.classList.add("is-active");
+    if (floatingTreeTab) floatingTreeTab.classList.add("is-active");
+
     if (btnPinTree) {
       btnPinTree.classList.toggle("is-active", isPinned);
       btnPinTree.setAttribute("aria-pressed", isPinned ? "true" : "false");
@@ -470,6 +475,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (railTrack) railTrack.classList.remove("is-hidden");
     if (railTreePanel) railTreePanel.classList.remove("is-open");
+
+    const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+    const floatingTreeTab = document.getElementById("floating-tree-tab");
+    if (navTreeBtn) navTreeBtn.classList.remove("is-active");
+    if (floatingTreeTab) floatingTreeTab.classList.remove("is-active");
 
     if (btnPinTree) {
       btnPinTree.classList.remove("is-active");
@@ -3282,6 +3292,11 @@ INSTRUCTIONS:
         updateGeminiKeyButtonState();
       }
 
+      const doubtNavBtn = document.getElementById("doubt-nav-btn");
+      const floatingDoubtTab = document.getElementById("floating-doubt-tab");
+      if (doubtNavBtn) doubtNavBtn.classList.add("is-active");
+      if (floatingDoubtTab) floatingDoubtTab.classList.add("is-active");
+
       if (activeDoubtMode === "doubts") {
         renderDoubtsView();
       } else {
@@ -3305,6 +3320,11 @@ INSTRUCTIONS:
       if (doubtTile) doubtTile.classList.remove("is-open");
       if (doubtPill) doubtPill.classList.remove("is-visible");
       if (doubtTextInput) doubtTextInput.blur();
+
+      const doubtNavBtn = document.getElementById("doubt-nav-btn");
+      const floatingDoubtTab = document.getElementById("floating-doubt-tab");
+      if (doubtNavBtn) doubtNavBtn.classList.remove("is-active");
+      if (floatingDoubtTab) floatingDoubtTab.classList.remove("is-active");
     } catch (err) {
       console.error("[DoubtSolver] closeDoubtSolver error:", err);
     }
@@ -3571,6 +3591,134 @@ INSTRUCTIONS:
     doubtOpenedByHover = false;
     origToggleDoubt();
   };
+
+  // ================= 10b. TOP-NAV TOGGLE BUTTONS & ALWAYS-VISIBLE FLOATING EDGE TABS =================
+  let navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+  let doubtNavBtn = document.getElementById("doubt-nav-btn");
+  let floatingTreeTab = document.getElementById("floating-tree-tab");
+  let floatingDoubtTab = document.getElementById("floating-doubt-tab");
+
+  // 1. Top Nav Left: Directory Tree Toggle Button
+  if (!navTreeBtn) {
+    const navLeft = document.querySelector(".nav-left");
+    if (navLeft) {
+      navTreeBtn = document.createElement("button");
+      navTreeBtn.type = "button";
+      navTreeBtn.id = "nav-tree-toggle-btn";
+      navTreeBtn.className = "nav-header-action-btn font-mono";
+      navTreeBtn.title = "Toggle Directory Tree Navigation (Shortcut: N)";
+      navTreeBtn.setAttribute("aria-label", "Toggle Directory Tree");
+      navTreeBtn.innerHTML = `
+        <span class="action-icon">📁</span>
+        <span class="action-label">Directory</span>
+        <kbd class="action-kbd">N</kbd>
+      `;
+      const viewSwitcher = navLeft.querySelector(".view-switcher");
+      if (viewSwitcher && viewSwitcher.nextSibling) {
+        navLeft.insertBefore(navTreeBtn, viewSwitcher.nextSibling);
+      } else {
+        navLeft.prepend(navTreeBtn);
+      }
+    }
+  }
+
+  // 2. Top Nav Right: AI Doubt Solver Toggle Button
+  if (!doubtNavBtn) {
+    const navRight = document.querySelector(".nav-right");
+    if (navRight) {
+      doubtNavBtn = document.createElement("button");
+      doubtNavBtn.type = "button";
+      doubtNavBtn.id = "doubt-nav-btn";
+      doubtNavBtn.className = "nav-header-action-btn font-mono";
+      doubtNavBtn.title = "Toggle Gemini AI Doubt Solver (Shortcut: M)";
+      doubtNavBtn.setAttribute("aria-label", "Toggle Gemini AI Doubt Solver");
+      doubtNavBtn.innerHTML = `
+        <span class="action-icon">💬</span>
+        <span class="action-label">AI Doubt</span>
+        <kbd class="action-kbd">M</kbd>
+      `;
+      const shortcutsWrapper = navRight.querySelector("#shortcuts-wrapper");
+      if (shortcutsWrapper) {
+        navRight.insertBefore(doubtNavBtn, shortcutsWrapper);
+      } else {
+        navRight.prepend(doubtNavBtn);
+      }
+    }
+  }
+
+  // 3. Left Edge Floating Tab (Always visible on left edge of viewport)
+  if (!floatingTreeTab) {
+    floatingTreeTab = document.createElement("button");
+    floatingTreeTab.type = "button";
+    floatingTreeTab.id = "floating-tree-tab";
+    floatingTreeTab.className = "floating-edge-tab floating-edge-left";
+    floatingTreeTab.title = "Open Directory Tree (Shortcut: N)";
+    floatingTreeTab.setAttribute("aria-label", "Open Directory Tree");
+    floatingTreeTab.innerHTML = `
+      <span class="tab-icon">📁</span>
+      <span class="tab-title font-mono">DIRECTORY</span>
+      <span class="tab-kbd font-mono">N</span>
+    `;
+    document.body.appendChild(floatingTreeTab);
+  }
+
+  // 4. Right Edge Floating Tab (Always visible on right edge of viewport)
+  if (!floatingDoubtTab) {
+    floatingDoubtTab = document.createElement("button");
+    floatingDoubtTab.type = "button";
+    floatingDoubtTab.id = "floating-doubt-tab";
+    floatingDoubtTab.className = "floating-edge-tab floating-edge-right";
+    floatingDoubtTab.title = "Open Gemini AI Doubt Solver (Shortcut: M)";
+    floatingDoubtTab.setAttribute("aria-label", "Open Gemini AI Doubt Solver");
+    floatingDoubtTab.innerHTML = `
+      <span class="tab-icon">💬</span>
+      <span class="tab-title font-mono">AI DOUBT</span>
+      <span class="tab-kbd font-mono">M</span>
+    `;
+    document.body.appendChild(floatingDoubtTab);
+  }
+
+  // Connect Click and Hover Listeners to Toggle Buttons
+  if (navTreeBtn) {
+    navTreeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleTree();
+    });
+  }
+  if (floatingTreeTab) {
+    floatingTreeTab.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleTree();
+    });
+    floatingTreeTab.addEventListener("mouseenter", () => {
+      triggerLeftEdgeTree();
+    });
+  }
+
+  if (doubtNavBtn) {
+    doubtNavBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleDoubtSolver();
+    });
+  }
+  if (floatingDoubtTab) {
+    floatingDoubtTab.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleDoubtSolver();
+    });
+    floatingDoubtTab.addEventListener("mouseenter", () => {
+      triggerRightEdgeDoubt();
+    });
+  }
+
+  // Auto-open Directory Tree on desktop screens (>= 1380px) on guide pages for instant institutional access
+  if (isGuideSuite && window.innerWidth >= 1380) {
+    setTimeout(() => {
+      if (!isTreeCurrentlyOpen()) {
+        openTreeExplicitly(true);
+      }
+    }, 120);
+  }
 
   // ================= 11. RIGID TOP-NAV SEARCH BAR & COMMAND PALETTE (Triggered by /) =================
   let navSearchBarWrapper = document.getElementById("nav-search-bar-wrapper");
