@@ -1372,6 +1372,19 @@ body.theme-dark .content-area > section:hover {
   border-color: rgba(255, 255, 255, 0.22);
 }
 
+/* Stabilize Parent Section when Hovering Nested Subsection */
+.doc-section:has(.doc-subsection:hover) {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-subtle);
+}
+body.theme-dark .doc-section:has(.doc-subsection:hover) {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+
 .doc-section.is-active-section,
 .doc-subsection.is-active-section,
 .story-node-section.is-active-section,
@@ -4337,4 +4350,929 @@ body.theme-dark mark.finder-match.finder-match-active {
   animation: sectionPulseGlow 1.6s ease-out;
   border-left: 3.5px solid var(--accent, #FF3B00) !important;
 }
+
+/* ==========================================================================
+   ON-PAGE DIRECTORY TREE LAYOUT & SECTIONAL TABS
+   ========================================================================== */
+
+/* On-Page Directory Tree Terminal Explorer (At Top of Page) */
+.onpage-directory-tree-container {
+  background: var(--bg-surface-subtle);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 8px;
+  margin: 28px 0 36px 0;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+body.theme-dark .onpage-directory-tree-container {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--border-subtle);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.onpage-tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  user-select: none;
+}
+
+body.theme-dark .onpage-tree-header {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.onpage-tree-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onpage-tree-icon {
+  font-size: 1rem;
+}
+
+.onpage-tree-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+}
+
+.onpage-tree-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onpage-tree-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+.onpage-tree-expand-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.onpage-tree-expand-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+.onpage-tree-body {
+  padding: 14px 16px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.onpage-tree-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.onpage-tree-body::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 4px;
+}
+
+.onpage-tree-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  text-decoration: none !important;
+  color: var(--text-secondary);
+  transition: all 0.12s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.onpage-tree-row:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: translateX(3px);
+}
+
+.onpage-tree-row.is-module {
+  color: var(--text-primary);
+  font-weight: 800;
+  margin-top: 8px;
+  border-bottom: 1px dashed var(--border-subtle);
+  border-radius: 0;
+  padding-bottom: 4px;
+}
+
+.onpage-tree-row.is-module:first-child {
+  margin-top: 0;
+}
+
+.onpage-tree-row .tree-guide {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.onpage-tree-row:hover .tree-guide {
+  color: var(--text-primary);
+}
+
+.onpage-tree-row .tree-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.onpage-tree-row .tree-badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+/* Page Tree Hierarchy for Sections & Subsections */
+.page-tree-group {
+  margin-bottom: 36px;
+}
+
+.page-tree-branch {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+/* Vertical guide connector line running down from section to its children */
+.page-tree-children {
+  position: relative;
+  margin-left: 20px;
+  padding-left: 18px;
+  border-left: 2px dashed var(--border-subtle);
+  margin-top: 10px;
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.page-tree-children:hover {
+  border-left-color: var(--text-tertiary);
+}
+
+body.theme-dark .page-tree-children {
+  border-left-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .page-tree-children:hover {
+  border-left-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Tree Tab Styles */
+.page-tree-tab {
+  position: relative;
+  border-radius: 6px;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s ease,
+              border-color 0.15s ease,
+              background-color 0.15s ease;
+}
+
+.page-tree-tab-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.page-tree-guide {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  user-select: none;
+  letter-spacing: -0.05em;
+  flex-shrink: 0;
+}
+
+.page-tree-tab:hover .page-tree-guide {
+  color: var(--text-primary);
+}
+
+.page-tree-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.page-tree-tab-badge {
+  font-size: 0.66rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-tertiary);
+  padding: 2px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg-surface-subtle);
+  margin-left: auto;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.page-tree-tab:hover .page-tree-tab-badge {
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+/* Individual Subsection Div Styling when standing outside parent */
+.page-tree-children .doc-subsection {
+  margin-top: 0;
+  margin-bottom: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid rgba(0, 0, 0, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+body.theme-dark .page-tree-children .doc-subsection {
+  background: rgba(255, 255, 255, 0.015);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-left-color: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.page-tree-children .doc-subsection:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+body.theme-dark .page-tree-children .doc-subsection:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* ==========================================================================
+   EDIT & ANNOTATION SYSTEM (PENCIL, HIGHLIGHTER, TEXT BOX, STICKY NOTES)
+   ========================================================================== */
+
+/* Top bar button active indicator */
+#edit-nav-btn.is-active {
+  background: var(--text-primary);
+  color: var(--bg-card);
+  border-color: var(--text-primary);
+}
+
+body.theme-dark #edit-nav-btn.is-active {
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+}
+
+/* Floating Edit & Annotation Palette (Styled identically to In-Page Finder) */
+.edit-annotation-bar {
+  position: fixed;
+  top: calc(var(--nav-height) + 14px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+  user-select: none;
+  font-family: inherit;
+  max-width: 95vw;
+  flex-wrap: nowrap;
+}
+
+body.theme-dark .edit-annotation-bar {
+  background: rgba(22, 26, 34, 0.96);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.65);
+}
+
+.edit-annotation-bar.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.palette-drag-handle {
+  color: var(--text-tertiary);
+  cursor: grab;
+  padding: 2px 4px;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.palette-drag-handle:active {
+  cursor: grabbing;
+}
+
+.palette-tool-group,
+.palette-color-group,
+.palette-size-group,
+.palette-nav-group,
+.palette-action-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.palette-btn,
+.palette-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 8px;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  outline: none;
+  white-space: nowrap;
+}
+
+.palette-btn:hover,
+.palette-tool-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.palette-tool-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-card);
+  border-color: var(--text-primary);
+}
+
+body.theme-dark .palette-tool-btn.active {
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+}
+
+.palette-tool-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.palette-tool-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.palette-sep {
+  color: var(--border-subtle);
+  font-size: 0.85rem;
+  margin: 0 2px;
+  user-select: none;
+}
+
+/* Color Swatches (4 Colors) */
+.palette-color-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--swatch-color);
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+  padding: 0;
+}
+
+.palette-color-btn:hover {
+  transform: scale(1.18);
+}
+
+.palette-color-btn.active {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--bg-card);
+  transform: scale(1.18);
+}
+
+/* Stroke Sizes (4 Sizes) */
+.palette-size-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.12s ease;
+  padding: 0;
+}
+
+.palette-size-btn:hover {
+  border-color: var(--border-primary);
+}
+
+.palette-size-btn.active {
+  background: var(--bg-hover);
+  border-color: var(--text-primary);
+}
+
+.palette-size-dot {
+  background: var(--text-primary);
+  border-radius: 50%;
+  transition: all 0.12s ease;
+}
+
+/* Annotation Counter & Prev / Next Navigation */
+.palette-counter {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 3px 7px;
+  background: var(--bg-surface-subtle);
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.palette-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 1.2rem;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.12s ease;
+  outline: none;
+}
+
+.palette-close-btn:hover {
+  color: var(--text-primary);
+}
+
+/* Document Annotation Overlay Container */
+#annotation-layer-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: visible;
+}
+
+#annotation-svg-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+#annotation-svg-canvas.is-drawing {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+/* Freehand Pencil / Sketch strokes */
+.annotation-stroke {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity 0.15s ease;
+}
+
+.annotation-stroke.is-deletable:hover {
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+/* Dragging Preview Box for Text Box Tool */
+.annotation-drag-preview {
+  position: absolute;
+  border: 2px dashed var(--accent, #FF3B00);
+  background: rgba(255, 85, 34, 0.08);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 10001;
+}
+
+/* Interactive Text Box */
+.user-annotation-textbox {
+  position: absolute;
+  min-width: 140px;
+  min-height: 70px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--box-border-color, var(--border-primary));
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  resize: both;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease;
+}
+
+body.theme-dark .user-annotation-textbox {
+  background: rgba(22, 26, 34, 0.95);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+.user-annotation-textbox:hover,
+.user-annotation-textbox:focus-within {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.textbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 6px;
+  background: var(--bg-surface-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: move;
+  user-select: none;
+}
+
+.textbox-handle {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.textbox-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 3px;
+}
+
+.textbox-delete-btn:hover {
+  color: var(--danger, #EF4444);
+}
+
+.textbox-content {
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  outline: none;
+  flex: 1;
+  overflow-y: auto;
+  font-family: var(--font-sans);
+  word-break: break-word;
+}
+
+.textbox-content[contenteditable]:empty::before {
+  content: attr(placeholder);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+/* Sticky Note Marker & Hover Card */
+.user-annotation-stickynote {
+  position: absolute;
+  pointer-events: auto;
+  z-index: 10000;
+}
+
+.sticky-note-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--note-color, #FFE066);
+  color: #111111;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  border: 1.5px solid #FFFFFF;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+.sticky-note-pin:hover {
+  transform: scale(1.22) translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+}
+
+/* Expanded Sticky Note Card (on hover or edit) */
+.sticky-note-card {
+  position: absolute;
+  top: 34px;
+  left: -12px;
+  width: 250px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--note-color, var(--border-primary));
+  border-radius: 8px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+  padding: 10px 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  z-index: 10002;
+  font-family: inherit;
+}
+
+body.theme-dark .sticky-note-card {
+  background: rgba(22, 26, 34, 0.98);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.65);
+}
+
+/* Reveal card on hover over the pin/parent, or when pinned in edit mode */
+.user-annotation-stickynote:hover .sticky-note-card,
+.user-annotation-stickynote.is-editing .sticky-note-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.sticky-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-tertiary);
+  border-bottom: 1px dashed var(--border-subtle);
+  padding-bottom: 4px;
+}
+
+.sticky-note-del-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 3px;
+}
+
+.sticky-note-del-btn:hover {
+  color: var(--danger, #EF4444);
+}
+
+.sticky-note-textarea {
+  width: 100%;
+  min-height: 75px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  resize: vertical;
+}
+
+.sticky-note-preview-text {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 160px;
+  overflow-y: auto;
+  cursor: pointer;
+}
+
+.sticky-note-click-hint {
+  font-size: 0.66rem;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  margin-top: 6px;
+  text-align: right;
+  display: block;
+  user-select: none;
+}
+
+/* User Text Highlight Marks */
+mark.user-annotation-highlight {
+  border-radius: 3px;
+  padding: 1px 2px;
+  color: inherit !important;
+  cursor: pointer;
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+mark.user-annotation-highlight:hover {
+  filter: brightness(1.15);
+}
+
+/* Floating Quick-Highlight Tooltip on text selection */
+.selection-highlight-tooltip {
+  position: absolute;
+  z-index: 100005;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  pointer-events: auto;
+  transform: translate(-50%, -100%) translateY(-8px);
+  user-select: none;
+}
+
+.selection-highlight-btn {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.selection-highlight-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--border-primary);
+}
+
+@keyframes annotationPulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7); }
+  50% { box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
+}
+
+.annotation-focus-pulse {
+  animation: annotationPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  outline: 2px solid var(--accent, #FF6B35) !important;
+  outline-offset: 3px;
+}
+
+body.annotation-mode-eraser * {
+  cursor: crosshair !important;
+}
+
+body.annotation-mode-sketch {
+  user-select: none;
+}
+
+/* ==========================================================================
+   TOP BAR EXPAND / COLLAPSE (FULL-HEIGHT READING VIEW)
+   ========================================================================== */
+.top-nav {
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+body {
+  transition: padding-top 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Active state for Expand button */
+#expand-nav-btn.is-active {
+  background: var(--text-primary);
+  color: var(--bg-card);
+  border-color: var(--text-primary);
+}
+
+body.theme-dark #expand-nav-btn.is-active {
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+}
+
+body.top-bar-hidden {
+  --nav-height: 0px !important;
+  padding-top: 0 !important;
+}
+
+body.top-bar-hidden .top-nav {
+  transform: translateY(-100%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Floating Restore Button (appears when top bar is hidden) */
+.nav-restore-float-btn {
+  position: fixed;
+  top: 12px;
+  right: 18px;
+  z-index: 100005;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-primary);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  outline: none;
+  padding: 0;
+}
+
+body.theme-dark .nav-restore-float-btn {
+  background: rgba(22, 26, 34, 0.95);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.65);
+}
+
+.nav-restore-float-btn:hover {
+  transform: scale(1.12);
+  background: var(--text-primary);
+  color: var(--bg-card);
+  border-color: var(--text-primary);
+}
+
+body.theme-dark .nav-restore-float-btn:hover {
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+}
+
+body.top-bar-hidden .nav-restore-float-btn {
+  display: inline-flex;
+  animation: fadeInFloat 0.22s ease forwards;
+}
+
+@keyframes fadeInFloat {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+
 

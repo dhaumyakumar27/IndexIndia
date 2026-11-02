@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Founder — IndexIndian Institutional Research Hub</title>
   <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
-  <link rel="stylesheet" href="styles.css?v=7.8">
+  <link rel="stylesheet" href="styles.css?v=8.0">
 </head>
 <body class="theme-light">
 
@@ -61,7 +61,24 @@
         </button>
       </div>
 
-      <!-- SHORTCUTS BUTTON & HOVER PANEL (Between x|y|z and Account) -->
+      
+      <!-- Expand / Hide Top Bar Button -->
+      <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
+        <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar" title="Expand Full View / Hide Top Bar ( F )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
+        <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools" title="Edit &amp; Annotations ( E )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            <path d="m15 5 4 4"></path>
+          </svg>
+        </button>
+      </div>
       <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
         <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts" title="Keyboard Shortcuts ( ? )">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -130,6 +147,14 @@
             <div class="shortcut-row">
               <span class="shortcut-desc">DuckDuckGo Doubt Solver</span>
               <span class="shortcut-keys"><kbd>M</kbd></span>
+            </div>
+                        <div class="shortcut-row">
+              <span class="shortcut-desc">Edit &amp; Markup Tools</span>
+              <span class="shortcut-keys"><kbd>E</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Expand Full View (Toggle Top Bar)</span>
+              <span class="shortcut-keys"><kbd>F</kbd></span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-desc">Close Open Overlays</span>
@@ -239,6 +264,14 @@
       </div>
     </div>
   </header>
+
+  <!-- Floating Restore Top Bar Button (Visible when top bar is hidden) -->
+  <button type="button" class="nav-restore-float-btn" id="nav-restore-float-btn" aria-label="Restore Top Navigation Bar" title="Restore Top Bar ( F )">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"></path>
+    </svg>
+  </button>
+
 
   <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
   <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
@@ -417,6 +450,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=7.8"></script>
+  <script src="script.js?v=8.0"></script>
 </body>
 </html>

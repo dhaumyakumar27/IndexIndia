@@ -23,6 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let nextFinderMatch = function() {};
   let prevFinderMatch = function() {};
   let isFinderActive = function() { return false; };
+  let toggleAnnotationPanel = function() {};
+  let openAnnotationPanel = function() {};
+  let closeAnnotationPanel = function() {};
+  let isAnnotationPanelActive = function() { return false; };
+  let toggleTopBar = function() {};
+  let hideTopBar = function() {};
+  let showTopBar = function() {};
+  let isTopBarHidden = function() { return false; };
 
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
   const railNavigator = document.getElementById("rail-navigator");
@@ -1097,6 +1105,20 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // 5c. "E" toggles In-Page Edit & Annotation Panel (strictly alone, KeyE or 'e'/'E', no Ctrl, Alt, Meta)
+    if ((e.code === "KeyE" || e.key?.toLowerCase() === "e") && noModifiers) {
+      e.preventDefault();
+      toggleAnnotationPanel();
+      return;
+    }
+
+    // 5d. "F" toggles Top Bar (Expand Full-Height View) (strictly alone, KeyF or 'f'/'F', no Ctrl, Alt, Meta)
+    if ((e.code === "KeyF" || e.key?.toLowerCase() === "f") && noModifiers) {
+      e.preventDefault();
+      toggleTopBar();
+      return;
+    }
+
     // 6. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree (strictly Ctrl/Meta alone, no Shift, no Alt)
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
@@ -1205,7 +1227,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // 11. Escape closes all open panels, menus, directory tree, Doubt Solver, Command Palette, and Finder
+    // 11. Escape closes all open panels, menus, directory tree, Doubt Solver, Command Palette, Finder, and Annotation Palette
     if (e.key === "Escape" && noModifiers) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
@@ -1214,6 +1236,10 @@ document.addEventListener("DOMContentLoaded", () => {
       closeDoubtSolver();
       closeNavSearchResults();
       clearFinderHighlights();
+      closeAnnotationPanel();
+      if (isTopBarHidden()) {
+        showTopBar();
+      }
       return;
     }
   });
@@ -3932,6 +3958,24 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
+        icon: "✏️",
+        title: "Edit & Markup Palette",
+        subtitle: "Toggle floating annotation toolbar for sketching, highlights, text boxes, and sticky notes",
+        badge: "E",
+        keywords: "edit markup palette annotations pencil sketch highlight text box sticky note draw tools shortcut binding",
+        action: () => toggleAnnotationPanel()
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
+        icon: "⤢",
+        title: "Expand Full View (Toggle Top Bar)",
+        subtitle: "Hide top bar (Guide, Index, Search, Perspectives) for distraction-free reading",
+        badge: "F",
+        keywords: "expand full view toggle top bar hide top bar header guide index search perspective shortcut binding",
+        action: () => toggleTopBar()
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
         icon: "⚡",
         title: "Account Dossier",
         subtitle: "Toggle institutional profile, user clearance role, and sessions",
@@ -4368,6 +4412,1053 @@ INSTRUCTIONS:
       closeNavSearchResults();
     }
   });
+
+  // ==========================================================================
+  // 12. IN-PAGE EDIT & MARKUP ANNOTATION SYSTEM (PENCIL, HIGHLIGHT, TEXTBOX, NOTES)
+  // ==========================================================================
+  const editNavBtn = document.getElementById("edit-nav-btn");
+  let editAnnotationBar = document.getElementById("edit-annotation-bar");
+  let annotationLayerContainer = document.getElementById("annotation-layer-container");
+  let annotationSvgCanvas = document.getElementById("annotation-svg-canvas");
+  let annotationHtmlElements = document.getElementById("annotation-html-elements");
+  let annotationDragPreview = document.getElementById("annotation-drag-preview");
+  let selectionTooltip = document.getElementById("selection-highlight-tooltip");
+
+  const ANNOTATION_STORAGE_KEY = `indexindia_annotations_${window.location.pathname.replace(/\/$/, "") || "/"}`;
+
+  let annotationsData = {
+    version: 1,
+    strokes: [],
+    textboxes: [],
+    stickynotes: [],
+    highlights: []
+  };
+
+  let annotationState = {
+    isOpen: false,
+    activeTool: "sketch", // sketch | highlight | textbox | stickynote | eraser
+    activeColor: "#FFE066",
+    activeSize: 4,
+    currentFocusIdx: -1
+  };
+
+  function hexToRgba(hex, alpha) {
+    let c = (hex || "#FFE066").replace("#", "");
+    if (c.length === 3) c = c.split("").map((x) => x + x).join("");
+    const num = parseInt(c, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  // Inject Overlay Container DOM if not already present
+  if (!annotationLayerContainer) {
+    annotationLayerContainer = document.createElement("div");
+    annotationLayerContainer.id = "annotation-layer-container";
+    annotationLayerContainer.innerHTML = `
+      <svg id="annotation-svg-canvas"></svg>
+      <div id="annotation-html-elements"></div>
+      <div id="annotation-drag-preview" class="annotation-drag-preview" style="display:none;"></div>
+      <div id="selection-highlight-tooltip" class="selection-highlight-tooltip" style="display:none;">
+        <button type="button" class="selection-highlight-btn" id="btn-quick-highlight">
+          <span>🖍️</span> Highlight
+        </button>
+      </div>
+    `;
+    document.body.appendChild(annotationLayerContainer);
+  }
+
+  annotationSvgCanvas = annotationLayerContainer.querySelector("#annotation-svg-canvas");
+  annotationHtmlElements = annotationLayerContainer.querySelector("#annotation-html-elements");
+  annotationDragPreview = annotationLayerContainer.querySelector("#annotation-drag-preview");
+  selectionTooltip = annotationLayerContainer.querySelector("#selection-highlight-tooltip");
+
+  // Inject Floating Toolbar Palette DOM (styled identically to In-Page Finder bar)
+  if (!editAnnotationBar) {
+    editAnnotationBar = document.createElement("div");
+    editAnnotationBar.id = "edit-annotation-bar";
+    editAnnotationBar.className = "edit-annotation-bar";
+    editAnnotationBar.setAttribute("role", "toolbar");
+    editAnnotationBar.setAttribute("aria-label", "Edit & Annotation Palette");
+    editAnnotationBar.innerHTML = `
+      <span class="palette-drag-handle" title="Drag Palette">⋮⋮</span>
+      <div class="palette-tool-group">
+        <button type="button" class="palette-tool-btn active" data-tool="sketch" title="Pencil Sketch (P)">
+          <span class="palette-tool-icon">✏️</span><span class="palette-tool-label">Sketch</span>
+        </button>
+        <button type="button" class="palette-tool-btn" data-tool="highlight" title="Text Highlight (H)">
+          <span class="palette-tool-icon">🖍️</span><span class="palette-tool-label">Highlight</span>
+        </button>
+        <button type="button" class="palette-tool-btn" data-tool="textbox" title="Free Drag-to-Select Text Box (T)">
+          <span class="palette-tool-icon">🔲</span><span class="palette-tool-label">Box</span>
+        </button>
+        <button type="button" class="palette-tool-btn" data-tool="stickynote" title="Click-to-Place Sticky Note (S)">
+          <span class="palette-tool-icon">📌</span><span class="palette-tool-label">Note</span>
+        </button>
+        <button type="button" class="palette-tool-btn" data-tool="eraser" title="Eraser / Click item to delete (X)">
+          <span class="palette-tool-icon">🧹</span><span class="palette-tool-label">Eraser</span>
+        </button>
+      </div>
+      <span class="palette-sep">|</span>
+      <div class="palette-color-group">
+        <button type="button" class="palette-color-btn active" data-color="#FFE066" style="--swatch-color: #FFE066;" title="Sun Yellow"></button>
+        <button type="button" class="palette-color-btn" data-color="#FF6B35" style="--swatch-color: #FF6B35;" title="Accent Orange"></button>
+        <button type="button" class="palette-color-btn" data-color="#38BDF8" style="--swatch-color: #38BDF8;" title="Cyan Blue"></button>
+        <button type="button" class="palette-color-btn" data-color="#34D399" style="--swatch-color: #34D399;" title="Mint Green"></button>
+      </div>
+      <span class="palette-sep">|</span>
+      <div class="palette-size-group">
+        <button type="button" class="palette-size-btn" data-size="2" title="Fine Stroke (2px)">
+          <span class="palette-size-dot" style="width: 3px; height: 3px;"></span>
+        </button>
+        <button type="button" class="palette-size-btn active" data-size="4" title="Standard Stroke (4px)">
+          <span class="palette-size-dot" style="width: 6px; height: 6px;"></span>
+        </button>
+        <button type="button" class="palette-size-btn" data-size="8" title="Bold Stroke (8px)">
+          <span class="palette-size-dot" style="width: 10px; height: 10px;"></span>
+        </button>
+        <button type="button" class="palette-size-btn" data-size="14" title="Marker Stroke (14px)">
+          <span class="palette-size-dot" style="width: 14px; height: 14px;"></span>
+        </button>
+      </div>
+      <span class="palette-sep">|</span>
+      <div class="palette-nav-group">
+        <span class="palette-counter font-mono" id="annotation-counter">0 notes</span>
+        <div class="finder-nav-btns">
+          <button type="button" class="finder-btn" id="annotation-btn-prev" title="Previous Annotation (▲)">▲</button>
+          <button type="button" class="finder-btn" id="annotation-btn-next" title="Next Annotation (▼)">▼</button>
+        </div>
+      </div>
+      <span class="palette-sep">|</span>
+      <div class="palette-action-group">
+        <button type="button" class="palette-btn" id="annotation-btn-undo" title="Undo Last Annotation (Ctrl+Z)">↩️</button>
+        <button type="button" class="palette-btn" id="annotation-btn-clear" title="Clear All Annotations">🗑️</button>
+      </div>
+      <button type="button" class="palette-close-btn" id="annotation-btn-close" title="Close Palette (Esc)">&times;</button>
+    `;
+    document.body.appendChild(editAnnotationBar);
+  }
+
+  const annotationCounter = editAnnotationBar.querySelector("#annotation-counter");
+  const annotationBtnPrev = editAnnotationBar.querySelector("#annotation-btn-prev");
+  const annotationBtnNext = editAnnotationBar.querySelector("#annotation-btn-next");
+  const annotationBtnUndo = editAnnotationBar.querySelector("#annotation-btn-undo");
+  const annotationBtnClear = editAnnotationBar.querySelector("#annotation-btn-clear");
+  const annotationBtnClose = editAnnotationBar.querySelector("#annotation-btn-close");
+  const paletteDragHandle = editAnnotationBar.querySelector(".palette-drag-handle");
+  const btnQuickHighlight = selectionTooltip?.querySelector("#btn-quick-highlight");
+
+  function syncAnnotationCanvasDimensions() {
+    if (!annotationSvgCanvas) return;
+    const scrollH = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.offsetHeight,
+      window.innerHeight
+    );
+    const scrollW = Math.max(
+      document.body.scrollWidth,
+      document.documentElement.scrollWidth,
+      window.innerWidth
+    );
+    annotationSvgCanvas.style.width = scrollW + "px";
+    annotationSvgCanvas.style.height = scrollH + "px";
+    if (annotationLayerContainer) {
+      annotationLayerContainer.style.width = scrollW + "px";
+      annotationLayerContainer.style.height = scrollH + "px";
+    }
+  }
+
+  function saveAnnotations() {
+    try {
+      annotationsData.updatedAt = Date.now();
+      localStorage.setItem(ANNOTATION_STORAGE_KEY, JSON.stringify(annotationsData));
+    } catch (err) {
+      console.warn("IndexIndia: Unable to persist annotations to localStorage", err);
+    }
+  }
+
+  function updateAnnotationCounter() {
+    if (!annotationCounter) return;
+    const total =
+      (annotationsData.strokes?.length || 0) +
+      (annotationsData.textboxes?.length || 0) +
+      (annotationsData.stickynotes?.length || 0) +
+      (annotationsData.highlights?.length || 0);
+
+    if (total === 0) {
+      annotationCounter.textContent = "0 notes";
+    } else if (annotationState.currentFocusIdx >= 0 && annotationState.currentFocusIdx < total) {
+      annotationCounter.textContent = `${annotationState.currentFocusIdx + 1} of ${total} notes`;
+    } else {
+      annotationCounter.textContent = `${total} note${total > 1 ? "s" : ""}`;
+    }
+  }
+
+  function deleteAnnotationItem(id, type) {
+    if (type === "stroke") {
+      annotationsData.strokes = annotationsData.strokes.filter((s) => s.id !== id);
+      const el = annotationSvgCanvas?.querySelector(`[data-id="${id}"]`);
+      if (el) el.remove();
+    } else if (type === "textbox") {
+      annotationsData.textboxes = annotationsData.textboxes.filter((tb) => tb.id !== id);
+      const el = annotationHtmlElements?.querySelector(`.user-annotation-textbox[data-id="${id}"]`);
+      if (el) el.remove();
+    } else if (type === "stickynote") {
+      annotationsData.stickynotes = annotationsData.stickynotes.filter((sn) => sn.id !== id);
+      const el = annotationHtmlElements?.querySelector(`.user-annotation-stickynote[data-id="${id}"]`);
+      if (el) el.remove();
+    } else if (type === "highlight") {
+      annotationsData.highlights = annotationsData.highlights.filter((hl) => hl.id !== id);
+      const mark = document.querySelector(`mark.user-annotation-highlight[data-id="${id}"]`);
+      if (mark && mark.parentNode) {
+        const textNode = document.createTextNode(mark.textContent);
+        mark.parentNode.replaceChild(textNode, mark);
+      }
+    }
+    saveAnnotations();
+    updateAnnotationCounter();
+  }
+
+  function handleItemClick(id, type) {
+    if (annotationState.activeTool === "eraser") {
+      deleteAnnotationItem(id, type);
+    }
+  }
+
+  // --- 1. RENDER & DRAG TEXT BOX ---
+  function renderTextBoxDOM(tb) {
+    if (!annotationHtmlElements) return null;
+    const el = document.createElement("div");
+    el.className = "user-annotation-textbox";
+    el.setAttribute("data-id", tb.id);
+    el.style.left = `${tb.left}px`;
+    el.style.top = `${tb.top}px`;
+    el.style.width = `${tb.width}px`;
+    el.style.height = `${tb.height}px`;
+    el.style.setProperty("--box-border-color", tb.color || "#FFE066");
+
+    el.innerHTML = `
+      <div class="textbox-header">
+        <span class="textbox-handle">:: TEXT BOX</span>
+        <button type="button" class="textbox-delete-btn" title="Delete Box">&times;</button>
+      </div>
+      <div class="textbox-content" contenteditable="true" placeholder="Type text here...">${tb.text || ""}</div>
+    `;
+
+    const header = el.querySelector(".textbox-header");
+    const content = el.querySelector(".textbox-content");
+    const delBtn = el.querySelector(".textbox-delete-btn");
+
+    // Draggable header
+    let isMoving = false;
+    let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+    header.addEventListener("pointerdown", (e) => {
+      if (e.target === delBtn) return;
+      isMoving = true;
+      startX = e.pageX;
+      startY = e.pageY;
+      initialLeft = parseInt(el.style.left, 10) || tb.left;
+      initialTop = parseInt(el.style.top, 10) || tb.top;
+      header.setPointerCapture(e.pointerId);
+      e.stopPropagation();
+    });
+
+    header.addEventListener("pointermove", (e) => {
+      if (!isMoving) return;
+      const dx = e.pageX - startX;
+      const dy = e.pageY - startY;
+      const newL = Math.max(0, initialLeft + dx);
+      const newT = Math.max(0, initialTop + dy);
+      el.style.left = `${newL}px`;
+      el.style.top = `${newT}px`;
+    });
+
+    const stopMove = () => {
+      if (!isMoving) return;
+      isMoving = false;
+      tb.left = parseInt(el.style.left, 10);
+      tb.top = parseInt(el.style.top, 10);
+      saveAnnotations();
+    };
+    header.addEventListener("pointerup", stopMove);
+    header.addEventListener("pointercancel", stopMove);
+
+    // Save text changes
+    content.addEventListener("input", () => {
+      tb.text = content.innerText;
+      saveAnnotations();
+    });
+
+    // Detect resizing via mouseup
+    el.addEventListener("mouseup", () => {
+      const curW = el.offsetWidth;
+      const curH = el.offsetHeight;
+      if (curW !== tb.width || curH !== tb.height) {
+        tb.width = curW;
+        tb.height = curH;
+        saveAnnotations();
+      }
+    });
+
+    // Delete box
+    delBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteAnnotationItem(tb.id, "textbox");
+    });
+
+    el.addEventListener("click", (e) => {
+      if (annotationState.activeTool === "eraser") {
+        e.stopPropagation();
+        deleteAnnotationItem(tb.id, "textbox");
+      }
+    });
+
+    annotationHtmlElements.appendChild(el);
+    return el;
+  }
+
+  // --- 2. RENDER & INTERACT STICKY NOTE ---
+  function renderStickyNoteDOM(sn) {
+    if (!annotationHtmlElements) return null;
+    const el = document.createElement("div");
+    el.className = "user-annotation-stickynote";
+    el.setAttribute("data-id", sn.id);
+    el.style.left = `${sn.left}px`;
+    el.style.top = `${sn.top}px`;
+    el.style.setProperty("--note-color", sn.color || "#FFE066");
+
+    el.innerHTML = `
+      <button type="button" class="sticky-note-pin" title="Click to view & edit note">📌</button>
+      <div class="sticky-note-card">
+        <div class="sticky-note-header">
+          <span class="sticky-note-time">NOTE • ${sn.time || "IST"}</span>
+          <button type="button" class="sticky-note-del-btn" title="Delete Note">&times;</button>
+        </div>
+        <textarea class="sticky-note-textarea" placeholder="Write sticky note here...">${sn.text || ""}</textarea>
+        <span class="sticky-note-click-hint">Hover to expand • Click to edit</span>
+      </div>
+    `;
+
+    const pin = el.querySelector(".sticky-note-pin");
+    const textarea = el.querySelector(".sticky-note-textarea");
+    const delBtn = el.querySelector(".sticky-note-del-btn");
+
+    pin.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (annotationState.activeTool === "eraser") {
+        deleteAnnotationItem(sn.id, "stickynote");
+        return;
+      }
+      el.classList.toggle("is-editing");
+      if (el.classList.contains("is-editing")) {
+        textarea.focus();
+      }
+    });
+
+    textarea.addEventListener("input", () => {
+      sn.text = textarea.value;
+      saveAnnotations();
+    });
+
+    delBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteAnnotationItem(sn.id, "stickynote");
+    });
+
+    el.addEventListener("click", (e) => {
+      if (annotationState.activeTool === "eraser") {
+        e.stopPropagation();
+        deleteAnnotationItem(sn.id, "stickynote");
+      }
+    });
+
+    annotationHtmlElements.appendChild(el);
+    return el;
+  }
+
+  // Close open sticky notes editing mode when clicking outside
+  document.addEventListener("mousedown", (e) => {
+    if (!e.target.closest(".user-annotation-stickynote")) {
+      document.querySelectorAll(".user-annotation-stickynote.is-editing").forEach((n) => {
+        n.classList.remove("is-editing");
+      });
+    }
+  });
+
+  // --- 3. FREE DRAG-AND-SELECT TEXT BOX TOOL ---
+  let isBoxDragging = false;
+  let boxStartX = 0;
+  let boxStartY = 0;
+
+  document.addEventListener("pointerdown", (e) => {
+    if (!annotationState.isOpen || annotationState.activeTool !== "textbox") return;
+    if (
+      e.target.closest(".edit-annotation-bar") ||
+      e.target.closest(".user-annotation-textbox") ||
+      e.target.closest(".user-annotation-stickynote") ||
+      e.target.closest(".top-nav") ||
+      e.target.closest(".rail-navigator")
+    ) {
+      return;
+    }
+    isBoxDragging = true;
+    boxStartX = e.pageX;
+    boxStartY = e.pageY;
+    if (annotationDragPreview) {
+      annotationDragPreview.style.left = `${boxStartX}px`;
+      annotationDragPreview.style.top = `${boxStartY}px`;
+      annotationDragPreview.style.width = "0px";
+      annotationDragPreview.style.height = "0px";
+      annotationDragPreview.style.display = "block";
+    }
+  });
+
+  document.addEventListener("pointermove", (e) => {
+    if (!isBoxDragging || !annotationDragPreview) return;
+    const minX = Math.min(boxStartX, e.pageX);
+    const minY = Math.min(boxStartY, e.pageY);
+    const w = Math.abs(e.pageX - boxStartX);
+    const h = Math.abs(e.pageY - boxStartY);
+    annotationDragPreview.style.left = `${minX}px`;
+    annotationDragPreview.style.top = `${minY}px`;
+    annotationDragPreview.style.width = `${w}px`;
+    annotationDragPreview.style.height = `${h}px`;
+  });
+
+  document.addEventListener("pointerup", (e) => {
+    if (!isBoxDragging) return;
+    isBoxDragging = false;
+    if (annotationDragPreview) {
+      annotationDragPreview.style.display = "none";
+    }
+    let minX = Math.min(boxStartX, e.pageX);
+    let minY = Math.min(boxStartY, e.pageY);
+    let w = Math.abs(e.pageX - boxStartX);
+    let h = Math.abs(e.pageY - boxStartY);
+    if (w < 35 || h < 25) {
+      w = 240;
+      h = 100;
+    }
+    const newTb = {
+      id: `tb_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      left: Math.round(minX),
+      top: Math.round(minY),
+      width: Math.round(w),
+      height: Math.round(h),
+      text: "",
+      color: annotationState.activeColor
+    };
+    annotationsData.textboxes.push(newTb);
+    saveAnnotations();
+    const boxEl = renderTextBoxDOM(newTb);
+    updateAnnotationCounter();
+    if (boxEl) {
+      const editable = boxEl.querySelector(".textbox-content");
+      if (editable) {
+        setTimeout(() => editable.focus(), 60);
+      }
+    }
+  });
+
+  // --- 4. CLICK-TO-PLACE STICKY NOTE TOOL ---
+  document.addEventListener("click", (e) => {
+    if (!annotationState.isOpen || annotationState.activeTool !== "stickynote") return;
+    if (
+      e.target.closest(".edit-annotation-bar") ||
+      e.target.closest(".user-annotation-textbox") ||
+      e.target.closest(".user-annotation-stickynote") ||
+      e.target.closest(".top-nav") ||
+      e.target.closest(".rail-navigator")
+    ) {
+      return;
+    }
+    const posX = Math.max(10, e.pageX - 14);
+    const posY = Math.max(10, e.pageY - 14);
+    const timeStr = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const newNote = {
+      id: `sn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      left: Math.round(posX),
+      top: Math.round(posY),
+      text: "",
+      color: annotationState.activeColor,
+      time: timeStr
+    };
+    annotationsData.stickynotes.push(newNote);
+    saveAnnotations();
+    const noteEl = renderStickyNoteDOM(newNote);
+    updateAnnotationCounter();
+    if (noteEl) {
+      noteEl.classList.add("is-editing");
+      const textarea = noteEl.querySelector(".sticky-note-textarea");
+      if (textarea) {
+        setTimeout(() => textarea.focus(), 60);
+      }
+    }
+  });
+
+  // --- 5. PENCIL SKETCH OVERLAY DRAWING ---
+  let isDrawing = false;
+  let currentStrokePoints = [];
+  let currentPathEl = null;
+
+  function pointsToSvgPath(pts) {
+    if (pts.length === 0) return "";
+    if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y} L ${pts[0].x + 0.1} ${pts[0].y + 0.1}`;
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const xc = (pts[i].x + pts[i + 1].x) / 2;
+      const yc = (pts[i].y + pts[i + 1].y) / 2;
+      d += ` Q ${pts[i].x} ${pts[i].y}, ${xc} ${yc}`;
+    }
+    d += ` L ${pts[pts.length - 1].x} ${pts[pts.length - 1].y}`;
+    return d;
+  }
+
+  if (annotationSvgCanvas) {
+    annotationSvgCanvas.addEventListener("pointerdown", (e) => {
+      if (!annotationState.isOpen || annotationState.activeTool !== "sketch") return;
+      if (e.button !== 0) return;
+      isDrawing = true;
+      annotationSvgCanvas.setPointerCapture(e.pointerId);
+      currentStrokePoints = [{ x: e.pageX, y: e.pageY }];
+
+      currentPathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      currentPathEl.setAttribute("class", "annotation-stroke");
+      currentPathEl.setAttribute("data-id", `stroke_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`);
+      currentPathEl.setAttribute("stroke", annotationState.activeColor);
+      currentPathEl.setAttribute("stroke-width", annotationState.activeSize);
+      currentPathEl.setAttribute("fill", "none");
+      currentPathEl.setAttribute("stroke-linecap", "round");
+      currentPathEl.setAttribute("stroke-linejoin", "round");
+      currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints));
+      annotationSvgCanvas.appendChild(currentPathEl);
+      e.preventDefault();
+    });
+
+    annotationSvgCanvas.addEventListener("pointermove", (e) => {
+      if (!isDrawing || !currentPathEl) return;
+      currentStrokePoints.push({ x: e.pageX, y: e.pageY });
+      currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints));
+    });
+
+    const stopDrawing = () => {
+      if (!isDrawing) return;
+      isDrawing = false;
+      if (currentPathEl && currentStrokePoints.length > 0) {
+        const id = currentPathEl.getAttribute("data-id");
+        annotationsData.strokes.push({
+          id,
+          color: annotationState.activeColor,
+          size: annotationState.activeSize,
+          d: currentPathEl.getAttribute("d"),
+          y: currentStrokePoints[0].y
+        });
+        currentPathEl.addEventListener("click", () => handleItemClick(id, "stroke"));
+        saveAnnotations();
+        updateAnnotationCounter();
+      }
+      currentPathEl = null;
+      currentStrokePoints = [];
+    };
+
+    annotationSvgCanvas.addEventListener("pointerup", stopDrawing);
+    annotationSvgCanvas.addEventListener("pointercancel", stopDrawing);
+  }
+
+  // --- 6. TEXT HIGHLIGHTING ---
+  function applySelectionHighlight() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    const selectedText = sel.toString().trim();
+    if (!selectedText || selectedText.length < 2) return;
+
+    const id = `hl_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const color = annotationState.activeColor;
+
+    try {
+      const mark = document.createElement("mark");
+      mark.className = "user-annotation-highlight";
+      mark.setAttribute("data-id", id);
+      mark.style.backgroundColor = hexToRgba(color, 0.35);
+      mark.style.borderBottom = `2px solid ${color}`;
+      range.surroundContents(mark);
+
+      const markY = mark.offsetTop || (mark.getBoundingClientRect().top + window.scrollY);
+      annotationsData.highlights.push({
+        id,
+        text: selectedText,
+        color,
+        y: Math.round(markY)
+      });
+      mark.addEventListener("click", (e) => {
+        if (annotationState.activeTool === "eraser") {
+          e.stopPropagation();
+          deleteAnnotationItem(id, "highlight");
+        }
+      });
+      saveAnnotations();
+      updateAnnotationCounter();
+      sel.removeAllRanges();
+      if (selectionTooltip) selectionTooltip.style.display = "none";
+    } catch (e) {
+      console.warn("Selection crossed nodes, highlighting through text match", e);
+      sel.removeAllRanges();
+      if (selectionTooltip) selectionTooltip.style.display = "none";
+    }
+  }
+
+  // Quick highlight tooltip on text selection
+  document.addEventListener("selectionchange", () => {
+    if (!annotationState.isOpen || !selectionTooltip) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+      selectionTooltip.style.display = "none";
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      selectionTooltip.style.left = `${rect.left + rect.width / 2}px`;
+      selectionTooltip.style.top = `${rect.top + window.scrollY}px`;
+      selectionTooltip.style.display = "flex";
+    }
+  });
+
+  if (btnQuickHighlight) {
+    btnQuickHighlight.addEventListener("click", (e) => {
+      e.preventDefault();
+      applySelectionHighlight();
+    });
+  }
+
+  document.addEventListener("mouseup", (e) => {
+    if (!annotationState.isOpen) return;
+    if (annotationState.activeTool === "highlight") {
+      if (e.target.closest(".edit-annotation-bar") || e.target.closest("#selection-highlight-tooltip")) return;
+      applySelectionHighlight();
+    }
+  });
+
+  // --- 7. REHYDRATE ALL SAVED ANNOTATIONS ---
+  function restoreSavedHighlight(hlData) {
+    if (!hlData || !hlData.text) return;
+    const root = document.querySelector(".content-area") || document.querySelector("main") || document.body;
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tag = parent.tagName.toUpperCase();
+          if (["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "SELECT", "BUTTON", "NOSCRIPT"].includes(tag)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (
+            parent.closest("#annotation-layer-container") ||
+            parent.closest(".edit-annotation-bar") ||
+            parent.closest(".top-nav") ||
+            parent.closest(".rail-navigator")
+          ) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    let node;
+    while ((node = walker.nextNode())) {
+      const idx = node.nodeValue.indexOf(hlData.text);
+      if (idx !== -1) {
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + hlData.text.length);
+        const mark = document.createElement("mark");
+        mark.className = "user-annotation-highlight";
+        mark.setAttribute("data-id", hlData.id);
+        const color = hlData.color || "#FFE066";
+        mark.style.backgroundColor = hexToRgba(color, 0.35);
+        mark.style.borderBottom = `2px solid ${color}`;
+        mark.addEventListener("click", () => handleItemClick(hlData.id, "highlight"));
+        try {
+          range.surroundContents(mark);
+          break;
+        } catch (e) {
+          // ignore if complex node boundary
+        }
+      }
+    }
+  }
+
+  function renderAllSavedAnnotations() {
+    // 1. Strokes
+    if (annotationSvgCanvas) {
+      annotationSvgCanvas.innerHTML = "";
+      annotationsData.strokes.forEach((stroke) => {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("class", "annotation-stroke");
+        path.setAttribute("data-id", stroke.id);
+        path.setAttribute("d", stroke.d);
+        path.setAttribute("stroke", stroke.color || "#FFE066");
+        path.setAttribute("stroke-width", stroke.size || 4);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-linejoin", "round");
+        path.addEventListener("click", () => handleItemClick(stroke.id, "stroke"));
+        annotationSvgCanvas.appendChild(path);
+      });
+    }
+
+    // 2. Text Boxes & Sticky Notes
+    if (annotationHtmlElements) {
+      annotationHtmlElements.innerHTML = "";
+      annotationsData.textboxes.forEach((tb) => renderTextBoxDOM(tb));
+      annotationsData.stickynotes.forEach((sn) => renderStickyNoteDOM(sn));
+    }
+
+    // 3. Highlights
+    annotationsData.highlights.forEach((hl) => restoreSavedHighlight(hl));
+  }
+
+  function loadAnnotations() {
+    try {
+      const raw = localStorage.getItem(ANNOTATION_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        annotationsData = {
+          version: parsed.version || 1,
+          strokes: Array.isArray(parsed.strokes) ? parsed.strokes : [],
+          textboxes: Array.isArray(parsed.textboxes) ? parsed.textboxes : [],
+          stickynotes: Array.isArray(parsed.stickynotes) ? parsed.stickynotes : [],
+          highlights: Array.isArray(parsed.highlights) ? parsed.highlights : []
+        };
+      }
+    } catch (e) {
+      console.warn("IndexIndia: Could not parse saved annotations", e);
+    }
+    renderAllSavedAnnotations();
+    updateAnnotationCounter();
+  }
+
+  // --- 8. PREVIOUS / NEXT ANNOTATION NAVIGATION ---
+  function getAllAnnotationElements() {
+    const list = [];
+    if (annotationHtmlElements) {
+      annotationHtmlElements.querySelectorAll(".user-annotation-textbox, .user-annotation-stickynote").forEach((el) => {
+        const top = parseInt(el.style.top, 10) || el.offsetTop;
+        list.push({ el, top });
+      });
+    }
+    document.querySelectorAll("mark.user-annotation-highlight").forEach((el) => {
+      const top = el.offsetTop || (el.getBoundingClientRect().top + window.scrollY);
+      list.push({ el, top });
+    });
+    if (annotationSvgCanvas) {
+      annotationSvgCanvas.querySelectorAll(".annotation-stroke").forEach((el) => {
+        const bbox = el.getBBox ? el.getBBox() : { y: 0 };
+        list.push({ el, top: bbox.y });
+      });
+    }
+    list.sort((a, b) => a.top - b.top);
+    return list.map((item) => item.el);
+  }
+
+  function showAnnotationMatch(idx) {
+    const elements = getAllAnnotationElements();
+    if (elements.length === 0) {
+      updateAnnotationCounter();
+      return;
+    }
+    annotationState.currentFocusIdx = (idx + elements.length) % elements.length;
+    const target = elements[annotationState.currentFocusIdx];
+
+    elements.forEach((el) => el.classList.remove("annotation-focus-pulse"));
+    if (target) {
+      target.classList.add("annotation-focus-pulse");
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => target.classList.remove("annotation-focus-pulse"), 1600);
+    }
+    updateAnnotationCounter();
+  }
+
+  if (annotationBtnNext) {
+    annotationBtnNext.addEventListener("click", () => {
+      showAnnotationMatch(annotationState.currentFocusIdx + 1);
+    });
+  }
+  if (annotationBtnPrev) {
+    annotationBtnPrev.addEventListener("click", () => {
+      showAnnotationMatch(annotationState.currentFocusIdx - 1);
+    });
+  }
+
+  // Undo button
+  if (annotationBtnUndo) {
+    annotationBtnUndo.addEventListener("click", () => {
+      const allItems = [
+        ...annotationsData.strokes.map((s) => ({ ...s, type: "stroke" })),
+        ...annotationsData.textboxes.map((tb) => ({ ...tb, type: "textbox" })),
+        ...annotationsData.stickynotes.map((sn) => ({ ...sn, type: "stickynote" })),
+        ...annotationsData.highlights.map((hl) => ({ ...hl, type: "highlight" }))
+      ];
+      if (allItems.length === 0) return;
+      allItems.sort((a, b) => (b.id || "").localeCompare(a.id || ""));
+      const latest = allItems[0];
+      deleteAnnotationItem(latest.id, latest.type);
+    });
+  }
+
+  // Clear all button
+  if (annotationBtnClear) {
+    annotationBtnClear.addEventListener("click", () => {
+      if (confirm("Clear all annotations, sketches, and sticky notes on this page?")) {
+        annotationsData = { version: 1, strokes: [], textboxes: [], stickynotes: [], highlights: [] };
+        if (annotationSvgCanvas) annotationSvgCanvas.innerHTML = "";
+        if (annotationHtmlElements) annotationHtmlElements.innerHTML = "";
+        document.querySelectorAll("mark.user-annotation-highlight").forEach((m) => {
+          if (m.parentNode) {
+            m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+          }
+        });
+        saveAnnotations();
+        updateAnnotationCounter();
+      }
+    });
+  }
+
+  // --- 9. PALETTE DRAG HANDLER ---
+  let isDraggingPalette = false;
+  let paletteOffsetX = 0;
+  let paletteOffsetY = 0;
+
+  if (paletteDragHandle) {
+    paletteDragHandle.addEventListener("pointerdown", (e) => {
+      isDraggingPalette = true;
+      const rect = editAnnotationBar.getBoundingClientRect();
+      paletteOffsetX = e.clientX - rect.left;
+      paletteOffsetY = e.clientY - rect.top;
+      paletteDragHandle.setPointerCapture(e.pointerId);
+      editAnnotationBar.style.transform = "none";
+      e.preventDefault();
+    });
+
+    paletteDragHandle.addEventListener("pointermove", (e) => {
+      if (!isDraggingPalette) return;
+      const newX = Math.max(10, Math.min(window.innerWidth - editAnnotationBar.offsetWidth - 10, e.clientX - paletteOffsetX));
+      const newY = Math.max(10, Math.min(window.innerHeight - editAnnotationBar.offsetHeight - 10, e.clientY - paletteOffsetY));
+      editAnnotationBar.style.left = `${newX}px`;
+      editAnnotationBar.style.top = `${newY}px`;
+    });
+
+    const stopPaletteDrag = () => {
+      isDraggingPalette = false;
+    };
+    paletteDragHandle.addEventListener("pointerup", stopPaletteDrag);
+    paletteDragHandle.addEventListener("pointercancel", stopPaletteDrag);
+  }
+
+  // --- 10. TOOL / COLOR / SIZE BUTTON EVENT BINDINGS ---
+  function setAnnotationTool(tool) {
+    annotationState.activeTool = tool;
+    editAnnotationBar.querySelectorAll(".palette-tool-btn").forEach((b) => {
+      b.classList.toggle("active", b.getAttribute("data-tool") === tool);
+    });
+    document.body.classList.toggle("annotation-mode-sketch", tool === "sketch");
+    document.body.classList.toggle("annotation-mode-eraser", tool === "eraser");
+    if (annotationSvgCanvas) {
+      annotationSvgCanvas.classList.toggle("is-drawing", tool === "sketch");
+    }
+  }
+
+  editAnnotationBar.querySelectorAll(".palette-tool-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tool = btn.getAttribute("data-tool");
+      setAnnotationTool(tool);
+    });
+  });
+
+  editAnnotationBar.querySelectorAll(".palette-color-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const color = btn.getAttribute("data-color");
+      annotationState.activeColor = color;
+      editAnnotationBar.querySelectorAll(".palette-color-btn").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-color") === color);
+      });
+    });
+  });
+
+  editAnnotationBar.querySelectorAll(".palette-size-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const size = parseInt(btn.getAttribute("data-size"), 10) || 4;
+      annotationState.activeSize = size;
+      editAnnotationBar.querySelectorAll(".palette-size-btn").forEach((b) => {
+        b.classList.toggle("active", parseInt(b.getAttribute("data-size"), 10) === size);
+      });
+    });
+  });
+
+  // --- 11. OPEN / CLOSE PALETTE CONTROLS ---
+  openAnnotationPanel = function() {
+    annotationState.isOpen = true;
+    if (editAnnotationBar) editAnnotationBar.classList.add("is-visible");
+    if (editNavBtn) editNavBtn.classList.add("is-active");
+    syncAnnotationCanvasDimensions();
+    setAnnotationTool(annotationState.activeTool || "sketch");
+    updateAnnotationCounter();
+  };
+
+  closeAnnotationPanel = function() {
+    annotationState.isOpen = false;
+    if (editAnnotationBar) editAnnotationBar.classList.remove("is-visible");
+    if (editNavBtn) editNavBtn.classList.remove("is-active");
+    document.body.classList.remove("annotation-mode-sketch", "annotation-mode-eraser");
+    if (annotationSvgCanvas) annotationSvgCanvas.classList.remove("is-drawing");
+    if (selectionTooltip) selectionTooltip.style.display = "none";
+    document.querySelectorAll(".user-annotation-stickynote.is-editing").forEach((n) => n.classList.remove("is-editing"));
+  };
+
+  toggleAnnotationPanel = function() {
+    if (annotationState.isOpen) {
+      closeAnnotationPanel();
+    } else {
+      openAnnotationPanel();
+    }
+  };
+
+  isAnnotationPanelActive = function() {
+    return Boolean(annotationState.isOpen);
+  };
+
+  if (editNavBtn) {
+    editNavBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleAnnotationPanel();
+    });
+  }
+
+  if (annotationBtnClose) {
+    annotationBtnClose.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeAnnotationPanel();
+    });
+  }
+
+  // Keyboard shortcuts when annotation panel is open (P: sketch, H: highlight, T: textbox, S: note, X: eraser)
+  document.addEventListener("keydown", (e) => {
+    if (!isAnnotationPanelActive()) return;
+    if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
+    const noMod = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
+
+    if ((e.code === "KeyP" || e.key?.toLowerCase() === "p") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("sketch");
+    } else if ((e.code === "KeyH" || e.key?.toLowerCase() === "h") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("highlight");
+    } else if ((e.code === "KeyT" || e.key?.toLowerCase() === "t") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("textbox");
+    } else if ((e.code === "KeyS" || e.key?.toLowerCase() === "s") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("stickynote");
+    } else if ((e.code === "KeyX" || e.key?.toLowerCase() === "x") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("eraser");
+    } else if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === "z") {
+      e.preventDefault();
+      if (annotationBtnUndo) annotationBtnUndo.click();
+    }
+  });
+
+  // Re-sync canvas and load saved notes
+  syncAnnotationCanvasDimensions();
+  loadAnnotations();
+  window.addEventListener("resize", syncAnnotationCanvasDimensions);
+  window.addEventListener("scroll", syncAnnotationCanvasDimensions, { passive: true });
+
+  // ==========================================================================
+  // 13. TOP BAR EXPAND / FULL-HEIGHT VIEW CONTROLS
+  // ==========================================================================
+  const expandNavBtn = document.getElementById("expand-nav-btn");
+  let navRestoreFloatBtn = document.getElementById("nav-restore-float-btn");
+
+  if (!navRestoreFloatBtn) {
+    navRestoreFloatBtn = document.createElement("button");
+    navRestoreFloatBtn.type = "button";
+    navRestoreFloatBtn.className = "nav-restore-float-btn";
+    navRestoreFloatBtn.id = "nav-restore-float-btn";
+    navRestoreFloatBtn.setAttribute("aria-label", "Restore Top Navigation Bar");
+    navRestoreFloatBtn.setAttribute("title", "Restore Top Bar ( F )");
+    navRestoreFloatBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"></path>
+      </svg>
+    `;
+    document.body.appendChild(navRestoreFloatBtn);
+  }
+
+  hideTopBar = function() {
+    document.body.classList.add("top-bar-hidden");
+    if (expandNavBtn) expandNavBtn.classList.add("is-active");
+    try {
+      localStorage.setItem("indexindia_topbar_hidden", "true");
+    } catch (e) {}
+    if (typeof syncAnnotationCanvasDimensions === "function") {
+      setTimeout(syncAnnotationCanvasDimensions, 260);
+    }
+  };
+
+  showTopBar = function() {
+    document.body.classList.remove("top-bar-hidden");
+    if (expandNavBtn) expandNavBtn.classList.remove("is-active");
+    try {
+      localStorage.setItem("indexindia_topbar_hidden", "false");
+    } catch (e) {}
+    if (typeof syncAnnotationCanvasDimensions === "function") {
+      setTimeout(syncAnnotationCanvasDimensions, 260);
+    }
+  };
+
+  toggleTopBar = function() {
+    if (document.body.classList.contains("top-bar-hidden")) {
+      showTopBar();
+    } else {
+      hideTopBar();
+    }
+  };
+
+  isTopBarHidden = function() {
+    return document.body.classList.contains("top-bar-hidden");
+  };
+
+  if (expandNavBtn) {
+    expandNavBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleTopBar();
+    });
+  }
+
+  if (navRestoreFloatBtn) {
+    navRestoreFloatBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      showTopBar();
+    });
+  }
+
+  // Restore saved state if user preferred hidden top bar
+  try {
+    if (localStorage.getItem("indexindia_topbar_hidden") === "true") {
+      hideTopBar();
+    }
+  } catch (e) {}
 
   window.addEventListener("resize", () => {
     if (window.innerWidth <= 1280) {

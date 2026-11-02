@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>The Open-Source Investor — IndexIndian Institutional Research Hub</title>
   <meta name="description" content="Master Forensic Evaluation Directory: Uncovering institutional truth through Indian statutory filings, MCA V3 disclosures, CARO 2020 audits, and Ind AS accounting standards.">
-  <link rel="stylesheet" href="styles.css?v=7.8">
+  <link rel="stylesheet" href="styles.css?v=8.0">
 </head>
 <body class="theme-light">
 
@@ -58,6 +58,25 @@
         <button type="button" class="icon-btn" id="doubt-nav-btn" aria-label="Gemini AI Doubt Solver" title="Gemini AI Doubt Solver ( M )">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"></path>
+          </svg>
+        </button>
+      </div>
+
+      
+      <!-- Expand / Hide Top Bar Button -->
+      <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
+        <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar" title="Expand Full View / Hide Top Bar ( F )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
+        <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools" title="Edit &amp; Annotations ( E )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            <path d="m15 5 4 4"></path>
           </svg>
         </button>
       </div>
@@ -123,6 +142,14 @@
             <div class="shortcut-row">
               <span class="shortcut-desc">Doubt Solver</span>
               <span class="shortcut-keys"><kbd>M</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Edit &amp; Markup Tools</span>
+              <span class="shortcut-keys"><kbd>E</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Expand Full View (Toggle Top Bar)</span>
+              <span class="shortcut-keys"><kbd>F</kbd></span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-desc">Close Active Flyout</span>
@@ -227,6 +254,14 @@
     </div>
   </header>
 
+  <!-- Floating Restore Top Bar Button (Visible when top bar is hidden) -->
+  <button type="button" class="nav-restore-float-btn" id="nav-restore-float-btn" aria-label="Restore Top Navigation Bar" title="Restore Top Bar ( F )">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"></path>
+    </svg>
+  </button>
+
+
   <!-- ================= EDGE HOVER SENSORS ================= -->
   <div class="edge-sensor edge-sensor-left" id="sensor-left" aria-hidden="true"></div>
   <div class="edge-sensor edge-sensor-right" id="sensor-right" aria-hidden="true"></div>
@@ -240,20 +275,52 @@
       </div>
       <div class="rail-ticks" id="rail-ticks">
         <div class="tick-mark" data-index="0" title="01.1 MCA V3 Portal"></div>
-        <div class="tick-mark" data-index="1" title="01.2 BSE / NSE Corporate Filings"></div>
-        <div class="tick-mark" data-index="2" title="01.3 SEBI DRHP Database"></div>
-        <div class="tick-mark" data-index="3" title="01.4 GeM & CPPP Procurement"></div>
-        <div class="tick-mark" data-index="4" title="02.1 CARO 2020 Annexure"></div>
-        <div class="tick-mark" data-index="5" title="02.2 Ind AS Notes to Accounts"></div>
-        <div class="tick-mark" data-index="6" title="02.3 Contingent Liabilities"></div>
-        <div class="tick-mark" data-index="7" title="03.1 Cash Conversion Trap"></div>
-        <div class="tick-mark" data-index="8" title="03.2 Promoter Pledge Spiral"></div>
-        <div class="tick-mark" data-index="9" title="03.3 Working Capital Cycle"></div>
-        <div class="tick-mark" data-index="10" title="04.1 NRE vs Burn Rate"></div>
-        <div class="tick-mark" data-index="11" title="04.2 Sovereign TRL Mapping"></div>
-        <div class="tick-mark" data-index="12" title="04.3 Homologation Moats"></div>
-        <div class="tick-mark" data-index="13" title="05.1 Diligence Checklist"></div>
-        <div class="tick-mark" data-index="14" title="05.2 Research Community"></div>
+        <div class="tick-mark" data-index="1" title="01.1.1 Form AOC-4 Forensics"></div>
+        <div class="tick-mark" data-index="2" title="01.1.2 Form MGT-7 Cap Table"></div>
+        <div class="tick-mark" data-index="3" title="01.1.3 Form CHG-1 Asset Charges"></div>
+        <div class="tick-mark" data-index="4" title="01.1.4 Form PAS-3 Allotment"></div>
+        <div class="tick-mark" data-index="5" title="01.2 BSE / NSE Corporate Filings"></div>
+        <div class="tick-mark" data-index="6" title="01.2.1 Machine-Readable XBRL Pipelines"></div>
+        <div class="tick-mark" data-index="7" title="01.2.2 Earnings Call Analyst Q&A"></div>
+        <div class="tick-mark" data-index="8" title="01.3 SEBI DRHP Database"></div>
+        <div class="tick-mark" data-index="9" title="01.3.1 5-Year Restated Financial Audits"></div>
+        <div class="tick-mark" data-index="10" title="01.3.2 Litigation & Contingent Tax Annexures"></div>
+        <div class="tick-mark" data-index="11" title="01.4 GeM & CPPP Procurement Verification"></div>
+        <div class="tick-mark" data-index="12" title="01.4.1 GeM OEM Classification"></div>
+        <div class="tick-mark" data-index="13" title="01.4.2 CPPP Tender Tracking"></div>
+        <div class="tick-mark" data-index="14" title="02.1 CARO 2020 Statutory Red Flags"></div>
+        <div class="tick-mark" data-index="15" title="02.1.1 Clause (iii) Unsecured Promoter Loans"></div>
+        <div class="tick-mark" data-index="16" title="02.1.2 Clause (vii) Statutory Defaults"></div>
+        <div class="tick-mark" data-index="17" title="02.1.3 Clause (ix) CapEx Loan Diversion"></div>
+        <div class="tick-mark" data-index="18" title="02.1.4 Clause (xi) Fraud Reporting"></div>
+        <div class="tick-mark" data-index="19" title="02.2 Ind AS Notes to Accounts"></div>
+        <div class="tick-mark" data-index="20" title="02.2.1 Ind AS 24 Related Party Transfers"></div>
+        <div class="tick-mark" data-index="21" title="02.2.2 Ind AS 115 Unbilled Contract Assets"></div>
+        <div class="tick-mark" data-index="22" title="02.2.3 Ind AS 38 Capitalized R&D Burn"></div>
+        <div class="tick-mark" data-index="23" title="02.3 Contingent Liabilities & Liens"></div>
+        <div class="tick-mark" data-index="24" title="02.3.1 Disputed Tax Demand Assessments"></div>
+        <div class="tick-mark" data-index="25" title="02.3.2 Corporate Cross-Guarantees"></div>
+        <div class="tick-mark" data-index="26" title="03.1 Cash Conversion Trap"></div>
+        <div class="tick-mark" data-index="27" title="03.1.1 CFO / EBITDA Quality Ratio"></div>
+        <div class="tick-mark" data-index="28" title="03.1.2 Channel Stuffing & Receivables Aging"></div>
+        <div class="tick-mark" data-index="29" title="03.2 Promoter Pledge Death Spiral"></div>
+        <div class="tick-mark" data-index="30" title="03.2.1 Margin Call Liquidation Cascade"></div>
+        <div class="tick-mark" data-index="31" title="03.2.2 Multi-Tier HoldCo LAS Debt"></div>
+        <div class="tick-mark" data-index="32" title="03.3 Working Capital Cycle Mismatch"></div>
+        <div class="tick-mark" data-index="33" title="03.3.1 Cash Conversion Cycle Metrics"></div>
+        <div class="tick-mark" data-index="34" title="03.3.2 Growth Insolvency Trap"></div>
+        <div class="tick-mark" data-index="35" title="04.1 NRE vs Burn Rate Architecture"></div>
+        <div class="tick-mark" data-index="36" title="04.1.1 NRE Non-Dilutive Validation"></div>
+        <div class="tick-mark" data-index="37" title="04.1.2 Tooling CapEx vs BOM Economics"></div>
+        <div class="tick-mark" data-index="38" title="04.2 Sovereign TRL 1-9 Milestone Scale"></div>
+        <div class="tick-mark" data-index="39" title="04.2.1 TRL 1-3 Lab Concepts & Grants"></div>
+        <div class="tick-mark" data-index="40" title="04.2.2 TRL 4-5 Factory Floor Valley of Death"></div>
+        <div class="tick-mark" data-index="41" title="04.2.3 TRL 6-7 Operational Validation & VC"></div>
+        <div class="tick-mark" data-index="42" title="04.3 Homologation & Regulatory Moats"></div>
+        <div class="tick-mark" data-index="43" title="04.3.1 ARAI & ICAT Automotive Safety"></div>
+        <div class="tick-mark" data-index="44" title="04.3.2 DGCA & CEMILAC Aerospace Clearance"></div>
+        <div class="tick-mark" data-index="45" title="05.1 Master Pre-Investment Checklist"></div>
+        <div class="tick-mark" data-index="46" title="05.2 Research Community Stream"></div>
       </div>
     </div>
 
@@ -262,7 +329,7 @@
       <div class="rail-tree-header">
         <div class="rail-tree-header-meta">
           <span class="rail-tree-tag font-mono">INDEXINDIAN // INVESTOR</span>
-          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 15</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 47</span>
         </div>
         <div class="rail-tree-header-actions">
           <button type="button" class="rail-header-btn pin-btn" id="btn-pin-tree" title="Pin drawer open (Hold N or Space)" aria-label="Pin Directory Tree">
@@ -283,104 +350,296 @@
           <a href="#sec-01-1" class="tree-node active" data-index="0" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#128220;</span>
-            <span class="tree-name font-mono">01.1 MCA V3 Portal (AOC-4, MGT-7)</span>
+            <span class="tree-name font-mono">01.1 MCA V3 Portal</span>
             <span class="tree-badge font-mono">01</span>
           </a>
-          <a href="#sec-01-2" class="tree-node" data-index="1" data-level="1">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-icon">&#128200;</span>
-            <span class="tree-name font-mono">01.2 BSE / NSE XBRL &amp; Transcripts</span>
+          <a href="#sec-01-1-1" class="tree-node" data-index="1" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128220;</span>
+            <span class="tree-name font-mono">01.1.1 Form AOC-4 Forensics</span>
             <span class="tree-badge font-mono">02</span>
           </a>
-          <a href="#sec-01-3" class="tree-node" data-index="2" data-level="2">
+          <a href="#sec-01-1-2" class="tree-node" data-index="2" data-level="2">
             <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
-            <span class="tree-icon">&#128214;</span>
-            <span class="tree-name font-mono">01.3 SEBI DRHP Database (5-Yr Restated)</span>
+            <span class="tree-icon">&#128202;</span>
+            <span class="tree-name font-mono">01.1.2 Form MGT-7 Cap Table</span>
             <span class="tree-badge font-mono">03</span>
           </a>
-          <a href="#sec-01-4" class="tree-node" data-index="3" data-level="2">
+          <a href="#sec-01-1-3" class="tree-node" data-index="3" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128279;</span>
+            <span class="tree-name font-mono">01.1.3 Form CHG-1 Asset Charges</span>
+            <span class="tree-badge font-mono">04</span>
+          </a>
+          <a href="#sec-01-1-4" class="tree-node" data-index="4" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#128184;</span>
+            <span class="tree-name font-mono">01.1.4 Form PAS-3 Allotment</span>
+            <span class="tree-badge font-mono">05</span>
+          </a>
+          <a href="#sec-01-2" class="tree-node" data-index="5" data-level="1">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128200;</span>
+            <span class="tree-name font-mono">01.2 BSE / NSE Corporate Filings</span>
+            <span class="tree-badge font-mono">06</span>
+          </a>
+          <a href="#sec-01-2-1" class="tree-node" data-index="6" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128187;</span>
+            <span class="tree-name font-mono">01.2.1 Machine-Readable XBRL</span>
+            <span class="tree-badge font-mono">07</span>
+          </a>
+          <a href="#sec-01-2-2" class="tree-node" data-index="7" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#127913;</span>
+            <span class="tree-name font-mono">01.2.2 Earnings Call Analyst Q&amp;A</span>
+            <span class="tree-badge font-mono">08</span>
+          </a>
+          <a href="#sec-01-3" class="tree-node" data-index="8" data-level="1">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-icon">&#128214;</span>
+            <span class="tree-name font-mono">01.3 SEBI DRHP Database</span>
+            <span class="tree-badge font-mono">09</span>
+          </a>
+          <a href="#sec-01-3-1" class="tree-node" data-index="9" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128203;</span>
+            <span class="tree-name font-mono">01.3.1 5-Year Restated Audit</span>
+            <span class="tree-badge font-mono">10</span>
+          </a>
+          <a href="#sec-01-3-2" class="tree-node" data-index="10" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#9878;&#65039;</span>
+            <span class="tree-name font-mono">01.3.2 Litigation Annexures</span>
+            <span class="tree-badge font-mono">11</span>
+          </a>
+          <a href="#sec-01-4" class="tree-node" data-index="11" data-level="1">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#128450;&#65039;</span>
-            <span class="tree-name font-mono">01.4 GeM &amp; CPPP Tender Verification</span>
-            <span class="tree-badge font-mono">04</span>
+            <span class="tree-name font-mono">01.4 GeM &amp; CPPP Procurement</span>
+            <span class="tree-badge font-mono">12</span>
+          </a>
+          <a href="#sec-01-4-1" class="tree-node" data-index="12" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#127970;</span>
+            <span class="tree-name font-mono">01.4.1 GeM OEM Status</span>
+            <span class="tree-badge font-mono">13</span>
+          </a>
+          <a href="#sec-01-4-2" class="tree-node" data-index="13" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#128221;</span>
+            <span class="tree-name font-mono">01.4.2 CPPP Tender Tracking</span>
+            <span class="tree-badge font-mono">14</span>
           </a>
 
           <!-- MODULE 2 -->
           <div class="tree-section-header">MODULE 2: FORENSIC AUDIT PLAYBOOK</div>
-          <a href="#sec-02-1" class="tree-node" data-index="4" data-level="1">
+          <a href="#sec-02-1" class="tree-node" data-index="14" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#128269;</span>
             <span class="tree-name font-mono">02.1 CARO 2020 Statutory Red Flags</span>
-            <span class="tree-badge font-mono">05</span>
+            <span class="tree-badge font-mono">15</span>
           </a>
-          <a href="#sec-02-2" class="tree-node" data-index="5" data-level="1">
+          <a href="#sec-02-1-1" class="tree-node" data-index="15" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128176;</span>
+            <span class="tree-name font-mono">02.1.1 Clause (iii) Promoter Loans</span>
+            <span class="tree-badge font-mono">16</span>
+          </a>
+          <a href="#sec-02-1-2" class="tree-node" data-index="16" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#9888;&#65039;</span>
+            <span class="tree-name font-mono">02.1.2 Clause (vii) Statutory Defaults</span>
+            <span class="tree-badge font-mono">17</span>
+          </a>
+          <a href="#sec-02-1-3" class="tree-node" data-index="17" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128260;</span>
+            <span class="tree-name font-mono">02.1.3 Clause (ix) CapEx Diversion</span>
+            <span class="tree-badge font-mono">18</span>
+          </a>
+          <a href="#sec-02-1-4" class="tree-node" data-index="18" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#128680;</span>
+            <span class="tree-name font-mono">02.1.4 Clause (xi) Fraud Reporting</span>
+            <span class="tree-badge font-mono">19</span>
+          </a>
+          <a href="#sec-02-2" class="tree-node" data-index="19" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#128203;</span>
-            <span class="tree-name font-mono">02.2 Ind AS Notes to Accounts (24, 115, 38)</span>
-            <span class="tree-badge font-mono">06</span>
+            <span class="tree-name font-mono">02.2 Ind AS Notes to Accounts</span>
+            <span class="tree-badge font-mono">20</span>
           </a>
-          <a href="#sec-02-3" class="tree-node" data-index="6" data-level="2">
+          <a href="#sec-02-2-1" class="tree-node" data-index="20" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128101;</span>
+            <span class="tree-name font-mono">02.2.1 Ind AS 24 Related Party</span>
+            <span class="tree-badge font-mono">21</span>
+          </a>
+          <a href="#sec-02-2-2" class="tree-node" data-index="21" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128200;</span>
+            <span class="tree-name font-mono">02.2.2 Ind AS 115 Unbilled Revenue</span>
+            <span class="tree-badge font-mono">22</span>
+          </a>
+          <a href="#sec-02-2-3" class="tree-node" data-index="22" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#128394;&#65039;</span>
+            <span class="tree-name font-mono">02.2.3 Ind AS 38 Capitalized Burn</span>
+            <span class="tree-badge font-mono">23</span>
+          </a>
+          <a href="#sec-02-3" class="tree-node" data-index="23" data-level="1">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#9888;&#65039;</span>
             <span class="tree-name font-mono">02.3 Contingent Liabilities &amp; Liens</span>
-            <span class="tree-badge font-mono">07</span>
+            <span class="tree-badge font-mono">24</span>
+          </a>
+          <a href="#sec-02-3-1" class="tree-node" data-index="24" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#9878;&#65039;</span>
+            <span class="tree-name font-mono">02.3.1 Disputed Tax Demands</span>
+            <span class="tree-badge font-mono">25</span>
+          </a>
+          <a href="#sec-02-3-2" class="tree-node" data-index="25" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#128279;</span>
+            <span class="tree-name font-mono">02.3.2 Corporate Cross-Guarantees</span>
+            <span class="tree-badge font-mono">26</span>
           </a>
 
           <!-- MODULE 3 -->
           <div class="tree-section-header">MODULE 3: CAPITAL STRUCTURE &amp; LIQUIDITY</div>
-          <a href="#sec-03-1" class="tree-node" data-index="7" data-level="1">
+          <a href="#sec-03-1" class="tree-node" data-index="26" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#128178;</span>
-            <span class="tree-name font-mono">03.1 Cash Conversion Trap (CFO vs EBITDA)</span>
-            <span class="tree-badge font-mono">08</span>
+            <span class="tree-name font-mono">03.1 Cash Conversion Trap</span>
+            <span class="tree-badge font-mono">27</span>
           </a>
-          <a href="#sec-03-2" class="tree-node" data-index="8" data-level="1">
+          <a href="#sec-03-1-1" class="tree-node" data-index="27" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128202;</span>
+            <span class="tree-name font-mono">03.1.1 CFO / EBITDA Ratio</span>
+            <span class="tree-badge font-mono">28</span>
+          </a>
+          <a href="#sec-03-1-2" class="tree-node" data-index="28" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#128230;</span>
+            <span class="tree-name font-mono">03.1.2 Channel Stuffing</span>
+            <span class="tree-badge font-mono">29</span>
+          </a>
+          <a href="#sec-03-2" class="tree-node" data-index="29" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#128169;</span>
-            <span class="tree-name font-mono">03.2 Promoter Pledge Death Spiral</span>
-            <span class="tree-badge font-mono">09</span>
+            <span class="tree-name font-mono">03.2 Promoter Pledge Spiral</span>
+            <span class="tree-badge font-mono">30</span>
           </a>
-          <a href="#sec-03-3" class="tree-node" data-index="9" data-level="2">
+          <a href="#sec-03-2-1" class="tree-node" data-index="30" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#9889;</span>
+            <span class="tree-name font-mono">03.2.1 Margin Call Cascade</span>
+            <span class="tree-badge font-mono">31</span>
+          </a>
+          <a href="#sec-03-2-2" class="tree-node" data-index="31" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#128376;&#65039;</span>
+            <span class="tree-name font-mono">03.2.2 HoldCo LAS Debt</span>
+            <span class="tree-badge font-mono">32</span>
+          </a>
+          <a href="#sec-03-3" class="tree-node" data-index="32" data-level="1">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#9201;</span>
-            <span class="tree-name font-mono">03.3 Working Capital Deficit Mismatch</span>
-            <span class="tree-badge font-mono">10</span>
+            <span class="tree-name font-mono">03.3 Working Capital Deficit</span>
+            <span class="tree-badge font-mono">33</span>
+          </a>
+          <a href="#sec-03-3-1" class="tree-node" data-index="33" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128337;</span>
+            <span class="tree-name font-mono">03.3.1 CCC Equation</span>
+            <span class="tree-badge font-mono">34</span>
+          </a>
+          <a href="#sec-03-3-2" class="tree-node" data-index="34" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#9888;&#65039;</span>
+            <span class="tree-name font-mono">03.3.2 Growth Insolvency Trap</span>
+            <span class="tree-badge font-mono">35</span>
           </a>
 
           <!-- MODULE 4 -->
           <div class="tree-section-header">MODULE 4: DEEP-TECH &amp; INDUSTRIAL OVERLAY</div>
-          <a href="#sec-04-1" class="tree-node" data-index="10" data-level="1">
+          <a href="#sec-04-1" class="tree-node" data-index="35" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#9881;&#65039;</span>
-            <span class="tree-name font-mono">04.1 NRE vs Burn Rate Architecture</span>
-            <span class="tree-badge font-mono">11</span>
+            <span class="tree-name font-mono">04.1 NRE vs Burn Rate</span>
+            <span class="tree-badge font-mono">36</span>
           </a>
-          <a href="#sec-04-2" class="tree-node" data-index="11" data-level="1">
+          <a href="#sec-04-1-1" class="tree-node" data-index="36" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128736;&#65039;</span>
+            <span class="tree-name font-mono">04.1.1 NRE Validation</span>
+            <span class="tree-badge font-mono">37</span>
+          </a>
+          <a href="#sec-04-1-2" class="tree-node" data-index="37" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#9881;&#65039;</span>
+            <span class="tree-name font-mono">04.1.2 Tooling CapEx vs BOM</span>
+            <span class="tree-badge font-mono">38</span>
+          </a>
+          <a href="#sec-04-2" class="tree-node" data-index="38" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#128640;</span>
-            <span class="tree-name font-mono">04.2 Sovereign TRL 1-9 Milestone Scale</span>
-            <span class="tree-badge font-mono">12</span>
+            <span class="tree-name font-mono">04.2 Sovereign TRL Scale</span>
+            <span class="tree-badge font-mono">39</span>
           </a>
-          <a href="#sec-04-3" class="tree-node" data-index="12" data-level="2">
+          <a href="#sec-04-2-1" class="tree-node" data-index="39" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128300;</span>
+            <span class="tree-name font-mono">04.2.1 TRL 1-3 Lab Grants</span>
+            <span class="tree-badge font-mono">40</span>
+          </a>
+          <a href="#sec-04-2-2" class="tree-node" data-index="40" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#9888;&#65039;</span>
+            <span class="tree-name font-mono">04.2.2 TRL 4-5 Valley of Death</span>
+            <span class="tree-badge font-mono">41</span>
+          </a>
+          <a href="#sec-04-2-3" class="tree-node" data-index="41" data-level="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#9989;</span>
+            <span class="tree-name font-mono">04.2.3 TRL 6-7 VC Scale-Up</span>
+            <span class="tree-badge font-mono">42</span>
+          </a>
+          <a href="#sec-04-3" class="tree-node" data-index="42" data-level="1">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#128737;&#65039;</span>
-            <span class="tree-name font-mono">04.3 Homologation &amp; Regulatory Moats</span>
-            <span class="tree-badge font-mono">13</span>
+            <span class="tree-name font-mono">04.3 Homologation Moats</span>
+            <span class="tree-badge font-mono">43</span>
+          </a>
+          <a href="#sec-04-3-1" class="tree-node" data-index="43" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span>
+            <span class="tree-icon">&#128663;</span>
+            <span class="tree-name font-mono">04.3.1 ARAI &amp; ICAT EV Moats</span>
+            <span class="tree-badge font-mono">44</span>
+          </a>
+          <a href="#sec-04-3-2" class="tree-node" data-index="44" data-level="2">
+            <span class="tree-guide font-mono">&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;</span>
+            <span class="tree-icon">&#9992;&#65039;</span>
+            <span class="tree-name font-mono">04.3.2 DGCA &amp; CEMILAC Defense</span>
+            <span class="tree-badge font-mono">45</span>
           </a>
 
           <!-- SYNTHESIS -->
           <div class="tree-section-header">SYNTHESIS &amp; DUE DILIGENCE</div>
-          <a href="#sec-05-1" class="tree-node" data-index="13" data-level="1">
+          <a href="#sec-05-1" class="tree-node" data-index="45" data-level="1">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-icon">&#9989;</span>
             <span class="tree-name font-mono">05.1 Master Pre-Investment Checklist</span>
-            <span class="tree-badge font-mono">14</span>
+            <span class="tree-badge font-mono">46</span>
           </a>
-          <a href="#forum-section" class="tree-node" data-index="14" data-level="1">
+          <a href="#forum-section" class="tree-node" data-index="46" data-level="1">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
             <span class="tree-icon">&#128172;</span>
             <span class="tree-name font-mono">05.2 Research Community Stream</span>
-            <span class="tree-badge font-mono">15</span>
+            <span class="tree-badge font-mono">47</span>
           </a>
 
         </div>
@@ -408,401 +667,1694 @@
         <strong>Abstract:</strong> Venture capital and capital allocation in India are plagued by narrative-driven investing. Institutional truth is not found in pitch decks, startup PR announcements, or SaaS growth metrics. Institutional truth is buried in statutory filings, tax disclosures, and cash flow reconciliations. This master directory provides the exact methodologies, public data sources, and forensic frameworks required to strip away the marketing layer and evaluate the true legal, structural, and financial health of any Indian commercial entity.
       </p>
 
-      <!-- ================= MODULE 1 ================= -->
-            <div class="doc-module story-act-divider" data-module-title="Module 1: The Architecture of Public Data in India">
-        <div class="module-header">
-          <h2 class="module-title story-act-title">Module 1: The Architecture of Public Data in India</h2>
-          <span class="module-badge story-act-badge font-mono">[ACT I &bull; NODES 01-04]</span>
+      <!-- ================= ON-PAGE DIRECTORY TREE EXPLORER ================= -->
+      <div class="onpage-directory-tree-container" id="onpage-directory-tree" aria-label="On-Page Directory Tree Explorer">
+        <div class="onpage-tree-header">
+          <div class="onpage-tree-title-group">
+            <span class="onpage-tree-icon">&#127794;</span>
+            <span class="onpage-tree-title font-mono">ON-PAGE DIRECTORY TREE // FORENSIC DOSSIER ARCHITECTURE</span>
+          </div>
+          <div class="onpage-tree-status font-mono">
+            <span class="onpage-tree-badge">47 NODES</span>
+            <span class="onpage-tree-badge">5 MODULES</span>
+            <button type="button" class="onpage-tree-expand-btn font-mono" id="btn-toggle-onpage-tree" title="Toggle On-Page Tree View" onclick="const b = document.getElementById('onpage-tree-body'); const isHidden = b.style.display === 'none'; b.style.display = isHidden ? 'block' : 'none'; this.textContent = isHidden ? '[ COLLAPSE ]' : '[ EXPAND ]';">[ COLLAPSE ]</button>
+          </div>
+        </div>
+        <div class="onpage-tree-body font-mono" id="onpage-tree-body">
+          <div class="onpage-tree-row is-module">
+            <span class="tree-guide font-mono">📁 /</span>
+            <span class="tree-name">MODULE 1: ARCHITECTURE OF PUBLIC DATA IN INDIA</span>
+            <span class="tree-badge font-mono">10 NODES</span>
+          </div>
+          <a href="#sec-01-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">01.1 Ministry of Corporate Affairs (MCA V3 Portal)</span>
+            <span class="tree-badge font-mono">01</span>
+          </a>
+          <a href="#sec-01-1-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.1.1 Form AOC-4: Balance Sheet Forensics &amp; Statutory Audit Notes</span>
+            <span class="tree-badge font-mono">02</span>
+          </a>
+          <a href="#sec-01-1-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.1.2 Form MGT-7: Cap Table Verification &amp; Beneficial Ownership</span>
+            <span class="tree-badge font-mono">03</span>
+          </a>
+          <a href="#sec-01-1-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.1.3 Form CHG-1 &amp; CHG-4: Asset Hypothecation &amp; Hidden Debt Liens</span>
+            <span class="tree-badge font-mono">04</span>
+          </a>
+          <a href="#sec-01-1-4" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.1.4 Form PAS-3: Private Round Share Pricing &amp; Premium Discrepancies</span>
+            <span class="tree-badge font-mono">05</span>
+          </a>
+          <a href="#sec-01-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">01.2 BSE / NSE Corporate Filings (For Listed Entities)</span>
+            <span class="tree-badge font-mono">06</span>
+          </a>
+          <a href="#sec-01-2-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.2.1 Machine-Readable XBRL Pipelines</span>
+            <span class="tree-badge font-mono">07</span>
+          </a>
+          <a href="#sec-01-2-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.2.2 Earnings Call Analyst Q&amp;A Cross-Examination</span>
+            <span class="tree-badge font-mono">08</span>
+          </a>
+          <a href="#sec-01-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">01.3 SEBI Public Issues Database (The DRHP Prospectus)</span>
+            <span class="tree-badge font-mono">09</span>
+          </a>
+          <a href="#sec-01-3-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.3.1 5-Year Restated Financial Audits</span>
+            <span class="tree-badge font-mono">10</span>
+          </a>
+          <a href="#sec-01-3-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.3.2 Litigation &amp; Contingent Tax Demand Annexures</span>
+            <span class="tree-badge font-mono">11</span>
+          </a>
+          <a href="#sec-01-4" class="onpage-tree-row">
+            <span class="tree-guide font-mono">└──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">01.4 GeM &amp; CPPP Public Procurement Verification</span>
+            <span class="tree-badge font-mono">12</span>
+          </a>
+          <a href="#sec-01-4-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.4.1 GeM Portal OEM Classification &amp; True B2G Fulfillment</span>
+            <span class="tree-badge font-mono">13</span>
+          </a>
+          <a href="#sec-01-4-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">01.4.2 CPPP Multi-Year Tender Execution Tracking</span>
+            <span class="tree-badge font-mono">14</span>
+          </a>
+
+          <div class="onpage-tree-row is-module">
+            <span class="tree-guide font-mono">📁 /</span>
+            <span class="tree-name">MODULE 2: FORENSIC AUDIT PLAYBOOK (RED FLAG MATRIX)</span>
+            <span class="tree-badge font-mono">10 NODES</span>
+          </div>
+          <a href="#sec-02-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">02.1 The CARO 2020 Annexure (Companies Auditor’s Report Order)</span>
+            <span class="tree-badge font-mono">15</span>
+          </a>
+          <a href="#sec-02-1-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.1.1 Clause (iii) Unsecured Promoter Loans &amp; Siphoning Trails</span>
+            <span class="tree-badge font-mono">16</span>
+          </a>
+          <a href="#sec-02-1-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.1.2 Clause (vii) Statutory Defaults (PF, ESI, TDS &amp; GST)</span>
+            <span class="tree-badge font-mono">17</span>
+          </a>
+          <a href="#sec-02-1-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.1.3 Clause (ix) CapEx Term Loan Diversion into OpEx Debt</span>
+            <span class="tree-badge font-mono">18</span>
+          </a>
+          <a href="#sec-02-1-4" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.1.4 Clause (xi) Fraud Reporting &amp; Section 143(12) ADT-4</span>
+            <span class="tree-badge font-mono">19</span>
+          </a>
+          <a href="#sec-02-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">02.2 Ind AS Notes to Accounts (Accounting Standards Forensics)</span>
+            <span class="tree-badge font-mono">20</span>
+          </a>
+          <a href="#sec-02-2-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.2.1 Ind AS 24 Related Party Transfers &amp; Promoter LLP Leakage</span>
+            <span class="tree-badge font-mono">21</span>
+          </a>
+          <a href="#sec-02-2-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.2.2 Ind AS 115 Revenue Contracts &amp; Unbilled Accruals</span>
+            <span class="tree-badge font-mono">22</span>
+          </a>
+          <a href="#sec-02-2-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.2.3 Ind AS 38 Capitalized Intangibles &amp; Burn Masking</span>
+            <span class="tree-badge font-mono">23</span>
+          </a>
+          <a href="#sec-02-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">└──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">02.3 Contingent Liabilities (The Off-Balance-Sheet Bombs)</span>
+            <span class="tree-badge font-mono">24</span>
+          </a>
+          <a href="#sec-02-3-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.3.1 Disputed Tax Demands &amp; Pre-Deposits (ITAT &amp; GST)</span>
+            <span class="tree-badge font-mono">25</span>
+          </a>
+          <a href="#sec-02-3-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">02.3.2 Corporate Cross-Guarantees &amp; IBC Section 7 Contagion</span>
+            <span class="tree-badge font-mono">26</span>
+          </a>
+
+          <div class="onpage-tree-row is-module">
+            <span class="tree-guide font-mono">📁 /</span>
+            <span class="tree-name">MODULE 3: CAPITAL STRUCTURE &amp; LIQUIDITY STRESS TESTING</span>
+            <span class="tree-badge font-mono">08 NODES</span>
+          </div>
+          <a href="#sec-03-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">03.1 The Cash Conversion Trap (CFO vs. EBITDA Divergence)</span>
+            <span class="tree-badge font-mono">27</span>
+          </a>
+          <a href="#sec-03-1-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">03.1.1 CFO vs EBITDA Divergence Ratio Benchmark (&ge; 0.70)</span>
+            <span class="tree-badge font-mono">28</span>
+          </a>
+          <a href="#sec-03-1-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">03.1.2 Channel Stuffing Diagnostics &amp; Receivables Aging</span>
+            <span class="tree-badge font-mono">29</span>
+          </a>
+          <a href="#sec-03-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">03.2 The Promoter Pledge Death Spiral</span>
+            <span class="tree-badge font-mono">30</span>
+          </a>
+          <a href="#sec-03-2-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">03.2.1 Margin Call Cascade Mechanics &amp; Stock Liquidation</span>
+            <span class="tree-badge font-mono">31</span>
+          </a>
+          <a href="#sec-03-2-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">03.2.2 Multi-Tier Holding Company Debt &amp; Unlisted Subsidiary LAS</span>
+            <span class="tree-badge font-mono">32</span>
+          </a>
+          <a href="#sec-03-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">└──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">03.3 The Working Capital Cycle Mismatch</span>
+            <span class="tree-badge font-mono">33</span>
+          </a>
+          <a href="#sec-03-3-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">03.3.1 Cash Conversion Cycle Decomposition: DSO + DIO &minus; DPO</span>
+            <span class="tree-badge font-mono">34</span>
+          </a>
+          <a href="#sec-03-3-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">03.3.2 The Growth Insolvency Trap &amp; Vendor Stretching</span>
+            <span class="tree-badge font-mono">35</span>
+          </a>
+
+          <div class="onpage-tree-row is-module">
+            <span class="tree-guide font-mono">📁 /</span>
+            <span class="tree-name">MODULE 4: DEEP-TECH &amp; INDUSTRIAL OVERLAY</span>
+            <span class="tree-badge font-mono">09 NODES</span>
+          </div>
+          <a href="#sec-04-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">04.1 NRE vs. Burn Rate Architecture</span>
+            <span class="tree-badge font-mono">36</span>
+          </a>
+          <a href="#sec-04-1-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">04.1.1 Non-Recurring Engineering (NRE) Non-Dilutive Validation</span>
+            <span class="tree-badge font-mono">37</span>
+          </a>
+          <a href="#sec-04-1-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">04.1.2 Tooling CapEx Amortization vs. Unit BOM</span>
+            <span class="tree-badge font-mono">38</span>
+          </a>
+          <a href="#sec-04-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">04.2 Sovereign Technology Readiness Level (TRL 1-9)</span>
+            <span class="tree-badge font-mono">39</span>
+          </a>
+          <a href="#sec-04-2-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">04.2.1 TRL 1–3: Lab Concepts &amp; Sovereign Grants</span>
+            <span class="tree-badge font-mono">40</span>
+          </a>
+          <a href="#sec-04-2-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">04.2.2 TRL 4–5: Factory Floor 'Valley of Death'</span>
+            <span class="tree-badge font-mono">41</span>
+          </a>
+          <a href="#sec-04-2-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">04.2.3 TRL 6–7: Operational Environment &amp; VC Scale-Up</span>
+            <span class="tree-badge font-mono">42</span>
+          </a>
+          <a href="#sec-04-3" class="onpage-tree-row">
+            <span class="tree-guide font-mono">└──</span>
+            <span class="tree-icon">📂</span>
+            <span class="tree-name">04.3 Homologation and Regulatory Certification Moats</span>
+            <span class="tree-badge font-mono">43</span>
+          </a>
+          <a href="#sec-04-3-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">04.3.1 Automotive Homologation: ARAI / ICAT AIS-156</span>
+            <span class="tree-badge font-mono">44</span>
+          </a>
+          <a href="#sec-04-3-2" class="onpage-tree-row">
+            <span class="tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+            <span class="tree-icon">📄</span>
+            <span class="tree-name">04.3.2 Aerospace &amp; Defense: DGCA &amp; CEMILAC</span>
+            <span class="tree-badge font-mono">45</span>
+          </a>
+
+          <div class="onpage-tree-row is-module">
+            <span class="tree-guide font-mono">📁 /</span>
+            <span class="tree-name">SYNTHESIS &amp; DUE DILIGENCE</span>
+            <span class="tree-badge font-mono">02 NODES</span>
+          </div>
+          <a href="#sec-05-1" class="onpage-tree-row">
+            <span class="tree-guide font-mono">├──</span>
+            <span class="tree-icon">✅</span>
+            <span class="tree-name">05.1 Master Forensic Due Diligence Checklist</span>
+            <span class="tree-badge font-mono">46</span>
+          </a>
+          <a href="#forum-section" class="onpage-tree-row">
+            <span class="tree-guide font-mono">└──</span>
+            <span class="tree-icon">💬</span>
+            <span class="tree-name">05.2 Comments Directory Stream</span>
+            <span class="tree-badge font-mono">47</span>
+          </a>
         </div>
       </div>
 
-      <!-- 01.1 -->
-            <section id="sec-01-1" class="doc-section story-node-section" data-section-num="01.1" data-section-title="Ministry of Corporate Affairs (MCA V3 Portal)" data-level="1" data-node-idx="0">
-        <div class="section-header">
-          <span class="section-number font-mono">01.1</span>
-          <h3 class="section-title story-section-title">&#128220; Ministry of Corporate Affairs (MCA V3 Portal)</h3>
+      <!-- ================= MODULE 01 ================= -->
+      <div class="page-tree-group" data-module="01">
+        <div class="doc-module story-act-divider" data-module-title="Module 1: The Architecture of Public Data in India">
+          <div class="module-header">
+            <h2 class="module-title story-act-title">Module 1: The Architecture of Public Data in India</h2>
+            <span class="module-badge story-act-badge font-mono">[ACT I &bull; 10 NODES]</span>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 1 // STATUTORY FILINGS]</span>
+
+        <!-- 01.1 Branch -->
+        <div class="page-tree-branch">
+          <!-- 01.1 Section Div -->
+          <div id="sec-01-1" class="doc-section story-node-section page-tree-tab" data-section-num="01.1" data-section-title="Ministry of Corporate Affairs (MCA V3 Portal)" data-level="1" data-node-idx="0">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">01.1</span>
+              <h3 class="section-title story-section-title">&#128220; Ministry of Corporate Affairs (MCA V3 Portal)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 4 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 1 // STATUTORY FILINGS]</span>
           <span class="story-node-anchor font-mono">#sec-01-1</span>
         </div>
-        <div class="section-content">
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            You do not need a &#8377;20 Lakh/year proprietary data terminal to access institutional truth. The Indian regulatory state mandates massive, transparent, and machine-readable disclosures under the Companies Act, 2013. The <strong>Ministry of Corporate Affairs (MCA V3)</strong> is the foundational source of legal record for every Private Limited (Pvt. Ltd.) and Public Limited (Ltd.) company incorporated in India.
+          </p>
           <p class="story-narrative-lead">
-          You do not need a &#8377;20 Lakh/year proprietary data terminal to access institutional truth. The Indian regulatory state mandates massive, transparent, and machine-readable disclosures under the Companies Act, 2013. The <strong>Ministry of Corporate Affairs (MCA V3)</strong> is the foundational source of legal record for every Private Limited (Pvt. Ltd.) and Public Limited (Ltd.) company incorporated in India.
-        </p>
-        <p class="story-narrative-lead">
-          By utilizing the statutory <em>"View Public Documents"</em> facility (costing &#8377;100 per company for a 3-hour inspection window), an analyst extracts the unvarnished corporate DNA:
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Form AOC-4 (Financial Statements):</strong> Contains the statutory audited balance sheet, profit &amp; loss statement, cash flow statement, and the complete Independent Auditor's Report including all qualified opinions and matter-of-emphasis notes.</li>
-          <li><strong>Form MGT-7 (Annual Return):</strong> The ultimate legally binding capitalization table (cap table). It lists every single legal shareholder, voting percentages, director appointments, transfers executed during the fiscal year, and promoter holding dilution.</li>
-          <li><strong>Form CHG-1 &amp; CHG-4 (Creation &amp; Satisfaction of Charges):</strong> A "Charge" is a registered legal lien against corporate assets. If a founder claims to be "100% bootstrapped and debt-free," but CHG-1 records a &#8377;50 Crore hypothecation lien held by an NBFC over intellectual property and book debts, the founder's pitch deck is instantly contradicted by public statute.</li>
-          <li><strong>Form PAS-3 (Return of Allotment):</strong> Mandated every time fresh shares or convertible securities are allotted. Lists exact post-money share prices, face value vs. securities premium, and the exact names of institutional subscribers.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">PORTAL: MCA V3</span>
-          <span class="story-tag">STATUTORY FEE: &#8377;100</span>
-          <span class="story-tag">KEY FORMS: AOC-4, MGT-7, CHG-1, PAS-3</span>
-        </div>
-        </div>
-      </section>
+            By utilizing the statutory <em>"View Public Documents"</em> facility (costing &#8377;100 per company for a 3-hour inspection window), an analyst extracts the unvarnished corporate DNA across four mandatory statutory disclosures:
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">PORTAL: MCA V3</span>
+            <span class="story-tag">STATUTORY FEE: &#8377;100</span>
+            <span class="story-tag">NODES: 01.1.1 (AOC-4) &bull; 01.1.2 (MGT-7) &bull; 01.1.3 (CHG-1) &bull; 01.1.4 (PAS-3)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 01.2 -->
-            <section id="sec-01-2" class="doc-section story-node-section" data-section-num="01.2" data-section-title="BSE / NSE Corporate Filings (For Listed Entities)" data-level="1" data-node-idx="1">
-        <div class="section-header">
-          <span class="section-number font-mono">01.2</span>
-          <h3 class="section-title story-section-title">&#128200; BSE / NSE Corporate Filings (For Listed Entities)</h3>
+          <!-- 01.1 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 01.1.1 -->
+            <div id="sec-01-1-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.1.1" data-section-title="Form AOC-4: Balance Sheet Forensics &amp; Statutory Audit Notes" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.1.1</span>
+                <h4 class="subsection-title story-section-title">&#128220; Form AOC-4: Balance Sheet Forensics &amp; Statutory Audit Notes</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.1.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[MCA V3 // FINANCIAL STATEMENTS // 1.1.1]</span>
+              <span class="story-node-anchor font-mono">#sec-01-1-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Mandated under Section 137 of the Companies Act, 2013, <strong>Form AOC-4</strong> (or AOC-4 XBRL for companies with paid-up capital &ge; &#8377;5 Crore or turnover &ge; &#8377;100 Crore) is filed annually within 30 days of the Annual General Meeting (AGM). It contains the complete audited financial statements (Standalone and Consolidated), the Independent Auditor's Report, Directors' Report, and the CARO annexure. This is the ultimate ground-truth repository that renders founder pitch decks redundant.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The Auditor Opinion Spectrum:</strong> Look past the top-line numbers directly at the Independent Auditor's Report. Categorize the opinion immediately:
+                  <ul style="margin: 6px 0 6px 18px; line-height: 1.6;">
+                    <li><em>Unqualified ("Clean") Opinion:</em> The auditor certifies that the accounts present a true and fair view in accordance with statutory accounting standards.</li>
+                    <li><em>Qualified Opinion:</em> The auditor expresses reservations regarding specific accounting treatments—such as unverified inventory physical counts, disputed debtor balances, or inadequate provisioning for doubtful debts.</li>
+                    <li><em>Adverse Opinion:</em> The auditor concludes that misstatements are both material and pervasive, rendering the financial statements misleading.</li>
+                    <li><em>Disclaimer of Opinion:</em> The auditor states that they were unable to obtain sufficient appropriate audit evidence to form an opinion—an immediate code-red warning of operational obstruction or systemic fraud.</li>
+                  </ul>
+                </li>
+                <li><strong>Deciphering "Emphasis of Matter" &amp; Going Concern (SA 570 / Ind AS 1):</strong> Auditors frequently use "Emphasis of Matter" paragraphs to highlight existential business risks without formally qualifying their opinion. Look for disclosures regarding massive pending GST/Income Tax demand notices, insolvency petitions filed by operational creditors at NCLT, or accumulated losses eroding 100% of the entity's net worth.</li>
+                <li><strong>Auditor Quality &amp; Peer Review Verification:</strong> Verify the identity, ICAI registration number, and tenure of the signing Chartered Accountant. If a venture-funded unicorn or high-growth manufacturing entity with hundreds of crores in turnover employs a sole-proprietor audit firm with no ICAI Peer Review Certificate or National Financial Reporting Authority (NFRA) oversight, internal financial controls are virtually unmonitored.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTORY FILING: FORM AOC-4 / AOC-4 XBRL</span>
+                <span class="story-tag">GOVERNING SECTION: CA 2013 SEC 137</span>
+                <span class="story-tag">CRITICAL INSPECTION: INDEPENDENT AUDITOR'S REPORT &amp; EMPHASIS OF MATTER</span>
+              </div>
+            </div>
+            </div>
+            <!-- 01.1.2 -->
+            <div id="sec-01-1-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.1.2" data-section-title="Form MGT-7: Cap Table Verification &amp; Beneficial Ownership (SBO Rule 9)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.1.2</span>
+                <h4 class="subsection-title story-section-title">&#128202; Form MGT-7: Cap Table Verification &amp; Beneficial Ownership (SBO Rule 9)</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.1.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[MCA V3 // CAPITAL STRUCTURE // 1.1.2]</span>
+              <span class="story-node-anchor font-mono">#sec-01-1-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Filed under Section 92 within 60 days of the AGM, <strong>Form MGT-7 (Annual Return)</strong> is the company's statutory snapshot of legal ownership and management. It is the only legally admissible cap table in the Republic of India as of March 31 of each financial year, overriding all informal investor spreadsheets.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Statutory Cap Table &amp; Transfer Ledgers:</strong> Form MGT-7 itemizes the complete register of members: equity share counts, Compulsorily Convertible Preference Shares (CCPS), Optional Convertible Preference Shares (OCPS), differential voting rights, and exact nominal face values. Crucially, it lists all share transfers executed during the fiscal year—revealing undisclosed founder secondaries, angel exits, or promoter stake liquidations executed quietly behind the scenes.</li>
+                <li><strong>Significant Beneficial Ownership (SBO) Forensics (Section 90):</strong> The Ministry of Corporate Affairs mandates disclosure of natural persons who hold indirect ownership (>10%) or exercise significant influence or control under the Companies (Significant Beneficial Owners) Rules, 2018 (Form BEN-2). This forensic trail pierces shell corporate veils, unmasking promoter control routed through Mauritius SPVs, Singapore holding entities, or domestic private LLPs owned by family relatives.</li>
+                <li><strong>Promoter Dilution Red Flags:</strong> Compare consecutive MGT-7 filings across three trailing fiscal years. A sudden drop in founder equity shareholding percentage preceding a capital raise—unexplained by fresh external primary issuance—indicates that founders are de-risking their personal exposure while pitching hyper-growth to new institutional LPs.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTORY FILING: FORM MGT-7 / MGT-7A</span>
+                <span class="story-tag">STATUTE: CA 2013 SEC 90 &amp; 92</span>
+                <span class="story-tag">KEY ASSET: BENEFICIAL OWNERSHIP &amp; SHARE TRANSFER LEDGER</span>
+              </div>
+            </div>
+            </div>
+            <!-- 01.1.3 -->
+            <div id="sec-01-1-3" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.1.3" data-section-title="Form CHG-1 &amp; CHG-4: Asset Hypothecation &amp; Hidden Debt Liens" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.1.3</span>
+                <h4 class="subsection-title story-section-title">&#128279; Form CHG-1 &amp; CHG-4: Asset Hypothecation &amp; Hidden Debt Liens</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.1.3]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[MCA V3 // REGISTER OF CHARGES // 1.1.3]</span>
+              <span class="story-node-anchor font-mono">#sec-01-1-3</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Under Section 77 of the Companies Act, 2013, every company creating a legal charge on its assets, property, or undertakings must register the instrument with the Registrar of Companies (RoC) within 30 days using <strong>Form CHG-1</strong>. When the debt is fully repaid, <strong>Form CHG-4</strong> must be filed to record satisfaction of the charge.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Unmasking Hidden Leverage &amp; Hypothecations:</strong> Startup executives frequently claim in investor meetings to be "completely debt-free and equity-funded." Querying the MCA Register of Charges exposes reality in seconds. If active CHG-1 filings reveal hypothecation over current assets, intellectual property, book debts, or plant &amp; machinery in favor of Non-Banking Financial Companies (NBFCs) or venture debt funds, the entity is burdened with fixed financial servicing obligations.</li>
+                <li><strong>IBC Liquidation Seniority Waterfall:</strong> In any insolvency or corporate distress event under the Insolvency and Bankruptcy Code (IBC, 2016), registered charge holders are categorized as Secured Financial Creditors. They hold first-priority legal claims on asset recovery under Section 53. Unsecured convertible noteholders (CCPS/CCD) and common equity shareholders rank near the absolute bottom of the payout waterfall.</li>
+                <li><strong>Charge Modification Spikes as Distress Signals:</strong> Examine the chronological history of charge modifications. Consecutive filings of Form CHG-1 for charge modification—expanding pledged collateral to cover additional overdraft facilities or extending repayment dates—indicate that commercial banks are tightening covenants and demanding additional collateral coverage to counter deteriorating operating liquidity.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTORY FORMS: CHG-1 (CREATION) &amp; CHG-4 (SATISFACTION)</span>
+                <span class="story-tag">STATUTE: CA 2013 SEC 77-87</span>
+                <span class="story-tag">WATERFALL IMPACT: SECURED FINANCIAL CREDITOR PRIORITY</span>
+              </div>
+            </div>
+            </div>
+            <!-- 01.1.4 -->
+            <div id="sec-01-1-4" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.1.4" data-section-title="Form PAS-3: Private Round Share Pricing &amp; Premium Discrepancies" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.1.4</span>
+                <h4 class="subsection-title story-section-title">&#128184; Form PAS-3: Private Round Share Pricing &amp; Premium Discrepancies</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.1.4]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[MCA V3 // RETURN OF ALLOTMENT // 1.1.4]</span>
+              <span class="story-node-anchor font-mono">#sec-01-1-4</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Whenever a company issues fresh shares or convertible securities under a private placement, preferential allotment, or rights issue, it is legally obligated under Section 39 and Section 42 of the Companies Act, 2013 to submit <strong>Form PAS-3 (Return of Allotment)</strong> within 15–30 days of allotment.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Empirical Valuation Reconstruction:</strong> Pitch deck valuation multiples are PR artifacts. Form PAS-3 mandates exact statutory financial accounting: the nominal face value per security (e.g., &#8377;10 or &#8377;100), the exact Securities Premium per share paid in cash (e.g., &#8377;8,420), total consideration mobilized, and the exact count of allotted securities. By multiplying total post-issuance diluted shares by the PAS-3 allotment price, an analyst establishes the true empirical post-money benchmark.</li>
+                <li><strong>Verifying Institutional Subscriber Authenticity:</strong> Form PAS-3 includes a mandatory annexure listing the full legal names, Permanent Account Numbers (PAN), passport identifiers, and exact allotment shares for every subscriber. This statutory list prevents founders from claiming participation by tier-1 global venture funds when the round was actually bridged by domestic relatives or high-net-worth friends at heavily discounted terms.</li>
+                <li><strong>Valuation Math &amp; Section 56(2)(viib) Scrutiny:</strong> Companies issuing shares at substantial premiums must file an accompanying Valuation Report prepared by an IBBI Registered Valuer or SEBI Category-I Merchant Banker under Rule 11UA of the Income Tax Rules. Compare the discounted cash flow (DCF) projections in the valuation report against the historical financials reported in AOC-4. If the valuer assumed 150% CAGR revenue expansion for five years to justify the premium, the company faces severe tax reassessment scrutiny under Section 56(2)(viib).</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTORY FILING: FORM PAS-3</span>
+                <span class="story-tag">STATUTE: CA 2013 SEC 39 &amp; 42</span>
+                <span class="story-tag">VALUATION BENCHMARK: SECURITIES PREMIUM PER SHARE &amp; RULE 11UA DCF</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 1 // EXCHANGE DISCLOSURES]</span>
+
+        <!-- 01.2 Branch -->
+        <div class="page-tree-branch">
+          <!-- 01.2 Section Div -->
+          <div id="sec-01-2" class="doc-section story-node-section page-tree-tab" data-section-num="01.2" data-section-title="BSE / NSE Corporate Filings (For Listed Entities)" data-level="1" data-node-idx="1">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">01.2</span>
+              <h3 class="section-title story-section-title">&#128200; BSE / NSE Corporate Filings (For Listed Entities)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 1 // EXCHANGE DISCLOSURES]</span>
           <span class="story-node-anchor font-mono">#sec-01-2</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          Never evaluate an enterprise by downloading glossy, agency-designed PDF Annual Reports. Marketing departments engineer these documents with stylized infographics specifically to draw human eyes away from footnotes, contingent dispute annexures, and related-party schedules.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>XBRL (eXtensible Business Reporting Language):</strong> Always download raw XBRL XML filings directly from the exchange repository. XBRL provides standardized, machine-readable financial tags. You can ingest these directly into automated Python parsing pipelines to calculate gross margins, inventory turns, and working capital cycles with zero Optical Character Recognition (OCR) hallucination risk.</li>
-          <li><strong>Quarterly Earnings Transcripts:</strong> Ignore executive scripted monologues. Fast-forward immediately to the institutional analyst Q&amp;A section. When sell-side forensic analysts cross-examine management on why Capital Expenditure (CapEx) timelines are slipping or why trade receivables are ballooning past 120 days, management's spontaneous deflections reveal real operational friction.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">REPOSITORIES: BSEINDIA / NSEINDIA</span>
-          <span class="story-tag">DATA FORMAT: RAW XBRL/XML</span>
-          <span class="story-tag">CORE ARTIFACT: ANALYST Q&amp;A TRANSCRIPTS</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            Never evaluate an enterprise by downloading glossy, agency-designed PDF Annual Reports. Marketing departments engineer these documents with stylized infographics specifically to draw human eyes away from footnotes, contingent dispute annexures, and related-party schedules.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">REPOSITORIES: BSEINDIA / NSEINDIA</span>
+            <span class="story-tag">NODES: 01.2.1 (XBRL PIPELINES) &bull; 01.2.2 (EARNINGS TRANSCRIPTS)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 01.3 -->
-            <section id="sec-01-3" class="doc-section story-node-section" data-section-num="01.3" data-section-title="SEBI Public Issues Database (The DRHP Prospectus)" data-level="1" data-node-idx="2">
-        <div class="section-header">
-          <span class="section-number font-mono">01.3</span>
-          <h3 class="section-title story-section-title">&#128214; SEBI Public Issues Database (The DRHP Prospectus)</h3>
+          <!-- 01.2 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 01.2.1 -->
+            <div id="sec-01-2-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.2.1" data-section-title="Machine-Readable XBRL Pipelines (Standardized Financial Tagging &amp; Zero-OCR Ingestion)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.2.1</span>
+                <h4 class="subsection-title story-section-title">&#128187; Machine-Readable XBRL Pipelines</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.2.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[EXCHANGE // DATA ARCHITECTURE // 1.2.1]</span>
+              <span class="story-node-anchor font-mono">#sec-01-2-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Always download raw <strong>XBRL (eXtensible Business Reporting Language)</strong> XML filings directly from BSE India or NSE India repositories. XBRL provides standardized, machine-readable financial tags mandated by SEBI under Regulation 33 of LODR.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Zero-OCR Parsing Pipelines:</strong> Ingesting raw XBRL feeds directly into automated Python parsing engines guarantees error-free metric extraction (gross margins, inventory turns, days sales outstanding) without Optical Character Recognition (OCR) hallucination risks.</li>
+                <li><strong>Segment Reporting Disaggregation:</strong> In the glossy annual report, management frequently groups loss-making experimental subsidiaries into a broad "Others" segment. XBRL schedules force granular taxonomy tagging, uncovering operating losses in peripheral ventures.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">REPOSITORIES: BSEINDIA / NSEINDIA</span>
+                <span class="story-tag">FORMAT: RAW XBRL/XML</span>
+                <span class="story-tag">REGULATION: SEBI LODR REG 33</span>
+              </div>
+            </div>
+            </div>
+            <!-- 01.2.2 -->
+            <div id="sec-01-2-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.2.2" data-section-title="Earnings Call Analyst Q&amp;A Cross-Examination (Unscripted Operational Stress)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.2.2</span>
+                <h4 class="subsection-title story-section-title">&#127913; Earnings Call Analyst Q&amp;A Cross-Examination</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.2.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[EXCHANGE // QUALITATIVE FORENSICS // 1.2.2]</span>
+              <span class="story-node-anchor font-mono">#sec-01-2-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Executive prepared remarks during quarterly earnings calls are polished by investor relations firms. Fast-forward immediately to the institutional analyst Q&amp;A section to detect operational vulnerability.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Cross-Examination Under Fire:</strong> When sell-side forensic analysts cross-examine management on why Capital Expenditure (CapEx) commissioning timelines are slipping or why trade receivables are ballooning past 120 days, management's spontaneous deflections reveal real operational friction.</li>
+                <li><strong>Deflection Heuristics:</strong> Track rhetorical evasions such as "we will take this offline," sudden CFO turnover announcements on a Friday evening, or changes in guidance terminology (e.g., shifting from "EBITDA margin" to "Contribution margin before central allocations").</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">ARTIFACT: UNEDITED AUDIO &amp; TRANSCRIPTS</span>
+                <span class="story-tag">FOCUS: ANALYST Q&amp;A CROSS-EXAMINATION</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 1 // CAPITAL MARKETS]</span>
+
+        <!-- 01.3 Branch -->
+        <div class="page-tree-branch">
+          <!-- 01.3 Section Div -->
+          <div id="sec-01-3" class="doc-section story-node-section page-tree-tab" data-section-num="01.3" data-section-title="SEBI Public Issues Database (The DRHP Prospectus)" data-level="1" data-node-idx="2">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">01.3</span>
+              <h3 class="section-title story-section-title">&#128214; SEBI Public Issues Database (The DRHP Prospectus)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 1 // CAPITAL MARKETS]</span>
           <span class="story-node-anchor font-mono">#sec-01-3</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          For late-stage unlisted companies preparing for an Initial Public Offering (IPO), the <strong>Draft Red Herring Prospectus (DRHP)</strong> filed with the Securities and Exchange Board of India (SEBI) is the single most valuable forensic document in Indian commerce. Under statutory threat of criminal liability for misstatement, merchant bankers and auditors strip away vanity metrics.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>5-Year Restated Financial Statements:</strong> Eliminates accounting gimmicks introduced during private fundraising rounds to provide uniform, audited restatements across historical cycles.</li>
-          <li><strong>Litigation &amp; Contingent Tax Annexures:</strong> Discloses every active civil dispute, promoter tax assessment order, GST investigation, and criminal proceedings against directors and subsidiary vehicles.</li>
-          <li><strong>Comprehensive Related Party Transactions (RPTs):</strong> Forces comprehensive 5-year disclosures of all payments, leases, royalties, and consulting retainers paid to promoter families or affiliated offshore shell entities.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">REGULATOR: SEBI</span>
-          <span class="story-tag">DOCUMENT: DRHP / RHP</span>
-          <span class="story-tag">MANDATE: 5-YEAR UNIFORM RESTATED AUDIT</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            For late-stage unlisted companies preparing for an Initial Public Offering (IPO), the <strong>Draft Red Herring Prospectus (DRHP)</strong> filed with the Securities and Exchange Board of India (SEBI) is the single most valuable forensic document in Indian commerce. Under statutory threat of criminal liability for misstatement under Section 34 &amp; 35 of the Companies Act, merchant bankers and auditors strip away vanity metrics.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">REGULATOR: SEBI</span>
+            <span class="story-tag">DOCUMENT: DRHP / RHP</span>
+            <span class="story-tag">NODES: 01.3.1 (RESTATED AUDIT) &bull; 01.3.2 (LITIGATION ANNEXURES)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 01.4 -->
-            <section id="sec-01-4" class="doc-section story-node-section" data-section-num="01.4" data-section-title="GeM &amp; CPPP Public Procurement Verification" data-level="1" data-node-idx="3">
-        <div class="section-header">
-          <span class="section-number font-mono">01.4</span>
-          <h3 class="section-title story-section-title">&#128450;&#65039; GeM &amp; CPPP Public Procurement Verification</h3>
+          <!-- 01.3 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 01.3.1 -->
+            <div id="sec-01-3-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.3.1" data-section-title="5-Year Restated Financial Audits (Eliminating Private Venture Distortions)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.3.1</span>
+                <h4 class="subsection-title story-section-title">&#128203; 5-Year Restated Financial Audits</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.3.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[SEBI // RESTATED AUDIT // 1.3.1]</span>
+              <span class="story-node-anchor font-mono">#sec-01-3-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                During private fundraising cycles, startups frequently modify depreciation schedules, change revenue recognition benchmarks, or capitalize software development expenses to present higher gross margins to venture capital investors.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Uniform Historical Accounting:</strong> SEBI mandates 5-year uniform restated financial statements audited by independent peer-reviewed accountants. This eliminates historical accounting discrepancies, aligning all prior fiscal periods under uniform Ind AS standards.</li>
+                <li><strong>Adjusted EBITDA Normalization:</strong> The DRHP exposes the true statutory gap between "Operating Cash Flow" and "Pro-Forma Adjusted EBITDA," forcing management to reconcile all one-off additions, ESOP expense write-backs, and share-based compensation charges.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">MANDATE: 5-YEAR UNIFORM RESTATED AUDIT</span>
+                <span class="story-tag">REGULATOR: SEBI ICDR REGULATIONS</span>
+              </div>
+            </div>
+            </div>
+            <!-- 01.3.2 -->
+            <div id="sec-01-3-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.3.2" data-section-title="Litigation &amp; Contingent Tax Demand Annexures (Quantifying Off-Balance Liabilities)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.3.2</span>
+                <h4 class="subsection-title story-section-title">&#9878;&#65039; Litigation &amp; Contingent Tax Demand Annexures</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.3.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[SEBI // LITIGATION RISKS // 1.3.2]</span>
+              <span class="story-node-anchor font-mono">#sec-01-3-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                The "Outstanding Litigation and Material Developments" section of the DRHP provides an exhaustive catalogue of every judicial risk threatening the enterprise and its promoters.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Direct &amp; Indirect Tax Demands:</strong> Details all contested GST assessments, customs classification disputes, and income tax reassessments pending before CIT(A), ITAT, and High Courts. Summing these claims frequently reveals contingent obligations exceeding multiple years of operating profit.</li>
+                <li><strong>Criminal &amp; Regulatory Proceedings:</strong> Discloses pending investigations by the Directorate of Enforcement (ED), Serious Fraud Investigation Office (SFIO), Central Board of Indirect Taxes and Customs (CBIC), or SEBI against promoters, directors, and subsidiary holding entities.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTE: SEBI ICDR SCHEDULE VI</span>
+                <span class="story-tag">RADAR: TAX SHOW-CAUSE &amp; CRIMINAL PROCEEDINGS</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 1 // PUBLIC PROCUREMENT]</span>
+
+        <!-- 01.4 Branch -->
+        <div class="page-tree-branch">
+          <!-- 01.4 Section Div -->
+          <div id="sec-01-4" class="doc-section story-node-section page-tree-tab" data-section-num="01.4" data-section-title="GeM &amp; CPPP Public Procurement Verification" data-level="1" data-node-idx="3">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">└──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">01.4</span>
+              <h3 class="section-title story-section-title">&#128450;&#65039; GeM &amp; CPPP Public Procurement Verification</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 1 // PUBLIC PROCUREMENT]</span>
           <span class="story-node-anchor font-mono">#sec-01-4</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          For B2B, industrial, and deep-tech enterprises that claim massive sovereign and public sector enterprise traction in their pitch materials, cross-check their claims against statutory public procurement portals.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Government e-Marketplace (GeM):</strong> Verify registered OEM status, secondary vendor classifications, order fulfillment track records, and actual statutory transaction volume.</li>
-          <li><strong>Central Public Procurement Portal (CPPP):</strong> Trace whether a startup's publicized "defense or public enterprise award" represents an actual executed contract with a sanctioned purchase order, or merely an Expression of Interest (EOI) participation or preliminary pre-bid conference attendance.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">PORTALS: GEM.GOV.IN / EPROCURE.GOV.IN</span>
-          <span class="story-tag">FORENSIC GOAL: VERIFY ACTUAL PURCHASE ORDERS</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            For B2B, industrial, and deep-tech enterprises that claim massive sovereign and public sector enterprise (PSU) traction in their pitch materials, cross-check their claims against statutory public procurement portals.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">PORTALS: GEM.GOV.IN / EPROCURE.GOV.IN</span>
+            <span class="story-tag">NODES: 01.4.1 (GEM OEM STATUS) &bull; 01.4.2 (CPPP TENDER CONTRACTS)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- ================= MODULE 2 ================= -->
-            <div class="doc-module story-act-divider" data-module-title="Module 2: The Forensic Audit Playbook (Red Flag Matrix)">
-        <div class="module-header">
-          <h2 class="module-title story-act-title">Module 2: The Forensic Audit Playbook (Red Flag Matrix)</h2>
-          <span class="module-badge story-act-badge font-mono">[ACT II &bull; NODES 05-07]</span>
+          <!-- 01.4 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 01.4.1 -->
+            <div id="sec-01-4-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.4.1" data-section-title="GeM Portal OEM Classification &amp; True B2G Fulfillment" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.4.1</span>
+                <h4 class="subsection-title story-section-title">&#127970; GeM Portal OEM Classification &amp; True B2G Fulfillment</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.4.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[PROCUREMENT // GEM PORTAL // 1.4.1]</span>
+              <span class="story-node-anchor font-mono">#sec-01-4-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                On the <strong>Government e-Marketplace (GeM)</strong>, verify whether the entity is registered as an Original Equipment Manufacturer (OEM) or merely an uncertified reseller.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>OEM Verification &amp; Make in India (MII) Compliance:</strong> Genuine domestic manufacturers hold verified OEM dashboards with Class-I Local Supplier status (&ge;50% local value addition) under Public Procurement (Preference to Make in India) Orders.</li>
+                <li><strong>Order Fulfillment Track Record:</strong> Search the vendor's transaction history to verify completed contract values, delivery timeliness scores, and incidents of blacklisting or disqualification by central ministries or defense procurement agencies.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">PORTAL: GEM.GOV.IN</span>
+                <span class="story-tag">CRITERIA: CLASS-I MII OEM STATUS &amp; ORDER HISTORY</span>
+              </div>
+            </div>
+            </div>
+            <!-- 01.4.2 -->
+            <div id="sec-01-4-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="01.4.2" data-section-title="CPPP Tender Tracking (Sanctioned POs vs. Mere EOI Bids)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">01.4.2</span>
+                <h4 class="subsection-title story-section-title">&#128221; CPPP Tender Tracking (Sanctioned POs vs. EOI Bids)</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 01.4.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[PROCUREMENT // CPPP TENDERS // 1.4.2]</span>
+              <span class="story-node-anchor font-mono">#sec-01-4-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                On the <strong>Central Public Procurement Portal (CPPP)</strong>, trace whether a company's publicized "defense or public enterprise award" represents an executed commercial purchase order or merely pre-bid participation.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Award of Contract (AOC) vs. Bid Submission:</strong> Startups regularly issue press releases celebrating their "selection" in public tenders when they have merely submitted a technical bid. Query the CPPP Tender Award database to confirm issuance of the formal Letter of Award (LoA) and signed contract.</li>
+                <li><strong>Bank Guarantee &amp; Earnest Money Deposit (EMD) Liquidity:</strong> Public procurement requires Bank Guarantees (PBG) typically amounting to 3%–10% of total contract value. Verify whether the company has sufficient non-fund-based credit lines to furnish PBGs without choking operational working capital.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">PORTAL: EPROCURE.GOV.IN (CPPP)</span>
+                <span class="story-tag">FORENSIC GOAL: VERIFY EXECUTED LETTER OF AWARD (LOA)</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
+
       </div>
 
-      <!-- 02.1 -->
-            <section id="sec-02-1" class="doc-section story-node-section" data-section-num="02.1" data-section-title="The CARO 2020 Annexure (Companies Auditor’s Report Order)" data-level="1" data-node-idx="4">
-        <div class="section-header">
-          <span class="section-number font-mono">02.1</span>
-          <h3 class="section-title story-section-title">&#128269; The CARO 2020 Annexure (Companies Auditor’s Report Order)</h3>
+      <!-- ================= MODULE 02 ================= -->
+      <div class="page-tree-group" data-module="02">
+        <div class="doc-module story-act-divider" data-module-title="Module 2: The Forensic Audit Playbook (Red Flag Matrix)">
+          <div class="module-header">
+            <h2 class="module-title story-act-title">Module 2: The Forensic Audit Playbook (Red Flag Matrix)</h2>
+            <span class="module-badge story-act-badge font-mono">[ACT II &bull; 10 NODES]</span>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 2 // STATUTORY AUDIT]</span>
+
+        <!-- 02.1 Branch -->
+        <div class="page-tree-branch">
+          <!-- 02.1 Section Div -->
+          <div id="sec-02-1" class="doc-section story-node-section page-tree-tab" data-section-num="02.1" data-section-title="The CARO 2020 Annexure (Companies Auditor’s Report Order)" data-level="1" data-node-idx="4">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">02.1</span>
+              <h3 class="section-title story-section-title">&#128269; The CARO 2020 Annexure (Companies Auditor’s Report Order)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 4 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 2 // STATUTORY AUDIT]</span>
           <span class="story-node-anchor font-mono">#sec-02-1</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          A forensic audit is not about calculating compound annual growth rates (CAGR); it is about discovering structural vulnerabilities buried in statutory annexures. Under the Companies Act, statutory auditors must append the <strong>CARO 2020 Annexure</strong> to every audit report. This order legally obligates auditors to comment on specific corporate pathologies:
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Clause (iii) — Promoter Loans &amp; Advances:</strong> Has the enterprise granted unsecured loans, guarantees, or advances to directors, sister concerns, or founder-controlled entities? This is the primary mechanism through which operating cash is siphoned away into private family accounts.</li>
-          <li><strong>Clause (vii) — Statutory Defaults (PF, ESI, GST):</strong> Is the enterprise defaulting on statutory deposits such as Provident Fund (PF), Employee State Insurance (ESI), Tax Deducted at Source (TDS), or Goods and Services Tax (GST)? An enterprise that cannot deposit employee retirement funds on time is typically within 90 days of an acute working capital seizure.</li>
-          <li><strong>Clause (ix) — End-Use of Borrowings:</strong> Were long-term project loans diverted to cover immediate operational payroll or short-term vendor payables? Diverting CapEx term loans into OpEx debt coverage is the hallmark of an imminent Ponzi debt cycle.</li>
-          <li><strong>Clause (xi) — Fraud Reporting:</strong> Details any suspected fraud by or against the company reported under Section 143(12) to the Central Government during the financial year.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">STATUTE: CARO 2020</span>
-          <span class="story-tag">HIGH-RISK CLAUSES: (iii) LOANS, (vii) DEFAULTS, (ix) DIVERSION</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            A forensic audit is not about calculating compound annual growth rates (CAGR); it is about discovering structural vulnerabilities buried in statutory annexures. Under the Companies Act, statutory auditors must append the <strong>CARO 2020 Annexure</strong> to every audit report. This order legally obligates auditors to comment on specific corporate pathologies:
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">STATUTE: CARO 2020</span>
+            <span class="story-tag">NODES: 02.1.1 (LOANS) &bull; 02.1.2 (DEFAULTS) &bull; 02.1.3 (DIVERSION) &bull; 02.1.4 (FRAUD)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 02.2 -->
-            <section id="sec-02-2" class="doc-section story-node-section" data-section-num="02.2" data-section-title="Ind AS Notes to Accounts (Accounting Standards Forensics)" data-level="1" data-node-idx="5">
-        <div class="section-header">
-          <span class="section-number font-mono">02.2</span>
-          <h3 class="section-title story-section-title">&#128203; Ind AS Notes to Accounts (Accounting Standards Forensics)</h3>
+          <!-- 02.1 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 02.1.1 -->
+            <div id="sec-02-1-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.1.1" data-section-title="Clause (iii) — Unsecured Promoter Loans &amp; Siphoning Trails" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.1.1</span>
+                <h4 class="subsection-title story-section-title">&#128176; Clause (iii) — Unsecured Promoter Loans &amp; Siphoning Trails</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.1.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[CARO 2020 // CLAUSE III // 2.1.1]</span>
+              <span class="story-node-anchor font-mono">#sec-02-1-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Clause (iii) legally mandates auditors to report whether the company has made investments in, provided any guarantee or security, or granted any loans or advances in the nature of loans, secured or unsecured, to companies, firms, Limited Liability Partnerships, or any other parties.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The Siphoning Pipeline:</strong> Check if loans were granted without formal repayment schedules, at zero interest, or subordinated to external lenders. This is the primary mechanism through which operating cash is quietly siphoned away into private family businesses or promoter-held real estate.</li>
+                <li><strong>Evergreening of Overdue Advances:</strong> Check sub-clause (e) and (f) disclosures: Has any loan fallen due during the year and been renewed, extended, or settled by fresh loans? Evergreening promoter advances is an open declaration of unrecoverable capital flight.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTE: CARO 2020 CLAUSE 3(iii)</span>
+                <span class="story-tag">RED FLAG: INTEREST-FREE UNSECURED ADVANCES</span>
+              </div>
+            </div>
+            </div>
+            <!-- 02.1.2 -->
+            <div id="sec-02-1-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.1.2" data-section-title="Clause (vii) — Statutory Defaults (PF, ESI, TDS &amp; GST Seizures)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.1.2</span>
+                <h4 class="subsection-title story-section-title">&#9888;&#65039; Clause (vii) — Statutory Defaults (PF, ESI, TDS &amp; GST Seizures)</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.1.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[CARO 2020 // CLAUSE VII // 2.1.2]</span>
+              <span class="story-node-anchor font-mono">#sec-02-1-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Clause (vii) obligates the auditor to report whether the company is regular in depositing undisputed statutory dues including Goods and Services Tax (GST), Provident Fund (PF), Employees' State Insurance (ESI), and Tax Deducted at Source (TDS).
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The 90-Day Seizure Horizon:</strong> An enterprise that defaults on employee PF or TDS deposits is typically within 90 days of an acute working capital seizure. Founders will delay statutory payments only when commercial bank accounts and overdraft facilities are completely dry.</li>
+                <li><strong>Unpaid Dues Exceeding 6 Months:</strong> Scrutinize the statutory annexure table listing dues outstanding for more than 6 months from the date they became payable. Significant arrears trigger immediate bank account attachments by EPFO or GST authorities.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTE: CARO 2020 CLAUSE 3(vii)</span>
+                <span class="story-tag">HAZARD: 6-MONTH UNDISPOSABLE DUES &amp; ATTACHMENT</span>
+              </div>
+            </div>
+            </div>
+            <!-- 02.1.3 -->
+            <div id="sec-02-1-3" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.1.3" data-section-title="Clause (ix) — CapEx Term Loan Diversion into OpEx Debt" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.1.3</span>
+                <h4 class="subsection-title story-section-title">&#128260; Clause (ix) — CapEx Term Loan Diversion into OpEx Debt</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.1.3]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[CARO 2020 // CLAUSE IX // 2.1.3]</span>
+              <span class="story-node-anchor font-mono">#sec-02-1-3</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Clause (ix) mandates auditors to disclose whether loans raised for a specific long-term project or capital expenditure were diverted to meet short-term operational expenses or pay off other lenders.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>CapEx-to-OpEx Diversion:</strong> Diverting sanctioned factory equipment loans into monthly sales payroll or distributor rebates is the classic diagnostic signature of an enterprise entering an irrecoverable debt spiral.</li>
+                <li><strong>Willful Defaulter Disclosures:</strong> Sub-clause (b) legally requires auditors to confirm whether the company or its promoters have been formally declared a "Willful Defaulter" by any bank or financial institution under RBI guidelines.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTE: CARO 2020 CLAUSE 3(ix)</span>
+                <span class="story-tag">DIAGNOSTIC: LONG-TERM BORROWING DIVERTED TO SHORT-TERM OPEX</span>
+              </div>
+            </div>
+            </div>
+            <!-- 02.1.4 -->
+            <div id="sec-02-1-4" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.1.4" data-section-title="Clause (xi) — Fraud Reporting &amp; Section 143(12) Central Government Alerts" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.1.4</span>
+                <h4 class="subsection-title story-section-title">&#128680; Clause (xi) — Fraud Reporting &amp; Section 143(12) Alerts</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.1.4]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[CARO 2020 // CLAUSE XI // 2.1.4]</span>
+              <span class="story-node-anchor font-mono">#sec-02-1-4</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Clause (xi) obligates statutory auditors to report any fraud noticed or reported by the company or by its officers during the financial year, as well as whether a formal <strong>Form ADT-4</strong> was filed with the Central Government under Section 143(12).
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Section 143(12) Whistleblower Mandate:</strong> If an auditor has reason to believe that an offense involving fraud of &#8377;1 Crore or more is being committed against the company by its officers or employees, they are mandated by criminal law to report it directly to the Ministry of Corporate Affairs within 45 days.</li>
+                <li><strong>Whistleblower Complaints Considered:</strong> Sub-clause (b) mandates auditors to confirm whether they considered whistleblower complaints received during the year by the audit committee.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTE: CARO 2020 CLAUSE 3(xi) &amp; CA 2013 SEC 143(12)</span>
+                <span class="story-tag">FILING: FORM ADT-4 (REPORT OF FRAUD TO CENTRAL GOVT)</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 2 // ACCOUNTING STANDARDS]</span>
+
+        <!-- 02.2 Branch -->
+        <div class="page-tree-branch">
+          <!-- 02.2 Section Div -->
+          <div id="sec-02-2" class="doc-section story-node-section page-tree-tab" data-section-num="02.2" data-section-title="Ind AS Notes to Accounts (Accounting Standards Forensics)" data-level="1" data-node-idx="5">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">02.2</span>
+              <h3 class="section-title story-section-title">&#128203; Ind AS Notes to Accounts (Accounting Standards Forensics)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 3 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 2 // ACCOUNTING STANDARDS]</span>
           <span class="story-node-anchor font-mono">#sec-02-2</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          P&amp;L topline figures are accounting approximations; the truth resides in the <strong>Indian Accounting Standards (Ind AS)</strong> disclosure footnotes.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Ind AS 24 (Related Party Disclosures):</strong> Inspect "Purchases from Related Parties." If a public or venture-backed entity purchases raw materials or consulting services at inflated prices from private LLPs owned by relatives of the promoters, operating cash is diverted while the core company's margins compress.</li>
-          <li><strong>Ind AS 115 (Revenue Recognition &amp; Unbilled Assets):</strong> Beware of significant line items labeled <em>"Unbilled Revenue"</em> or <em>"Contract Assets."</em> This reflects revenue recognized upfront on the P&amp;L before the client has been formally billed or accepted delivery, artificially puffing growth multiples.</li>
-          <li><strong>Ind AS 38 (Intangible Assets &amp; R&amp;D Capitalization):</strong> Tech enterprises frequently conceal massive operating burn by capitalizing engineer payroll and cloud infrastructure costs as intangible assets on the balance sheet instead of expensing them on the P&amp;L. If these assets fail to yield direct commercial cash flows, they represent phantom balances subject to sudden write-offs.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">STANDARDS: IND AS 24, 115, 38</span>
-          <span class="story-tag">FOCUS: RELATED PARTY TRANSFERS &amp; CAPITALIZED BURN</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            P&amp;L topline figures are accounting approximations; the truth resides in the <strong>Indian Accounting Standards (Ind AS)</strong> disclosure footnotes.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">STANDARDS: IND AS 24, 115, 38</span>
+            <span class="story-tag">NODES: 02.2.1 (RELATED PARTY) &bull; 02.2.2 (UNBILLED ASSETS) &bull; 02.2.3 (CAPITALIZED BURN)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 02.3 -->
-            <section id="sec-02-3" class="doc-section story-node-section" data-section-num="02.3" data-section-title="Contingent Liabilities (The Off-Balance-Sheet Bombs)" data-level="1" data-node-idx="6">
-        <div class="section-header">
-          <span class="section-number font-mono">02.3</span>
-          <h3 class="section-title story-section-title">&#9888;&#65039; Contingent Liabilities (The Off-Balance-Sheet Bombs)</h3>
+          <!-- 02.2 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 02.2.1 -->
+            <div id="sec-02-2-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.2.1" data-section-title="Ind AS 24 — Related Party Transfers &amp; Promoter LLP Leakage" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.2.1</span>
+                <h4 class="subsection-title story-section-title">&#128101; Ind AS 24 — Related Party Transfers &amp; Promoter LLP Leakage</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.2.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[IND AS 24 // RELATED PARTY // 2.2.1]</span>
+              <span class="story-node-anchor font-mono">#sec-02-2-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                <strong>Ind AS 24</strong> mandates comprehensive disclosure of all transactions, outstanding balances, and commitments between the reporting entity and its Key Management Personnel (KMP), promoter family members, or enterprises under common control.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Procurement from Promoter LLPs:</strong> Scrutinize the line item "Purchases of goods and services." If an enterprise buys raw materials, sub-assembly manufacturing, or tech consulting at inflated rates from private LLPs owned by relatives of the founders, cash is transferred out while the venture-funded entity absorbs compressed gross margins.</li>
+                <li><strong>Unsecured Personal Guarantees:</strong> Check whether founders have extracted personal corporate guarantees from the entity to secure personal home loans or outside ventures.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">ACCOUNTING STANDARD: IND AS 24</span>
+                <span class="story-tag">AUDIT RADAR: PURCHASES FROM KMP-CONTROLLED LLPS</span>
+              </div>
+            </div>
+            </div>
+            <!-- 02.2.2 -->
+            <div id="sec-02-2-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.2.2" data-section-title="Ind AS 115 — Revenue Recognition &amp; The Unbilled Contract Asset Trap" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.2.2</span>
+                <h4 class="subsection-title story-section-title">&#128200; Ind AS 115 — The Unbilled Contract Asset Trap</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.2.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[IND AS 115 // REVENUE TIMING // 2.2.2]</span>
+              <span class="story-node-anchor font-mono">#sec-02-2-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Under <strong>Ind AS 115 (Revenue from Contracts with Customers)</strong>, revenue can be recognized over time based on the "percentage of completion" method or performance obligation milestones.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The "Unbilled Revenue" Mirage:</strong> Inspect the balance sheet line item <em>"Contract Assets"</em> or <em>"Unbilled Revenue."</em> This reflects revenue booked on the P&amp;L before the client has received an invoice or accepted delivery. When contract assets surge faster than invoiced collections, management is pulling future phantom revenues into current fiscal periods.</li>
+                <li><strong>Dispute Write-Off Traps:</strong> If clients subsequently reject deliverables or dispute milestones, contract assets are abruptly written off as impairment losses, destroying reported net worth.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">ACCOUNTING STANDARD: IND AS 115</span>
+                <span class="story-tag">HIGH-RISK LINE ITEM: UNBILLED CONTRACT ASSETS</span>
+              </div>
+            </div>
+            </div>
+            <!-- 02.2.3 -->
+            <div id="sec-02-2-3" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.2.3" data-section-title="Ind AS 38 — Intangible Assets &amp; R&amp;D Capitalization Burn Masks" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.2.3</span>
+                <h4 class="subsection-title story-section-title">&#128394;&#65039; Ind AS 38 — Intangible Assets &amp; Capitalized Burn</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.2.3]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[IND AS 38 // INTANGIBLE ASSETS // 2.2.3]</span>
+              <span class="story-node-anchor font-mono">#sec-02-2-3</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Under <strong>Ind AS 38</strong>, research costs must be expensed immediately, but development expenses may be capitalized as "Intangible Assets under Development" if strict technical feasibility criteria are met.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Masking Operational Burn:</strong> Software and deep-tech startups regularly disguise massive operating losses by routing software engineer salaries, AWS cloud compute, and prototyping expenses to the balance sheet as capital assets instead of operational expenses on the P&amp;L.</li>
+                <li><strong>The Amortization Reality Check:</strong> When these capitalized intangibles fail to generate direct, verifiable commercial cash flows within 24 months, statutory auditors force massive, sudden impairment write-downs that immediately plunge EBITDA deep into the red.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">ACCOUNTING STANDARD: IND AS 38</span>
+                <span class="story-tag">RED FLAG: ENGINEER PAYROLL CAPITALIZED AS INTANGIBLES</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 2 // OFF-BALANCE-SHEET RISK]</span>
+
+        <!-- 02.3 Branch -->
+        <div class="page-tree-branch">
+          <!-- 02.3 Section Div -->
+          <div id="sec-02-3" class="doc-section story-node-section page-tree-tab" data-section-num="02.3" data-section-title="Contingent Liabilities (The Off-Balance-Sheet Bombs)" data-level="1" data-node-idx="6">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">└──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">02.3</span>
+              <h3 class="section-title story-section-title">&#9888;&#65039; Contingent Liabilities (The Off-Balance-Sheet Bombs)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 2 // OFF-BALANCE-SHEET RISK]</span>
           <span class="story-node-anchor font-mono">#sec-02-3</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          Contingent liabilities represent potential financial obligations contingent on uncertain judicial or regulatory outcomes. They do not appear on the face of the balance sheet but are listed in statutory notes.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Disputed Tax Assessments:</strong> Scrutinize pending Income Tax appeals (ITAT/High Court) and GST demand notices. A single adverse ruling can wipe out multiple years of accumulated net worth.</li>
-          <li><strong>Corporate Cross-Guarantees:</strong> Examine corporate guarantees provided for debts incurred by subsidiary or affiliate entities. If an affiliate defaults on credit facilities, the parent enterprise becomes immediately liable to bank recovery enforcement under SARFAESI or IBC proceedings.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">RADAR: OFF-BALANCE OBLIGATIONS</span>
-          <span class="story-tag">IMPACT: SUDDEN SOLVENCY SEIZURE</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            Contingent liabilities represent potential financial obligations contingent on uncertain judicial or regulatory outcomes. They do not appear on the face of the balance sheet but are listed in statutory notes.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">RADAR: OFF-BALANCE OBLIGATIONS</span>
+            <span class="story-tag">NODES: 02.3.1 (DISPUTED TAX) &bull; 02.3.2 (CROSS-GUARANTEES)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- ================= MODULE 3 ================= -->
-            <div class="doc-module story-act-divider" data-module-title="Module 3: Capital Structure &amp; Liquidity Stress Testing">
-        <div class="module-header">
-          <h2 class="module-title story-act-title">Module 3: Capital Structure &amp; Liquidity Stress Testing</h2>
-          <span class="module-badge story-act-badge font-mono">[ACT III &bull; NODES 08-10]</span>
+          <!-- 02.3 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 02.3.1 -->
+            <div id="sec-02-3-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.3.1" data-section-title="Disputed Tax Demand Assessments (ITAT, GST &amp; High Court Appeals)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.3.1</span>
+                <h4 class="subsection-title story-section-title">&#9878;&#65039; Disputed Tax Demand Assessments</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.3.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[TAX DISPUTES // ITAT &amp; GST // 2.3.1]</span>
+              <span class="story-node-anchor font-mono">#sec-02-3-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Scrutinize the statutory annexures for contested direct and indirect tax demands under litigation before appellate tribunals.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Contested Show-Cause Demands:</strong> Companies are not required to provision cash for disputed taxes if management deems an adverse outcome "remote." However, when cumulative disputed tax claims exceed 50% of tangible net worth, an unfavorable High Court or Supreme Court ruling triggers instant corporate insolvency.</li>
+                <li><strong>Pre-Deposit Liquidity Drainage:</strong> Filing tax appeals before the Customs, Excise and Service Tax Appellate Tribunal (CESTAT) or GST Appellate Tribunal mandates pre-deposits of 7.5% to 20% of the disputed demand in hard cash, freezing working capital.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">JURISDICTION: ITAT, CESTAT, HIGH COURTS</span>
+                <span class="story-tag">THRESHOLD: CONTINGENT CLAIMS &gt; 50% NET WORTH</span>
+              </div>
+            </div>
+            </div>
+            <!-- 02.3.2 -->
+            <div id="sec-02-3-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="02.3.2" data-section-title="Corporate Cross-Guarantees &amp; Subsidiary Solvency Contagion" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">02.3.2</span>
+                <h4 class="subsection-title story-section-title">&#128279; Corporate Cross-Guarantees &amp; Subsidiary Contagion</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 02.3.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[LIABILITIES // CROSS-GUARANTEES // 2.3.2]</span>
+              <span class="story-node-anchor font-mono">#sec-02-3-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Examine corporate cross-guarantees provided by the parent company for bank debt or credit facilities issued to subsidiaries, joint ventures, or offshore holding vehicles.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Solvency Contagion:</strong> If an offshore subsidiary defaults on a foreign currency loan or trade credit facility, the institutional lender immediately invokes the parent's corporate guarantee. The entire foreign debt is immediately crystallised onto the parent entity's balance sheet.</li>
+                <li><strong>SARFAESI &amp; Section 7 IBC Trigger:</strong> Once a corporate guarantee is invoked and unpaid, the lending bank can file a Section 7 corporate insolvency petition against the guarantor entity directly before the National Company Law Tribunal (NCLT).</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STATUTE: IBC SEC 7 &amp; SARFAESI ACT</span>
+                <span class="story-tag">RISK: IMMEDIATE RECOURSE AGAINST CORPORATE GUARANTOR</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
+
       </div>
 
-      <!-- 03.1 -->
-            <section id="sec-03-1" class="doc-section story-node-section" data-section-num="03.1" data-section-title="The Cash Conversion Trap (CFO vs. EBITDA Divergence)" data-level="1" data-node-idx="7">
-        <div class="section-header">
-          <span class="section-number font-mono">03.1</span>
-          <h3 class="section-title story-section-title">&#128178; The Cash Conversion Trap (CFO vs. EBITDA Divergence)</h3>
+      <!-- ================= MODULE 03 ================= -->
+      <div class="page-tree-group" data-module="03">
+        <div class="doc-module story-act-divider" data-module-title="Module 3: Capital Structure &amp; Liquidity Stress Testing">
+          <div class="module-header">
+            <h2 class="module-title story-act-title">Module 3: Capital Structure &amp; Liquidity Stress Testing</h2>
+            <span class="module-badge story-act-badge font-mono">[ACT III &bull; 08 NODES]</span>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 3 // CASH FLOW FORENSICS]</span>
+
+        <!-- 03.1 Branch -->
+        <div class="page-tree-branch">
+          <!-- 03.1 Section Div -->
+          <div id="sec-03-1" class="doc-section story-node-section page-tree-tab" data-section-num="03.1" data-section-title="The Cash Conversion Trap (CFO vs. EBITDA Divergence)" data-level="1" data-node-idx="7">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">03.1</span>
+              <h3 class="section-title story-section-title">&#128178; The Cash Conversion Trap (CFO vs. EBITDA Divergence)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 3 // CASH FLOW FORENSICS]</span>
           <span class="story-node-anchor font-mono">#sec-03-1</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          Accounting profit is an estimate; operating cash flow is an empirical reality. Stress test the entity's circulatory health by benchmarking <strong>Cash Flow from Operations (CFO)</strong> against <strong>EBITDA (Earnings Before Interest, Taxes, Depreciation, and Amortization)</strong>.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>The Cardinal Rule:</strong> If an enterprise regularly reports &#8377;100 Crore in EBITDA, but statutory CFO over the same multi-year period averages only &#8377;10 Crore, the reported profit is fictitious. It is trapped in uncollected receivables, channel-stuffed distributor inventory, or fabricated paper billings.</li>
-          <li><strong>Channel Stuffing Diagnostics:</strong> Rapid surge in Q4 trade receivables accompanied by expanding inventory days is a classic indicator that goods were pushed to distributors without genuine end-consumer demand.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">FORMULA: CFO / EBITDA RATIO</span>
-          <span class="story-tag">BENCHMARK: RATIO &gt; 0.70</span>
-          <span class="story-tag">WARNING: DIVERGENCE &gt; 3 CONSECUTIVE YEARS</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            Accounting profit is an estimate; operating cash flow is an empirical reality. Stress test the entity's circulatory health by benchmarking <strong>Cash Flow from Operations (CFO)</strong> against <strong>EBITDA (Earnings Before Interest, Taxes, Depreciation, and Amortization)</strong>.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">FORMULA: CFO / EBITDA RATIO</span>
+            <span class="story-tag">NODES: 03.1.1 (QUALITY RATIO) &bull; 03.1.2 (CHANNEL STUFFING)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 03.2 -->
-            <section id="sec-03-2" class="doc-section story-node-section" data-section-num="03.2" data-section-title="The Promoter Pledge Death Spiral" data-level="1" data-node-idx="8">
-        <div class="section-header">
-          <span class="section-number font-mono">03.2</span>
-          <h3 class="section-title story-section-title">&#128169; The Promoter Pledge Death Spiral</h3>
+          <!-- 03.1 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 03.1.1 -->
+            <div id="sec-03-1-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="03.1.1" data-section-title="CFO vs EBITDA Divergence Ratio Benchmark (The 0.70 Quality Floor)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">03.1.1</span>
+                <h4 class="subsection-title story-section-title">&#128202; The CFO / EBITDA Divergence Ratio Benchmark</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 03.1.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[CASH FLOW // RATIO BENCHMARK // 3.1.1]</span>
+              <span class="story-node-anchor font-mono">#sec-03-1-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Calculate the multi-year cumulative ratio of statutory Cash Flow from Operations (CFO) to reported EBITDA across trailing 3 to 5 fiscal years:
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The Cardinal 70% Quality Threshold:</strong> A high-quality enterprise converts at least <strong>70% (0.70)</strong> of reported EBITDA into actual operational cash. If an enterprise regularly reports &#8377;100 Crore in cumulative EBITDA but generates only &#8377;15 Crore in actual statutory CFO, 85% of its operating profit is an illusion.</li>
+                <li><strong>The 3-Year Red Flag:</strong> If the CFO/EBITDA ratio remains below 0.50 for three consecutive financial years while revenues grow at &gt;30% YoY, the business model is burning equity capital to finance uncollectible paper revenues.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">FORMULA: CUMULATIVE 3-YR CFO / CUMULATIVE 3-YR EBITDA</span>
+                <span class="story-tag">MINIMUM THRESHOLD: RATIO &ge; 0.70</span>
+              </div>
+            </div>
+            </div>
+            <!-- 03.1.2 -->
+            <div id="sec-03-1-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="03.1.2" data-section-title="Channel Stuffing Diagnostics &amp; Receivables Aging Traps" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">03.1.2</span>
+                <h4 class="subsection-title story-section-title">&#128230; Channel Stuffing Diagnostics &amp; Receivables Aging</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 03.1.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[CASH FLOW // CHANNEL STUFFING // 3.1.2]</span>
+              <span class="story-node-anchor font-mono">#sec-03-1-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Channel stuffing is the practice of forcibly pushing excess inventory onto distributors or retail dealers at quarter-end to book premature sales.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Q4 Revenue Spike Anomaly:</strong> Inspect quarterly revenue cadence. If 40% to 50% of full-year revenue is booked in the final month of the fiscal year (March) with zero corresponding increase in cash collection, inventory was pushed forward with informal buy-back promises.</li>
+                <li><strong>Receivables Aging Schedules:</strong> Companies must now disclose aged Trade Receivables schedules in AOC-4 notes (split into &lt;6 months, 6M-1Yr, 1-2 Yrs, 2-3 Yrs, and &gt;3 Yrs). An increasing proportion of receivables aging past 180 days is direct proof of disputed or uncollectible invoices.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">DIAGNOSTIC: Q4 REVENUE SURGE + AGED DEBTORS &gt; 180 DAYS</span>
+                <span class="story-tag">MANDATORY SCHEDULE: AOC-4 TRADE RECEIVABLES AGING</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 3 // PROMOTER RISK]</span>
+
+        <!-- 03.2 Branch -->
+        <div class="page-tree-branch">
+          <!-- 03.2 Section Div -->
+          <div id="sec-03-2" class="doc-section story-node-section page-tree-tab" data-section-num="03.2" data-section-title="The Promoter Pledge Death Spiral" data-level="1" data-node-idx="8">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">03.2</span>
+              <h3 class="section-title story-section-title">&#128169; The Promoter Pledge Death Spiral</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 3 // PROMOTER RISK]</span>
           <span class="story-node-anchor font-mono">#sec-03-2</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          In listed and pre-IPO enterprises, examine exchange shareholding disclosures for promoter encumbrance patterns:
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Mechanics of the Spiral:</strong> Promoters frequently pledge their equity shares to financial institutions as collateral for personal borrowing or unlisted real-estate ventures. If the enterprise's market capitalization drops, lenders issue immediate margin calls.</li>
-          <li><strong>Cascading Liquidation:</strong> If the promoter cannot deposit cash collateral within 24 to 48 hours, institutional lenders invoke the pledge and dump shares on the open exchange, sparking an unstoppable downward liquidation cascade. Any promoter pledge exceeding <strong>15%</strong> constitutes an unacceptable systemic risk.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">THRESHOLD: &gt;15% PLEDGE = HIGH RISK</span>
-          <span class="story-tag">TRIGGER: MARGIN CALL FORCED OPEN MARKET SELLING</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            In listed and pre-IPO enterprises, examine exchange shareholding disclosures for promoter encumbrance patterns:
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">THRESHOLD: &gt;15% PLEDGE = HIGH RISK</span>
+            <span class="story-tag">NODES: 03.2.1 (CASCADE DYNAMICS) &bull; 03.2.2 (HOLDCO LAS DEBT)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 03.3 -->
-            <section id="sec-03-3" class="doc-section story-node-section" data-section-num="03.3" data-section-title="The Working Capital Cycle Mismatch" data-level="1" data-node-idx="9">
-        <div class="section-header">
-          <span class="section-number font-mono">03.3</span>
-          <h3 class="section-title story-section-title">&#9201; The Working Capital Cycle Mismatch</h3>
+          <!-- 03.2 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 03.2.1 -->
+            <div id="sec-03-2-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="03.2.1" data-section-title="The Margin Call Liquidation Cascade Mechanism" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">03.2.1</span>
+                <h4 class="subsection-title story-section-title">&#9889; The Margin Call Liquidation Cascade</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 03.2.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[PROMOTER RISK // PLEDGE CASCADE // 3.2.1]</span>
+              <span class="story-node-anchor font-mono">#sec-03-2-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Promoters pledge equity shares to NBFCs and mutual funds as collateral for Loan Against Shares (LAS) borrowing to fund private real estate, unlisted acquisitions, or lavish lifestyle spending.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The Margin Trigger:</strong> Institutional loan agreements mandate minimum security cover ratios (typically 1.75x to 2.5x). When broader market sentiment or sector headwinds cause the share price to decline by 15%–20%, the lender issues an immediate cash margin call.</li>
+                <li><strong>The Cascading Crash:</strong> If the promoter cannot deposit cash collateral within 24 to 48 hours, institutional lenders invoke the pledge and dump millions of shares on the exchange floor. This forced institutional selling triggers circuit breakers, crashes market cap, and wipes out public minority shareholders.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">TRIGGER: MARGIN CALL COLLATERAL BREACH</span>
+                <span class="story-tag">DANGER ZONE: PROMOTER PLEDGE &gt; 15% OF HOLDING</span>
+              </div>
+            </div>
+            </div>
+            <!-- 03.2.2 -->
+            <div id="sec-03-2-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="03.2.2" data-section-title="Multi-Tier Holding Companies &amp; Loan-Against-Shares (LAS) Structure" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">03.2.2</span>
+                <h4 class="subsection-title story-section-title">&#128376;&#65039; Multi-Tier Holding Companies &amp; LAS Structures</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 03.2.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[PROMOTER RISK // HOLDING CO DEBT // 3.2.2]</span>
+              <span class="story-node-anchor font-mono">#sec-03-2-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Sophisticated promoters attempt to conceal pledge risks by interposing unlisted holding companies between themselves and the listed operating company.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The HoldCo Debt Trap:</strong> The HoldCo borrows ₹1,000 Crore from debt mutual funds by issuing Non-Convertible Debentures (NCDs) backed by a "Letter of Comfort" or non-disposal undertaking (NDU) over operating company equity. Because it is not structured as a standard Section 77 registered pledge, it does not immediately appear in the exchange pledge percentage.</li>
+                <li><strong>SEBI SAST Regulation 31 Enforcement:</strong> SEBI now mandates disclosure of all encumbrances, including NDUs, covenants restricting voting rights, or liens on HoldCo shares. Forensic analysts must cross-reference MCA Form CHG-1 filings of the HoldCo to discover true encumbrances.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">REGULATION: SEBI SAST REG 31</span>
+                <span class="story-tag">AUDIT TARGET: UNLISTED HOLDCO BALANCE SHEET &amp; NDUS</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 3 // WORKING CAPITAL]</span>
+
+        <!-- 03.3 Branch -->
+        <div class="page-tree-branch">
+          <!-- 03.3 Section Div -->
+          <div id="sec-03-3" class="doc-section story-node-section page-tree-tab" data-section-num="03.3" data-section-title="The Working Capital Cycle Mismatch" data-level="1" data-node-idx="9">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">└──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">03.3</span>
+              <h3 class="section-title story-section-title">&#9201; The Working Capital Cycle Mismatch</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 3 // WORKING CAPITAL]</span>
           <span class="story-node-anchor font-mono">#sec-03-3</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          Hyper-growth in an enterprise operating under a structurally negative working capital cycle accelerates bankruptcy rather than enterprise value.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Receivable Days (DSO):</strong> The number of days clients take to settle invoices (e.g., 90 to 120 days in Indian enterprise B2B).</li>
-          <li><strong>Payable Days (DPO):</strong> The payment terms demanded by critical suppliers (e.g., 30 to 45 days).</li>
-          <li><strong>The Cash Deficit Gap:</strong> If clients settle invoices in 90 days but suppliers require cash in 45 days, the company has an unhedged 45-day structural cash hole. Every incremental &#8377;10 Crore in top-line sales widens this cash deficit, forcing the company to take on punitive short-term debt just to sustain baseline delivery.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">EQUATION: CASH CONVERSION CYCLE (CCC) = DSO + DIO - DPO</span>
-          <span class="story-tag">DEFICIT SQUEEZE: DSO &gt;&gt; DPO</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            Hyper-growth in an enterprise operating under a structurally negative working capital cycle accelerates bankruptcy rather than enterprise value.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">EQUATION: CCC = DSO + DIO - DPO</span>
+            <span class="story-tag">NODES: 03.3.1 (CCC METRICS) &bull; 03.3.2 (GROWTH INSOLVENCY TRAP)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- ================= MODULE 4 ================= -->
-            <div class="doc-module story-act-divider" data-module-title="Module 4: The Deep-Tech &amp; Industrial Overlay">
-        <div class="module-header">
-          <h2 class="module-title story-act-title">Module 4: The Deep-Tech &amp; Industrial Overlay</h2>
-          <span class="module-badge story-act-badge font-mono">[ACT IV &bull; NODES 11-13]</span>
+          <!-- 03.3 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 03.3.1 -->
+            <div id="sec-03-3-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="03.3.1" data-section-title="Cash Conversion Cycle (CCC = DSO + DIO - DPO)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">03.3.1</span>
+                <h4 class="subsection-title story-section-title">&#128337; Cash Conversion Cycle (CCC = DSO + DIO - DPO)</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 03.3.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[WORKING CAPITAL // CCC FORMULA // 3.3.1]</span>
+              <span class="story-node-anchor font-mono">#sec-03-3-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Deconstruct operational duration across the three pillars of commercial liquidity:
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Days Sales Outstanding (DSO):</strong> The average time required to collect receivables from corporate clients (90 to 120 days in Indian enterprise B2B).</li>
+                <li><strong>Days Inventory Outstanding (DIO):</strong> The number of days raw materials and finished inventory sit in warehouses before shipment (45 to 60 days).</li>
+                <li><strong>Days Payable Outstanding (DPO):</strong> The credit window allowed by component vendors and critical suppliers (30 to 45 days).</li>
+                <li><strong>The Cash Conversion Cycle Equation:</strong> CCC = DSO + DIO - DPO. If DSO is 110 days, DIO is 50 days, and DPO is 40 days, the company's CCC is <strong>120 days</strong>. The company must self-fund 120 days of operating expenses with external cash.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">EQUATION: CCC = DSO + DIO - DPO</span>
+                <span class="story-tag">BENCHMARK: SHORTER / NEGATIVE CCC IS SUPERIOR</span>
+              </div>
+            </div>
+            </div>
+            <!-- 03.3.2 -->
+            <div id="sec-03-3-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="03.3.2" data-section-title="The Growth Insolvency Trap (Receivables Outpacing Payable Terms)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">03.3.2</span>
+                <h4 class="subsection-title story-section-title">&#9888;&#65039; The Growth Insolvency Trap</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 03.3.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[WORKING CAPITAL // GROWTH TRAP // 3.3.2]</span>
+              <span class="story-node-anchor font-mono">#sec-03-3-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                In an enterprise with an unhedged working capital deficit (DSO &gt;&gt; DPO), top-line growth is a lethal accelerant:
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The Structural Cash Hole:</strong> If suppliers must be paid in 45 days but enterprise customers settle bills in 120 days, every incremental &#8377;10 Crore in revenue widens the cash deficit by &#8377;2.5 Crore.</li>
+                <li><strong>The Liquidity Wall:</strong> If external equity funding dries up or bank working capital limits are capped, the company cannot pay component suppliers. Production halts, orders are cancelled, and the company enters IBC insolvency while boasting record order books.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">PARADOX: PROFITABLE ON P&amp;L BUT CASH INSOLVENT</span>
+                <span class="story-tag">DANGER PATTERN: REVENUE EXPANSION OUTPACING WORKING CAPITAL LIMITS</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
+
       </div>
 
-      <!-- 04.1 -->
-            <section id="sec-04-1" class="doc-section story-node-section" data-section-num="04.1" data-section-title="NRE vs. Burn Rate Architecture" data-level="1" data-node-idx="10">
-        <div class="section-header">
-          <span class="section-number font-mono">04.1</span>
-          <h3 class="section-title story-section-title">&#9881;&#65039; NRE vs. Burn Rate Architecture</h3>
+      <!-- ================= MODULE 04 ================= -->
+      <div class="page-tree-group" data-module="04">
+        <div class="doc-module story-act-divider" data-module-title="Module 4: The Deep-Tech &amp; Industrial Overlay">
+          <div class="module-header">
+            <h2 class="module-title story-act-title">Module 4: The Deep-Tech &amp; Industrial Overlay</h2>
+            <span class="module-badge story-act-badge font-mono">[ACT IV &bull; 09 NODES]</span>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 4 // INDUSTRIAL ECONOMICS]</span>
+
+        <!-- 04.1 Branch -->
+        <div class="page-tree-branch">
+          <!-- 04.1 Section Div -->
+          <div id="sec-04-1" class="doc-section story-node-section page-tree-tab" data-section-num="04.1" data-section-title="NRE vs. Burn Rate Architecture" data-level="1" data-node-idx="10">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">04.1</span>
+              <h3 class="section-title story-section-title">&#9881;&#65039; NRE vs. Burn Rate Architecture</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 4 // INDUSTRIAL ECONOMICS]</span>
           <span class="story-node-anchor font-mono">#sec-04-1</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          SaaS heuristics (CAC, LTV, Net Retention) are inapplicable and actively dangerous when applied to hardware, aerospace, robotics, precision manufacturing, or industrial deep-tech.
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>The SaaS Flaw:</strong> SaaS builds software upfront via equity burn, hoping to amortize customer acquisition costs across recurring subscriptions.</li>
-          <li><strong>The Deep-Tech Framework:</strong> Industrial hardware companies cannot survive purely on speculative venture burn. Look for <strong>Non-Recurring Engineering (NRE)</strong> revenue. Did an industrial conglomerate (e.g., L&amp;T, Tata, Bharat Forge) pay the startup an upfront NRE milestone fee to design and customize the automated robotics prototype for factory testing? Upfront NRE confirms genuine enterprise demand and funds physical prototyping without equity dilution.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">MODEL: NRE (NON-RECURRING ENGINEERING)</span>
-          <span class="story-tag">VALIDATION: UPFRONT CONGLOMERATE COMMITMENT</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            SaaS heuristics (CAC, LTV, Net Retention) are inapplicable and actively dangerous when applied to hardware, aerospace, robotics, precision manufacturing, or industrial deep-tech.
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">MODEL: NRE (NON-RECURRING ENGINEERING)</span>
+            <span class="story-tag">NODES: 04.1.1 (NRE REVENUE) &bull; 04.1.2 (TOOLING CAPEX &amp; BOM)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 04.2 -->
-            <section id="sec-04-2" class="doc-section story-node-section" data-section-num="04.2" data-section-title="Sovereign Technology Readiness Level (TRL 1-9)" data-level="1" data-node-idx="11">
-        <div class="section-header">
-          <span class="section-number font-mono">04.2</span>
-          <h3 class="section-title story-section-title">&#128640; Sovereign Technology Readiness Level (TRL 1-9)</h3>
+          <!-- 04.1 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 04.1.1 -->
+            <div id="sec-04-1-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="04.1.1" data-section-title="Non-Recurring Engineering (NRE) as Non-Dilutive Validation" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">04.1.1</span>
+                <h4 class="subsection-title story-section-title">&#128736;&#65039; NRE as Non-Dilutive Validation</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 04.1.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[DEEP TECH // NRE REVENUE // 4.1.1]</span>
+              <span class="story-node-anchor font-mono">#sec-04-1-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Industrial hardware companies cannot survive purely on speculative venture burn. Look for <strong>Non-Recurring Engineering (NRE)</strong> revenue.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Enterprise Skin in the Game:</strong> Did an industrial conglomerate (e.g., L&amp;T, Tata, Bharat Forge, or DRDO) pay the startup an upfront NRE milestone fee to design and customize the automated robotics prototype for factory testing? Upfront NRE confirms genuine enterprise demand and funds physical prototyping without equity dilution.</li>
+                <li><strong>Intellectual Property Retention:</strong> Verify that the NRE contract preserves background and foreground IP with the startup, preventing the enterprise customer from appropriating proprietary blueprints upon project completion.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">MODEL: NON-RECURRING ENGINEERING (NRE)</span>
+                <span class="story-tag">VALIDATION: UPFRONT PAID ENTERPRISE MILESTONES</span>
+              </div>
+            </div>
+            </div>
+            <!-- 04.1.2 -->
+            <div id="sec-04-1-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="04.1.2" data-section-title="Tooling CapEx vs Recurring Bill of Materials (BOM)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">04.1.2</span>
+                <h4 class="subsection-title story-section-title">&#9881;&#65039; Tooling CapEx vs Recurring BOM Economics</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 04.1.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[DEEP TECH // UNIT ECONOMICS // 4.1.2]</span>
+              <span class="story-node-anchor font-mono">#sec-04-1-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                Forensic industrial due diligence requires separating one-time physical tooling expenditure from unit-level Bill of Materials (BOM) cost structures.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>Tooling Amortization Schedule:</strong> High-precision dies, injection molds, and automated test fixtures require heavy upfront CapEx. If management fails to amortize tooling costs across realistic production volume thresholds, reported gross margins will collapse when molds wear out.</li>
+                <li><strong>True Component BOM Margins:</strong> Demand the unvarnished engineering BOM spreadsheet with vendor quotes. Verify whether target margins assume uncommitted high-volume supplier discounts that the company cannot fulfill at current production volumes.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">METRIC: AMORTIZED TOOLING PER UNIT</span>
+                <span class="story-tag">BENCHMARK: POSITIVE GROSS MARGIN ON FIRST 1,000 UNITS</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 4 // MATURITY BENCHMARK]</span>
+
+        <!-- 04.2 Branch -->
+        <div class="page-tree-branch">
+          <!-- 04.2 Section Div -->
+          <div id="sec-04-2" class="doc-section story-node-section page-tree-tab" data-section-num="04.2" data-section-title="Sovereign Technology Readiness Level (TRL 1-9)" data-level="1" data-node-idx="11">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">├──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">04.2</span>
+              <h3 class="section-title story-section-title">&#128640; Sovereign Technology Readiness Level (TRL 1-9)</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 3 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 4 // MATURITY BENCHMARK]</span>
           <span class="story-node-anchor font-mono">#sec-04-2</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          Do not finance academic science experiments disguised as commercial deep-tech startups. Map intellectual property against the standardized <strong>Technology Readiness Level (TRL 1-9)</strong> scale:
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>TRL 1–3 (Basic Principles &amp; Lab Concept):</strong> Academic research, university bench prototypes, zero commercial repeatability. Should be backed by government grants (BIRAC, DST, iDEX), not venture capital equity.</li>
-          <li><strong>TRL 4–5 (Validation in Simulated Environment):</strong> The hazardous <em>"Valley of Death."</em> Components operate in controlled conditions but have not survived factory-floor industrial tolerances.</li>
-          <li><strong>TRL 6–7 (System Prototype in Operational Environment):</strong> Full engineering prototype validated under actual industrial client operating conditions. This is the exact milestone where institutional growth capital belongs.</li>
-          <li><strong>TRL 8–9 (System Qualified &amp; Mission Proven):</strong> Certified hardware executing in full-rate series production.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">SCALE: TRL 1 TO TRL 9</span>
-          <span class="story-tag">VC SWEET SPOT: TRL 6-7 TRANSITION</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            Do not finance academic science experiments disguised as commercial deep-tech startups. Map intellectual property against the standardized <strong>Technology Readiness Level (TRL 1-9)</strong> scale:
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">SCALE: TRL 1 TO TRL 9</span>
+            <span class="story-tag">NODES: 04.2.1 (TRL 1-3) &bull; 04.2.2 (TRL 4-5) &bull; 04.2.3 (TRL 6-7)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- 04.3 -->
-            <section id="sec-04-3" class="doc-section story-node-section" data-section-num="04.3" data-section-title="Homologation and Regulatory Certification Moats" data-level="1" data-node-idx="12">
-        <div class="section-header">
-          <span class="section-number font-mono">04.3</span>
-          <h3 class="section-title story-section-title">&#128737;&#65039; Homologation and Regulatory Certification Moats</h3>
+          <!-- 04.2 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 04.2.1 -->
+            <div id="sec-04-2-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="04.2.1" data-section-title="TRL 1–3: Lab Concepts &amp; Non-Dilutive Sovereign Grants (BIRAC, iDEX)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">04.2.1</span>
+                <h4 class="subsection-title story-section-title">&#128300; TRL 1–3: Lab Concepts &amp; Non-Dilutive Grants</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 04.2.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[TRL SCALE // TRL 1-3 // 4.2.1]</span>
+              <span class="story-node-anchor font-mono">#sec-04-2-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                TRL 1 to 3 covers basic principles observed, technology concepts formulated, and analytical proof-of-concept benchmarks executed on university benches.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The VC Equity Trap:</strong> Financing TRL 1-3 with venture equity is a capital allocation error. At this stage, science risk dominates execution risk. Founders should be backed by non-dilutive sovereign grant programs—such as <strong>BIRAC BIG</strong> (Biotechnology), <strong>iDEX DISC</strong> (Defense), or <strong>DST NIDHI</strong>.</li>
+                <li><strong>Grant Compliance Audit:</strong> Verify that government grant milestones are achieved on schedule without statutory recovery notices or intellectual property assignment disputes with host academic incubators (IITs/IISc).</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STAGE: TRL 1-3 BENCH RESEARCH</span>
+                <span class="story-tag">CAPITAL SOURCE: NON-DILUTIVE SOVEREIGN GRANTS (BIRAC, IDEX)</span>
+              </div>
+            </div>
+            </div>
+            <!-- 04.2.2 -->
+            <div id="sec-04-2-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="04.2.2" data-section-title="TRL 4–5: The Factory Floor Validation 'Valley of Death'" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">04.2.2</span>
+                <h4 class="subsection-title story-section-title">&#9888;&#65039; TRL 4–5: The 'Valley of Death'</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 04.2.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[TRL SCALE // TRL 4-5 // 4.2.2]</span>
+              <span class="story-node-anchor font-mono">#sec-04-2-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                TRL 4–5 represents the transition from controlled laboratory testing to integrated subsystem validation in simulated operational environments.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The Industrial Failure Point:</strong> Components that operate flawlessly in an air-conditioned laboratory regularly fail under factory floor thermal vibration, electromagnetic interference (EMI), and voltage fluctuations.</li>
+                <li><strong>Milestone Verification:</strong> Demand raw Environmental Stress Screening (ESS) test logs, thermal chamber data, and vibration cycle reports certified by accredited third-party test laboratories before underwriting commercial readiness.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STAGE: TRL 4-5 ENVIRONMENTAL VALIDATION</span>
+                <span class="story-tag">HAZARD: INTEGRATION BREAKDOWN UNDER INDUSTRIAL LOAD</span>
+              </div>
+            </div>
+            </div>
+            <!-- 04.2.3 -->
+            <div id="sec-04-2-3" class="doc-subsection story-node-section page-tree-tab" data-section-num="04.2.3" data-section-title="TRL 6–7: Operational Environment Validation for Series A/B Underwriting" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">04.2.3</span>
+                <h4 class="subsection-title story-section-title">&#9989; TRL 6–7: Operational Validation &amp; Growth Capital</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 04.2.3]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[TRL SCALE // TRL 6-7 // 4.2.3]</span>
+              <span class="story-node-anchor font-mono">#sec-04-2-3</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                TRL 6 represents a full engineering prototype validated in an actual operating environment, while TRL 7 demonstrates prototype execution in mission operations.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>The Institutional Sweet Spot:</strong> TRL 6-7 is the exact inflection point where institutional venture growth capital belongs. The technology risk has been eliminated; capital is deployed strictly for manufacturing scale-up, supply chain procurement, and regulatory certification.</li>
+                <li><strong>User Trial Reports (UTRs):</strong> In defense, aerospace, or medical robotics, insist on reviewing official User Trial Reports (UTRs) signed by enterprise client field operators rather than marketing case studies.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">STAGE: TRL 6-7 OPERATIONAL TRIALS</span>
+                <span class="story-tag">INVESTMENT THESIS: PRIME GROWTH CAPITAL INFLECTION POINT</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
-<span class="story-section-tag">[MODULE 4 // REGULATORY MOATS]</span>
+
+        <!-- 04.3 Branch -->
+        <div class="page-tree-branch">
+          <!-- 04.3 Section Div -->
+          <div id="sec-04-3" class="doc-section story-node-section page-tree-tab" data-section-num="04.3" data-section-title="Homologation and Regulatory Certification Moats" data-level="1" data-node-idx="12">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">└──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">04.3</span>
+              <h3 class="section-title story-section-title">&#128737;&#65039; Homologation and Regulatory Certification Moats</h3>
+              <span class="page-tree-tab-badge font-mono">[BRANCH &bull; 2 SUB-NODES]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
+          <span class="story-section-tag">[MODULE 4 // REGULATORY MOATS]</span>
           <span class="story-node-anchor font-mono">#sec-04-3</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
-          Patents provide negligible protection in India because patent litigation in commercial courts frequently drags on for over a decade. The authentic, defensible moats in deep-tech are <strong>statutory homologation and sovereign regulatory clearances</strong>:
-        </p>
-        <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
-          <li><strong>Automotive &amp; EV:</strong> Has the propulsion and battery management architecture achieved formal <strong>ARAI (Automotive Research Association of India)</strong> or ICAT homologation?</li>
-          <li><strong>Aerospace &amp; Drones:</strong> Does the payload and airframe hold formal <strong>DGCA Type Certification</strong>?</li>
-          <li><strong>Defense &amp; Avionics:</strong> Has the hardware obtained <strong>CEMILAC (Centre for Military Airworthiness and Certification)</strong> or DGAQA clearance?</li>
-          <li><strong>The Moat Reality:</strong> A well-funded competitor can attempt to reverse-engineer software in months; they cannot bypass 24 months of rigorous statutory homologation and crash safety testing. Statutory certification <em>is</em> the moat.</li>
-        </ul>
-        <div class="story-meta-tags font-mono">
-          <span class="story-tag">SOVEREIGN BODIES: ARAI, DGCA, CEMILAC, ICAT</span>
-          <span class="story-tag">BARRIER TO ENTRY: 18-36 MONTH CERTIFICATION TESTING</span>
-        </div>
-        </div>
-      </section>
+            <div class="section-content">
+              <p class="story-narrative-lead">
+            Patents provide negligible protection in India because patent litigation in commercial courts frequently drags on for over a decade. The authentic, defensible moats in deep-tech are <strong>statutory homologation and sovereign regulatory clearances</strong>:
+          </p>
+              <div class="story-meta-tags font-mono" style="margin-top: 18px;">
+            <span class="story-tag">SOVEREIGN BODIES: ARAI, DGCA, CEMILAC, ICAT</span>
+            <span class="story-tag">NODES: 04.3.1 (ARAI AIS-156) &bull; 04.3.2 (DGCA &amp; CEMILAC)</span>
+          </div>
+            </div>
+          </div>
 
-      <!-- ================= SYNTHESIS ================= -->
-            <div class="doc-module story-act-divider" data-module-title="Synthesis &amp; Due Diligence Checklist">
-        <div class="module-header">
-          <h2 class="module-title story-act-title">Synthesis &amp; Due Diligence Checklist</h2>
-          <span class="module-badge story-act-badge font-mono">[ACT V &bull; NODES 14-15]</span>
+          <!-- 04.3 Subsections Tree Branch -->
+          <div class="page-tree-children">
+            <!-- 04.3.1 -->
+            <div id="sec-04-3-1" class="doc-subsection story-node-section page-tree-tab" data-section-num="04.3.1" data-section-title="Automotive &amp; EV Homologation (ARAI &amp; ICAT Safety Standards)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;├──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">04.3.1</span>
+                <h4 class="subsection-title story-section-title">&#128663; Automotive &amp; EV Homologation (ARAI &amp; ICAT)</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 04.3.1]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[HOMOLOGATION // ARAI &amp; AIS-156 // 4.3.1]</span>
+              <span class="story-node-anchor font-mono">#sec-04-3-1</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                In electric vehicles, powertrain components, and battery management systems (BMS), statutory homologation by the <strong>Automotive Research Association of India (ARAI)</strong> or <strong>ICAT</strong> is required by federal law before a single commercial vehicle can be registered with state RTOs.
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>AIS-156 &amp; AIS-038 Phase 2 Compliance:</strong> Batteries must pass rigorous thermal runaway, water immersion, nail penetration, and vibration shock testing. Achieving AIS-156 certification takes 12 to 18 months and ₹50 Lakh to ₹1.5 Crore in statutory testing fees.</li>
+                <li><strong>The Regulatory Moat:</strong> A fast-follower competitor cannot bypass this timeline. ARAI certification constitutes an unyielding statutory moat protecting the incumbent from immediate copycat competition.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">BODIES: ARAI, ICAT</span>
+                <span class="story-tag">MANDATE: AIS-156 / AIS-038 TYPE APPROVAL</span>
+              </div>
+            </div>
+            </div>
+            <!-- 04.3.2 -->
+            <div id="sec-04-3-2" class="doc-subsection story-node-section page-tree-tab" data-section-num="04.3.2" data-section-title="Aerospace &amp; Defense Clearances (DGCA Type Certification &amp; CEMILAC)" data-level="2">
+              <div class="page-tree-tab-header">
+                <span class="page-tree-guide font-mono">│&nbsp;&nbsp;└──</span>
+                <span class="page-tree-icon">&#128196;</span>
+                <span class="subsection-number font-mono">04.3.2</span>
+                <h4 class="subsection-title story-section-title">&#9992;&#65039; Aerospace &amp; Defense Clearances (DGCA &amp; CEMILAC)</h4>
+                <span class="page-tree-tab-badge font-mono">[LEAF &bull; 04.3.2]</span>
+              </div>
+              <div class="subsection-meta story-section-meta font-mono">
+              <span class="story-section-tag">[HOMOLOGATION // DGCA &amp; CEMILAC // 4.3.2]</span>
+              <span class="story-node-anchor font-mono">#sec-04-3-2</span>
+            </div>
+              <div class="subsection-content">
+              <p class="story-narrative-lead">
+                In unmanned aerial vehicles (drones), avionics, and defense hardware, regulatory clearance from sovereign bodies dictates commercial viability:
+              </p>
+              <ul style="margin: 0 0 16px 20px; line-height: 1.7; color: var(--text-secondary);">
+                <li><strong>DGCA Type Certification:</strong> Under Drone Rules, 2021, no commercial drone payload can legally operate without formal Type Certification issued by the Directorate General of Civil Aviation (DGCA) following testing by Quality Council of India (QCI) authorized labs.</li>
+                <li><strong>CEMILAC Airworthiness Clearance:</strong> For defense aviation hardware, airworthiness approval by the Centre for Military Airworthiness and Certification (CEMILAC) requires full design traceability, DO-178C software qualification, and MIL-STD-810G environmental hardening.</li>
+              </ul>
+              <div class="story-meta-tags font-mono">
+                <span class="story-tag">BODIES: DGCA, CEMILAC, DGAQA</span>
+                <span class="story-tag">MOAT: 24-36 MONTH MILITARY AIRWORTHINESS PROCESS</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
+
       </div>
 
-      <!-- 05.1 -->
-            <section id="sec-05-1" class="doc-section story-node-section" data-section-num="05.1" data-section-title="Master Forensic Due Diligence Checklist" data-level="1" data-node-idx="13">
-        <div class="section-header">
-          <span class="section-number font-mono">05.1</span>
-          <h3 class="section-title story-section-title">&#9989; Master Forensic Due Diligence Checklist</h3>
+      <!-- ================= MODULE 05 ================= -->
+      <div class="page-tree-group" data-module="05">
+        <div class="doc-module story-act-divider" data-module-title="Synthesis &amp; Due Diligence Checklist">
+          <div class="module-header">
+            <h2 class="module-title story-act-title">Synthesis &amp; Due Diligence Checklist</h2>
+            <span class="module-badge story-act-badge font-mono">[ACT V &bull; 02 NODES]</span>
+          </div>
         </div>
-        <div class="section-meta story-section-meta font-mono">
+
+        <!-- 05.1 Branch -->
+        <div class="page-tree-branch">
+          <!-- 05.1 Section Div -->
+          <div id="sec-05-1" class="doc-section story-node-section page-tree-tab" data-section-num="05.1" data-section-title="Master Forensic Due Diligence Checklist" data-level="1" data-node-idx="13">
+            <div class="page-tree-tab-header">
+              <span class="page-tree-guide font-mono">└──</span>
+              <span class="page-tree-icon">&#128194;</span>
+              <span class="section-number font-mono">05.1</span>
+              <h3 class="section-title story-section-title">&#9989; Master Forensic Due Diligence Checklist</h3>
+              <span class="page-tree-tab-badge font-mono">[CHECKLIST &bull; 10 POINTS]</span>
+            </div>
+            <div class="section-meta story-section-meta font-mono">
 <span class="story-section-tag">[SYNTHESIS // PRE-INVESTMENT RADAR]</span>
           <span class="story-node-anchor font-mono">#sec-05-1</span>
         </div>
-        <div class="section-content">
-          <p class="story-narrative-lead">
+            <div class="section-content">
+              <p class="story-narrative-lead">
           Before wiring capital or syndicating investment memos on any Indian enterprise, complete this 10-point statutory forensic checklist:
         </p>
         <ol style="margin: 0 0 20px 24px; line-height: 1.8; color: var(--text-secondary);">
@@ -821,8 +2373,11 @@
           <span class="story-tag">FRAMEWORK: 10-POINT FORENSIC RADAR</span>
           <span class="story-tag">VERDICT: PASS ONLY UPON 100% RECONCILIATION</span>
         </div>
+            </div>
+          </div>
         </div>
-      </section>
+
+      </div>
 
       <!-- COMMENTS STREAM -->
       <section class="forum-directory-section" id="forum-section" data-node-idx="14">
@@ -876,6 +2431,6 @@
     </div>
   </main>
 
-  <script src="script.js?v=7.8"></script>
+  <script src="script.js?v=8.0"></script>
 </body>
 </html>
