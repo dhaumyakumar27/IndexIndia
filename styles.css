@@ -374,6 +374,83 @@ body.theme-dark .sub-nav-sep {
   color: rgba(255, 255, 255, 0.25);
 }
 
+/* Top Action Group: Directory Tree & AI Gemini (Beside x|y|z and shortcuts menu) */
+.nav-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+}
+
+.nav-header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: var(--bg-surface-subtle, rgba(0, 0, 0, 0.03));
+  border: 1.2px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.nav-header-action-btn:hover {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.nav-header-action-btn.is-active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-dark .nav-header-action-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+body.theme-dark .nav-header-action-btn:hover,
+body.theme-dark .nav-header-action-btn.is-active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.nav-header-action-btn .action-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.nav-header-action-btn .action-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.60rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: inherit;
+  margin-left: 2px;
+}
+
+body.theme-dark .nav-header-action-btn .action-kbd {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 .panel-trigger-wrapper {
   position: relative;
   display: flex;

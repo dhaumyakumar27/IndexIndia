@@ -453,6 +453,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
 
+    const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+    if (navTreeBtn) navTreeBtn.classList.add("is-active");
+
     if (btnPinTree) {
       btnPinTree.classList.toggle("is-active", isPinned);
       btnPinTree.setAttribute("aria-pressed", isPinned ? "true" : "false");
@@ -471,6 +474,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (railTrack) railTrack.classList.remove("is-hidden");
     if (railTreePanel) railTreePanel.classList.remove("is-open");
+
+    const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+    if (navTreeBtn) navTreeBtn.classList.remove("is-active");
 
     if (btnPinTree) {
       btnPinTree.classList.remove("is-active");
@@ -498,6 +504,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
+    const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+    if (navTreeBtn) navTreeBtn.classList.add("is-active");
     updateTreeTelemetryUI();
     scrollTreeToNode(treeNodes[currentSubIndex]);
   }
@@ -512,6 +520,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (railNavigator) railNavigator.classList.remove("is-open");
         if (railTrack) railTrack.classList.remove("is-hidden");
         if (railTreePanel) railTreePanel.classList.remove("is-open");
+        const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+        if (navTreeBtn) navTreeBtn.classList.remove("is-active");
       }
     }, delay);
   }
@@ -3277,6 +3287,9 @@ INSTRUCTIONS:
         updateGeminiKeyButtonState();
       }
 
+      const doubtNavBtn = document.getElementById("doubt-nav-btn");
+      if (doubtNavBtn) doubtNavBtn.classList.add("is-active");
+
       if (activeDoubtMode === "doubts") {
         renderDoubtsView();
       } else {
@@ -3300,6 +3313,9 @@ INSTRUCTIONS:
       if (doubtTile) doubtTile.classList.remove("is-open");
       if (doubtPill) doubtPill.classList.remove("is-visible");
       if (doubtTextInput) doubtTextInput.blur();
+
+      const doubtNavBtn = document.getElementById("doubt-nav-btn");
+      if (doubtNavBtn) doubtNavBtn.classList.remove("is-active");
 
     } catch (err) {
       console.error("[DoubtSolver] closeDoubtSolver error:", err);
@@ -3553,6 +3569,23 @@ INSTRUCTIONS:
   toggleDoubtSolver = function() {
     origToggleDoubt();
   };
+
+  // Top Navbar Action Buttons (Beside x|y|z and shortcuts menu)
+  const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+  if (navTreeBtn) {
+    navTreeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleTree();
+    });
+  }
+
+  const doubtNavBtn = document.getElementById("doubt-nav-btn");
+  if (doubtNavBtn) {
+    doubtNavBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleDoubtSolver();
+    });
+  }
 
   // ================= 11. RIGID TOP-NAV SEARCH BAR & COMMAND PALETTE (Triggered by /) =================
   let navSearchBarWrapper = document.getElementById("nav-search-bar-wrapper");
