@@ -40,7 +40,28 @@ document.addEventListener("DOMContentLoaded", () => {
   let updateSectionOffsets = function() {};
   let rebindTreeAndTicksEvents = function() {};
 
-  // Auto-generate directory tree by scanning core section names (e.g. 1.1, 1.1.1, 1.2.1, 01.1, etc.)
+  // Helper to resolve icon from section title keywords
+  function getSmartIconForTitle(title) {
+    const lower = (title || "").toLowerCase();
+    if (lower.includes("audit") || lower.includes("checklist") || lower.includes("caro")) return "📋";
+    if (lower.includes("portal") || lower.includes("filing") || lower.includes("mca")) return "📜";
+    if (lower.includes("matrix") || lower.includes("performance") || lower.includes("index")) return "📊";
+    if (lower.includes("ratio") || lower.includes("cap") || lower.includes("table") || lower.includes("bse") || lower.includes("nse")) return "📈";
+    if (lower.includes("database") || lower.includes("drhp") || lower.includes("sebi")) return "📖";
+    if (lower.includes("tender") || lower.includes("gem") || lower.includes("procurement")) return "🗄️";
+    if (lower.includes("tax") || lower.includes("contingent") || lower.includes("warning") || lower.includes("risk")) return "⚠️";
+    if (lower.includes("cash") || lower.includes("burn") || lower.includes("liquidity")) return "💸";
+    if (lower.includes("pledge") || lower.includes("spiral")) return "📉";
+    if (lower.includes("cycle") || lower.includes("vesting") || lower.includes("timeline")) return "⏱️";
+    if (lower.includes("tech") || lower.includes("nre")) return "⚙️";
+    if (lower.includes("trl") || lower.includes("sovereign")) return "🚀";
+    if (lower.includes("moat") || lower.includes("homologation") || lower.includes("compliance")) return "🛡️";
+    if (lower.includes("comment") || lower.includes("stream") || lower.includes("forum")) return "💬";
+    if (lower.includes("disclaimer")) return "📑";
+    return "📄";
+  }
+
+  // Auto-generate directory tree by scanning core section names or direct semantic div classes
   function autoBuildDirectoryTree() {
     if (!treeContentScroll) return false;
 
@@ -52,9 +73,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Unicode emoji pattern at the beginning of headings
     const EMOJI_PREFIX_REGEX = /^([\p{Extended_Pictographic}\u2600-\u27bf\u2300-\u23ff\u2b50\u2b55\uFE0F\u200D]+)\s*/u;
 
-    // Scan candidate elements in contentRoot in DOM tree order
+    // Scan candidate elements in contentRoot in DOM tree order:
+    // Supports semantic classes (.doc-module, .doc-section, .doc-subsection, .doc-subsubsection, etc.)
+    // as well as headings and legacy section wrappers.
     const elements = Array.from(contentRoot.querySelectorAll(
-      ".story-act-divider, h1, h2, h3, h4, h5, h6, .story-section-title, .forum-title, [class*='section-title'], [data-node-idx]"
+      ".doc-module, .doc-act, .story-act-divider, .module-divider, .doc-section, .doc-subsection, .doc-subsubsection, .tree-section, .tree-subsection, .story-node-section, .page-directory-section, .forum-directory-section, .institutional-forum-section, h1, h2, h3, h4, h5, h6, .story-section-title, .forum-title, [class*='section-title'], [data-node-idx]"
     ));
 
     const items = [];
@@ -64,13 +87,12 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.forEach((el) => {
       if (processedEls.has(el)) return;
 
-      // Check if it is an Act / Module divider
-      if (el.classList.contains("story-act-divider")) {
+      // 1. MODULE / ACT DIVIDER DETECTION (.doc-module, .doc-act, .story-act-divider, etc.)
+      if (el.classList.contains("doc-module") || el.classList.contains("doc-act") || el.classList.contains("story-act-divider") || el.classList.contains("module-divider")) {
         processedEls.add(el);
-        const titleEl = el.querySelector(".story-act-title") || el.querySelector("h2, h3") || el;
-        el.querySelectorAll("*").forEach((child) => processedEls.add(child));
-        let rawTitle = titleEl.textContent.trim().replace(/\s+/g, " ");
-        // Strip badge notations like "[ACT I • NODES 01-04]"
+        const titleEl = el.querySelector(".module-title, .doc-module-title, .story-act-title") || el.querySelector("h2, h3") || el;
+        el.querySelectorAll(".module-title, .doc-module-title, .story-act-title, h1, h2, h3, h4, span").forEach((child) => processedEls.add(child));
+        let rawTitle = (el.getAttribute("data-module-title") || titleEl.textContent).trim().replace(/\s+/g, " ");
         rawTitle = rawTitle.replace(/\[.*?\]/g, "").trim();
         items.push({
           type: "module",
@@ -80,7 +102,103 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Check if it is a heading that contains a section number
+      // 2. EXPLICIT SEMANTIC SECTION / SUBSECTION DIV DETECTION
+      // Supports .doc-section, .doc-subsection, .doc-subsubsection, .tree-section, .tree-subsection
+      const isExplicitSec = el.classList.contains("doc-section") ||
+                            el.classList.contains("doc-subsection") ||
+                            el.classList.contains("doc-subsubsection") ||
+                            el.classList.contains("tree-section") ||
+                            el.classList.contains("tree-subsection");
+
+      if (isExplicitSec) {
+        processedEls.add(el);
+
+        // Find title element and number element within this section
+        const titleEl = el.querySelector(".section-title, .subsection-title, .subsubsection-title, .doc-title") ||
+                        el.querySelector("h1, h2, h3, h4, h5, h6");
+        const numEl = el.querySelector(".section-number, .subsection-number, .subsubsection-number, .sec-num, .doc-num");
+
+        let rawTitle = (el.getAttribute("data-section-title") || (titleEl ? titleEl.textContent : "")).trim().replace(/\s+/g, " ");
+        let num = (el.getAttribute("data-section-num") || (numEl ? numEl.textContent : "")).trim();
+
+        // Mark direct heading / number elements as processed so they don't trigger secondary heading scan
+        if (titleEl) processedEls.add(titleEl);
+        if (numEl) processedEls.add(numEl);
+        el.querySelectorAll(".section-header, .subsection-header, .subsubsection-header, .story-section-meta").forEach((h) => {
+          h.querySelectorAll("h1, h2, h3, h4, h5, h6, span").forEach((c) => processedEls.add(c));
+        });
+
+        // If number not in data attribute or .section-number, test regex on title or el
+        if (!num) {
+          const numMatch = rawTitle.match(SEC_NUM_REGEX);
+          if (numMatch) {
+            num = numMatch[1];
+            rawTitle = numMatch[2].trim();
+          }
+        }
+
+        // Clean icon
+        let icon = el.getAttribute("data-icon") || "";
+        const emojiMatch = rawTitle.match(EMOJI_PREFIX_REGEX);
+        if (emojiMatch) {
+          if (!icon) icon = emojiMatch[1];
+          rawTitle = rawTitle.slice(emojiMatch[0].length).trim();
+        }
+
+        // Strip leading dashes or colons
+        let cleanTitle = rawTitle.replace(/^[—–\-:.)\]}]\s*/, "").trim();
+
+        if (num || cleanTitle) {
+          const displayNum = num || String(items.length + 1);
+
+          let targetId = el.id;
+          if (!targetId) {
+            targetId = "sec-" + displayNum.replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-");
+            el.id = targetId;
+          }
+          let uniqueId = targetId;
+          let counter = 2;
+          while (seenIds.has(uniqueId)) {
+            uniqueId = `${targetId}-${counter++}`;
+          }
+          seenIds.add(uniqueId);
+          el.id = uniqueId;
+
+          // Determine explicit level
+          let explicitLevel = parseInt(el.getAttribute("data-level"), 10);
+          if (isNaN(explicitLevel)) {
+            if (el.classList.contains("doc-subsubsection") || el.classList.contains("tree-subsubsection")) {
+              explicitLevel = 3;
+            } else if (el.classList.contains("doc-subsection") || el.classList.contains("tree-subsection")) {
+              explicitLevel = 2;
+            } else if (el.classList.contains("doc-section") || el.classList.contains("tree-section")) {
+              explicitLevel = 1;
+            }
+          }
+
+          if (!icon) {
+            icon = getSmartIconForTitle(cleanTitle);
+          }
+
+          const numParts = displayNum.split(".");
+          items.push({
+            type: "node",
+            id: uniqueId,
+            num: displayNum,
+            title: cleanTitle,
+            displayName: cleanTitle ? `${displayNum} ${cleanTitle}` : displayNum,
+            icon: icon,
+            dots: numParts.length - 1,
+            numPartsLength: numParts.length,
+            explicitLevel: !isNaN(explicitLevel) ? explicitLevel : null,
+            el: el,
+            parentSec: el
+          });
+          return;
+        }
+      }
+
+      // 3. BACKWARD-COMPATIBLE HEADING REGEX SCAN
       let rawText = el.textContent.trim().replace(/\s+/g, " ");
       let icon = "";
       const emojiMatch = rawText.match(EMOJI_PREFIX_REGEX);
@@ -92,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const numMatch = rawText.match(SEC_NUM_REGEX);
       if (numMatch) {
         processedEls.add(el);
-        const parentSec = el.closest("section") || el.closest(".story-node-section, .page-directory-section, .forum-directory-section");
+        const parentSec = el.closest("section") || el.closest(".doc-section, .story-node-section, .page-directory-section, .forum-directory-section");
         if (parentSec) {
           parentSec.querySelectorAll("h1, h2, h3, h4, h5, h6, .story-section-title, .forum-title, [class*='section-title']").forEach((child) => processedEls.add(child));
         }
@@ -127,23 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Smart icon fallback if no emoji was in text
         if (!icon) {
-          const lower = title.toLowerCase();
-          if (lower.includes("audit") || lower.includes("checklist") || lower.includes("caro")) icon = "📋";
-          else if (lower.includes("portal") || lower.includes("filing") || lower.includes("mca")) icon = "📜";
-          else if (lower.includes("matrix") || lower.includes("performance") || lower.includes("index")) icon = "📊";
-          else if (lower.includes("ratio") || lower.includes("cap") || lower.includes("table") || lower.includes("bse") || lower.includes("nse")) icon = "📈";
-          else if (lower.includes("database") || lower.includes("drhp") || lower.includes("sebi")) icon = "📖";
-          else if (lower.includes("tender") || lower.includes("gem") || lower.includes("procurement")) icon = "🗄️";
-          else if (lower.includes("tax") || lower.includes("contingent") || lower.includes("warning") || lower.includes("risk")) icon = "⚠️";
-          else if (lower.includes("cash") || lower.includes("burn") || lower.includes("liquidity")) icon = "💸";
-          else if (lower.includes("pledge") || lower.includes("spiral")) icon = "📉";
-          else if (lower.includes("cycle") || lower.includes("vesting") || lower.includes("timeline")) icon = "⏱️";
-          else if (lower.includes("tech") || lower.includes("nre")) icon = "⚙️";
-          else if (lower.includes("trl") || lower.includes("sovereign")) icon = "🚀";
-          else if (lower.includes("moat") || lower.includes("homologation") || lower.includes("compliance")) icon = "🛡️";
-          else if (lower.includes("comment") || lower.includes("stream") || lower.includes("forum")) icon = "💬";
-          else if (lower.includes("disclaimer")) icon = "📑";
-          else icon = "📄";
+          icon = getSmartIconForTitle(title);
         }
 
         const numParts = num.split(".");
@@ -2728,21 +2830,34 @@ INSTRUCTIONS:
   function getSectionContext(sectionEl) {
     if (!sectionEl) return getPageSummaryContext();
 
-    const titleEl = sectionEl.querySelector(".story-section-title, .forum-title, h1, h2, h3, h4");
-    const rawTitle = titleEl ? titleEl.textContent.trim().replace(/\s+/g, " ") : (sectionEl.id || "Document Section");
+    const titleEl = sectionEl.querySelector(".section-title, .subsection-title, .subsubsection-title, .doc-title, .story-section-title, .forum-title, h1, h2, h3, h4");
+    const numEl = sectionEl.querySelector(".section-number, .subsection-number, .subsubsection-number, .sec-num, .doc-num");
+    const numPrefix = numEl ? numEl.textContent.trim() + " " : "";
+
+    const rawTitle = sectionEl.getAttribute("data-section-title") ||
+                     (titleEl ? (numPrefix + titleEl.textContent.trim().replace(/\s+/g, " ")) : (sectionEl.id || "Document Section"));
     const cleanTitle = rawTitle.replace(/^[^\w\s\u00C0-\u017F]+/, "").trim() || rawTitle;
 
+    // Prefer dedicated .section-content or .subsection-content if present
+    const contentContainer = sectionEl.querySelector(".section-content, .subsection-content, .subsubsection-content") || sectionEl;
+
     // Collect all narrative, checklists, notes, statutory filings, and data inside this section
-    const textNodes = Array.from(sectionEl.querySelectorAll(
-      ".story-narrative-lead, p, li, td, th, .story-tag, .story-section-meta, .story-meta-tags, .story-meta-col, blockquote, .forum-title"
-    )).filter(el => !el.closest(".section-doubt-btn") && !el.closest(".forum-reply-box"));
+    // Exclude nested subsections so that each subsection retains its own focused context
+    const textNodes = Array.from(contentContainer.querySelectorAll(
+      ".section-lead, .story-narrative-lead, p, li, td, th, .story-tag, .section-meta, .subsection-meta, .story-section-meta, .story-meta-tags, .story-meta-col, blockquote, .forum-title"
+    )).filter(el => {
+      if (el.closest(".section-doubt-btn") || el.closest(".forum-reply-box")) return false;
+      const nestedSub = el.closest(".doc-subsection, .doc-subsubsection");
+      if (nestedSub && nestedSub !== sectionEl) return false;
+      return true;
+    });
 
     let fullText = "";
     if (textNodes.length > 0) {
       fullText = textNodes.map(n => n.textContent.trim().replace(/\s+/g, " ")).filter(t => t.length > 0).join("\n");
     } else {
-      const clone = sectionEl.cloneNode(true);
-      clone.querySelectorAll(".section-doubt-btn").forEach(b => b.remove());
+      const clone = contentContainer.cloneNode(true);
+      clone.querySelectorAll(".section-doubt-btn, .doc-subsection, .doc-subsubsection").forEach(b => b.remove());
       fullText = clone.textContent.replace(/\s+/g, " ").trim();
     }
 
@@ -2762,7 +2877,7 @@ INSTRUCTIONS:
     if (currentDoubtContext) return currentDoubtContext;
 
     const hoveredSec = lastHoveredSection || document.querySelector(
-      ".story-node-section:hover, .page-directory-section:hover, .forum-directory-section:hover, .institutional-forum-section:hover, .content-area > section:hover"
+      ".doc-section:hover, .doc-subsection:hover, .doc-subsubsection:hover, .story-node-section:hover, .page-directory-section:hover, .forum-directory-section:hover, .institutional-forum-section:hover, .content-area > section:hover"
     );
     if (hoveredSec) {
       return getSectionContext(hoveredSec);
@@ -2808,7 +2923,7 @@ INSTRUCTIONS:
   // 6. Section Hover & Floating "Ask Doubt" Button Injection
   function injectSectionDoubtButtons() {
     const sections = Array.from(document.querySelectorAll(
-      ".story-node-section, .page-directory-section, .forum-directory-section, .institutional-forum-section, .content-area > section"
+      ".doc-section, .doc-subsection, .doc-subsubsection, .story-node-section, .page-directory-section, .forum-directory-section, .institutional-forum-section, .content-area > section"
     ));
 
     sections.forEach((sec) => {

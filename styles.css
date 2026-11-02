@@ -1277,6 +1277,9 @@ body.theme-dark .tree-node.active .tree-badge {
 }
 
 /* Story Sections & In-Page Directory Anchors */
+.doc-section,
+.doc-subsection,
+.doc-subsubsection,
 .story-node-section,
 .page-directory-section,
 .forum-directory-section,
@@ -1297,6 +1300,28 @@ body.theme-dark .tree-node.active .tree-badge {
               background-color 0.15s ease;
 }
 
+/* Nested Subsection & Sub-subsection Hierarchy */
+.doc-subsection {
+  margin-top: 18px;
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border-left: 2.5px solid rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.012);
+  border-radius: 5px;
+}
+
+.doc-subsubsection {
+  margin-top: 14px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-left: 2px solid rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+body.theme-dark .doc-section,
+body.theme-dark .doc-subsection,
+body.theme-dark .doc-subsubsection,
 body.theme-dark .story-node-section,
 body.theme-dark .page-directory-section,
 body.theme-dark .forum-directory-section,
@@ -1307,7 +1332,20 @@ body.theme-dark .content-area > section {
   background: rgba(255, 255, 255, 0.015);
 }
 
-/* Hover Confirmation: Section is raised slightly to confirm selection */
+body.theme-dark .doc-subsection {
+  border-left-color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body.theme-dark .doc-subsubsection {
+  border-left-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Hover Confirmation: Section/Subsection is raised slightly to confirm selection */
+.doc-section:hover,
+.doc-subsection:hover,
+.doc-subsubsection:hover,
 .story-node-section:hover,
 .page-directory-section:hover,
 .forum-directory-section:hover,
@@ -1318,6 +1356,9 @@ body.theme-dark .content-area > section {
   border-color: rgba(0, 0, 0, 0.2);
 }
 
+body.theme-dark .doc-section:hover,
+body.theme-dark .doc-subsection:hover,
+body.theme-dark .doc-subsubsection:hover,
 body.theme-dark .story-node-section:hover,
 body.theme-dark .page-directory-section:hover,
 body.theme-dark .forum-directory-section:hover,
@@ -1328,16 +1369,163 @@ body.theme-dark .content-area > section:hover {
   border-color: rgba(255, 255, 255, 0.22);
 }
 
+.doc-section.is-active-section,
+.doc-subsection.is-active-section,
 .story-node-section.is-active-section,
 .page-directory-section.is-active-section {
   border-left-color: #000000;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
 }
 
+body.theme-dark .doc-section.is-active-section,
+body.theme-dark .doc-subsection.is-active-section,
 body.theme-dark .story-node-section.is-active-section,
 body.theme-dark .page-directory-section.is-active-section {
   border-left-color: #FFFFFF;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* Standardized Semantic Headers, Titles & Numbers */
+.section-header,
+.subsection-header,
+.subsubsection-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.section-number,
+.subsection-number,
+.subsubsection-number,
+.sec-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #000000;
+  color: #ffffff;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+body.theme-dark .section-number,
+body.theme-dark .subsection-number,
+body.theme-dark .subsubsection-number,
+body.theme-dark .sec-num {
+  background: #ffffff;
+  color: #000000;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subsection-title {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subsubsection-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.section-content,
+.subsection-content,
+.subsubsection-content {
+  font-size: 0.94rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.section-lead,
+.story-narrative-lead {
+  font-size: 0.94rem;
+  line-height: 1.68;
+  color: var(--text-secondary);
+  margin: 0 0 14px 0;
+}
+
+.section-meta,
+.subsection-meta,
+.story-section-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin-bottom: 12px;
+  user-select: none;
+}
+
+/* Module Dividers */
+.doc-module,
+.doc-act,
+.story-act-divider {
+  margin-top: 40px;
+  margin-bottom: 22px;
+  padding: 14px 18px;
+  border-top: 2px solid #000000;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+body.theme-dark .doc-module,
+body.theme-dark .doc-act,
+body.theme-dark .story-act-divider {
+  border-top-color: #ffffff;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.module-title,
+.story-act-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+
+.module-badge,
+.story-act-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
 }
 
 /* Floating "Ask Doubt" Button on Section Hover */
@@ -1374,6 +1562,9 @@ body.theme-dark .section-doubt-btn {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
+.doc-section:hover .section-doubt-btn,
+.doc-subsection:hover .section-doubt-btn,
+.doc-subsubsection:hover .section-doubt-btn,
 .story-node-section:hover .section-doubt-btn,
 .page-directory-section:hover .section-doubt-btn,
 .forum-directory-section:hover .section-doubt-btn,
