@@ -1957,13 +1957,125 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  async function fetchGeminiAnswer(query, context, apiKey) {
+    if (!apiKey) return null;
+    const cleanKey = apiKey.trim();
+    if (!cleanKey) return null;
+
+    const title = context?.title || "Visible Document Section";
+    const sectionText = (context?.text || "").slice(0, 3500);
+
+    const promptText = `You are the intelligent reading assistant for the IndexIndia platform and book.
+The reader is currently looking at the following active section:
+
+--- ACTIVE SECTION START ---
+Title: ${title}
+Content:
+${sectionText}
+--- ACTIVE SECTION END ---
+
+READER'S QUESTION / DOUBT:
+"${query}"
+
+INSTRUCTIONS:
+1. Answer the question directly, accurately, and concisely (2 to 4 sentences).
+2. Ground your answer in the provided active section content whenever applicable (e.g. story characters like Leo, items, settings, or forensic financial metrics).
+3. If the question is about language, grammar, wordplay, definitions, or antonyms (e.g. "opposite of whisper"), answer with standard linguistic precision. Never reference weapon cartridges, movies, or obscure trivia unless specifically asked.
+4. Output only the clear, direct answer without conversational pleasantries (do not say "Sure!", "Here is your answer:", etc.).`;
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
+
+    const payload = {
+      contents: [
+        {
+          parts: [{ text: promptText }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 350
+      }
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 9000);
+
+    try {
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errMsg = errorData.error?.message || `HTTP ${res.status}`;
+        console.warn("[Gemini API] Request failed:", errMsg);
+        throw new Error(errMsg);
+      }
+
+      const data = await res.json();
+      const candidate = data.candidates?.[0];
+      const answer = candidate?.content?.parts?.[0]?.text?.trim();
+
+      if (answer) {
+        return {
+          source: "Google Gemini 1.5 Flash",
+          text: answer,
+          sectionTitle: title
+        };
+      }
+      return null;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
+    }
+  }
+
   async function resolveDoubtAnswer(query, context) {
     const rawText = context ? (context.text || "") : "";
     const title = context ? (context.title || "Visible Content") : "Visible Content";
+    const apiKey = localStorage.getItem("indexindia_gemini_api_key");
+
+    // 1. Try Google Gemini 1.5 Flash if API key is stored
+    if (apiKey && apiKey.trim().length > 10) {
+      try {
+        const geminiRes = await fetchGeminiAnswer(query, context, apiKey);
+        if (geminiRes && geminiRes.text) {
+          return `
+            <div class="doubt-plain-answer">
+              <div class="doubt-ai-badge font-mono">
+                <span class="ai-badge-dot">●</span> ⚡ GEMINI 1.5 FLASH · CONTEXT: "${escapeHtml(title)}"
+              </div>
+              <div class="doubt-plain-text font-serif">
+                ${escapeHtml(geminiRes.text)}
+              </div>
+            </div>
+          `;
+        }
+      } catch (geminiErr) {
+        console.warn("[DoubtSolver] Gemini call failed, falling back to local synthesis:", geminiErr);
+        if (geminiErr.message && (geminiErr.message.includes("API key not valid") || geminiErr.message.includes("400") || geminiErr.message.includes("403"))) {
+          return `
+            <div class="doubt-plain-answer">
+              <div class="doubt-ai-badge font-mono" style="color: #ef4444;">
+                <span class="ai-badge-dot" style="color: #ef4444;">●</span> ⚠️ GEMINI API KEY INVALID
+              </div>
+              <div class="doubt-plain-text font-serif">
+                The stored Gemini API key returned an authentication error (${escapeHtml(geminiErr.message)}). Please click <strong>🔑 Key</strong> in the header above to re-enter your free API key from Google AI Studio.
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    // 2. Fast check built-in knowledge first (0ms latency)
     const subjectInfo = extractCoreSubject(query, title, rawText);
     const term = subjectInfo.term;
 
-    // Fast check built-in knowledge first (0ms latency)
     for (const [key, val] of Object.entries(BUILTIN_CONCEPT_EXPLANATIONS)) {
       if (term.includes(key) || key.includes(term) || query.toLowerCase().includes(key)) {
         return synthesizeConceptAnswer(query, context, {
@@ -1974,7 +2086,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Attempt online fetch from DuckDuckGo Instant Answer / Wikipedia
+    // 3. Attempt online fetch from DuckDuckGo Instant Answer / Wikipedia
     try {
       const remote = await fetchDuckDuckGoInstantAnswer(term);
       if (remote) {
@@ -1982,7 +2094,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (_) {}
 
-    // Fallback synthesis
+    // 4. Fallback synthesis from visible page context
     return synthesizeConceptAnswer(query, context, null);
   }
 
@@ -2092,6 +2204,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span>DUCKDUCKGO DOUBT SOLVER</span>
       </div>
       <div class="doubt-tile-controls">
+        <button type="button" class="doubt-tile-key-btn font-mono" id="doubt-tile-key-btn" title="Connect Google Gemini 1.5 Flash API Key (Free)">🔑 AI Key</button>
         <button type="button" class="doubt-tile-close" id="doubt-tile-close" title="Close (Esc)">&times;</button>
       </div>
     </div>
@@ -2110,10 +2223,53 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.appendChild(doubtTile);
 
   const doubtCloseBtn = doubtTile.querySelector("#doubt-tile-close");
+  const doubtKeyBtn = doubtTile.querySelector("#doubt-tile-key-btn");
   const doubtTextInput = doubtTile.querySelector("#doubt-text-input");
   const doubtAskBtn = doubtTile.querySelector("#doubt-ask-btn");
   const doubtChips = doubtTile.querySelectorAll(".doubt-chip-btn");
   const doubtOutput = doubtTile.querySelector("#doubt-output-container");
+
+  function updateGeminiKeyButtonState() {
+    if (!doubtKeyBtn) return;
+    const key = localStorage.getItem("indexindia_gemini_api_key");
+    if (key && key.trim().length > 10) {
+      doubtKeyBtn.classList.add("is-configured");
+      doubtKeyBtn.innerHTML = `<span class="key-active-dot">●</span> ⚡ Gemini Active`;
+      doubtKeyBtn.title = "Gemini 1.5 Flash Active · Click to update or remove API key";
+    } else {
+      doubtKeyBtn.classList.remove("is-configured");
+      doubtKeyBtn.innerHTML = `🔑 AI Key`;
+      doubtKeyBtn.title = "Connect Google Gemini 1.5 Flash API Key (Free)";
+    }
+  }
+
+  function promptForGeminiKey() {
+    const currentKey = localStorage.getItem("indexindia_gemini_api_key") || "";
+    const promptMsg = currentKey 
+      ? "Google Gemini 1.5 Flash API Key is currently ACTIVE.\n\nEnter a new key, or leave blank and click OK to disconnect:" 
+      : "Enter your free Google Gemini API Key from https://aistudio.google.com/app/apikey to enable live contextual answers grounded in the active section:\n\n(Key will be stored locally in your browser's localStorage)";
+
+    const entered = window.prompt(promptMsg, currentKey);
+    if (entered !== null) {
+      const trimmed = entered.trim();
+      if (trimmed.length > 5) {
+        localStorage.setItem("indexindia_gemini_api_key", trimmed);
+        alert("Gemini 1.5 Flash API Key saved! Live AI answers with full section context are now active.");
+      } else {
+        localStorage.removeItem("indexindia_gemini_api_key");
+        alert("Gemini API Key removed. Reverted to local context solver.");
+      }
+      updateGeminiKeyButtonState();
+      if (activeDoubtMode === "doubts") {
+        renderDoubtsView();
+      }
+    }
+  }
+
+  if (doubtKeyBtn) {
+    doubtKeyBtn.addEventListener("click", promptForGeminiKey);
+  }
+  updateGeminiKeyButtonState();
 
   function escapeHtml(str) {
     if (!str) return "";
@@ -2244,14 +2400,28 @@ document.addEventListener("DOMContentLoaded", () => {
         title = topHeading ? topHeading.textContent.trim() : document.title.split("—")[0].trim();
       }
 
+      // Collect all narrative and structural text of the entire active section
+      let fullSectionText = "";
+      if (bestSection) {
+        const sectionNodes = Array.from(bestSection.querySelectorAll(
+          ".story-narrative-lead, p, li, td, th, .story-tag, .story-section-meta, .story-meta-tags, .story-meta-col, blockquote"
+        ));
+        if (sectionNodes.length > 0) {
+          fullSectionText = sectionNodes.map(n => n.textContent.trim().replace(/\s+/g, " ")).filter(t => t.length > 0).join(" ");
+        } else {
+          fullSectionText = (bestSection.innerText || bestSection.textContent || "").replace(/\s+/g, " ").trim();
+        }
+      }
+
       const cleanTitle = title.replace(/^[^\w\s\u00C0-\u017F]+/, "").trim() || "Visible Screen";
       const cleanText = visibleTextBlocks.length > 0 ? visibleTextBlocks.join(" ") : "Visible screen content.";
+      const richText = fullSectionText && fullSectionText.length > cleanText.length ? fullSectionText : cleanText;
       const excerpt = visibleTextBlocks[0] || cleanText.slice(0, 160);
 
       return {
         type: "section",
         title: cleanTitle,
-        text: cleanText,
+        text: richText,
         excerpt: excerpt.length > 180 ? excerpt.slice(0, 180) + "..." : excerpt
       };
     } catch (err) {
@@ -2339,22 +2509,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDoubtsView() {
     const history = getLocalDoubtsHistory();
-    const currentTarget = currentDoubtContext || getVisibleScreenTarget();
-    const title = currentTarget.title || "Visible Screen";
-    const excerpt = currentTarget.excerpt || (currentTarget.text ? currentTarget.text.slice(0, 140) + "..." : "Reading visible page content.");
+    const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
+
+    let bannerHtml = "";
+    if (!hasKey) {
+      bannerHtml = `
+        <div class="doubt-gemini-banner" id="doubt-gemini-banner">
+          <div class="doubt-banner-header">
+            <span class="doubt-banner-sparkle">⚡</span>
+            <span>CONNECT GEMINI 1.5 FLASH AI</span>
+          </div>
+          <p class="doubt-banner-desc">DuckDuckGo AI requires a server backend due to browser security restrictions. Connect your free Google Gemini API key to enable live, contextual doubt resolution directly in your browser.</p>
+          <div class="doubt-banner-actions">
+            <button type="button" class="doubt-banner-connect-btn" id="doubt-banner-connect-btn">Enter Free API Key</button>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="doubt-banner-link font-mono">Get Free Key at Google AI Studio ↗</a>
+          </div>
+        </div>
+      `;
+    }
 
     if (!history || history.length === 0) {
       doubtOutput.innerHTML = `
+        ${bannerHtml}
         <div class="doubt-blank-page">
           <div class="doubt-blank-icon">🦆</div>
           <div class="doubt-blank-title">Doubts History</div>
-          <p class="doubt-blank-sub">Ask any doubt in the box above and press Enter. Questions, plain English answers, and exact timestamps are stored strictly on your device.</p>
+          <p class="doubt-blank-sub">Ask any doubt in the box above and press Enter. Questions, contextual AI answers grounded in the active section, and exact timestamps are stored strictly on your device.</p>
         </div>
       `;
+      const bannerBtn = doubtOutput.querySelector("#doubt-banner-connect-btn");
+      if (bannerBtn) bannerBtn.addEventListener("click", promptForGeminiKey);
       return;
     }
 
     let html = `
+      ${bannerHtml}
       <div class="doubt-history-actions-bar">
         <span class="doubt-history-count font-mono">${history.length} DOUBT${history.length > 1 ? "S" : ""} RECORDED ON THIS DEVICE</span>
         <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
@@ -2385,6 +2574,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     html += `</div>`;
     doubtOutput.innerHTML = html;
+
+    const bannerBtn = doubtOutput.querySelector("#doubt-banner-connect-btn");
+    if (bannerBtn) bannerBtn.addEventListener("click", promptForGeminiKey);
 
     const clearBtn = doubtOutput.querySelector("#doubt-clear-all-btn");
     if (clearBtn) {
@@ -2524,6 +2716,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (doubtTile) {
         doubtTile.classList.add("is-open");
+        updateGeminiKeyButtonState();
       }
 
       if (activeDoubtMode === "doubts") {
@@ -2578,6 +2771,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Gentle prompt to configure Gemini 1.5 Flash if not yet set
+    if (!localStorage.getItem("indexindia_gemini_api_key") && !sessionStorage.getItem("indexindia_gemini_prompted")) {
+      sessionStorage.setItem("indexindia_gemini_prompted", "true");
+      const userKey = window.prompt("To get live contextual answers powered by Google Gemini 1.5 Flash grounded in this section, enter your free API key from aistudio.google.com/app/apikey:\n\n(Leave blank to continue with instant in-page context extraction)");
+      if (userKey && userKey.trim().length > 5) {
+        localStorage.setItem("indexindia_gemini_api_key", userKey.trim());
+        updateGeminiKeyButtonState();
+      }
+    }
+
     if (activeDoubtMode !== "doubts") {
       activeDoubtMode = "doubts";
       doubtChips.forEach(c => {
@@ -2589,8 +2792,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const currentId = ++activeQueryId;
+    const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
     if (doubtAskBtn) {
-      doubtAskBtn.textContent = "Solving... 🦆";
+      doubtAskBtn.textContent = hasKey ? "Asking Gemini... ⚡" : "Solving... 🦆";
       doubtAskBtn.disabled = true;
     }
 
