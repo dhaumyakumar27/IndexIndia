@@ -1965,10 +1965,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = context?.title || "Visible Document Section";
     const sectionText = (context?.text || "").slice(0, 3500);
 
-    const promptText = `You are the intelligent reading assistant for the IndexIndia platform and book.
-The reader is currently looking at the following active section:
+    const promptText = `You are an expert factual AI and reading assistant for the IndexIndia platform.
+The reader may be asking about the active document section below, or asking a general knowledge question:
 
---- ACTIVE SECTION START ---
+--- ACTIVE SECTION (IF RELEVANT) ---
 Title: ${title}
 Content:
 ${sectionText}
@@ -1978,10 +1978,11 @@ READER'S QUESTION / DOUBT:
 "${query}"
 
 INSTRUCTIONS:
-1. Answer the question directly, accurately, and concisely (2 to 4 sentences).
-2. Ground your answer in the provided active section content whenever applicable (e.g. story characters like Leo, items, settings, or forensic financial metrics).
-3. If the question is about language, grammar, wordplay, definitions, or antonyms (e.g. "opposite of whisper"), answer with standard linguistic precision. Never reference weapon cartridges, movies, or obscure trivia unless specifically asked.
-4. Output only the clear, direct answer without conversational pleasantries (do not say "Sure!", "Here is your answer:", etc.).`;
+1. Answer the question directly, accurately, and concisely in 2 to 3 clear sentences.
+2. If the user asks about the story section, characters (Leo, Pip), or financial forensics, ground your answer in the provided text.
+3. If the user asks general knowledge, geography, science, or factual questions (e.g. "is Sydney a country?", "what is the capital of Australia?", "why is the sky blue?"), answer with 100% factual correctness and logical clarity. Never hallucinate or give circular definitions.
+4. If the question is about language, grammar, wordplay, definitions, or antonyms (e.g. "opposite of whisper"), answer with standard linguistic precision.
+5. Provide only the direct factual explanation without conversational pleasantries (do not say "Sure!", "Here is your answer:", etc.).`;
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
 
@@ -2184,10 +2185,10 @@ INSTRUCTIONS:
   const doubtPill = document.createElement("div");
   doubtPill.className = "doubt-selection-pill";
   doubtPill.id = "doubt-selection-pill";
-  doubtPill.title = "Ask DuckDuckGo Doubt Solver (Shortcut: M)";
+  doubtPill.title = "Ask Gemini AI Doubt Solver (Shortcut: M)";
   doubtPill.innerHTML = `
-    <span class="doubt-pill-spark">🦆</span>
-    <span>Explain</span>
+    <span class="doubt-pill-spark">✨</span>
+    <span>Ask Gemini</span>
     <span class="doubt-pill-key">M</span>
   `;
   document.body.appendChild(doubtPill);
@@ -2196,22 +2197,22 @@ INSTRUCTIONS:
   doubtTile.className = "doubt-solver-tile";
   doubtTile.id = "doubt-solver-tile";
   doubtTile.setAttribute("role", "dialog");
-  doubtTile.setAttribute("aria-label", "DuckDuckGo AI Doubt Solver");
+  doubtTile.setAttribute("aria-label", "Google Gemini AI Doubt Solver");
   doubtTile.innerHTML = `
     <div class="doubt-tile-header">
       <div class="doubt-tile-brand">
-        <span class="doubt-tile-brand-icon">🦆</span>
-        <span>DUCKDUCKGO DOUBT SOLVER</span>
+        <span class="doubt-tile-brand-icon">✨</span>
+        <span>GEMINI AI DOUBT SOLVER</span>
       </div>
       <div class="doubt-tile-controls">
-        <button type="button" class="doubt-tile-key-btn font-mono" id="doubt-tile-key-btn" title="Connect Google Gemini 1.5 Flash API Key (Free)">🔑 AI Key</button>
+        <button type="button" class="doubt-tile-key-btn font-mono" id="doubt-tile-key-btn" title="Configure Google Gemini 1.5 Flash API Key">🔑 AI Key</button>
         <button type="button" class="doubt-tile-close" id="doubt-tile-close" title="Close (Esc)">&times;</button>
       </div>
     </div>
     <div class="doubt-tile-body">
       <div class="doubt-input-row">
-        <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask a doubt or press Enter..." autocomplete="off">
-        <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask DDG ↵</button>
+        <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask any doubt or question..." autocomplete="off">
+        <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask Gemini ↵</button>
       </div>
       <div class="doubt-chips-container" id="doubt-chips-container">
         <button type="button" class="doubt-chip-btn active" data-mode="doubts" id="chip-mode-doubts">💬 Doubts</button>
@@ -2512,17 +2513,27 @@ INSTRUCTIONS:
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
 
     let bannerHtml = "";
-    if (!hasKey) {
+    if (hasKey) {
+      bannerHtml = `
+        <div class="doubt-gemini-active-bar" id="doubt-gemini-active-bar">
+          <span class="font-mono"><span class="key-active-dot">●</span> <strong>GEMINI 1.5 FLASH ACTIVE</strong> (1,500 queries/day)</span>
+          <button type="button" class="doubt-key-change-btn font-mono" id="doubt-key-change-btn" title="Change or remove API key">Change Key</button>
+        </div>
+      `;
+    } else {
       bannerHtml = `
         <div class="doubt-gemini-banner" id="doubt-gemini-banner">
           <div class="doubt-banner-header">
-            <span class="doubt-banner-sparkle">⚡</span>
-            <span>CONNECT GEMINI 1.5 FLASH AI</span>
+            <span class="doubt-banner-sparkle">✨</span>
+            <span>CONNECT GOOGLE GEMINI AI (100% FREE)</span>
           </div>
-          <p class="doubt-banner-desc">DuckDuckGo AI requires a server backend due to browser security restrictions. Connect your free Google Gemini API key to enable live, contextual doubt resolution directly in your browser.</p>
+          <p class="doubt-banner-desc">Get instant, factual answers grounded in the book or any question. Powered by Google Gemini 1.5 Flash (1,500 free queries/day).</p>
+          <div class="doubt-key-input-row">
+            <input type="password" id="doubt-key-inline-input" class="doubt-key-inline-input" placeholder="Paste Gemini API key (AIzaSy...)" autocomplete="off">
+            <button type="button" id="doubt-key-save-btn" class="doubt-key-save-btn">Save Key</button>
+          </div>
           <div class="doubt-banner-actions">
-            <button type="button" class="doubt-banner-connect-btn" id="doubt-banner-connect-btn">Enter Free API Key</button>
-            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="doubt-banner-link font-mono">Get Free Key at Google AI Studio ↗</a>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="doubt-banner-link font-mono">Get Free Key in 10s at Google AI Studio ↗</a>
           </div>
         </div>
       `;
@@ -2532,13 +2543,12 @@ INSTRUCTIONS:
       doubtOutput.innerHTML = `
         ${bannerHtml}
         <div class="doubt-blank-page">
-          <div class="doubt-blank-icon">🦆</div>
-          <div class="doubt-blank-title">Doubts History</div>
-          <p class="doubt-blank-sub">Ask any doubt in the box above and press Enter. Questions, contextual AI answers grounded in the active section, and exact timestamps are stored strictly on your device.</p>
+          <div class="doubt-blank-icon">✨</div>
+          <div class="doubt-blank-title">Gemini AI Doubt Solver</div>
+          <p class="doubt-blank-sub">Ask any doubt about the reading or any general knowledge question in the box above. Powered by Google Gemini 1.5 Flash.</p>
         </div>
       `;
-      const bannerBtn = doubtOutput.querySelector("#doubt-banner-connect-btn");
-      if (bannerBtn) bannerBtn.addEventListener("click", promptForGeminiKey);
+      attachBannerListeners();
       return;
     }
 
@@ -2574,9 +2584,7 @@ INSTRUCTIONS:
 
     html += `</div>`;
     doubtOutput.innerHTML = html;
-
-    const bannerBtn = doubtOutput.querySelector("#doubt-banner-connect-btn");
-    if (bannerBtn) bannerBtn.addEventListener("click", promptForGeminiKey);
+    attachBannerListeners();
 
     const clearBtn = doubtOutput.querySelector("#doubt-clear-all-btn");
     if (clearBtn) {
@@ -2598,6 +2606,34 @@ INSTRUCTIONS:
         renderDoubtsView();
       });
     });
+  }
+
+  function attachBannerListeners() {
+    const saveBtn = doubtOutput.querySelector("#doubt-key-save-btn");
+    const keyInput = doubtOutput.querySelector("#doubt-key-inline-input");
+    if (saveBtn && keyInput) {
+      saveBtn.addEventListener("click", () => {
+        const key = keyInput.value.trim();
+        if (key.length > 5) {
+          localStorage.setItem("indexindia_gemini_api_key", key);
+          updateGeminiKeyButtonState();
+          renderDoubtsView();
+        } else {
+          alert("Please paste your Gemini API key from Google AI Studio.");
+        }
+      });
+      keyInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          saveBtn.click();
+        }
+      });
+    }
+
+    const changeBtn = doubtOutput.querySelector("#doubt-key-change-btn");
+    if (changeBtn) {
+      changeBtn.addEventListener("click", promptForGeminiKey);
+    }
   }
 
   function renderKeyTakeawayView() {
@@ -2771,30 +2807,20 @@ INSTRUCTIONS:
       return;
     }
 
-    // Gentle prompt to configure Gemini 1.5 Flash if not yet set
-    if (!localStorage.getItem("indexindia_gemini_api_key") && !sessionStorage.getItem("indexindia_gemini_prompted")) {
-      sessionStorage.setItem("indexindia_gemini_prompted", "true");
-      const userKey = window.prompt("To get live contextual answers powered by Google Gemini 1.5 Flash grounded in this section, enter your free API key from aistudio.google.com/app/apikey:\n\n(Leave blank to continue with instant in-page context extraction)");
-      if (userKey && userKey.trim().length > 5) {
-        localStorage.setItem("indexindia_gemini_api_key", userKey.trim());
-        updateGeminiKeyButtonState();
-      }
-    }
-
     if (activeDoubtMode !== "doubts") {
       activeDoubtMode = "doubts";
       doubtChips.forEach(c => {
         c.classList.toggle("active", c.getAttribute("data-mode") === "doubts");
       });
       if (doubtTextInput) {
-        doubtTextInput.placeholder = "Ask a doubt or press Enter...";
+        doubtTextInput.placeholder = "Ask any doubt or question...";
       }
     }
 
     const currentId = ++activeQueryId;
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
     if (doubtAskBtn) {
-      doubtAskBtn.textContent = hasKey ? "Asking Gemini... ⚡" : "Solving... 🦆";
+      doubtAskBtn.textContent = hasKey ? "Asking Gemini... ✨" : "Solving... 🔍";
       doubtAskBtn.disabled = true;
     }
 
@@ -2838,7 +2864,7 @@ INSTRUCTIONS:
       renderDoubtsView();
     } finally {
       if (doubtAskBtn) {
-        doubtAskBtn.textContent = "Ask DDG ↵";
+        doubtAskBtn.textContent = "Ask Gemini ↵";
         doubtAskBtn.disabled = false;
       }
     }
@@ -3515,23 +3541,12 @@ INSTRUCTIONS:
       },
       {
         category: "NAVIGATION & PANELS",
-        icon: "🦆",
-        title: "DuckDuckGo AI Doubt Solver",
-        subtitle: "Ask questions, resolve market doubts, and scan screen",
+        icon: "✨",
+        title: "Gemini AI Doubt Solver",
+        subtitle: "Ask questions, resolve doubts, and scan screen with Google Gemini 1.5 Flash",
         badge: "M",
-        keywords: "doubt solver duckduckgo ddg ai explainer question ask search",
+        keywords: "doubt solver gemini ai google duckduckgo ddg explainer question ask search",
         action: () => openDoubtSolver()
-      },
-      {
-        category: "NAVIGATION & PANELS",
-        icon: "⚡",
-        title: "Question — On-Device Search Engine",
-        subtitle: "In-browser WebLLM search engine running 100% locally on your laptop",
-        badge: "WebLLM",
-        keywords: "question webllm search engine on device local ai llm ask questions smollm qwen search",
-        action: () => {
-          window.location.href = "question.html";
-        }
       },
       {
         category: "NAVIGATION & PANELS",
