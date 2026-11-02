@@ -2112,7 +2112,7 @@ INSTRUCTIONS:
           return `
             <div class="doubt-plain-answer">
               <div class="doubt-ai-badge font-mono">
-                <span class="ai-badge-dot">●</span> ⚡ GEMINI FLASH · CLOUDFLARE EDGE · CONTEXT: "${escapeHtml(title)}"
+                <span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}"
               </div>
               <div class="doubt-plain-text font-serif">
                 ${escapeHtml(cfRes.text)}
@@ -2133,7 +2133,7 @@ INSTRUCTIONS:
           return `
             <div class="doubt-plain-answer">
               <div class="doubt-ai-badge font-mono">
-                <span class="ai-badge-dot">●</span> ⚡ GEMINI FLASH · CONTEXT: "${escapeHtml(title)}"
+                <span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}"
               </div>
               <div class="doubt-plain-text font-serif">
                 ${escapeHtml(geminiRes.text)}
@@ -2270,10 +2270,10 @@ INSTRUCTIONS:
   const doubtPill = document.createElement("div");
   doubtPill.className = "doubt-selection-pill";
   doubtPill.id = "doubt-selection-pill";
-  doubtPill.title = "Ask Gemini AI Doubt Solver (Shortcut: M)";
+  doubtPill.title = "Doubt Solver (Shortcut: M)";
   doubtPill.innerHTML = `
-    <span class="doubt-pill-spark">✨</span>
-    <span>Ask Gemini</span>
+    <span class="doubt-pill-spark">💬</span>
+    <span>Ask Doubt</span>
     <span class="doubt-pill-key">M</span>
   `;
   document.body.appendChild(doubtPill);
@@ -2286,18 +2286,16 @@ INSTRUCTIONS:
   doubtTile.innerHTML = `
     <div class="doubt-tile-header">
       <div class="doubt-tile-brand">
-        <span class="doubt-tile-brand-icon">✨</span>
-        <span>GEMINI AI DOUBT SOLVER</span>
+        <span>DOUBT SOLVER</span>
       </div>
       <div class="doubt-tile-controls">
-        <button type="button" class="doubt-tile-key-btn font-mono" id="doubt-tile-key-btn" title="Configure Google Gemini 1.5 Flash API Key">🔑 AI Key</button>
         <button type="button" class="doubt-tile-close" id="doubt-tile-close" title="Close (Esc)">&times;</button>
       </div>
     </div>
     <div class="doubt-tile-body">
       <div class="doubt-input-row">
         <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask any doubt or question..." autocomplete="off">
-        <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask Gemini ↵</button>
+        <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask ↵</button>
       </div>
       <div class="doubt-chips-container" id="doubt-chips-container">
         <button type="button" class="doubt-chip-btn active" data-mode="doubts" id="chip-mode-doubts">💬 Doubts</button>
@@ -2615,28 +2613,13 @@ INSTRUCTIONS:
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
 
     let bannerHtml = "";
-    if (workerUrl) {
-      bannerHtml = `
-        <div class="doubt-gemini-active-bar" id="doubt-gemini-active-bar">
-          <span class="font-mono"><span class="key-active-dot">●</span> <strong>CLOUDFLARE EDGE + GEMINI ACTIVE</strong> (Zero Keys Needed)</span>
-          <button type="button" class="doubt-key-change-btn font-mono" id="doubt-key-change-btn" title="Change or remove configuration">Configure</button>
-        </div>
-      `;
-    } else if (hasKey) {
-      bannerHtml = `
-        <div class="doubt-gemini-active-bar" id="doubt-gemini-active-bar">
-          <span class="font-mono"><span class="key-active-dot">●</span> <strong>GEMINI FLASH ACTIVE</strong> (1,500 queries/day)</span>
-          <button type="button" class="doubt-key-change-btn font-mono" id="doubt-key-change-btn" title="Change or remove API key">Change Key</button>
-        </div>
-      `;
-    } else {
+    if (!workerUrl && !hasKey) {
       bannerHtml = `
         <div class="doubt-gemini-banner" id="doubt-gemini-banner">
           <div class="doubt-banner-header">
-            <span class="doubt-banner-sparkle">✨</span>
-            <span>CONNECT GOOGLE GEMINI AI (100% FREE)</span>
+            <span>CONNECT AI BACKEND</span>
           </div>
-          <p class="doubt-banner-desc">Get instant, factual answers grounded in the book or any question. Powered by Google Gemini Flash.</p>
+          <p class="doubt-banner-desc">Ask doubts grounded in the book or any question. Enter API key or Worker URL:</p>
           <div class="doubt-key-input-row">
             <input type="password" id="doubt-key-inline-input" class="doubt-key-inline-input" placeholder="Paste Gemini key or Cloudflare Worker URL" autocomplete="off">
             <button type="button" id="doubt-key-save-btn" class="doubt-key-save-btn">Save</button>
@@ -2652,9 +2635,9 @@ INSTRUCTIONS:
       doubtOutput.innerHTML = `
         ${bannerHtml}
         <div class="doubt-blank-page">
-          <div class="doubt-blank-icon">✨</div>
-          <div class="doubt-blank-title">Gemini AI Doubt Solver</div>
-          <p class="doubt-blank-sub">Ask any doubt about the reading or any general knowledge question in the box above. Powered by Google Gemini Flash.</p>
+          <div class="doubt-blank-icon">💬</div>
+          <div class="doubt-blank-title">Doubt Solver</div>
+          <p class="doubt-blank-sub">Ask any doubt about the reading or any question in the box above.</p>
         </div>
       `;
       attachBannerListeners();
