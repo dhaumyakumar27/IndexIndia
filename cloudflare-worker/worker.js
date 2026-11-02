@@ -25,8 +25,12 @@ export default {
       });
     }
 
-    // 2. Health check / status
+    // 2. Health check or static assets serving
     if (request.method === "GET") {
+      const url = new URL(request.url);
+      if (env.ASSETS && url.pathname !== "/health" && url.pathname !== "/api/health") {
+        return env.ASSETS.fetch(request);
+      }
       return new Response(
         JSON.stringify({
           status: "online",
