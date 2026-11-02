@@ -1984,31 +1984,46 @@ INSTRUCTIONS:
 4. If the question is about language, grammar, wordplay, definitions, or antonyms (e.g. "opposite of whisper"), answer with standard linguistic precision.
 5. Provide only the direct factual explanation without conversational pleasantries (do not say "Sure!", "Here is your answer:", etc.).`;
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
-
-    const payload = {
-      contents: [
-        {
-          parts: [{ text: promptText }]
+    // Try current supported Google Gemini Flash models (gemini-3.5-flash-lite is sub-second fast)
+    async function callModel(modelName) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+      const payload = {
+        contents: [
+          {
+            parts: [{ text: promptText }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 350
         }
-      ],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 350
-      }
-    };
+      };
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 9000);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 9000);
+      try {
+        const res = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return res;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
+    }
 
     try {
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+      let res = await callModel("gemini-3.5-flash-lite");
+      let usedModel = "Gemini 3.5 Flash Lite";
+
+      if (!res.ok && res.status === 404) {
+        res = await callModel("gemini-3.5-flash");
+        usedModel = "Gemini 3.5 Flash";
+      }
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
@@ -2023,9 +2038,57 @@ INSTRUCTIONS:
 
       if (answer) {
         return {
-          source: "Google Gemini 1.5 Flash",
+          source: `Google ${usedModel}`,
           text: answer,
           sectionTitle: title
+        };
+      }
+      return null;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  // Configurable Cloudflare Worker Proxy URL (if deployed, visitors need zero keys or setup)
+  const CLOUDFLARE_WORKER_URL = "";
+
+  function getActiveWorkerUrl() {
+    return (
+      (typeof window !== "undefined" && window.INDEXINDIA_CF_WORKER_URL) ||
+      CLOUDFLARE_WORKER_URL ||
+      localStorage.getItem("indexindia_cf_worker_url") ||
+      ""
+    ).trim();
+  }
+
+  async function fetchCloudflareWorkerAnswer(query, context, workerUrl) {
+    const title = context ? (context.title || "Visible Content") : "Visible Content";
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    try {
+      const res = await fetch(workerUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, context }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errMsg = errorData.error || `HTTP ${res.status}`;
+        console.warn("[Cloudflare Worker] Request failed:", errMsg);
+        throw new Error(errMsg);
+      }
+
+      const data = await res.json();
+      if (data && data.text) {
+        return {
+          source: data.source || "Google Gemini (via Cloudflare Edge)",
+          text: data.text,
+          sectionTitle: title,
+          model: data.model || "gemini-3.5-flash-lite"
         };
       }
       return null;
@@ -2038,9 +2101,31 @@ INSTRUCTIONS:
   async function resolveDoubtAnswer(query, context) {
     const rawText = context ? (context.text || "") : "";
     const title = context ? (context.title || "Visible Content") : "Visible Content";
+    const workerUrl = getActiveWorkerUrl();
     const apiKey = localStorage.getItem("indexindia_gemini_api_key");
 
-    // 1. Try Google Gemini 1.5 Flash if API key is stored
+    // 1. Try Cloudflare Worker Proxy first (Zero keys needed for visitors!)
+    if (workerUrl) {
+      try {
+        const cfRes = await fetchCloudflareWorkerAnswer(query, context, workerUrl);
+        if (cfRes && cfRes.text) {
+          return `
+            <div class="doubt-plain-answer">
+              <div class="doubt-ai-badge font-mono">
+                <span class="ai-badge-dot">●</span> ⚡ GEMINI FLASH · CLOUDFLARE EDGE · CONTEXT: "${escapeHtml(title)}"
+              </div>
+              <div class="doubt-plain-text font-serif">
+                ${escapeHtml(cfRes.text)}
+              </div>
+            </div>
+          `;
+        }
+      } catch (cfErr) {
+        console.warn("[DoubtSolver] Cloudflare Worker call failed, checking direct key fallback:", cfErr);
+      }
+    }
+
+    // 2. Try direct Google Gemini API if user has stored an API key
     if (apiKey && apiKey.trim().length > 10) {
       try {
         const geminiRes = await fetchGeminiAnswer(query, context, apiKey);
@@ -2048,7 +2133,7 @@ INSTRUCTIONS:
           return `
             <div class="doubt-plain-answer">
               <div class="doubt-ai-badge font-mono">
-                <span class="ai-badge-dot">●</span> ⚡ GEMINI 1.5 FLASH · CONTEXT: "${escapeHtml(title)}"
+                <span class="ai-badge-dot">●</span> ⚡ GEMINI FLASH · CONTEXT: "${escapeHtml(title)}"
               </div>
               <div class="doubt-plain-text font-serif">
                 ${escapeHtml(geminiRes.text)}
@@ -2065,7 +2150,7 @@ INSTRUCTIONS:
                 <span class="ai-badge-dot" style="color: #ef4444;">●</span> ⚠️ GEMINI API KEY INVALID
               </div>
               <div class="doubt-plain-text font-serif">
-                The stored Gemini API key returned an authentication error (${escapeHtml(geminiErr.message)}). Please click <strong>🔑 Key</strong> in the header above to re-enter your free API key from Google AI Studio.
+                The stored Gemini API key returned an authentication error (${escapeHtml(geminiErr.message)}). Please click <strong>Change Key</strong> in the banner above to re-enter your key.
               </div>
             </div>
           `;
@@ -2232,33 +2317,49 @@ INSTRUCTIONS:
 
   function updateGeminiKeyButtonState() {
     if (!doubtKeyBtn) return;
+    const workerUrl = getActiveWorkerUrl();
     const key = localStorage.getItem("indexindia_gemini_api_key");
-    if (key && key.trim().length > 10) {
+    if (workerUrl) {
+      doubtKeyBtn.classList.add("is-configured");
+      doubtKeyBtn.innerHTML = `<span class="key-active-dot">●</span> ⚡ Cloudflare Edge`;
+      doubtKeyBtn.title = "Cloudflare Edge + Gemini Active · 100% Free · Click to configure";
+    } else if (key && key.trim().length > 10) {
       doubtKeyBtn.classList.add("is-configured");
       doubtKeyBtn.innerHTML = `<span class="key-active-dot">●</span> ⚡ Gemini Active`;
-      doubtKeyBtn.title = "Gemini 1.5 Flash Active · Click to update or remove API key";
+      doubtKeyBtn.title = "Gemini Flash Active · Click to update or remove API key";
     } else {
       doubtKeyBtn.classList.remove("is-configured");
       doubtKeyBtn.innerHTML = `🔑 AI Key`;
-      doubtKeyBtn.title = "Connect Google Gemini 1.5 Flash API Key (Free)";
+      doubtKeyBtn.title = "Connect Google Gemini Flash API Key or Cloudflare Worker";
     }
   }
 
   function promptForGeminiKey() {
+    const currentWorker = localStorage.getItem("indexindia_cf_worker_url") || "";
     const currentKey = localStorage.getItem("indexindia_gemini_api_key") || "";
-    const promptMsg = currentKey 
-      ? "Google Gemini 1.5 Flash API Key is currently ACTIVE.\n\nEnter a new key, or leave blank and click OK to disconnect:" 
-      : "Enter your free Google Gemini API Key from https://aistudio.google.com/app/apikey to enable live contextual answers grounded in the active section:\n\n(Key will be stored locally in your browser's localStorage)";
 
-    const entered = window.prompt(promptMsg, currentKey);
-    if (entered !== null) {
-      const trimmed = entered.trim();
-      if (trimmed.length > 5) {
-        localStorage.setItem("indexindia_gemini_api_key", trimmed);
-        alert("Gemini 1.5 Flash API Key saved! Live AI answers with full section context are now active.");
+    const choice = window.prompt(
+      "AI Configuration:\n" +
+      "1. Cloudflare Worker URL (e.g. https://...workers.dev) for zero-setup visitor access\n" +
+      "2. Direct Google Gemini API Key (e.g. AQ... or AIzaSy...)\n" +
+      "3. Leave blank to clear settings\n\nCurrent: " + (currentWorker || currentKey || "None"),
+      currentWorker || currentKey || ""
+    );
+
+    if (choice !== null) {
+      const val = choice.trim();
+      if (val.startsWith("http://") || val.startsWith("https://")) {
+        localStorage.setItem("indexindia_cf_worker_url", val);
+        localStorage.removeItem("indexindia_gemini_api_key");
+        alert("Cloudflare Worker URL saved! Visitors will now query Gemini through your serverless edge proxy.");
+      } else if (val.length > 5) {
+        localStorage.setItem("indexindia_gemini_api_key", val);
+        localStorage.removeItem("indexindia_cf_worker_url");
+        alert("Gemini API Key saved locally!");
       } else {
         localStorage.removeItem("indexindia_gemini_api_key");
-        alert("Gemini API Key removed. Reverted to local context solver.");
+        localStorage.removeItem("indexindia_cf_worker_url");
+        alert("AI configuration cleared. Reverted to local context solver.");
       }
       updateGeminiKeyButtonState();
       if (activeDoubtMode === "doubts") {
@@ -2510,13 +2611,21 @@ INSTRUCTIONS:
 
   function renderDoubtsView() {
     const history = getLocalDoubtsHistory();
+    const workerUrl = getActiveWorkerUrl();
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
 
     let bannerHtml = "";
-    if (hasKey) {
+    if (workerUrl) {
       bannerHtml = `
         <div class="doubt-gemini-active-bar" id="doubt-gemini-active-bar">
-          <span class="font-mono"><span class="key-active-dot">●</span> <strong>GEMINI 1.5 FLASH ACTIVE</strong> (1,500 queries/day)</span>
+          <span class="font-mono"><span class="key-active-dot">●</span> <strong>CLOUDFLARE EDGE + GEMINI ACTIVE</strong> (Zero Keys Needed)</span>
+          <button type="button" class="doubt-key-change-btn font-mono" id="doubt-key-change-btn" title="Change or remove configuration">Configure</button>
+        </div>
+      `;
+    } else if (hasKey) {
+      bannerHtml = `
+        <div class="doubt-gemini-active-bar" id="doubt-gemini-active-bar">
+          <span class="font-mono"><span class="key-active-dot">●</span> <strong>GEMINI FLASH ACTIVE</strong> (1,500 queries/day)</span>
           <button type="button" class="doubt-key-change-btn font-mono" id="doubt-key-change-btn" title="Change or remove API key">Change Key</button>
         </div>
       `;
@@ -2527,13 +2636,13 @@ INSTRUCTIONS:
             <span class="doubt-banner-sparkle">✨</span>
             <span>CONNECT GOOGLE GEMINI AI (100% FREE)</span>
           </div>
-          <p class="doubt-banner-desc">Get instant, factual answers grounded in the book or any question. Powered by Google Gemini 1.5 Flash (1,500 free queries/day).</p>
+          <p class="doubt-banner-desc">Get instant, factual answers grounded in the book or any question. Powered by Google Gemini Flash.</p>
           <div class="doubt-key-input-row">
-            <input type="password" id="doubt-key-inline-input" class="doubt-key-inline-input" placeholder="Paste Gemini API key (AIzaSy...)" autocomplete="off">
-            <button type="button" id="doubt-key-save-btn" class="doubt-key-save-btn">Save Key</button>
+            <input type="password" id="doubt-key-inline-input" class="doubt-key-inline-input" placeholder="Paste Gemini key or Cloudflare Worker URL" autocomplete="off">
+            <button type="button" id="doubt-key-save-btn" class="doubt-key-save-btn">Save</button>
           </div>
           <div class="doubt-banner-actions">
-            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="doubt-banner-link font-mono">Get Free Key in 10s at Google AI Studio ↗</a>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="doubt-banner-link font-mono">Get Free Key at Google AI Studio ↗</a>
           </div>
         </div>
       `;
@@ -2545,7 +2654,7 @@ INSTRUCTIONS:
         <div class="doubt-blank-page">
           <div class="doubt-blank-icon">✨</div>
           <div class="doubt-blank-title">Gemini AI Doubt Solver</div>
-          <p class="doubt-blank-sub">Ask any doubt about the reading or any general knowledge question in the box above. Powered by Google Gemini 1.5 Flash.</p>
+          <p class="doubt-blank-sub">Ask any doubt about the reading or any general knowledge question in the box above. Powered by Google Gemini Flash.</p>
         </div>
       `;
       attachBannerListeners();
@@ -2613,13 +2722,19 @@ INSTRUCTIONS:
     const keyInput = doubtOutput.querySelector("#doubt-key-inline-input");
     if (saveBtn && keyInput) {
       saveBtn.addEventListener("click", () => {
-        const key = keyInput.value.trim();
-        if (key.length > 5) {
-          localStorage.setItem("indexindia_gemini_api_key", key);
+        const val = keyInput.value.trim();
+        if (val.startsWith("http://") || val.startsWith("https://")) {
+          localStorage.setItem("indexindia_cf_worker_url", val);
+          localStorage.removeItem("indexindia_gemini_api_key");
+          updateGeminiKeyButtonState();
+          renderDoubtsView();
+        } else if (val.length > 5) {
+          localStorage.setItem("indexindia_gemini_api_key", val);
+          localStorage.removeItem("indexindia_cf_worker_url");
           updateGeminiKeyButtonState();
           renderDoubtsView();
         } else {
-          alert("Please paste your Gemini API key from Google AI Studio.");
+          alert("Please paste your Gemini API key or Cloudflare Worker URL.");
         }
       });
       keyInput.addEventListener("keydown", (e) => {
