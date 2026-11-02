@@ -86,8 +86,9 @@ export default {
       if (!apiKey || apiKey.length === 0) {
         return new Response(
           JSON.stringify({
-            error: "GEMINI_API_KEY secret is not set in Cloudflare Worker settings.",
-            setupHelp: "Go to Cloudflare Worker -> Settings -> Variables and Secrets -> Add Variable: GEMINI_API_KEY"
+            error: "GEMINI_API_KEY secret is not found in Cloudflare Worker environment.",
+            detectedKeys: Object.keys(env || {}).filter(k => k !== "ASSETS"),
+            setupHelp: "In Cloudflare: Settings -> Variables and Secrets -> Add Variable named exactly: GEMINI_API_KEY, then click Save and Deploy."
           }),
           {
             status: 500,
