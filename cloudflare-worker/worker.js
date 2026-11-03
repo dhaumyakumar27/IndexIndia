@@ -72,7 +72,7 @@ export default {
         };
 
         const amount = planAmounts[plan] || (plan === "test" ? 100 : 99900);
-        const keyId = env.RAZORPAY_KEY_ID || "";
+        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_Tvm5Coo5TFFYRa";
         const keySecret = env.RAZORPAY_KEY_SECRET || "";
 
         if (!keyId || !keySecret) {

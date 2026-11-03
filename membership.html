@@ -420,6 +420,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "").trim();
+      const DEFAULT_RAZORPAY_KEY_ID = "rzp_live_Tvm5Coo5TFFYRa";
 
       // Key ID telemetry display helper
       const keyDisplay = document.getElementById("rzp-key-display");
@@ -428,25 +429,23 @@
       const linkChangeKey = document.getElementById("link-change-rzp-key");
 
       function updateKeyDisplay() {
-        const stored = localStorage.getItem("indexindia_razorpay_key") || "";
-        if (stored) {
-          if (keyDisplay) keyDisplay.style.display = "block";
-          if (activeKeyVal) activeKeyVal.textContent = stored.substring(0, 14) + "... (Key Loaded)";
-        }
+        const activeKey = localStorage.getItem("indexindia_razorpay_key") || DEFAULT_RAZORPAY_KEY_ID;
+        if (keyDisplay) keyDisplay.style.display = "block";
+        if (activeKeyVal) activeKeyVal.textContent = activeKey + " (Live Gateway Active)";
       }
       updateKeyDisplay();
 
       function promptForKey() {
-        const current = localStorage.getItem("indexindia_razorpay_key") || "";
+        const current = localStorage.getItem("indexindia_razorpay_key") || DEFAULT_RAZORPAY_KEY_ID;
         const entered = prompt(
-          "Enter your Live Razorpay Key ID (e.g. rzp_live_... for real bank settlement or rzp_test_...):",
+          "Enter your Live Razorpay Key ID (default: rzp_live_Tvm5Coo5TFFYRa):",
           current
         );
         if (entered !== null) {
           const trimmed = entered.trim();
           if (trimmed) {
             localStorage.setItem("indexindia_razorpay_key", trimmed);
-            alert("✓ Razorpay Key ID stored in browser!");
+            alert("✓ Razorpay Key ID updated!");
           } else {
             localStorage.removeItem("indexindia_razorpay_key");
           }
@@ -549,7 +548,7 @@
             }
 
             // Fallback key for client checkout or worker key
-            let rzpKeyId = (orderData && orderData.keyId) || localStorage.getItem("indexindia_razorpay_key") || "";
+            let rzpKeyId = (orderData && orderData.keyId) || localStorage.getItem("indexindia_razorpay_key") || DEFAULT_RAZORPAY_KEY_ID;
 
             if (!rzpKeyId) {
               const enteredKey = prompt(
