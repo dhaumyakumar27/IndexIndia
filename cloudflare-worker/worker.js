@@ -98,6 +98,7 @@ export default {
             amount,
             currency: "INR",
             receipt,
+            payment_capture: 1,
             notes: {
               user_id: userId || "",
               plan: plan,
@@ -177,6 +178,23 @@ export default {
           validUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
         } else if (plan === "test") {
           validUntil = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+        }
+
+        // Attempt auto-capture via Razorpay API if keySecret is available
+        if (keyId && keySecret && razorpay_payment_id) {
+          try {
+            const authHeader = "Basic " + btoa(`${keyId}:${keySecret}`);
+            await fetch(`https://api.razorpay.com/v1/payments/${razorpay_payment_id}/capture`, {
+              method: "POST",
+              headers: {
+                "Authorization": authHeader,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ amount: planAmounts[plan] || 100, currency: "INR" })
+            });
+          } catch (capErr) {
+            console.warn("Auto-capture call error:", capErr);
+          }
         }
 
         // Update Supabase if credentials available
