@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Graph — IndexIndian Institutional Research Hub</title>
   <meta name="description" content="Hyper-fast, minimalist B2B Data Intelligence & Corporate Governance Research hub for the Indian market.">
-  <link rel="stylesheet" href="styles.css?v=8.5">
+  <link rel="stylesheet" href="styles.css?v=8.6">
 </head>
 <body class="theme-light">
 
@@ -172,12 +172,44 @@
         </div>
       </div>
 
-      <!-- UPGRADE MEMBERSHIP BUTTON -->
+      <!-- UPGRADE MEMBERSHIP BUTTON & HOVER PANEL -->
       <div class="panel-trigger-wrapper" id="upgrade-nav-wrapper">
-        <a href="membership.html" class="upgrade-nav-btn" id="upgrade-nav-btn" aria-label="Upgrade to Sovereign Pass" title="Upgrade Membership ( U )">
-          <span class="upgrade-btn-icon">⚡</span>
-          <span class="upgrade-btn-text">UPGRADE</span>
+        <a href="membership.html" class="icon-btn" id="upgrade-nav-btn" aria-label="Sovereign Upgrade &amp; Membership" title="Upgrade Membership ( U )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
         </a>
+
+        <div class="hover-flyout-panel upgrade-panel" id="upgrade-panel" role="region" aria-label="Membership Status &amp; Upgrade">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-role-badge" id="nav-upgrade-badge">RESEARCH PASS</span>
+              <span class="user-id" id="nav-upgrade-status">MEMBERSHIP</span>
+            </div>
+            <span class="font-mono" style="font-size: 0.7rem; color: var(--text-tertiary); font-weight: 700;">PRO ACCESS</span>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 10px;" id="nav-upgrade-desc">
+            Direct institutional telemetry, MCA V3 filings, and Ind AS forensic intelligence.
+          </div>
+
+          <div class="panel-divider" style="margin: 8px 0 10px;"></div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Current Plan:</span>
+              <strong style="color: var(--text-primary);" id="nav-current-plan-name">Standard Access</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Status:</span>
+              <span class="status-verified font-mono" id="nav-current-plan-status" style="font-size: 0.72rem; font-weight: 700;">● Active</span>
+            </div>
+          </div>
+
+          <a href="membership.html" class="account-btn-action" id="nav-upgrade-cta-btn" style="margin-top: 12px; background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            ⚡ Upgrade to Premium Plan
+          </a>
+        </div>
       </div>
 
       <!-- 1. ACCOUNT BUTTON & HOVER PANEL -->
@@ -454,7 +486,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8.5"></script>
-  <script src="script.js?v=8.5"></script>
+  <script src="supabase-client.js?v=8.6"></script>
+  <script src="script.js?v=8.6"></script>
 </body>
 </html>

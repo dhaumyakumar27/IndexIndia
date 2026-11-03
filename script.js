@@ -899,6 +899,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const accountBtn = document.getElementById("account-btn");
   const settingsWrapper = document.getElementById("settings-wrapper");
   const settingsBtn = document.getElementById("settings-btn");
+  const upgradeNavWrapper = document.getElementById("upgrade-nav-wrapper");
 
   if (shortcutsBtn) {
     shortcutsBtn.addEventListener("click", (e) => {
@@ -941,6 +942,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (settingsWrapper && !settingsWrapper.contains(e.target)) {
       settingsWrapper.classList.remove("is-open");
+    }
+    if (upgradeNavWrapper && !upgradeNavWrapper.contains(e.target)) {
+      upgradeNavWrapper.classList.remove("is-open");
     }
   });
 
@@ -1013,6 +1017,65 @@ document.addEventListener("DOMContentLoaded", () => {
     ]);
   }
 
+  function updateNavUpgradePanel(membership) {
+    const badge = document.getElementById("nav-upgrade-badge");
+    const status = document.getElementById("nav-upgrade-status");
+    const planName = document.getElementById("nav-current-plan-name");
+    const planStatus = document.getElementById("nav-current-plan-status");
+    const ctaBtn = document.getElementById("nav-upgrade-cta-btn");
+    const desc = document.getElementById("nav-upgrade-desc");
+
+    const hasPaid = membership && membership.status === "active";
+    if (hasPaid) {
+      let displayName = "Premium Pass";
+      if (membership.plan_type === "lifetime") displayName = "Lifetime Sovereign";
+      else if (membership.plan_type === "annual") displayName = "Annual Partner";
+      else if (membership.plan_type === "monthly") displayName = "Monthly Pass";
+      else if (membership.plan_type === "test") displayName = "Verification Pass";
+
+      if (badge) {
+        badge.textContent = `${(membership.plan_type || "PRO").toUpperCase()} PASS`;
+        badge.style.background = "var(--status-optimal)";
+        badge.style.color = "#FFFFFF";
+      }
+      if (status) status.textContent = "VERIFIED";
+      if (planName) planName.textContent = displayName;
+      if (planStatus) {
+        planStatus.textContent = membership.valid_until 
+          ? `● Active (${new Date(membership.valid_until).toLocaleDateString()})` 
+          : "● Lifetime Active";
+        planStatus.className = "status-verified font-mono";
+      }
+      if (ctaBtn) {
+        ctaBtn.textContent = "Manage Premium Plan →";
+        ctaBtn.style.backgroundColor = "var(--bg-card)";
+        ctaBtn.style.color = "var(--text-primary)";
+        ctaBtn.style.border = "1px solid var(--border-primary)";
+      }
+      if (desc) desc.textContent = "Your institutional sovereign research clearance is verified with unlimited statutory telemetry.";
+    } else {
+      if (badge) {
+        badge.textContent = "RESEARCH PASS";
+        badge.style.background = "";
+        badge.style.color = "";
+      }
+      if (status) status.textContent = "FREE TIER";
+      if (planName) planName.textContent = "Standard Access";
+      if (planStatus) {
+        planStatus.textContent = "● Free Tier";
+        planStatus.className = "font-mono";
+        planStatus.style.color = "var(--text-secondary)";
+      }
+      if (ctaBtn) {
+        ctaBtn.textContent = "⚡ Upgrade to Premium Plan";
+        ctaBtn.style.backgroundColor = "var(--accent)";
+        ctaBtn.style.color = "#FFFFFF";
+        ctaBtn.style.border = "none";
+      }
+      if (desc) desc.textContent = "Direct institutional telemetry, MCA V3 filings, and Ind AS forensic intelligence.";
+    }
+  }
+
   async function renderAccountPanel() {
     if (!accountPanel) return;
     try {
@@ -1042,6 +1105,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (mErr) {
         console.warn("[AccountPanel] membership check:", mErr);
       }
+      updateNavUpgradePanel(membership);
 
       const hasPaidPlan = membership && membership.status === "active";
       let planBadge = "FREE RESEARCH PASS";
@@ -1137,6 +1201,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       return;
     }
+
+    updateNavUpgradePanel(null);
 
     // 2. If Supabase is NOT configured yet
     if (!isConfigured) {

@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Sovereign Clearance & Memberships — IndexIndia Research Hub</title>
   <meta name="description" content="Direct institutional access to the Sovereign Governance Index, MCA V3 forensic telemetry, and AI Doubt Solver.">
-  <link rel="stylesheet" href="styles.css?v=8.5">
+  <link rel="stylesheet" href="styles.css?v=8.6">
 </head>
 <body class="theme-light">
 
@@ -107,12 +107,44 @@
         </div>
       </div>
 
-      <!-- UPGRADE NAV BUTTON (High Contrast Stark Accent) -->
+      <!-- UPGRADE MEMBERSHIP BUTTON & HOVER PANEL -->
       <div class="panel-trigger-wrapper" id="upgrade-nav-wrapper">
-        <a href="membership.html" class="upgrade-nav-btn active" id="upgrade-nav-btn" aria-label="Upgrade to Sovereign Pass" title="Upgrade Membership ( U )">
-          <span class="upgrade-btn-icon">⚡</span>
-          <span class="upgrade-btn-text">UPGRADE</span>
+        <a href="membership.html" class="icon-btn" id="upgrade-nav-btn" aria-label="Sovereign Upgrade &amp; Membership" title="Upgrade Membership ( U )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
         </a>
+
+        <div class="hover-flyout-panel upgrade-panel" id="upgrade-panel" role="region" aria-label="Membership Status &amp; Upgrade">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-role-badge" id="nav-upgrade-badge">RESEARCH PASS</span>
+              <span class="user-id" id="nav-upgrade-status">MEMBERSHIP</span>
+            </div>
+            <span class="font-mono" style="font-size: 0.7rem; color: var(--text-tertiary); font-weight: 700;">PRO ACCESS</span>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 10px;" id="nav-upgrade-desc">
+            Direct institutional telemetry, MCA V3 filings, and Ind AS forensic intelligence.
+          </div>
+
+          <div class="panel-divider" style="margin: 8px 0 10px;"></div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Current Plan:</span>
+              <strong style="color: var(--text-primary);" id="nav-current-plan-name">Standard Access</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Status:</span>
+              <span class="status-verified font-mono" id="nav-current-plan-status" style="font-size: 0.72rem; font-weight: 700;">● Active</span>
+            </div>
+          </div>
+
+          <a href="membership.html" class="account-btn-action" id="nav-upgrade-cta-btn" style="margin-top: 12px; background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            ⚡ Upgrade to Premium Plan
+          </a>
+        </div>
       </div>
 
       <!-- ACCOUNT BUTTON & HOVER PANEL -->
@@ -178,51 +210,6 @@
 
       <h1 class="institutional-title" style="font-size: 2.4rem; margin-top: 14px;">Sovereign Research Clearance &amp; Membership</h1>
       <p class="dossier-lead">Direct, unvarnished forensic telemetry, MCA V3 statutory intelligence, and real-time governance surveillance across India's public and private corporate landscape.</p>
-
-      <!-- Active Status Alert Banner -->
-      <div id="membership-active-banner" style="display: none; background: rgba(5, 150, 105, 0.08); border: 1.5px solid var(--status-optimal); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <div class="font-mono" style="font-size: 0.75rem; font-weight: 800; color: var(--status-optimal); letter-spacing: 0.06em;">
-              ✓ ACTIVE CLEARANCE DETECTED
-            </div>
-            <div id="active-banner-details" style="font-size: 0.88rem; color: var(--text-primary); margin-top: 4px; font-weight: 600;">
-              Your account currently holds verified sovereign access.
-            </div>
-          </div>
-          <button type="button" class="account-btn-action" id="btn-sync-membership-status" style="width: auto; padding: 6px 14px; font-size: 0.75rem; margin: 0;">
-            Re-verify Telemetry
-          </button>
-        </div>
-      </div>
-
-      <!-- LIVE 1-RUPEE BANK SETTLEMENT VERIFICATION TOOL -->
-      <div class="live-test-box" style="background: var(--bg-card); border: 1.5px dashed var(--accent); border-radius: 8px; padding: 18px 22px; margin-bottom: 32px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-          <div style="max-width: 650px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-              <span class="user-role-badge" style="background: var(--accent); color: #fff;">LIVE TEST ROUTE</span>
-              <span class="font-mono" style="font-size: 0.82rem; font-weight: 800; color: var(--text-primary);">&#8377;1 Real Bank Settlement Test</span>
-            </div>
-            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.45;">
-              Pay the minimum RBI live charge of <strong>&#8377;1.00</strong> (100 paise) via real UPI (GPay, PhonePe, Paytm, BHIM) or Cards. This debits &#8377;1 from your account, credits your Razorpay balance, settles directly into your linked bank account, and activates 14-day clearance on your Supabase record.
-            </p>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <button type="button" class="membership-btn font-mono" data-plan="test" data-amount="1" id="btn-buy-test" style="width: auto; padding: 10px 18px; margin: 0; font-size: 0.8rem; background: var(--accent); color: #fff; font-weight: 800; border: none; cursor: pointer; border-radius: 6px;">
-              ⚡ PAY &#8377;1 TO MY BANK &rarr;
-            </button>
-            <button type="button" id="btn-config-rzp-key" class="account-btn-secondary" style="width: auto; padding: 10px 14px; font-size: 0.75rem; margin: 0;" title="Configure Razorpay Key ID">
-              ⚙️ Key ID
-            </button>
-          </div>
-        </div>
-        <div id="rzp-key-display" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">
-          <span>Active Razorpay Key ID: </span>
-          <strong id="active-rzp-key-val" style="color: var(--text-primary);">Not configured</strong>
-          <button type="button" id="link-change-rzp-key" style="margin-left: 10px; background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; font-family: inherit; font-size: inherit;">Change Key</button>
-        </div>
-      </div>
 
       <!-- PRICING TIERS GRID -->
       <div class="membership-grid">
@@ -363,10 +350,6 @@
           <span style="font-size: 1.2rem;">🛡️</span>
           <span><strong>Razorpay Encrypted:</strong> UPI (GPay, PhonePe, Paytm), RuPay, Visa, Mastercard, NetBanking.</span>
         </div>
-        <div class="guarantee-col">
-          <span style="font-size: 1.2rem;">📄</span>
-          <span><strong>GST Invoice:</strong> Statutory tax invoices generated with your GSTIN.</span>
-        </div>
       </div>
 
       <!-- FREQUENTLY ASKED QUESTIONS -->
@@ -413,8 +396,8 @@
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <!-- Supabase SDK & App Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8.5"></script>
-  <script src="script.js?v=8.5"></script>
+  <script src="supabase-client.js?v=8.6"></script>
+  <script src="script.js?v=8.6"></script>
 
   <!-- Checkout Initialization Script -->
   <script>
@@ -422,65 +405,14 @@
       const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "").trim();
       const DEFAULT_RAZORPAY_KEY_ID = "rzp_live_Tvm5Coo5TFFYRa";
 
-      // Key ID telemetry display helper
-      const keyDisplay = document.getElementById("rzp-key-display");
-      const activeKeyVal = document.getElementById("active-rzp-key-val");
-      const btnConfigKey = document.getElementById("btn-config-rzp-key");
-      const linkChangeKey = document.getElementById("link-change-rzp-key");
-
-      function updateKeyDisplay() {
-        const activeKey = localStorage.getItem("indexindia_razorpay_key") || DEFAULT_RAZORPAY_KEY_ID;
-        if (keyDisplay) keyDisplay.style.display = "block";
-        if (activeKeyVal) activeKeyVal.textContent = activeKey + " (Live Gateway Active)";
-      }
-      updateKeyDisplay();
-
-      function promptForKey() {
-        const current = localStorage.getItem("indexindia_razorpay_key") || DEFAULT_RAZORPAY_KEY_ID;
-        const entered = prompt(
-          "Enter your Live Razorpay Key ID (default: rzp_live_Tvm5Coo5TFFYRa):",
-          current
-        );
-        if (entered !== null) {
-          const trimmed = entered.trim();
-          if (trimmed) {
-            localStorage.setItem("indexindia_razorpay_key", trimmed);
-            alert("✓ Razorpay Key ID updated!");
-          } else {
-            localStorage.removeItem("indexindia_razorpay_key");
-          }
-          updateKeyDisplay();
-        }
-      }
-
-      if (btnConfigKey) btnConfigKey.addEventListener("click", promptForKey);
-      if (linkChangeKey) linkChangeKey.addEventListener("click", (e) => { e.preventDefault(); promptForKey(); });
-
       async function refreshMembershipBadge() {
         const sb = window.IndexIndiaSupabase;
         if (!sb || !sb.isAuthenticated()) return;
 
         try {
           const membership = await sb.getUserMembership();
-          const banner = document.getElementById("membership-active-banner");
-          const bannerDetails = document.getElementById("active-banner-details");
-
-          if (membership && membership.status === "active") {
-            if (banner) banner.style.display = "block";
-            if (bannerDetails) {
-              const planName = membership.plan_type.toUpperCase();
-              const validText = membership.valid_until ? `Renews on: ${new Date(membership.valid_until).toLocaleDateString()}` : "Lifetime Unlocked (Never Expires)";
-              bannerDetails.innerHTML = `<strong>${planName} PASS</strong> &bull; Status: Verified &bull; ${validText}`;
-            }
-
-            // Update button texts
-            document.querySelectorAll(".membership-btn").forEach(btn => {
-              if (btn.getAttribute("data-plan") === membership.plan_type) {
-                btn.textContent = "✓ CURRENT PLAN (ACTIVE)";
-                btn.disabled = true;
-                btn.style.opacity = "0.7";
-              }
-            });
+          if (typeof updateNavUpgradePanel === "function") {
+            updateNavUpgradePanel(membership);
           }
         } catch (e) {
           console.warn("Could not check membership badge:", e);
@@ -492,15 +424,6 @@
         window.IndexIndiaSupabase.onAuthStateChange(() => refreshMembershipBadge());
       }
       setTimeout(refreshMembershipBadge, 600);
-
-      const syncStatusBtn = document.getElementById("btn-sync-membership-status");
-      if (syncStatusBtn) {
-        syncStatusBtn.addEventListener("click", () => {
-          syncStatusBtn.textContent = "Checking...";
-          refreshMembershipBadge();
-          setTimeout(() => { syncStatusBtn.textContent = "Re-verify Telemetry"; }, 1000);
-        });
-      }
 
       // Handle Checkout Clicks
       document.querySelectorAll(".membership-btn").forEach(btn => {

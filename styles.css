@@ -436,7 +436,8 @@ body.theme-dark .sub-nav-sep {
 }
 
 /* Specific panel widths */
-.account-panel {
+.account-panel,
+.upgrade-panel {
   width: 310px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 80px);
@@ -2572,45 +2573,8 @@ body.theme-dark .forensic-table tr:hover td {
 }
 
 /* ==========================================================================
-   UPGRADE NAV BUTTON & MEMBERSHIP / PRICING SYSTEM
+   UPGRADE HOVER PANEL & MEMBERSHIP / PRICING SYSTEM
    ========================================================================== */
-.upgrade-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--accent);
-  color: #FFFFFF !important;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  text-decoration: none !important;
-  transition: all 0.16s ease;
-  box-shadow: 0 1px 4px rgba(255, 59, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.upgrade-nav-btn:hover {
-  background-color: var(--accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(255, 59, 0, 0.35);
-}
-
-.upgrade-btn-icon {
-  font-size: 0.85rem;
-}
-
-@media (max-width: 640px) {
-  .upgrade-nav-btn {
-    padding: 6px 9px;
-  }
-  .upgrade-btn-text {
-    display: none;
-  }
-}
-
 .membership-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
