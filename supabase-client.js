@@ -214,10 +214,11 @@
     async loginWithMagicLink(email) {
       const client = await initClient();
       if (!client) throw new Error("Supabase is not configured yet.");
+      const redirectTarget = window.location.origin + window.location.pathname;
       const { data, error } = await client.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.href
+          emailRedirectTo: redirectTarget
         }
       });
       if (error) throw error;
@@ -243,10 +244,11 @@
         }
       }
 
+      const redirectTarget = window.location.origin + window.location.pathname;
       const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.href,
+          redirectTo: redirectTarget,
           skipBrowserRedirect: true
         }
       });

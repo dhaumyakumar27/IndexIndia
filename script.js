@@ -32,6 +32,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let showTopBar = function() {};
   let isTopBarHidden = function() { return false; };
 
+  // Global Annotation Storage State (hoisted to prevent TDZ errors in account panel)
+  const ANNOTATION_STORAGE_KEY = `indexindia_annotations_${window.location.pathname.replace(/\/$/, "") || "/"}`;
+  let annotationsData = {
+    version: 1,
+    strokes: [],
+    textboxes: [],
+    stickynotes: [],
+    highlights: [],
+    stickers: []
+  };
+
   // ================= 2. LEFT RAIL & DIRECTORY TREE NAVIGATION =================
   const railNavigator = document.getElementById("rail-navigator");
   const railTrack = document.getElementById("rail-track");
@@ -1004,10 +1015,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderAccountPanel() {
     if (!accountPanel) return;
-
-    const sb = window.IndexIndiaSupabase;
-    const isConfigured = sb && sb.isConfigured();
-    const user = sb && sb.getUser();
+    try {
+      const sb = window.IndexIndiaSupabase;
+      const isConfigured = sb && sb.isConfigured();
+      const user = sb && sb.getUser();
 
     // 1. If User is Authenticated (Logged In)
     if (user) {
@@ -1347,6 +1358,9 @@ document.addEventListener("DOMContentLoaded", () => {
         isConfigBoxVisible = false;
         renderAccountPanel();
       });
+    }
+    } catch (err) {
+      console.error("[AccountPanel] render error:", err);
     }
   }
 
@@ -4891,17 +4905,6 @@ INSTRUCTIONS:
   let annotationDragPreview = document.getElementById("annotation-drag-preview");
   let selectionTooltip = document.getElementById("selection-highlight-tooltip");
   let stickerPopover = document.getElementById("sticker-popover");
-
-  const ANNOTATION_STORAGE_KEY = `indexindia_annotations_${window.location.pathname.replace(/\/$/, "") || "/"}`;
-
-  let annotationsData = {
-    version: 1,
-    strokes: [],
-    textboxes: [],
-    stickynotes: [],
-    highlights: [],
-    stickers: []
-  };
 
   let annotationState = {
     isOpen: false,
