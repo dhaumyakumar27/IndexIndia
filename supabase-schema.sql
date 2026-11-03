@@ -86,3 +86,43 @@ ON public.user_ai_history FOR DELETE
 TO authenticated 
 USING (auth.uid() = user_id);
 
+
+-- 3. Create table for user memberships & paid passes (Razorpay, One-time & Subscriptions)
+CREATE TABLE IF NOT EXISTS public.user_memberships (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    plan_type TEXT NOT NULL,              -- 'lifetime', 'monthly', 'annual'
+    status TEXT NOT NULL DEFAULT 'active', -- 'active', 'expired', 'cancelled'
+    amount_paid NUMERIC NOT NULL DEFAULT 0,
+    currency TEXT NOT NULL DEFAULT 'INR',
+    payment_gateway TEXT NOT NULL DEFAULT 'razorpay',
+    payment_id TEXT,
+    order_id TEXT,
+    valid_until TIMESTAMPTZ,              -- NULL for lifetime; timestamp for monthly/annual
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    UNIQUE(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_memberships_user 
+ON public.user_memberships (user_id);
+
+ALTER TABLE public.user_memberships ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can select own membership" 
+ON public.user_memberships FOR SELECT 
+TO authenticated 
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own membership" 
+ON public.user_memberships FOR INSERT 
+TO authenticated 
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own membership" 
+ON public.user_memberships FOR UPDATE 
+TO authenticated 
+USING (auth.uid() = user_id) 
+WITH CHECK (auth.uid() = user_id);
+
+

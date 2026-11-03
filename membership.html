@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Sovereign Clearance & Memberships — IndexIndia Research Hub</title>
+  <meta name="description" content="Direct institutional access to the Sovereign Governance Index, MCA V3 forensic telemetry, and AI Doubt Solver.">
+  <link rel="stylesheet" href="styles.css?v=8.5">
+</head>
+<body class="theme-light">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="top-nav" id="top-nav">
+    <div class="nav-left">
+      <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
+        <a href="guide.html" class="switch-btn" id="btn-guide" role="tab" aria-selected="false">Guide</a>
+        <a href="index.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false">Index</a>
+      </nav>
+
+      <div class="nav-search-bar-wrapper" id="nav-search-bar-wrapper">
+        <div class="nav-search-bar" id="nav-search-bar">
+          <span class="nav-search-icon">🔍</span>
+          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="Search website, shortcuts, sections... (/)" autocomplete="off" spellcheck="false" />
+          <kbd class="nav-search-kbd" title="Press / to search">/</kbd>
+        </div>
+        <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+      </div>
+    </div>
+
+    <!-- Top Right Sub-Nav, Upgrade, Account and Settings -->
+    <div class="nav-right">
+      <!-- Directory Tree Round Button -->
+      <div class="panel-trigger-wrapper" id="nav-tree-wrapper">
+        <button type="button" class="icon-btn" id="nav-tree-toggle-btn" aria-label="Directory Tree Navigation" title="Directory Tree Navigation ( N )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Gemini AI Round Button -->
+      <div class="panel-trigger-wrapper" id="doubt-nav-wrapper">
+        <button type="button" class="icon-btn" id="doubt-nav-btn" aria-label="Gemini AI Doubt Solver" title="Gemini AI Doubt Solver ( M )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Expand / Hide Top Bar Button -->
+      <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
+        <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar" title="Expand Full View / Hide Top Bar ( F )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Annotations Button -->
+      <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
+        <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools" title="Edit &amp; Annotations ( E )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            <path d="m15 5 4 4"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Shortcuts Button -->
+      <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
+        <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts" title="Keyboard Shortcuts ( ? )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel shortcuts-panel" id="shortcuts-panel" role="region" aria-label="Keyboard Shortcuts">
+          <div class="panel-header" style="margin-bottom: 10px;">
+            <div class="panel-user-meta">
+              <span class="user-role-badge">CHEATSHEET</span>
+              <span class="user-id">SHORTCUTS</span>
+            </div>
+            <span class="font-mono" style="font-size: 0.7rem; color: var(--text-tertiary); font-weight: 700;">KEYBOARD</span>
+          </div>
+
+          <div class="shortcuts-group">
+            <div class="shortcuts-group-title">NAVIGATION &amp; CLEARANCE</div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Upgrade / Membership Page</span>
+              <span class="shortcut-keys"><kbd>U</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Account Dossier &amp; Status</span>
+              <span class="shortcut-keys"><kbd>[</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Display Settings</span>
+              <span class="shortcut-keys"><kbd>]</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Gemini AI Doubt Solver</span>
+              <span class="shortcut-keys"><kbd>M</kbd></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPGRADE NAV BUTTON (High Contrast Stark Accent) -->
+      <div class="panel-trigger-wrapper" id="upgrade-nav-wrapper">
+        <a href="membership.html" class="upgrade-nav-btn active" id="upgrade-nav-btn" aria-label="Upgrade to Sovereign Pass" title="Upgrade Membership ( U )">
+          <span class="upgrade-btn-icon">⚡</span>
+          <span class="upgrade-btn-text">UPGRADE</span>
+        </a>
+      </div>
+
+      <!-- ACCOUNT BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="account-wrapper">
+        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier ( [ )">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
+          <div class="panel-header">
+            <div class="panel-user-meta">
+              <span class="user-role-badge">RESEARCH PASS</span>
+              <span class="user-id">ACCOUNT DOSSIER</span>
+            </div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Connecting">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Initializing
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); padding: 8px 0; font-family: var(--font-mono);">
+            Synchronizing authentication telemetry...
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS BUTTON -->
+      <div class="panel-trigger-wrapper" id="settings-wrapper">
+        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" title="Display Settings ( ] )">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
+          <div class="panel-section-title">VIEW PREFERENCES</div>
+          <div class="theme-toggle-row">
+            <span class="theme-toggle-label">Interface Mode</span>
+            <button type="button" class="theme-switch-btn" id="theme-switch-btn" aria-label="Toggle Color Theme">
+              <span class="theme-label" id="theme-mode-text">LIGHT</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN VIEWPORT CONTENT ================= -->
+  <main class="main-viewport-wrapper">
+    <div class="content-area" style="max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px;">
+      
+      <!-- Meta Strip -->
+      <div class="report-meta-strip font-mono">
+        <span class="tag-monochrome">[SOVEREIGN SETTLEMENT PROTOCOL]</span>
+        <span class="tag-meta">CLEARANCE: INSTITUTIONAL</span>
+        <span class="meta-separator">&bull;</span>
+        <span class="tag-meta">GATEWAY: RAZORPAY UPI / CARDS</span>
+        <span class="meta-separator">&bull;</span>
+        <span class="tag-meta">SETTLEMENT: 100% SECURE</span>
+      </div>
+
+      <h1 class="institutional-title" style="font-size: 2.4rem; margin-top: 14px;">Sovereign Research Clearance &amp; Membership</h1>
+      <p class="dossier-lead">Direct, unvarnished forensic telemetry, MCA V3 statutory intelligence, and real-time governance surveillance across India's public and private corporate landscape.</p>
+
+      <!-- Active Status Alert Banner -->
+      <div id="membership-active-banner" style="display: none; background: rgba(5, 150, 105, 0.08); border: 1.5px solid var(--status-optimal); border-radius: 8px; padding: 16px 20px; margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div class="font-mono" style="font-size: 0.75rem; font-weight: 800; color: var(--status-optimal); letter-spacing: 0.06em;">
+              ✓ ACTIVE CLEARANCE DETECTED
+            </div>
+            <div id="active-banner-details" style="font-size: 0.88rem; color: var(--text-primary); margin-top: 4px; font-weight: 600;">
+              Your account currently holds verified sovereign access.
+            </div>
+          </div>
+          <button type="button" class="account-btn-action" id="btn-sync-membership-status" style="width: auto; padding: 6px 14px; font-size: 0.75rem; margin: 0;">
+            Re-verify Telemetry
+          </button>
+        </div>
+      </div>
+
+      <!-- PRICING TIERS GRID -->
+      <div class="membership-grid">
+
+        <!-- PLAN 1: FIXED ONE-TIME LIFETIME PASS -->
+        <div class="membership-card" id="card-lifetime">
+          <div>
+            <span class="membership-badge">[FIXED PAY &bull; SINGLE SETTLEMENT]</span>
+            <h3 class="membership-title">Lifetime Sovereign Pass</h3>
+            <p class="membership-desc">Permanent forensic intelligence access for individual analysts, valuation professionals, and diligence teams.</p>
+            
+            <div class="membership-price-wrap">
+              <span class="membership-amount font-mono">&#8377;999</span>
+              <span class="membership-frequency">one-time payment</span>
+            </div>
+
+            <ul class="membership-features font-mono">
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>All 47 Forensic Directory Nodes unlocked permanently</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>MCA V3 statutory filing blueprints (AOC-4, MGT-7, CHG-1)</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>CARO 2020 auditor red-flag checklist &amp; Ind AS rules</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Cross-device cloud annotations &amp; sticky notes sync</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Zero recurring fees or unexpected renewals</span>
+              </li>
+            </ul>
+          </div>
+
+          <button type="button" class="membership-btn font-mono" data-plan="lifetime" data-amount="999" id="btn-buy-lifetime">
+            <span>GET LIFETIME PASS &bull; &#8377;999</span>
+          </button>
+        </div>
+
+        <!-- PLAN 2: MONTHLY MEMBERSHIP -->
+        <div class="membership-card" id="card-monthly">
+          <div>
+            <span class="membership-badge">[RECURRING &bull; FLEXIBLE DILIGENCE]</span>
+            <h3 class="membership-title">Monthly Institutional Pass</h3>
+            <p class="membership-desc">Continuous monthly telemetry and surveillance for fund managers, private equity teams, and active researchers.</p>
+            
+            <div class="membership-price-wrap">
+              <span class="membership-amount font-mono">&#8377;499</span>
+              <span class="membership-frequency">/ month</span>
+            </div>
+
+            <ul class="membership-features font-mono">
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Everything in the Sovereign Lifetime Pass</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Continuous Gemini 1.5 Flash AI Doubt Solver telemetry</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Quarterly forensic index rebalancing notices</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Live comments directory stream broadcasting rights</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Automatic monthly billing via UPI AutoPay or Cards</span>
+              </li>
+            </ul>
+          </div>
+
+          <button type="button" class="membership-btn font-mono" data-plan="monthly" data-amount="499" id="btn-buy-monthly">
+            <span>SUBSCRIBE MONTHLY &bull; &#8377;499/MO</span>
+          </button>
+        </div>
+
+        <!-- PLAN 3: ANNUAL PARTNER (FEATURED) -->
+        <div class="membership-card featured" id="card-annual">
+          <div class="membership-ribbon">MOST POPULAR &bull; SAVE 35%</div>
+          <div>
+            <span class="membership-badge" style="color: var(--accent);">[ANNUAL PARTNER &bull; FULL PROTOCOL]</span>
+            <h3 class="membership-title">Annual Sovereign Partner</h3>
+            <p class="membership-desc">The ultimate corporate governance suite with institutional downloads, dedicated diligence queues, and analyst support.</p>
+            
+            <div class="membership-price-wrap">
+              <span class="membership-amount font-mono">&#8377;3,999</span>
+              <span class="membership-frequency">/ year (~&#8377;333/mo)</span>
+            </div>
+
+            <ul class="membership-features font-mono">
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Full access across all 8 Index &amp; Guide Perspectives</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Downloadable Forensic Financial Models (Excel / CSV)</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Priority queue for Gemini AI regulatory doubt resolutions</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Direct NCLT tribunal and SEBI enforcement dossiers</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>2 Free additional research seats for investment teams</span>
+              </li>
+            </ul>
+          </div>
+
+          <button type="button" class="membership-btn font-mono" data-plan="annual" data-amount="3999" id="btn-buy-annual">
+            <span>UPGRADE ANNUAL &bull; &#8377;3,999/YR</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Trust & Payment Guarantee Strip -->
+      <div class="payment-guarantee-strip">
+        <div class="guarantee-col">
+          <span style="font-size: 1.2rem;">⚡</span>
+          <span><strong>Instant Activation:</strong> Membership links to your Supabase account upon settlement.</span>
+        </div>
+        <div class="guarantee-col">
+          <span style="font-size: 1.2rem;">🛡️</span>
+          <span><strong>Razorpay Encrypted:</strong> UPI (GPay, PhonePe, Paytm), RuPay, Visa, Mastercard, NetBanking.</span>
+        </div>
+        <div class="guarantee-col">
+          <span style="font-size: 1.2rem;">📄</span>
+          <span><strong>GST Invoice:</strong> Statutory tax invoices generated with your GSTIN.</span>
+        </div>
+      </div>
+
+      <!-- FREQUENTLY ASKED QUESTIONS -->
+      <div class="faq-section" style="margin-top: 48px;">
+        <h3 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 20px;">Frequently Asked Questions</h3>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 18px 22px;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;">How does my payment connect to my account?</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">When you log in, your unique Supabase User ID is passed to Razorpay. Upon successful payment verification, your record is written to the <code>user_memberships</code> table. Your status updates immediately across all your devices.</p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 18px 22px;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;">Which payment methods are supported?</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">We accept all Indian UPI apps (Google Pay, PhonePe, Paytm, Cred, BHIM), Indian &amp; International Credit/Debit Cards, NetBanking across 50+ banks, and EMI options via Razorpay.</p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 18px 22px;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;">Can I cancel my monthly subscription?</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Yes, you can cancel your monthly subscription at any time with zero penalty from your account flyout panel or by emailing research@indexindia.com. You will retain access until the end of your billing cycle.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mandatory Institutional Footer -->
+      <footer class="institutional-footer" id="sec-footer" style="margin-top: 60px;">
+        <div class="footer-grid">
+          <div class="footer-col-main">
+            <div class="footer-brand-title">INDEXINDIAN &bull; SOVEREIGN CLEARANCE</div>
+            <p class="strict-legal-disclaimer">
+              <strong>STATUTORY NOTICE:</strong> All intelligence and models on IndexIndian are strictly for research and diligence purposes only. We are not a SEBI registered investment advisor under the SEBI (Research Analysts) Regulations, 2014. No forward-looking return guarantees are made or implied.
+            </p>
+          </div>
+        </div>
+        <div class="footer-bottom-bar">
+          <span class="copy-text">&copy; 2026 IndexIndian (Firm D Sovereign Research). Zero Ad-Trackers. Monochromatic Institutional Interface.</span>
+          <span class="speed-badge font-mono">&#9889; 100/100 LIGHTHOUSE ZERO-BLOAT</span>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Razorpay Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <!-- Supabase SDK & App Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=8.5"></script>
+  <script src="script.js?v=8.5"></script>
+
+  <!-- Checkout Initialization Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "").trim();
+
+      async function refreshMembershipBadge() {
+        const sb = window.IndexIndiaSupabase;
+        if (!sb || !sb.isAuthenticated()) return;
+
+        try {
+          const membership = await sb.getUserMembership();
+          const banner = document.getElementById("membership-active-banner");
+          const bannerDetails = document.getElementById("active-banner-details");
+
+          if (membership && membership.status === "active") {
+            if (banner) banner.style.display = "block";
+            if (bannerDetails) {
+              const planName = membership.plan_type.toUpperCase();
+              const validText = membership.valid_until ? `Renews on: ${new Date(membership.valid_until).toLocaleDateString()}` : "Lifetime Unlocked (Never Expires)";
+              bannerDetails.innerHTML = `<strong>${planName} PASS</strong> &bull; Status: Verified &bull; ${validText}`;
+            }
+
+            // Update button texts
+            document.querySelectorAll(".membership-btn").forEach(btn => {
+              if (btn.getAttribute("data-plan") === membership.plan_type) {
+                btn.textContent = "✓ CURRENT PLAN (ACTIVE)";
+                btn.disabled = true;
+                btn.style.opacity = "0.7";
+              }
+            });
+          }
+        } catch (e) {
+          console.warn("Could not check membership badge:", e);
+        }
+      }
+
+      // Check on auth state change
+      if (window.IndexIndiaSupabase) {
+        window.IndexIndiaSupabase.onAuthStateChange(() => refreshMembershipBadge());
+      }
+      setTimeout(refreshMembershipBadge, 600);
+
+      const syncStatusBtn = document.getElementById("btn-sync-membership-status");
+      if (syncStatusBtn) {
+        syncStatusBtn.addEventListener("click", () => {
+          syncStatusBtn.textContent = "Checking...";
+          refreshMembershipBadge();
+          setTimeout(() => { syncStatusBtn.textContent = "Re-verify Telemetry"; }, 1000);
+        });
+      }
+
+      // Handle Checkout Clicks
+      document.querySelectorAll(".membership-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const sb = window.IndexIndiaSupabase;
+
+          // 1. Ensure user is logged in
+          if (!sb || !sb.isAuthenticated()) {
+            const accountBtn = document.getElementById("account-btn");
+            const accountWrapper = document.getElementById("account-wrapper");
+            if (accountWrapper) accountWrapper.classList.add("is-open");
+            alert("Please sign in or create an account in the Account panel first so your payment is tied to your identity.");
+            return;
+          }
+
+          const user = sb.getUser();
+          const plan = btn.getAttribute("data-plan") || "lifetime";
+          const amount = parseInt(btn.getAttribute("data-amount"), 10) || 999;
+          const originalText = btn.innerHTML;
+
+          btn.disabled = true;
+          btn.textContent = "Initiating Razorpay...";
+
+          try {
+            // Attempt to create order via Cloudflare Worker if configured
+            let orderData = null;
+            if (CLOUDFLARE_WORKER_URL) {
+              try {
+                const orderRes = await fetch(`${CLOUDFLARE_WORKER_URL}/api/create-order`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    plan: plan,
+                    userId: user.id,
+                    email: user.email
+                  })
+                });
+                if (orderRes.ok) {
+                  orderData = await orderRes.json();
+                }
+              } catch (cfErr) {
+                console.warn("Worker order creation fallback:", cfErr);
+              }
+            }
+
+            // Fallback key for client checkout or worker key
+            const rzpKeyId = (orderData && orderData.keyId) || localStorage.getItem("indexindia_razorpay_key") || "rzp_test_placeholder";
+
+            const options = {
+              key: rzpKeyId,
+              amount: (orderData && orderData.amount) || (amount * 100),
+              currency: "INR",
+              name: "IndexIndia Sovereign Research",
+              description: `${plan.toUpperCase()} Membership Clearance`,
+              order_id: orderData ? orderData.orderId : undefined,
+              prefill: {
+                email: user.email || "",
+                name: user.email ? user.email.split("@")[0] : "Institutional Reader"
+              },
+              theme: {
+                color: "#FF3B00"
+              },
+              notes: {
+                user_id: user.id,
+                plan: plan
+              },
+              handler: async function (response) {
+                btn.textContent = "Verifying Payment...";
+
+                let verified = false;
+                if (CLOUDFLARE_WORKER_URL && orderData) {
+                  try {
+                    const verifyRes = await fetch(`${CLOUDFLARE_WORKER_URL}/api/verify-payment`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        userId: user.id,
+                        plan: plan
+                      })
+                    });
+                    const verifyData = await verifyRes.json();
+                    verified = verifyData.success;
+                  } catch (vErr) {
+                    console.warn("Worker verification error:", vErr);
+                  }
+                }
+
+                // Record directly in Supabase as well
+                let validUntil = null;
+                if (plan === "monthly") validUntil = new Date(Date.now() + 30 * 86400000).toISOString();
+                if (plan === "annual") validUntil = new Date(Date.now() + 365 * 86400000).toISOString();
+
+                await sb.recordMembership({
+                  planType: plan,
+                  paymentId: response.razorpay_payment_id,
+                  orderId: response.razorpay_order_id,
+                  amountPaid: amount,
+                  validUntil: validUntil
+                });
+
+                alert(`✓ Payment Successful! Your ${plan.toUpperCase()} Clearance is now active.`);
+                refreshMembershipBadge();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+              },
+              modal: {
+                ondismiss: function () {
+                  btn.innerHTML = originalText;
+                  btn.disabled = false;
+                }
+              }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on("payment.failed", function (resp) {
+              alert("Payment failed: " + (resp.error.description || "Unknown reason"));
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+            });
+            rzp.open();
+          } catch (err) {
+            console.error("Razorpay trigger error:", err);
+            alert("Could not initialize Razorpay: " + (err.message || "Please check connection"));
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

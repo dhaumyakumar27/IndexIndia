@@ -1013,7 +1013,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ]);
   }
 
-  function renderAccountPanel() {
+  async function renderAccountPanel() {
     if (!accountPanel) return;
     try {
       const sb = window.IndexIndiaSupabase;
@@ -1033,10 +1033,28 @@ document.addEventListener("DOMContentLoaded", () => {
         (annotationsData.stickers?.length || 0)
       ) : 0;
 
+      // Query active membership
+      let membership = null;
+      try {
+        if (sb && typeof sb.getUserMembership === "function") {
+          membership = await sb.getUserMembership();
+        }
+      } catch (mErr) {
+        console.warn("[AccountPanel] membership check:", mErr);
+      }
+
+      const hasPaidPlan = membership && membership.status === "active";
+      const planBadge = hasPaidPlan 
+        ? `${membership.plan_type.toUpperCase()} PASS` 
+        : "FREE RESEARCH PASS";
+      const planStatusText = hasPaidPlan 
+        ? (membership.valid_until ? `Active (${new Date(membership.valid_until).toLocaleDateString()})` : "Active (Lifetime)")
+        : "Standard Access";
+
       accountPanel.innerHTML = `
         <div class="panel-header">
           <div class="panel-user-meta">
-            <span class="user-role-badge">SOVEREIGN PASS</span>
+            <span class="user-role-badge" style="${hasPaidPlan ? 'background: #FF3B00; color: #fff;' : ''}">${planBadge}</span>
             <span class="user-id">UID: #${shortId}</span>
           </div>
           <div class="account-sync-pulse" title="Connected to Cloud">
@@ -1050,6 +1068,10 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div class="panel-section" style="padding-top: 0;">
+          <div class="panel-metric-row">
+            <span class="metric-label">Access Clearance</span>
+            <span class="metric-value font-mono ${hasPaidPlan ? 'status-verified' : ''}">${planStatusText}</span>
+          </div>
           <div class="panel-metric-row">
             <span class="metric-label">Annotations on Page</span>
             <span class="metric-value font-mono" id="account-metric-annotations">${totalAnnotations} items</span>
@@ -1065,6 +1087,15 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+          ${!hasPaidPlan ? `
+            <a href="membership.html" class="account-btn-action" style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700;">
+              ⚡ Upgrade to Sovereign Pass
+            </a>
+          ` : `
+            <a href="membership.html" style="font-size: 0.72rem; color: var(--accent); text-align: center; text-decoration: none; font-family: var(--font-mono); padding: 4px 0;">
+              Manage Membership / Clearance &rarr;
+            </a>
+          `}
           <button type="button" class="account-btn-action" id="btn-account-sync-now" style="margin-top: 0;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
             Sync Telemetry Now
@@ -1556,6 +1587,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
       if (shortcutsWrapper) shortcutsWrapper.classList.toggle("is-open");
+      return;
+    }
+
+    // 4b. "U" navigates to Membership & Pricing page (strictly alone, KeyU or 'u'/'U', no Ctrl, Alt, Meta)
+    if ((e.code === "KeyU" || e.key?.toLowerCase() === "u") && noModifiers) {
+      e.preventDefault();
+      window.location.href = "membership.html";
       return;
     }
 

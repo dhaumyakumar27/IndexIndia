@@ -54,6 +54,172 @@ export default {
       );
     }
 
+    const url = new URL(request.url);
+
+    // ================= RAZORPAY PAYMENT ENDPOINTS =================
+    if (url.pathname === "/api/create-order") {
+      try {
+        const body = await request.json().catch(() => ({}));
+        const plan = (body.plan || "lifetime").toLowerCase();
+        const userId = body.userId;
+        const userEmail = body.email || "";
+
+        const planAmounts = {
+          lifetime: 99900,  // ₹999 in paise
+          monthly: 49900,   // ₹499 in paise
+          annual: 399900    // ₹3,999 in paise
+        };
+
+        const amount = planAmounts[plan] || 99900;
+        const keyId = env.RAZORPAY_KEY_ID || "";
+        const keySecret = env.RAZORPAY_KEY_SECRET || "";
+
+        if (!keyId || !keySecret) {
+          return new Response(
+            JSON.stringify({
+              error: "Razorpay credentials not configured in Cloudflare secrets.",
+              setupHelp: "Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to Cloudflare Worker secrets."
+            }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const receipt = `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        const authHeader = "Basic " + btoa(`${keyId}:${keySecret}`);
+
+        const rzpRes = await fetch("https://api.razorpay.com/v1/orders", {
+          method: "POST",
+          headers: {
+            "Authorization": authHeader,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            amount,
+            currency: "INR",
+            receipt,
+            notes: {
+              user_id: userId || "",
+              plan: plan,
+              email: userEmail
+            }
+          })
+        });
+
+        const rzpData = await rzpRes.json();
+        if (!rzpRes.ok) {
+          return new Response(
+            JSON.stringify({ error: rzpData.error?.description || "Failed to create Razorpay order." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            orderId: rzpData.id,
+            amount: rzpData.amount,
+            currency: rzpData.currency,
+            keyId: keyId,
+            plan: plan
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ error: err.message || "Order creation error." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    if (url.pathname === "/api/verify-payment") {
+      try {
+        const body = await request.json().catch(() => ({}));
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, plan } = body;
+        const keySecret = env.RAZORPAY_KEY_SECRET || "";
+        const supabaseUrl = env.SUPABASE_URL || "https://hssphsykrgyvejxfkfin.supabase.co";
+        const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY || "";
+
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+          return new Response(
+            JSON.stringify({ error: "Missing required payment parameters." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const encoder = new TextEncoder();
+        const key = await crypto.subtle.importKey(
+          "raw",
+          encoder.encode(keySecret),
+          { name: "HMAC", hash: "SHA-256" },
+          false,
+          ["sign"]
+        );
+        const sigBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(`${razorpay_order_id}|${razorpay_payment_id}`));
+        const hexSignature = Array.from(new Uint8Array(sigBuffer))
+          .map(b => b.toString(16).padStart(2, "0"))
+          .join("");
+
+        const isValid = hexSignature.toLowerCase() === (razorpay_signature || "").toLowerCase();
+
+        if (!isValid && keySecret) {
+          return new Response(
+            JSON.stringify({ error: "Invalid payment signature verification failed." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Calculate expiration date
+        let validUntil = null;
+        if (plan === "monthly") {
+          validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        } else if (plan === "annual") {
+          validUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        }
+
+        // Update Supabase if credentials available
+        if (userId && supabaseKey) {
+          try {
+            await fetch(`${supabaseUrl}/rest/v1/user_memberships`, {
+              method: "POST",
+              headers: {
+                "apikey": supabaseKey,
+                "Authorization": `Bearer ${supabaseKey}`,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                plan_type: plan || "lifetime",
+                status: "active",
+                payment_gateway: "razorpay",
+                payment_id: razorpay_payment_id,
+                order_id: razorpay_order_id,
+                valid_until: validUntil,
+                updated_at: new Date().toISOString()
+              })
+            });
+          } catch (dbErr) {
+            console.warn("Could not write membership directly to Supabase:", dbErr);
+          }
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            status: "active",
+            plan: plan,
+            paymentId: razorpay_payment_id
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ error: err.message || "Payment verification error." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     try {
       const body = await request.json().catch(() => ({}));
       const query = (body.query || body.prompt || "").toString().trim();

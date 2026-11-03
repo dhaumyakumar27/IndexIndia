@@ -473,6 +473,79 @@
       } catch (err) {
         console.warn("[Supabase] deleteDoubt exception:", err);
       }
+    },
+
+    // ---------------- USER MEMBERSHIP & PAYMENTS ----------------
+
+    /**
+     * Fetch active membership for current logged-in user
+     */
+    async getUserMembership() {
+      if (!this.isAuthenticated() || !supabaseClient) return null;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from("user_memberships")
+          .select("plan_type, status, amount_paid, valid_until, payment_id, updated_at")
+          .eq("user_id", currentUser.id)
+          .maybeSingle();
+
+        if (error) {
+          console.warn("[Supabase] getUserMembership query error:", error.message);
+          return null;
+        }
+
+        if (!data) return null;
+
+        // Check expiration if valid_until is present
+        if (data.valid_until) {
+          const expiresAt = new Date(data.valid_until).getTime();
+          if (Date.now() > expiresAt) {
+            data.status = "expired";
+          }
+        }
+
+        return data;
+      } catch (err) {
+        console.warn("[Supabase] getUserMembership exception:", err);
+        return null;
+      }
+    },
+
+    /**
+     * Record or update verified membership in Supabase
+     */
+    async recordMembership({ planType, paymentId, orderId, amountPaid, validUntil }) {
+      if (!this.isAuthenticated() || !supabaseClient) return false;
+
+      try {
+        const payload = {
+          user_id: currentUser.id,
+          plan_type: planType,
+          status: "active",
+          amount_paid: amountPaid || 0,
+          currency: "INR",
+          payment_gateway: "razorpay",
+          payment_id: paymentId || null,
+          order_id: orderId || null,
+          valid_until: validUntil || null,
+          updated_at: new Date().toISOString()
+        };
+
+        const { data, error } = await supabaseClient
+          .from("user_memberships")
+          .upsert(payload, { onConflict: "user_id" });
+
+        if (error) {
+          console.warn("[Supabase] recordMembership upsert error:", error.message);
+          return false;
+        }
+
+        return true;
+      } catch (err) {
+        console.warn("[Supabase] recordMembership exception:", err);
+        return false;
+      }
     }
   };
 
