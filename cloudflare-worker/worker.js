@@ -65,12 +65,13 @@ export default {
         const userEmail = body.email || "";
 
         const planAmounts = {
+          test: 100,        // ₹1 in paise (live gateway test & bank settlement check)
           lifetime: 99900,  // ₹999 in paise
           monthly: 49900,   // ₹499 in paise
           annual: 399900    // ₹3,999 in paise
         };
 
-        const amount = planAmounts[plan] || 99900;
+        const amount = planAmounts[plan] || (plan === "test" ? 100 : 99900);
         const keyId = env.RAZORPAY_KEY_ID || "";
         const keySecret = env.RAZORPAY_KEY_SECRET || "";
 
@@ -174,6 +175,8 @@ export default {
           validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         } else if (plan === "annual") {
           validUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        } else if (plan === "test") {
+          validUntil = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
         }
 
         // Update Supabase if credentials available

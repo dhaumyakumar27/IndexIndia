@@ -2644,6 +2644,11 @@ body.theme-dark .membership-card:hover {
   background: var(--bg-surface-elevated);
 }
 
+.membership-card.verification-card {
+  border: 1.5px dashed var(--accent);
+  background: rgba(255, 59, 0, 0.02);
+}
+
 .membership-ribbon {
   position: absolute;
   top: -12px;

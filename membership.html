@@ -180,7 +180,7 @@
       <p class="dossier-lead">Direct, unvarnished forensic telemetry, MCA V3 statutory intelligence, and real-time governance surveillance across India's public and private corporate landscape.</p>
 
       <!-- Active Status Alert Banner -->
-      <div id="membership-active-banner" style="display: none; background: rgba(5, 150, 105, 0.08); border: 1.5px solid var(--status-optimal); border-radius: 8px; padding: 16px 20px; margin-bottom: 28px;">
+      <div id="membership-active-banner" style="display: none; background: rgba(5, 150, 105, 0.08); border: 1.5px solid var(--status-optimal); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
           <div>
             <div class="font-mono" style="font-size: 0.75rem; font-weight: 800; color: var(--status-optimal); letter-spacing: 0.06em;">
@@ -193,6 +193,34 @@
           <button type="button" class="account-btn-action" id="btn-sync-membership-status" style="width: auto; padding: 6px 14px; font-size: 0.75rem; margin: 0;">
             Re-verify Telemetry
           </button>
+        </div>
+      </div>
+
+      <!-- LIVE 1-RUPEE BANK SETTLEMENT VERIFICATION TOOL -->
+      <div class="live-test-box" style="background: var(--bg-card); border: 1.5px dashed var(--accent); border-radius: 8px; padding: 18px 22px; margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+          <div style="max-width: 650px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span class="user-role-badge" style="background: var(--accent); color: #fff;">LIVE TEST ROUTE</span>
+              <span class="font-mono" style="font-size: 0.82rem; font-weight: 800; color: var(--text-primary);">&#8377;1 Real Bank Settlement Test</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.45;">
+              Pay the minimum RBI live charge of <strong>&#8377;1.00</strong> (100 paise) via real UPI (GPay, PhonePe, Paytm, BHIM) or Cards. This debits &#8377;1 from your account, credits your Razorpay balance, settles directly into your linked bank account, and activates 14-day clearance on your Supabase record.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" class="membership-btn font-mono" data-plan="test" data-amount="1" id="btn-buy-test" style="width: auto; padding: 10px 18px; margin: 0; font-size: 0.8rem; background: var(--accent); color: #fff; font-weight: 800; border: none; cursor: pointer; border-radius: 6px;">
+              ⚡ PAY &#8377;1 TO MY BANK &rarr;
+            </button>
+            <button type="button" id="btn-config-rzp-key" class="account-btn-secondary" style="width: auto; padding: 10px 14px; font-size: 0.75rem; margin: 0;" title="Configure Razorpay Key ID">
+              ⚙️ Key ID
+            </button>
+          </div>
+        </div>
+        <div id="rzp-key-display" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">
+          <span>Active Razorpay Key ID: </span>
+          <strong id="active-rzp-key-val" style="color: var(--text-primary);">Not configured</strong>
+          <button type="button" id="link-change-rzp-key" style="margin-left: 10px; background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; font-family: inherit; font-size: inherit;">Change Key</button>
         </div>
       </div>
 
@@ -393,6 +421,42 @@
     document.addEventListener("DOMContentLoaded", () => {
       const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "").trim();
 
+      // Key ID telemetry display helper
+      const keyDisplay = document.getElementById("rzp-key-display");
+      const activeKeyVal = document.getElementById("active-rzp-key-val");
+      const btnConfigKey = document.getElementById("btn-config-rzp-key");
+      const linkChangeKey = document.getElementById("link-change-rzp-key");
+
+      function updateKeyDisplay() {
+        const stored = localStorage.getItem("indexindia_razorpay_key") || "";
+        if (stored) {
+          if (keyDisplay) keyDisplay.style.display = "block";
+          if (activeKeyVal) activeKeyVal.textContent = stored.substring(0, 14) + "... (Key Loaded)";
+        }
+      }
+      updateKeyDisplay();
+
+      function promptForKey() {
+        const current = localStorage.getItem("indexindia_razorpay_key") || "";
+        const entered = prompt(
+          "Enter your Live Razorpay Key ID (e.g. rzp_live_... for real bank settlement or rzp_test_...):",
+          current
+        );
+        if (entered !== null) {
+          const trimmed = entered.trim();
+          if (trimmed) {
+            localStorage.setItem("indexindia_razorpay_key", trimmed);
+            alert("✓ Razorpay Key ID stored in browser!");
+          } else {
+            localStorage.removeItem("indexindia_razorpay_key");
+          }
+          updateKeyDisplay();
+        }
+      }
+
+      if (btnConfigKey) btnConfigKey.addEventListener("click", promptForKey);
+      if (linkChangeKey) linkChangeKey.addEventListener("click", (e) => { e.preventDefault(); promptForKey(); });
+
       async function refreshMembershipBadge() {
         const sb = window.IndexIndiaSupabase;
         if (!sb || !sb.isAuthenticated()) return;
@@ -485,14 +549,31 @@
             }
 
             // Fallback key for client checkout or worker key
-            const rzpKeyId = (orderData && orderData.keyId) || localStorage.getItem("indexindia_razorpay_key") || "rzp_test_placeholder";
+            let rzpKeyId = (orderData && orderData.keyId) || localStorage.getItem("indexindia_razorpay_key") || "";
+
+            if (!rzpKeyId) {
+              const enteredKey = prompt(
+                "Enter your Razorpay Key ID (e.g. rzp_live_... for real bank settlement or rzp_test_...):",
+                ""
+              );
+              if (enteredKey && enteredKey.trim()) {
+                rzpKeyId = enteredKey.trim();
+                localStorage.setItem("indexindia_razorpay_key", rzpKeyId);
+                if (typeof updateKeyDisplay === "function") updateKeyDisplay();
+              } else {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert("Payment cancelled: Razorpay Key ID is required.");
+                return;
+              }
+            }
 
             const options = {
               key: rzpKeyId,
               amount: (orderData && orderData.amount) || (amount * 100),
               currency: "INR",
               name: "IndexIndia Sovereign Research",
-              description: `${plan.toUpperCase()} Membership Clearance`,
+              description: plan === "test" ? "Live Gateway ₹1 Bank Settlement Test" : `${plan.toUpperCase()} Membership Clearance`,
               order_id: orderData ? orderData.orderId : undefined,
               prefill: {
                 email: user.email || "",
@@ -533,6 +614,7 @@
                 let validUntil = null;
                 if (plan === "monthly") validUntil = new Date(Date.now() + 30 * 86400000).toISOString();
                 if (plan === "annual") validUntil = new Date(Date.now() + 365 * 86400000).toISOString();
+                if (plan === "test") validUntil = new Date(Date.now() + 14 * 86400000).toISOString();
 
                 await sb.recordMembership({
                   planType: plan,
@@ -542,7 +624,11 @@
                   validUntil: validUntil
                 });
 
-                alert(`✓ Payment Successful! Your ${plan.toUpperCase()} Clearance is now active.`);
+                if (plan === "test") {
+                  alert(`✓ Live ₹1 Payment Succeeded!\nPayment ID: ${response.razorpay_payment_id}\n\nThe ₹1.00 has been processed through Razorpay and will settle directly into your linked bank account.\n\nYour 14-day test clearance is now active.`);
+                } else {
+                  alert(`✓ Payment Successful! Your ${plan.toUpperCase()} Clearance is now active.`);
+                }
                 refreshMembershipBadge();
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -574,3 +660,4 @@
   </script>
 </body>
 </html>
+

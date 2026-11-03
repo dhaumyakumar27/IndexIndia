@@ -1044,9 +1044,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const hasPaidPlan = membership && membership.status === "active";
-      const planBadge = hasPaidPlan 
-        ? `${membership.plan_type.toUpperCase()} PASS` 
-        : "FREE RESEARCH PASS";
+      let planBadge = "FREE RESEARCH PASS";
+      if (hasPaidPlan) {
+        if (membership.plan_type === "test") {
+          planBadge = "TEST PASS (₹1 VERIFIED)";
+        } else {
+          planBadge = `${membership.plan_type.toUpperCase()} PASS`;
+        }
+      }
       const planStatusText = hasPaidPlan 
         ? (membership.valid_until ? `Active (${new Date(membership.valid_until).toLocaleDateString()})` : "Active (Lifetime)")
         : "Standard Access";
