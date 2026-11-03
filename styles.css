@@ -437,7 +437,249 @@ body.theme-dark .sub-nav-sep {
 
 /* Specific panel widths */
 .account-panel {
-  width: 260px;
+  width: 310px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+/* --- Account Dossier & Supabase Auth System --- */
+.account-auth-tabs {
+  display: flex;
+  background: var(--bg-surface-subtle);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-subtle);
+  gap: 4px;
+}
+
+.account-auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 5px 8px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.account-auth-tab.active {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.account-field-label {
+  display: block;
+  font-size: 0.66rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.account-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  outline: none;
+  margin-bottom: 9px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.account-input:focus {
+  border-color: var(--border-primary);
+  box-shadow: 0 0 0 1px var(--border-primary);
+}
+
+body.theme-dark .account-input:focus {
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 1px #FFFFFF;
+}
+
+.account-btn-action {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-on-inverted);
+  background: var(--bg-inverted);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.account-btn-action:hover {
+  opacity: 0.88;
+}
+
+.account-btn-action:active {
+  transform: translateY(1px);
+}
+
+.account-btn-secondary {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 7px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.account-btn-secondary:hover {
+  border-color: var(--border-primary);
+  background: var(--bg-card);
+}
+
+.account-google-btn {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 10px;
+}
+
+.account-google-btn:hover {
+  border-color: var(--border-primary);
+  background: var(--bg-surface-subtle);
+}
+
+.account-divider-row {
+  display: flex;
+  align-items: center;
+  margin: 10px 0 12px;
+  color: var(--text-tertiary);
+  font-size: 0.63rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.account-divider-row::before,
+.account-divider-row::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.account-divider-row span {
+  padding: 0 8px;
+}
+
+.account-status-msg {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  padding: 7px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+  display: none;
+}
+
+.account-status-msg.error {
+  display: block;
+  background: rgba(220, 38, 38, 0.08);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.account-status-msg.success {
+  display: block;
+  background: rgba(5, 150, 105, 0.08);
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.25);
+}
+
+.account-config-toggle {
+  display: block;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  text-decoration: underline;
+  text-align: center;
+  margin-top: 10px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 2px;
+  width: 100%;
+}
+
+.account-config-toggle:hover {
+  color: var(--text-primary);
+}
+
+.account-config-box {
+  background: var(--bg-surface-subtle);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.account-user-card {
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--border-faint);
+  margin-bottom: 10px;
+}
+
+.account-user-email {
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.account-sync-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--status-optimal);
+  margin-top: 4px;
+}
+
+.account-sync-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-optimal);
+  box-shadow: 0 0 0 2px var(--status-optimal-bg);
+  animation: pulseDot 2s infinite;
 }
 
 .settings-panel {

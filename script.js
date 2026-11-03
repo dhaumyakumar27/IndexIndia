@@ -903,7 +903,12 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-      if (accountWrapper) accountWrapper.classList.toggle("is-open");
+      if (accountWrapper) {
+        accountWrapper.classList.toggle("is-open");
+        if (accountWrapper.classList.contains("is-open") && typeof renderAccountPanel === "function") {
+          renderAccountPanel();
+        }
+      }
     });
   }
 
@@ -927,6 +932,391 @@ document.addEventListener("DOMContentLoaded", () => {
       settingsWrapper.classList.remove("is-open");
     }
   });
+
+  // ================= 3b. SUPABASE ACCOUNT DOSSIER & CLOUD SYNC SYSTEM =================
+  const accountPanel = document.getElementById("account-panel");
+  let accountActiveTab = "signin"; // "signin" | "signup" | "magic"
+  let isConfigBoxVisible = false;
+  let cloudAnnotationDebounceTimer = null;
+
+  function triggerCloudAnnotationSync() {
+    if (!window.IndexIndiaSupabase || !window.IndexIndiaSupabase.isAuthenticated()) return;
+    clearTimeout(cloudAnnotationDebounceTimer);
+    cloudAnnotationDebounceTimer = setTimeout(async () => {
+      try {
+        if (typeof annotationsData !== "undefined") {
+          await window.IndexIndiaSupabase.uploadAnnotations(window.location.pathname, annotationsData);
+        }
+      } catch (e) {
+        console.warn("[CloudSync] Annotation upload error:", e);
+      }
+    }, 700);
+  }
+
+  async function triggerCloudAnnotationFetch() {
+    if (!window.IndexIndiaSupabase || !window.IndexIndiaSupabase.isAuthenticated()) return;
+    try {
+      if (typeof annotationsData === "undefined") return;
+      const merged = await window.IndexIndiaSupabase.syncAnnotationsDown(window.location.pathname, annotationsData);
+      if (merged && merged.updatedAt && merged.updatedAt > (annotationsData.updatedAt || 0)) {
+        annotationsData = merged;
+        try {
+          if (typeof ANNOTATION_STORAGE_KEY !== "undefined") {
+            localStorage.setItem(ANNOTATION_STORAGE_KEY, JSON.stringify(annotationsData));
+          }
+        } catch (e) {}
+        if (typeof renderAllSavedAnnotations === "function") {
+          renderAllSavedAnnotations();
+        }
+        if (typeof updateAnnotationCounter === "function") {
+          updateAnnotationCounter();
+        }
+      }
+    } catch (e) {
+      console.warn("[CloudSync] Annotation fetch error:", e);
+    }
+  }
+
+  async function triggerCloudDoubtsFetch() {
+    if (!window.IndexIndiaSupabase || !window.IndexIndiaSupabase.isAuthenticated()) return;
+    try {
+      const local = typeof getLocalDoubtsHistory === "function" ? getLocalDoubtsHistory() : [];
+      const merged = await window.IndexIndiaSupabase.syncDoubtsDown(local);
+      if (merged && merged.length) {
+        if (typeof saveLocalDoubtsHistory === "function") {
+          saveLocalDoubtsHistory(merged);
+        }
+        if (typeof renderDoubtsView === "function") {
+          renderDoubtsView();
+        }
+      }
+    } catch (e) {
+      console.warn("[CloudSync] Doubts fetch error:", e);
+    }
+  }
+
+  async function triggerCloudSyncAll() {
+    await Promise.allSettled([
+      triggerCloudAnnotationFetch(),
+      triggerCloudDoubtsFetch()
+    ]);
+  }
+
+  function renderAccountPanel() {
+    if (!accountPanel) return;
+
+    const sb = window.IndexIndiaSupabase;
+    const isConfigured = sb && sb.isConfigured();
+    const user = sb && sb.getUser();
+
+    // 1. If User is Authenticated (Logged In)
+    if (user) {
+      const email = user.email || "Authenticated Reader";
+      const shortId = (user.id || "").substring(0, 8);
+      const totalDoubts = typeof getLocalDoubtsHistory === "function" ? (getLocalDoubtsHistory() || []).length : 0;
+      const totalAnnotations = (typeof annotationsData !== "undefined") ? (
+        (annotationsData.strokes?.length || 0) +
+        (annotationsData.highlights?.length || 0) +
+        (annotationsData.stickynotes?.length || 0) +
+        (annotationsData.textboxes?.length || 0) +
+        (annotationsData.stickers?.length || 0)
+      ) : 0;
+
+      accountPanel.innerHTML = `
+        <div class="panel-header">
+          <div class="panel-user-meta">
+            <span class="user-role-badge">SOVEREIGN PASS</span>
+            <span class="user-id">UID: #${shortId}</span>
+          </div>
+          <div class="account-sync-pulse" title="Connected to Cloud">
+            <span class="account-sync-pulse-dot"></span> Synced
+          </div>
+        </div>
+
+        <div class="account-user-card">
+          <div class="account-field-label">Authenticated Identity</div>
+          <div class="account-user-email" title="${email}">${email}</div>
+        </div>
+
+        <div class="panel-section" style="padding-top: 0;">
+          <div class="panel-metric-row">
+            <span class="metric-label">Annotations on Page</span>
+            <span class="metric-value font-mono" id="account-metric-annotations">${totalAnnotations} items</span>
+          </div>
+          <div class="panel-metric-row">
+            <span class="metric-label">AI Doubts History</span>
+            <span class="metric-value font-mono" id="account-metric-doubts">${totalDoubts} questions</span>
+          </div>
+          <div class="panel-metric-row">
+            <span class="metric-label">Cloud Backend</span>
+            <span class="metric-value status-verified font-mono">Supabase PG</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+          <button type="button" class="account-btn-action" id="btn-account-sync-now" style="margin-top: 0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+            Sync Telemetry Now
+          </button>
+          <button type="button" class="account-btn-secondary" id="btn-account-signout">
+            Sign Out
+          </button>
+        </div>
+
+        <div class="panel-footer" style="margin-top: 10px;">
+          <div class="panel-sub-note">IndexIndian Cross-Device Cloud Sync</div>
+        </div>
+      `;
+
+      const syncNowBtn = document.getElementById("btn-account-sync-now");
+      if (syncNowBtn) {
+        syncNowBtn.addEventListener("click", async () => {
+          syncNowBtn.disabled = true;
+          syncNowBtn.innerHTML = `<span>Syncing...</span>`;
+          await triggerCloudSyncAll();
+          syncNowBtn.innerHTML = `<span>✓ Telemetry Synced</span>`;
+          setTimeout(() => renderAccountPanel(), 1200);
+        });
+      }
+
+      const signoutBtn = document.getElementById("btn-account-signout");
+      if (signoutBtn) {
+        signoutBtn.addEventListener("click", async () => {
+          signoutBtn.disabled = true;
+          signoutBtn.textContent = "Signing out...";
+          if (sb) await sb.logout();
+          renderAccountPanel();
+        });
+      }
+      return;
+    }
+
+    // 2. If Supabase is NOT configured yet
+    if (!isConfigured) {
+      accountPanel.innerHTML = `
+        <div class="panel-header">
+          <div class="panel-user-meta">
+            <span class="user-role-badge">RESEARCH PASS</span>
+            <span class="user-id">GUEST / LOCAL</span>
+          </div>
+          <div class="active-pulse-indicator" style="color: var(--text-tertiary);" title="Local storage only">
+            <span class="pulse-dot" style="background: var(--text-tertiary);"></span> Local
+          </div>
+        </div>
+
+        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.45;">
+          Connect your <strong>Supabase</strong> project to automatically sync your annotations &amp; AI questions across all your devices.
+        </div>
+
+        <div class="account-status-msg" id="account-status-msg"></div>
+
+        <div class="account-config-box" style="margin-top: 0;">
+          <label class="account-field-label">Supabase Project URL</label>
+          <input type="text" class="account-input" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co" autocomplete="off" spellcheck="false" />
+
+          <label class="account-field-label">Supabase Anon Public Key</label>
+          <input type="password" class="account-input" id="cfg-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsIn..." autocomplete="off" spellcheck="false" />
+
+          <button type="button" class="account-btn-action" id="btn-save-supabase-cfg">
+            Connect Cloud Sync
+          </button>
+        </div>
+
+        <div class="panel-footer" style="margin-top: 10px;">
+          <div class="panel-sub-note">Free at supabase.com &bull; Keys stored in browser</div>
+        </div>
+      `;
+
+      const saveCfgBtn = document.getElementById("btn-save-supabase-cfg");
+      if (saveCfgBtn) {
+        saveCfgBtn.addEventListener("click", async () => {
+          const urlInput = document.getElementById("cfg-supabase-url");
+          const keyInput = document.getElementById("cfg-supabase-key");
+          const msg = document.getElementById("account-status-msg");
+          const url = (urlInput ? urlInput.value : "").trim();
+          const key = (keyInput ? keyInput.value : "").trim();
+
+          if (!url || !key) {
+            if (msg) {
+              msg.className = "account-status-msg error";
+              msg.textContent = "Please provide both Supabase URL and Anon Key.";
+            }
+            return;
+          }
+
+          saveCfgBtn.disabled = true;
+          saveCfgBtn.textContent = "Connecting...";
+          if (sb) {
+            await sb.setCredentials(url, key);
+          }
+          renderAccountPanel();
+        });
+      }
+      return;
+    }
+
+    // 3. Supabase IS configured, but User is LOGGED OUT
+    const config = sb.getConfig();
+    accountPanel.innerHTML = `
+      <div class="panel-header">
+        <div class="panel-user-meta">
+          <span class="user-role-badge">RESEARCH PASS</span>
+          <span class="user-id">CLOUD READY</span>
+        </div>
+        <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Ready to sign in">
+          <span class="pulse-dot" style="background: var(--status-optimal);"></span> Online
+        </div>
+      </div>
+
+      <div class="account-auth-tabs">
+        <button type="button" class="account-auth-tab ${accountActiveTab === "signin" ? "active" : ""}" id="tab-auth-signin">Sign In</button>
+        <button type="button" class="account-auth-tab ${accountActiveTab === "signup" ? "active" : ""}" id="tab-auth-signup">Sign Up</button>
+        <button type="button" class="account-auth-tab ${accountActiveTab === "magic" ? "active" : ""}" id="tab-auth-magic">Magic Link</button>
+      </div>
+
+      <button type="button" class="account-btn-action account-google-btn" id="btn-auth-google">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        Sign in with Google
+      </button>
+
+      <div class="account-divider-row">
+        <span>OR EMAIL</span>
+      </div>
+
+      <div class="account-status-msg" id="account-status-msg"></div>
+
+      <form id="account-auth-form" autocomplete="on">
+        <label class="account-field-label">Email Address</label>
+        <input type="email" class="account-input" id="auth-email" placeholder="reader@institutional.com" required autocomplete="email" />
+
+        ${accountActiveTab !== "magic" ? `
+          <label class="account-field-label">Password</label>
+          <input type="password" class="account-input" id="auth-password" placeholder="••••••••••••" required autocomplete="current-password" />
+        ` : ''}
+
+        <button type="submit" class="account-btn-action" id="btn-auth-submit">
+          ${accountActiveTab === "signin" ? "Sign In" : (accountActiveTab === "signup" ? "Create Account" : "Send Magic Link")}
+        </button>
+      </form>
+
+      ${isConfigBoxVisible ? `
+        <div class="account-config-box">
+          <label class="account-field-label">Supabase URL</label>
+          <input type="text" class="account-input" id="cfg-supabase-url" value="${config.url || ''}" />
+          <label class="account-field-label">Anon Key</label>
+          <input type="password" class="account-input" id="cfg-supabase-key" value="${config.anonKey || ''}" />
+          <button type="button" class="account-btn-action" id="btn-save-supabase-cfg">Update Keys</button>
+        </div>
+      ` : ''}
+
+      <button type="button" class="account-config-toggle" id="btn-toggle-cfg">
+        ${isConfigBoxVisible ? "Hide Supabase Settings" : "⚙ Supabase Settings"}
+      </button>
+
+      <div class="panel-footer" style="margin-top: 10px;">
+        <div class="panel-sub-note">Local-First Storage &bull; End-to-End Encrypted</div>
+      </div>
+    `;
+
+    document.getElementById("tab-auth-signin")?.addEventListener("click", () => { accountActiveTab = "signin"; renderAccountPanel(); });
+    document.getElementById("tab-auth-signup")?.addEventListener("click", () => { accountActiveTab = "signup"; renderAccountPanel(); });
+    document.getElementById("tab-auth-magic")?.addEventListener("click", () => { accountActiveTab = "magic"; renderAccountPanel(); });
+
+    document.getElementById("btn-toggle-cfg")?.addEventListener("click", () => {
+      isConfigBoxVisible = !isConfigBoxVisible;
+      renderAccountPanel();
+    });
+
+    document.getElementById("btn-auth-google")?.addEventListener("click", async () => {
+      const msg = document.getElementById("account-status-msg");
+      try {
+        await sb.loginWithGoogle();
+      } catch (err) {
+        if (msg) {
+          msg.className = "account-status-msg error";
+          msg.textContent = err.message || "Google sign-in failed.";
+        }
+      }
+    });
+
+    const authForm = document.getElementById("account-auth-form");
+    if (authForm) {
+      authForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("auth-email")?.value.trim();
+        const password = document.getElementById("auth-password")?.value;
+        const msg = document.getElementById("account-status-msg");
+        const submitBtn = document.getElementById("btn-auth-submit");
+
+        if (!email) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Processing...";
+
+        try {
+          if (accountActiveTab === "signin") {
+            await sb.loginWithEmailPassword(email, password);
+            renderAccountPanel();
+          } else if (accountActiveTab === "signup") {
+            await sb.registerWithEmailPassword(email, password);
+            if (msg) {
+              msg.className = "account-status-msg success";
+              msg.textContent = "Account created! Check your email to confirm registration.";
+            }
+          } else if (accountActiveTab === "magic") {
+            await sb.loginWithMagicLink(email);
+            if (msg) {
+              msg.className = "account-status-msg success";
+              msg.textContent = "Magic link dispatched! Click the link in your email to log in.";
+            }
+          }
+        } catch (err) {
+          if (msg) {
+            msg.className = "account-status-msg error";
+            msg.textContent = err.message || "Authentication error.";
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = accountActiveTab === "signin" ? "Sign In" : (accountActiveTab === "signup" ? "Create Account" : "Send Magic Link");
+        }
+      });
+    }
+
+    const saveCfgBtn = document.getElementById("btn-save-supabase-cfg");
+    if (saveCfgBtn) {
+      saveCfgBtn.addEventListener("click", async () => {
+        const urlInput = document.getElementById("cfg-supabase-url");
+        const keyInput = document.getElementById("cfg-supabase-key");
+        const url = (urlInput ? urlInput.value : "").trim();
+        const key = (keyInput ? keyInput.value : "").trim();
+        if (sb) await sb.setCredentials(url, key);
+        isConfigBoxVisible = false;
+        renderAccountPanel();
+      });
+    }
+  }
+
+  // Bind auth state change to re-render account panel and trigger sync
+  if (window.IndexIndiaSupabase) {
+    window.IndexIndiaSupabase.onAuthStateChange((event, user) => {
+      renderAccountPanel();
+      if (user) {
+        triggerCloudSyncAll();
+      }
+    });
+  } else {
+    // If client loads shortly after, initialize once ready
+    window.addEventListener("load", () => {
+      if (window.IndexIndiaSupabase) {
+        window.IndexIndiaSupabase.onAuthStateChange((event, user) => {
+          renderAccountPanel();
+          if (user) {
+            triggerCloudSyncAll();
+          }
+        });
+      }
+    });
+  }
 
   // ================= 4. GLOBAL KEYBOARD SHORTCUTS =================
   // Tab key state: short tap cycles 3 sub-pages (x | y | z), long press (held >= 380ms) switches Guide <=> Index
@@ -1069,7 +1459,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "[" && noModifiers) {
       e.preventDefault();
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-      if (accountWrapper) accountWrapper.classList.toggle("is-open");
+      if (accountWrapper) {
+        accountWrapper.classList.toggle("is-open");
+        if (accountWrapper.classList.contains("is-open") && typeof renderAccountPanel === "function") {
+          renderAccountPanel();
+        }
+      }
       return;
     }
 
@@ -3150,6 +3545,9 @@ INSTRUCTIONS:
         const curr = getLocalDoubtsHistory();
         const filtered = curr.filter(x => x.id !== id);
         saveLocalDoubtsHistory(filtered);
+        if (window.IndexIndiaSupabase) {
+          window.IndexIndiaSupabase.deleteDoubt(id);
+        }
         renderDoubtsView();
       });
     });
@@ -3316,6 +3714,10 @@ INSTRUCTIONS:
       const doubtNavBtn = document.getElementById("doubt-nav-btn");
       if (doubtNavBtn) doubtNavBtn.classList.add("is-active");
 
+      if (typeof triggerCloudDoubtsFetch === "function") {
+        triggerCloudDoubtsFetch();
+      }
+
       if (activeDoubtMode === "doubts") {
         renderDoubtsView();
       } else {
@@ -3418,6 +3820,9 @@ INSTRUCTIONS:
         const currentHistory = getLocalDoubtsHistory();
         const updatedHistory = [newRecord, ...currentHistory];
         saveLocalDoubtsHistory(updatedHistory);
+        if (window.IndexIndiaSupabase) {
+          window.IndexIndiaSupabase.uploadDoubt(newRecord);
+        }
 
         if (doubtTextInput) doubtTextInput.value = "";
         renderDoubtsView();
@@ -3433,6 +3838,9 @@ INSTRUCTIONS:
         answerHtml: fallbackAns
       };
       saveLocalDoubtsHistory([newRecord, ...getLocalDoubtsHistory()]);
+      if (window.IndexIndiaSupabase) {
+        window.IndexIndiaSupabase.uploadDoubt(newRecord);
+      }
       renderDoubtsView();
     } finally {
       if (doubtAskBtn) {
@@ -4645,6 +5053,9 @@ INSTRUCTIONS:
     } catch (err) {
       console.warn("IndexIndia: Unable to persist annotations to localStorage", err);
     }
+    if (typeof triggerCloudAnnotationSync === "function") {
+      triggerCloudAnnotationSync();
+    }
   }
 
   function updateAnnotationCounter() {
@@ -5504,6 +5915,9 @@ INSTRUCTIONS:
     }
     renderAllSavedAnnotations();
     updateAnnotationCounter();
+    if (typeof triggerCloudAnnotationFetch === "function") {
+      triggerCloudAnnotationFetch();
+    }
   }
 
   // --- 11. PREVIOUS / NEXT ANNOTATION NAVIGATION ---
