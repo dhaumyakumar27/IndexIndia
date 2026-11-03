@@ -429,10 +429,22 @@ body.theme-dark .sub-nav-sep {
 .hover-flyout-panel::before {
   content: "";
   position: absolute;
-  top: -10px;
-  left: 0;
+  top: -24px;
+  left: -20px;
+  right: -20px;
+  height: 28px;
+  pointer-events: auto;
+}
+
+/* Downward bridge on the trigger wrapper to prevent hover drop on initial downward mouse movement */
+.panel-trigger-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: -260px;
   right: 0;
-  height: 10px;
+  height: 14px;
+  pointer-events: auto;
 }
 
 /* Specific panel widths */
@@ -1863,12 +1875,21 @@ body.theme-dark .section-doubt-btn {
 .doc-subsubsection:hover .section-doubt-btn,
 .story-node-section:hover .section-doubt-btn,
 .page-directory-section:hover .section-doubt-btn,
-.forum-directory-section:hover .section-doubt-btn,
-.institutional-forum-section:hover .section-doubt-btn,
 .content-area > section:hover .section-doubt-btn {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+/* Explicitly forbid Ask Doubt in comments / forum box */
+#forum-section .section-doubt-btn,
+.institutional-forum-section .section-doubt-btn,
+.forum-directory-section .section-doubt-btn,
+.compact-forum-composer .section-doubt-btn,
+.forum-messages-container .section-doubt-btn {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 .section-doubt-btn:hover {
@@ -2924,15 +2945,7 @@ body.theme-dark .membership-card:hover {
 }
 
 .footer-bottom-bar {
-  padding-top: 20px;
-  border-top: 1px solid var(--border-subtle);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 0.72rem;
-  color: var(--text-tertiary);
+  display: none !important;
 }
 
 .speed-badge {

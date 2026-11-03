@@ -497,6 +497,11 @@
 
         if (!data) return null;
 
+        // ₹1 test payment is ignored so it does not count as real clearance
+        if (data.plan_type === "test") {
+          return null;
+        }
+
         // Check expiration if valid_until is present
         if (data.valid_until) {
           const expiresAt = new Date(data.valid_until).getTime();

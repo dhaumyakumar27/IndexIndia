@@ -892,7 +892,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial highlight of active page
   highlightTreeNode(activeNodeIdx);
 
-  // ================= 3. TOP RIGHT SHORTCUTS, ACCOUNT & SETTINGS PANELS =================
+  // ================= 3. TOP RIGHT SHORTCUTS, UPGRADE, ACCOUNT & SETTINGS PANELS =================
   const shortcutsWrapper = document.getElementById("shortcuts-wrapper");
   const shortcutsBtn = document.getElementById("shortcuts-btn");
   const accountWrapper = document.getElementById("account-wrapper");
@@ -900,52 +900,99 @@ document.addEventListener("DOMContentLoaded", () => {
   const settingsWrapper = document.getElementById("settings-wrapper");
   const settingsBtn = document.getElementById("settings-btn");
   const upgradeNavWrapper = document.getElementById("upgrade-nav-wrapper");
+  const upgradeNavBtn = document.getElementById("upgrade-nav-btn");
 
-  if (shortcutsBtn) {
-    shortcutsBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (accountWrapper) accountWrapper.classList.remove("is-open");
-      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-      if (shortcutsWrapper) shortcutsWrapper.classList.toggle("is-open");
-    });
-  }
-
-  if (accountBtn) {
-    accountBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-      if (accountWrapper) {
-        accountWrapper.classList.toggle("is-open");
-        if (accountWrapper.classList.contains("is-open") && typeof renderAccountPanel === "function") {
+  const flyoutPanels = [
+    {
+      wrapper: shortcutsWrapper,
+      btn: shortcutsBtn,
+      onOpen: null
+    },
+    {
+      wrapper: upgradeNavWrapper,
+      btn: upgradeNavBtn,
+      onOpen: async () => {
+        const sb = window.IndexIndiaSupabase;
+        if (sb && typeof sb.getUserMembership === "function") {
+          try {
+            const m = await sb.getUserMembership();
+            updateNavUpgradePanel(m);
+          } catch (e) {}
+        }
+      }
+    },
+    {
+      wrapper: accountWrapper,
+      btn: accountBtn,
+      onOpen: () => {
+        if (typeof renderAccountPanel === "function") {
           renderAccountPanel();
         }
       }
-    });
-  }
+    },
+    {
+      wrapper: settingsWrapper,
+      btn: settingsBtn,
+      onOpen: null
+    }
+  ];
 
-  if (settingsBtn) {
-    settingsBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-      if (accountWrapper) accountWrapper.classList.remove("is-open");
-      if (settingsWrapper) settingsWrapper.classList.toggle("is-open");
+  flyoutPanels.forEach((item) => {
+    if (!item.wrapper) return;
+    let leaveTimer = null;
+
+    // Hover bridge: entering opens the panel and refreshes live stats
+    item.wrapper.addEventListener("mouseenter", () => {
+      if (leaveTimer) {
+        clearTimeout(leaveTimer);
+        leaveTimer = null;
+      }
+      flyoutPanels.forEach((other) => {
+        if (other.wrapper && other.wrapper !== item.wrapper) {
+          other.wrapper.classList.remove("is-open");
+        }
+      });
+      item.wrapper.classList.add("is-open");
+      if (typeof item.onOpen === "function") {
+        item.onOpen();
+      }
     });
-  }
+
+    // 280ms grace timeout before closing on mouseleave so moving from button to panel never drops
+    item.wrapper.addEventListener("mouseleave", () => {
+      leaveTimer = setTimeout(() => {
+        item.wrapper.classList.remove("is-open");
+      }, 280);
+    });
+
+    // Also support click toggle
+    if (item.btn) {
+      item.btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const willOpen = !item.wrapper.classList.contains("is-open");
+        flyoutPanels.forEach((other) => {
+          if (other.wrapper && other.wrapper !== item.wrapper) {
+            other.wrapper.classList.remove("is-open");
+          }
+        });
+        if (willOpen) {
+          item.wrapper.classList.add("is-open");
+          if (typeof item.onOpen === "function") {
+            item.onOpen();
+          }
+        } else {
+          item.wrapper.classList.remove("is-open");
+        }
+      });
+    }
+  });
 
   document.addEventListener("click", (e) => {
-    if (shortcutsWrapper && !shortcutsWrapper.contains(e.target)) {
-      shortcutsWrapper.classList.remove("is-open");
-    }
-    if (accountWrapper && !accountWrapper.contains(e.target)) {
-      accountWrapper.classList.remove("is-open");
-    }
-    if (settingsWrapper && !settingsWrapper.contains(e.target)) {
-      settingsWrapper.classList.remove("is-open");
-    }
-    if (upgradeNavWrapper && !upgradeNavWrapper.contains(e.target)) {
-      upgradeNavWrapper.classList.remove("is-open");
-    }
+    flyoutPanels.forEach((item) => {
+      if (item.wrapper && !item.wrapper.contains(e.target)) {
+        item.wrapper.classList.remove("is-open");
+      }
+    });
   });
 
   // ================= 3b. SUPABASE ACCOUNT DOSSIER & CLOUD SYNC SYSTEM =================
@@ -1025,13 +1072,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctaBtn = document.getElementById("nav-upgrade-cta-btn");
     const desc = document.getElementById("nav-upgrade-desc");
 
-    const hasPaid = membership && membership.status === "active";
+    const hasPaid = membership && membership.status === "active" && membership.plan_type !== "test";
     if (hasPaid) {
       let displayName = "Premium Pass";
       if (membership.plan_type === "lifetime") displayName = "Lifetime Sovereign";
       else if (membership.plan_type === "annual") displayName = "Annual Partner";
       else if (membership.plan_type === "monthly") displayName = "Monthly Pass";
-      else if (membership.plan_type === "test") displayName = "Verification Pass";
 
       if (badge) {
         badge.textContent = `${(membership.plan_type || "PRO").toUpperCase()} PASS`;
@@ -1086,7 +1132,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. If User is Authenticated (Logged In)
     if (user) {
       const email = user.email || "Authenticated Reader";
-      const shortId = (user.id || "").substring(0, 8);
+      if (typeof loadAnnotations === "function") {
+        try { loadAnnotations(); } catch (e) {}
+      }
       const totalDoubts = typeof getLocalDoubtsHistory === "function" ? (getLocalDoubtsHistory() || []).length : 0;
       const totalAnnotations = (typeof annotationsData !== "undefined") ? (
         (annotationsData.strokes?.length || 0) +
@@ -1107,15 +1155,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       updateNavUpgradePanel(membership);
 
-      const hasPaidPlan = membership && membership.status === "active";
-      let planBadge = "FREE RESEARCH PASS";
-      if (hasPaidPlan) {
-        if (membership.plan_type === "test") {
-          planBadge = "TEST PASS (₹1 VERIFIED)";
-        } else {
-          planBadge = `${membership.plan_type.toUpperCase()} PASS`;
-        }
-      }
+      const hasPaidPlan = membership && membership.status === "active" && membership.plan_type !== "test";
+      const planBadge = hasPaidPlan ? `${membership.plan_type.toUpperCase()} PASS` : "RESEARCH PASS";
       const planStatusText = hasPaidPlan 
         ? (membership.valid_until ? `Active (${new Date(membership.valid_until).toLocaleDateString()})` : "Active (Lifetime)")
         : "Standard Access";
@@ -1124,10 +1165,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="panel-header">
           <div class="panel-user-meta">
             <span class="user-role-badge" style="${hasPaidPlan ? 'background: #FF3B00; color: #fff;' : ''}">${planBadge}</span>
-            <span class="user-id">UID: #${shortId}</span>
-          </div>
-          <div class="account-sync-pulse" title="Connected to Cloud">
-            <span class="account-sync-pulse-dot"></span> Synced
+            <span class="user-id">ACCOUNT DOSSIER</span>
           </div>
         </div>
 
@@ -1847,24 +1885,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Short tap on Tab (strictly alone): Cycle forward through the 3 sub-pages (x | y | z)
-      // Guide Suite: Founder | Investor | Bottleneck
-      // Index Suite: Graph | Directory | Source
-      const currentFile = pathname.split("/").pop() || "index.html";
-      const guidePages = ["founder.html", "investor.html", "bottleneck.html"];
-      const indexPages = ["graph.html", "directory.html", "source.html"];
-
-      const activePages = isIndexSuite ? indexPages : guidePages;
-      let currIdx = activePages.findIndex((p) => currentFile.toLowerCase().includes(p));
-
-      let nextIdx = 0;
-      if (currIdx === -1) {
-        nextIdx = 0;
-      } else {
-        nextIdx = (currIdx + 1) % activePages.length;
-      }
-
-      window.location.href = activePages[nextIdx];
+      // Tab toggles directly between Guide and Index
+      window.location.href = isIndexSuite ? "guide.html" : "index.html";
       return;
     }
   });
@@ -3537,8 +3559,14 @@ INSTRUCTIONS:
   // 6. Section Hover & Floating "Ask Doubt" Button Injection
   function injectSectionDoubtButtons() {
     const sections = Array.from(document.querySelectorAll(
-      ".doc-section, .doc-subsection, .doc-subsubsection, .story-node-section, .page-directory-section, .forum-directory-section, .institutional-forum-section, .content-area > section"
-    ));
+      ".doc-section, .doc-subsection, .doc-subsubsection, .story-node-section, .page-directory-section, .content-area > section"
+    )).filter((sec) => {
+      // Exclude comment box / forum section completely
+      if (sec.id === "forum-section" || sec.closest("#forum-section, .institutional-forum-section, .forum-directory-section, .compact-forum-composer, .forum-messages-container")) {
+        return false;
+      }
+      return true;
+    });
 
     sections.forEach((sec) => {
       // Track hover state for selection confirmation
