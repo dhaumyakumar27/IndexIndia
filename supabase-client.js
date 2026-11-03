@@ -98,6 +98,11 @@
         });
       });
 
+      // Notify existing listeners that client has initialized with current session
+      authListeners.forEach((fn) => {
+        try { fn("CLIENT_BOOT", currentUser, session); } catch (err) { console.error(err); }
+      });
+
       return supabaseClient;
     } catch (err) {
       console.warn("[Supabase] Initialization error:", err);

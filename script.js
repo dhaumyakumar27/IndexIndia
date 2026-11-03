@@ -1318,6 +1318,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Pre-render account panel on initial boot
+  if (typeof renderAccountPanel === "function") {
+    renderAccountPanel();
+  }
+
   // ================= 4. GLOBAL KEYBOARD SHORTCUTS =================
   // Tab key state: short tap cycles 3 sub-pages (x | y | z), long press (held >= 380ms) switches Guide <=> Index
   let tabHoldTimer = null;
