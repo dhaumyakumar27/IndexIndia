@@ -197,9 +197,17 @@
     async registerWithEmailPassword(email, password) {
       const client = await initClient();
       if (!client) throw new Error("Supabase is not configured yet.");
-      const { data, error } = await client.auth.signUp({ email, password });
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.href
+        }
+      });
       if (error) throw error;
-      currentUser = data.user;
+      if (data && data.user && data.session) {
+        currentUser = data.user;
+      }
       return data;
     },
 
@@ -219,13 +227,37 @@
     async loginWithGoogle() {
       const client = await initClient();
       if (!client) throw new Error("Supabase is not configured yet.");
+
+      // Check if Google provider is enabled in Supabase project settings
+      try {
+        const settingsRes = await fetch(`${CONFIG.url}/auth/v1/settings`, {
+          headers: { apikey: CONFIG.anonKey }
+        }).then(r => r.json()).catch(() => null);
+
+        if (settingsRes && settingsRes.external && settingsRes.external.google === false) {
+          throw new Error("Google login is disabled in your Supabase project. Enable it in Supabase Dashboard -> Authentication -> Providers -> Google, or use Email / Magic Link below.");
+        }
+      } catch (err) {
+        if (err.message && err.message.includes("Google login is disabled")) {
+          throw err;
+        }
+      }
+
       const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.href
+          redirectTo: window.location.href,
+          skipBrowserRedirect: true
         }
       });
       if (error) throw error;
+
+      if (data && data.url) {
+        const popup = window.open(data.url, "_blank");
+        if (!popup || popup.closed || typeof popup.closed === "undefined") {
+          throw new Error("Popup blocked by browser. Please allow popups for this site.");
+        }
+      }
       return data;
     },
 

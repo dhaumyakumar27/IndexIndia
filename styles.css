@@ -501,6 +501,43 @@ body.theme-dark .sub-nav-sep {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.account-password-wrapper {
+  position: relative;
+  width: 100%;
+  display: block;
+}
+
+.account-password-wrapper .account-input {
+  padding-right: 36px;
+}
+
+.account-pwd-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 14px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.account-pwd-toggle-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-surface-subtle);
+}
+
+body.theme-dark .account-pwd-toggle-btn:hover {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .account-input:focus {
   border-color: var(--border-primary);
   box-shadow: 0 0 0 1px var(--border-primary);

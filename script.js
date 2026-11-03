@@ -1191,7 +1191,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         ${accountActiveTab !== "magic" ? `
           <label class="account-field-label">Password</label>
-          <input type="password" class="account-input" id="auth-password" placeholder="••••••••••••" required autocomplete="current-password" />
+          <div class="account-password-wrapper">
+            <input type="password" class="account-input" id="auth-password" placeholder="••••••••••••" required autocomplete="current-password" />
+            <button type="button" class="account-pwd-toggle-btn" id="btn-toggle-pwd" title="Show / Hide Password" aria-label="Toggle password visibility">
+              <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="7" r="3"></circle>
+              </svg>
+            </button>
+          </div>
         ` : ''}
 
         <button type="submit" class="account-btn-action" id="btn-auth-submit">
@@ -1222,6 +1230,28 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("tab-auth-signup")?.addEventListener("click", () => { accountActiveTab = "signup"; renderAccountPanel(); });
     document.getElementById("tab-auth-magic")?.addEventListener("click", () => { accountActiveTab = "magic"; renderAccountPanel(); });
 
+    // Show / Hide password toggle button listener
+    const pwdToggleBtn = document.getElementById("btn-toggle-pwd");
+    if (pwdToggleBtn) {
+      pwdToggleBtn.addEventListener("click", () => {
+        const pwdInput = document.getElementById("auth-password");
+        if (!pwdInput) return;
+        const isHidden = pwdInput.type === "password";
+        pwdInput.type = isHidden ? "text" : "password";
+        pwdToggleBtn.innerHTML = isHidden ? `
+          <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+        ` : `
+          <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="7" r="3"></circle>
+          </svg>
+        `;
+      });
+    }
+
     document.getElementById("btn-toggle-cfg")?.addEventListener("click", () => {
       isConfigBoxVisible = !isConfigBoxVisible;
       renderAccountPanel();
@@ -1229,12 +1259,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("btn-auth-google")?.addEventListener("click", async () => {
       const msg = document.getElementById("account-status-msg");
+      const googleBtn = document.getElementById("btn-auth-google");
+      if (googleBtn) {
+        googleBtn.disabled = true;
+        googleBtn.innerHTML = `<span>Connecting Google (New Tab)...</span>`;
+      }
       try {
         await sb.loginWithGoogle();
       } catch (err) {
         if (msg) {
           msg.className = "account-status-msg error";
-          msg.textContent = err.message || "Google sign-in failed.";
+          msg.innerHTML = `<strong>Google Sign-in:</strong><br>${err.message || "Google sign-in could not be completed."}`;
+        }
+      } finally {
+        if (googleBtn) {
+          googleBtn.disabled = false;
+          googleBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            Sign in with Google
+          `;
         }
       }
     });
@@ -1258,22 +1301,33 @@ document.addEventListener("DOMContentLoaded", () => {
             await sb.loginWithEmailPassword(email, password);
             renderAccountPanel();
           } else if (accountActiveTab === "signup") {
-            await sb.registerWithEmailPassword(email, password);
-            if (msg) {
-              msg.className = "account-status-msg success";
-              msg.textContent = "Account created! Check your email to confirm registration.";
+            const signupRes = await sb.registerWithEmailPassword(email, password);
+            if (signupRes && signupRes.session) {
+              renderAccountPanel();
+            } else {
+              if (msg) {
+                msg.className = "account-status-msg success";
+                msg.innerHTML = "<strong>✓ Account Created!</strong><br>Check your email inbox and click the verification link before signing in.<br><span style='font-size:0.67rem;opacity:0.9;'>Note: If you don't receive an email or want instant access, uncheck 'Confirm email' in Supabase Dashboard -> Authentication -> Providers -> Email.</span>";
+              }
             }
           } else if (accountActiveTab === "magic") {
             await sb.loginWithMagicLink(email);
             if (msg) {
               msg.className = "account-status-msg success";
-              msg.textContent = "Magic link dispatched! Click the link in your email to log in.";
+              msg.innerHTML = "<strong>✓ Magic Link Dispatched!</strong><br>Check your email inbox and click the sign-in link.";
             }
           }
         } catch (err) {
           if (msg) {
             msg.className = "account-status-msg error";
-            msg.textContent = err.message || "Authentication error.";
+            const errStr = (err.message || "").toLowerCase();
+            if (errStr.includes("invalid login credentials")) {
+              msg.innerHTML = "<strong>Invalid login credentials.</strong><br><span style='font-size:0.68rem;line-height:1.35;display:inline-block;margin-top:2px;'>1. If you just registered, check your email inbox to click the verification link first.<br>2. If you don't have an account yet, switch to <strong>Sign Up</strong>.<br>3. Check your password for typos using the eye icon.</span>";
+            } else if (errStr.includes("user already registered")) {
+              msg.innerHTML = "<strong>User already exists.</strong><br>Please switch to <strong>Sign In</strong> to log in with your password, or use Magic Link.";
+            } else {
+              msg.textContent = err.message || "Authentication error.";
+            }
           }
         } finally {
           submitBtn.disabled = false;
