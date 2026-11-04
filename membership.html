@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Sovereign Clearance &amp; Memberships — IndexIndia</title>
   <meta name="description" content="Direct institutional access to the Sovereign Governance Index, MCA V3 forensic telemetry, and AI Doubt Solver.">
-  <link rel="stylesheet" href="styles.css?v=9.5">
+  <link rel="stylesheet" href="styles.css?v=9.7">
 </head>
 <body class="theme-light">
 
@@ -268,55 +268,8 @@
       <h1 class="institutional-title" style="font-size: 2.4rem; margin-top: 14px;">Sovereign Research Clearance &amp; Membership</h1>
       <p class="dossier-lead">Direct, unvarnished forensic telemetry, MCA V3 statutory intelligence, and real-time governance surveillance across India's public and private corporate landscape.</p>
 
-      <!-- ================= LIVE MEMBERSHIP PROFILE DOSSIER ================= -->
-      <div class="membership-profile-card" id="membership-profile-card">
-        <!-- Rendered dynamically by renderMembershipProfile() -->
-      </div>
-
       <!-- PRICING TIERS GRID -->
       <div class="membership-grid">
-
-        <!-- PLAN 0: 10-MIN AUTO-PAYMENT VERIFICATION PASS -->
-        <div class="membership-card featured" id="card-10min-test" style="border: 2px solid var(--accent); background: var(--bg-card);">
-          <div class="membership-ribbon" style="background: var(--accent); color: #fff;">LIVE TEST CLEARANCE</div>
-          <div>
-            <span class="membership-badge" style="color: var(--accent);">[10-MIN CYCLE &bull; LIVE BANK AUTO-PAY TEST]</span>
-            <h3 class="membership-title">&#8377;1 / 10-Min Live Auto-Payment Test Pass</h3>
-            <p class="membership-desc">Instant 10-minute recurring membership cycle to verify Razorpay live bank settlement, Supabase clearance telemetry, auto-renewal, and immediate access to Pro content.</p>
-            
-            <div class="membership-price-wrap">
-              <span class="membership-amount font-mono">&#8377;1</span>
-              <span class="membership-frequency">/ 10 minutes (auto-renews)</span>
-            </div>
-
-            <ul class="membership-features font-mono">
-              <li class="membership-feature-item">
-                <span class="feature-check">&#10003;</span>
-                <span>Immediate unlock of Chapter 3 &amp; Pro in-section insights</span>
-              </li>
-              <li class="membership-feature-item">
-                <span class="feature-check">&#10003;</span>
-                <span>Real 10-minute cycle with live countdown timer</span>
-              </li>
-              <li class="membership-feature-item">
-                <span class="feature-check">&#10003;</span>
-                <span>Automatic 10-min renewal with option to stop auto-pay anytime</span>
-              </li>
-              <li class="membership-feature-item">
-                <span class="feature-check">&#10003;</span>
-                <span>Instant access termination when auto-payment is stopped</span>
-              </li>
-              <li class="membership-feature-item">
-                <span class="feature-check">&#10003;</span>
-                <span>Live bank settlement test via Razorpay UPI / Cards</span>
-              </li>
-            </ul>
-          </div>
-
-          <button type="button" class="membership-btn font-mono" data-plan="10min_recurring" data-amount="1" id="btn-buy-10min">
-            <span>START 10-MIN PASS &bull; &#8377;1</span>
-          </button>
-        </div>
 
         <!-- PLAN 1: FIXED ONE-TIME LIFETIME PASS -->
         <div class="membership-card" id="card-lifetime">
@@ -359,16 +312,16 @@
           </button>
         </div>
 
-        <!-- PLAN 2: MONTHLY MEMBERSHIP -->
+        <!-- PLAN 2: 30-DAY MONTHLY PASS -->
         <div class="membership-card" id="card-monthly">
           <div>
-            <span class="membership-badge">[RECURRING &bull; FLEXIBLE DILIGENCE]</span>
+            <span class="membership-badge">[30-DAY TERM &bull; FLEXIBLE DILIGENCE]</span>
             <h3 class="membership-title">Monthly Institutional Pass</h3>
             <p class="membership-desc">Continuous monthly telemetry and surveillance for fund managers, private equity teams, and active researchers.</p>
             
             <div class="membership-price-wrap">
               <span class="membership-amount font-mono">&#8377;499</span>
-              <span class="membership-frequency">/ month</span>
+              <span class="membership-frequency">/ 30 days</span>
             </div>
 
             <ul class="membership-features font-mono">
@@ -390,13 +343,13 @@
               </li>
               <li class="membership-feature-item">
                 <span class="feature-check">&#10003;</span>
-                <span>Automatic monthly billing via UPI AutoPay or Cards</span>
+                <span>Direct single settlement via UPI (GPay/PhonePe), RuPay, or Cards (30-day access, zero unexpected auto-debits)</span>
               </li>
             </ul>
           </div>
 
           <button type="button" class="membership-btn font-mono" data-plan="monthly" data-amount="499" id="btn-buy-monthly">
-            <span>SUBSCRIBE MONTHLY &bull; &#8377;499/MO</span>
+            <span>GET 30-DAY PASS &bull; &#8377;499</span>
           </button>
         </div>
 
@@ -472,8 +425,8 @@
           </div>
 
           <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 18px 22px;">
-            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;">Can I cancel my monthly subscription?</h4>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Yes, you can cancel your monthly subscription at any time with zero penalty from your account flyout panel or by emailing research@indexindia.com. You will retain access until the end of your billing cycle.</p>
+            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;">How do monthly and annual passes work?</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">All passes are transparent, single-term settlements (30 days for Monthly, 365 days for Annual, or permanent for Lifetime). There are zero surprise auto-debits or recurring locks on your UPI or card. When your term nears expiration, you can renew in 1 click from your Account panel.</p>
           </div>
         </div>
       </div>
@@ -505,15 +458,14 @@
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <!-- Supabase SDK & App Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8.9"></script>
-  <script src="script.js?v=9.6"></script>
+  <script src="supabase-client.js?v=9.0"></script>
+  <script src="script.js?v=9.7"></script>
 
   <!-- Checkout Initialization Script -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "").trim();
       const DEFAULT_RAZORPAY_KEY_ID = "rzp_live_Tvm5Coo5TFFYRa";
-      let countdownTimerInterval = null;
 
       async function refreshMembershipBadge() {
         const sb = window.IndexIndiaSupabase;
@@ -532,221 +484,24 @@
         }
       }
 
-      async function renderMembershipProfile() {
-        const profileCard = document.getElementById("membership-profile-card");
-        if (!profileCard) return;
-
-        const sb = window.IndexIndiaSupabase;
-        if (!sb || !sb.isAuthenticated()) {
-          profileCard.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-              <div>
-                <span class="user-role-badge font-mono" style="background: var(--bg-hover); color: var(--text-secondary); margin-bottom: 6px;">GUEST SESSION</span>
-                <h3 style="margin: 4px 0 2px; font-size: 1.25rem; font-weight: 700;">Institutional Clearance Profile</h3>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Sign in to your account to monitor active clearance cycles or manage auto-payment telemetry.</p>
-              </div>
-              <button type="button" class="membership-btn font-mono" id="btn-profile-signin" style="width: auto; padding: 10px 18px; font-size: 0.85rem;">SIGN IN TO VIEW PROFILE</button>
-            </div>
-          `;
-          const signinBtn = document.getElementById("btn-profile-signin");
-          if (signinBtn) {
-            signinBtn.addEventListener("click", () => {
-              const accountWrapper = document.getElementById("account-wrapper");
-              if (accountWrapper) accountWrapper.classList.add("is-open");
-            });
-          }
-          return;
-        }
-
-        const user = sb.getUser();
-        let membership = null;
-        try {
-          membership = await sb.getUserMembership();
-        } catch (e) {
-          console.warn("Could not fetch user membership:", e);
-        }
-
-        const isMember = Boolean(membership && membership.status === "active");
-        const isAutoRenew = typeof sb.getAutoRenew === "function" ? sb.getAutoRenew() : true;
-
-        if (!isMember) {
-          profileCard.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
-              <div>
-                <span class="user-role-badge font-mono" style="background: var(--border-primary); color: var(--text-secondary); margin-bottom: 6px;">STANDARD FREE TIER</span>
-                <h3 style="margin: 4px 0 2px; font-size: 1.25rem; font-weight: 700;">Account: ${user.email}</h3>
-                <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; font-family: var(--font-mono);">
-                  UID: ${user.id} &bull; No active paid clearance detected.
-                </p>
-              </div>
-              <div class="font-mono" style="background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.35); padding: 5px 10px; border-radius: 4px; font-size: 0.76rem; font-weight: 700;">
-                ● CLEARANCE LOCKED / INACTIVE
-              </div>
-            </div>
-            <p style="font-size: 0.86rem; color: var(--text-secondary); margin: 14px 0 0; line-height: 1.5;">
-              Select the <strong>&#8377;1 / 10-Min Live Auto-Payment Test Pass</strong> below to initiate live auto-payment telemetry and unlock Chapter 3 instantly.
-            </p>
-          `;
-          return;
-        }
-
-        let planDisplayName = "₹1 / 10-Min Live Test Pass";
-        if (membership.plan_type === "lifetime") planDisplayName = "Lifetime Sovereign Pass";
-        else if (membership.plan_type === "annual") planDisplayName = "Annual Sovereign Partner";
-        else if (membership.plan_type === "monthly") planDisplayName = "Monthly Institutional Pass";
-
-        profileCard.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-            <div>
-              <h3 style="margin: 4px 0 2px; font-size: 1.3rem; font-weight: 700;">Account: ${user.email}</h3>
-              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; font-family: var(--font-mono);">
-                UID: ${user.id} &bull; Gateway: Razorpay Live Bank Settlement
-              </p>
-            </div>
-            <div class="font-mono" style="background: rgba(52, 211, 153, 0.15); color: #10B981; border: 1px solid rgba(52, 211, 153, 0.45); padding: 6px 12px; border-radius: 4px; font-size: 0.78rem; font-weight: 700;">
-              ● ACTIVE CLEARANCE
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 18px; padding: 16px; background: var(--bg-hover); border-radius: 6px; border: 1px solid var(--border-subtle);">
-            <div>
-              <div class="font-mono" style="font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase;">Active Plan</div>
-              <div class="font-mono" style="font-size: 0.95rem; font-weight: 700; margin-top: 4px; color: var(--text-primary);">${planDisplayName}</div>
-            </div>
-            <div>
-              <div class="font-mono" style="font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase;">Cycle Expiry / Renewal</div>
-              <div class="font-mono" id="profile-countdown-timer" style="font-size: 0.95rem; font-weight: 700; margin-top: 4px; color: #FF3B00;">Calculating...</div>
-            </div>
-            <div>
-              <div class="font-mono" style="font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase;">Auto-Payment Telemetry</div>
-              <div class="font-mono" id="profile-autorenew-status" style="font-size: 0.92rem; font-weight: 700; margin-top: 4px; color: ${isAutoRenew ? '#10B981' : '#F59E0B'};">
-                ${isAutoRenew ? '● ENABLED (Cycles every 10 min)' : '○ STOPPED (Expires at cycle end)'}
-              </div>
-            </div>
-            <div>
-              <div class="font-mono" style="font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase;">Payment Reference</div>
-              <div class="font-mono" style="font-size: 0.8rem; word-break: break-all; margin-top: 4px; color: var(--text-secondary);">
-                ${membership.payment_id || 'Settled'}
-              </div>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; align-items: center;">
-            <button type="button" class="font-mono" id="btn-toggle-autorenew" style="background: ${isAutoRenew ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)'}; color: ${isAutoRenew ? '#EF4444' : '#10B981'}; border: 1px solid ${isAutoRenew ? 'rgba(239, 68, 68, 0.4)' : 'rgba(16, 185, 129, 0.4)'}; padding: 9px 16px; border-radius: 4px; font-weight: 700; font-size: 0.84rem; cursor: pointer;">
-              ${isAutoRenew ? '⏹ STOP AUTO-PAYMENT' : '▶ RESUME AUTO-PAYMENT'}
-            </button>
-
-            <button type="button" class="font-mono" id="btn-cancel-clearance" style="background: transparent; color: var(--text-secondary); border: 1px solid var(--border-primary); padding: 9px 14px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
-              Cancel Clearance Immediately
-            </button>
-          </div>
-        `;
-
-        // Wire Stop/Resume Auto-Payment
-        const autoRenewBtn = document.getElementById("btn-toggle-autorenew");
-        if (autoRenewBtn) {
-          autoRenewBtn.onclick = () => {
-            const nextState = !isAutoRenew;
-            sb.setAutoRenew(nextState);
-            renderMembershipProfile();
-            refreshMembershipBadge();
-          };
-        }
-
-        // Wire Cancel Immediately
-        const cancelBtn = document.getElementById("btn-cancel-clearance");
-        if (cancelBtn) {
-          cancelBtn.onclick = async () => {
-            if (confirm("Are you sure you want to cancel your clearance immediately? You will be immediately blocked from Chapter 3 and Pro insights.")) {
-              await sb.cancelUserMembership();
-              renderMembershipProfile();
-              refreshMembershipBadge();
-              if (typeof syncMemberExclusiveContent === "function") {
-                syncMemberExclusiveContent(null);
-              }
-            }
-          };
-        }
-
-        // Live Countdown Loop
-        if (countdownTimerInterval) clearInterval(countdownTimerInterval);
-        const timerEl = document.getElementById("profile-countdown-timer");
-
-        function updateTimer() {
-          if (!timerEl) return;
-          if (!membership.valid_until) {
-            timerEl.textContent = "● Lifetime Active";
-            timerEl.style.color = "#10B981";
-            return;
-          }
-          const expiresAt = new Date(membership.valid_until).getTime();
-          const diff = expiresAt - Date.now();
-          if (diff <= 0) {
-            if (isAutoRenew && (membership.plan_type === "10min_recurring" || membership.plan_type === "test")) {
-              // Auto-renew fired in background
-              sb.getUserMembership().then(renewedM => {
-                membership = renewedM;
-                renderMembershipProfile();
-                refreshMembershipBadge();
-              });
-            } else {
-              timerEl.textContent = "Expired. Clearance locked.";
-              timerEl.style.color = "#EF4444";
-              if (countdownTimerInterval) clearInterval(countdownTimerInterval);
-              setTimeout(() => {
-                renderMembershipProfile();
-                refreshMembershipBadge();
-              }, 1200);
-            }
-            return;
-          }
-
-          const totalSecs = Math.floor(diff / 1000);
-          const days = Math.floor(totalSecs / 86400);
-          const hours = Math.floor((totalSecs % 86400) / 3600);
-          const mins = Math.floor((totalSecs % 3600) / 60);
-          const secs = totalSecs % 60;
-
-          const dateStr = new Date(expiresAt).toLocaleDateString([], { month: "short", day: "numeric" });
-          const timeStr = new Date(expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-          let remainingText = "";
-          if (days > 0) {
-            remainingText = `${days}d ${hours}h ${mins}m remaining (${dateStr}, ${timeStr})`;
-          } else if (hours > 0) {
-            remainingText = `${hours}h ${mins}m ${secs < 10 ? '0' : ''}${secs}s remaining (${timeStr})`;
-          } else {
-            remainingText = `${mins}m ${secs < 10 ? '0' : ''}${secs}s remaining (${timeStr})`;
-          }
-
-          timerEl.textContent = remainingText;
-        }
-
-        updateTimer();
-        countdownTimerInterval = setInterval(updateTimer, 1000);
-      }
-
       // Check on auth state change
       if (window.IndexIndiaSupabase) {
         window.IndexIndiaSupabase.onAuthStateChange(() => {
           refreshMembershipBadge();
-          renderMembershipProfile();
         });
       }
       setTimeout(() => {
         refreshMembershipBadge();
-        renderMembershipProfile();
       }, 500);
 
-      // Handle Checkout Clicks
+      // Handle Checkout Clicks for Real Plans
       document.querySelectorAll(".membership-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           e.preventDefault();
           const sb = window.IndexIndiaSupabase;
 
-          // 1. Ensure user is logged in
+          // 1. Ensure user is logged in so clearance links to their identity
           if (!sb || !sb.isAuthenticated()) {
-            const accountBtn = document.getElementById("account-btn");
             const accountWrapper = document.getElementById("account-wrapper");
             if (accountWrapper) accountWrapper.classList.add("is-open");
             alert("Please sign in or create an account in the Account panel first so your payment is tied to your identity.");
@@ -788,13 +543,12 @@
 
             if (!rzpKeyId) {
               const enteredKey = prompt(
-                "Enter your Razorpay Key ID (e.g. rzp_live_... for real bank settlement or rzp_test_...):",
+                "Enter your Razorpay Key ID (e.g. rzp_live_... for real bank settlement):",
                 ""
               );
               if (enteredKey && enteredKey.trim()) {
                 rzpKeyId = enteredKey.trim();
                 localStorage.setItem("indexindia_razorpay_key", rzpKeyId);
-                if (typeof updateKeyDisplay === "function") updateKeyDisplay();
               } else {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -803,14 +557,16 @@
               }
             }
 
+            let planDesc = "Lifetime Sovereign Research Clearance";
+            if (plan === "annual") planDesc = "Annual Sovereign Partner Clearance (365 Days)";
+            else if (plan === "monthly") planDesc = "Monthly Institutional Pass (30 Days)";
+
             const options = {
               key: rzpKeyId,
               amount: (orderData && orderData.amount) || (amount * 100),
               currency: "INR",
               name: "IndexIndia Sovereign Research",
-              description: plan === "10min_recurring" 
-                ? "₹1 / 10-Min Live Auto-Payment Test Pass" 
-                : (plan === "test" ? "Live Gateway ₹1 Bank Settlement Test" : `${plan.toUpperCase()} Membership Clearance`),
+              description: planDesc,
               order_id: orderData ? orderData.orderId : undefined,
               prefill: {
                 email: user.email || "",
@@ -847,19 +603,17 @@
                   }
                 }
 
-                // Record directly in Supabase as well
+                // Calculate valid term
                 let validUntil = null;
-                if (plan === "10min_recurring") {
-                  validUntil = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-                  if (typeof sb.setAutoRenew === "function") sb.setAutoRenew(true);
-                } else if (plan === "monthly") {
+                if (plan === "monthly") {
                   validUntil = new Date(Date.now() + 30 * 86400000).toISOString();
                 } else if (plan === "annual") {
                   validUntil = new Date(Date.now() + 365 * 86400000).toISOString();
-                } else if (plan === "test") {
-                  validUntil = new Date(Date.now() + 14 * 86400000).toISOString();
+                } else if (plan === "lifetime") {
+                  validUntil = null;
                 }
 
+                // Record verified payment in Supabase
                 await sb.recordMembership({
                   planType: plan,
                   paymentId: response.razorpay_payment_id,
@@ -868,16 +622,12 @@
                   validUntil: validUntil
                 });
 
-                if (plan === "10min_recurring") {
-                  alert(`✓ Live ₹1 Payment Succeeded!\nPayment ID: ${response.razorpay_payment_id}\n\nYour 10-minute auto-payment pass is now active.\nChapter 3 & Pro insights are unlocked on Guide.\nCycle automatically renews every 10 minutes unless stopped in your Profile.`);
-                } else if (plan === "test") {
-                  alert(`✓ Live ₹1 Payment Succeeded!\nPayment ID: ${response.razorpay_payment_id}\n\nThe ₹1.00 has been processed through Razorpay and will settle directly into your linked bank account.\n\nYour test clearance is now active.`);
-                } else {
-                  alert(`✓ Payment Successful! Your ${plan.toUpperCase()} Clearance is now active.`);
-                }
+                alert(`✓ Payment Succeeded!\nPayment Reference: ${response.razorpay_payment_id}\n\nYour ${plan.toUpperCase()} Clearance is now active.\nForensic intelligence models and Chapter 3 are unlocked across your account.`);
 
                 refreshMembershipBadge();
-                renderMembershipProfile();
+                if (typeof syncMemberExclusiveContent === "function") {
+                  syncMemberExclusiveContent({ status: "active", plan_type: plan, valid_until: validUntil });
+                }
                 btn.innerHTML = originalText;
                 btn.disabled = false;
               },

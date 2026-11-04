@@ -484,10 +484,13 @@
       if (!this.isAuthenticated()) return null;
 
       const cacheKey = `indexindia_membership_${currentUser.id}`;
-      const autoRenewKey = `indexindia_autorenew_${currentUser.id}`;
       let cached = null;
       try {
         cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+        if (cached && (cached.plan_type === "10min_recurring" || cached.plan_type === "test")) {
+          localStorage.removeItem(cacheKey);
+          cached = null;
+        }
       } catch (e) {}
 
       let data = null;
@@ -514,29 +517,19 @@
 
       if (!data) return null;
 
-      // Handle expiration and 10-minute auto-payment renewal
+      // Shut down testing codes: ignore and invalidate legacy test plans
+      if (data.plan_type === "10min_recurring" || data.plan_type === "test") {
+        data.status = "expired";
+        try { localStorage.removeItem(cacheKey); } catch (e) {}
+        return null;
+      }
+
+      // Handle real pass expiration (monthly / annual)
       if (data.valid_until) {
         const expiresAt = new Date(data.valid_until).getTime();
         const now = Date.now();
-        const isAutoRenew = localStorage.getItem(autoRenewKey) !== "false";
-
         if (now > expiresAt) {
-          if (data.plan_type === "10min_recurring" && isAutoRenew && data.status === "active") {
-            // Auto-renewal: extend by 10 minutes
-            const newValidUntil = new Date(now + 10 * 60 * 1000).toISOString();
-            data.valid_until = newValidUntil;
-            data.updated_at = new Date().toISOString();
-            data.status = "active";
-            await this.recordMembership({
-              planType: data.plan_type,
-              paymentId: `autorenew_${now}`,
-              amountPaid: 1,
-              validUntil: newValidUntil
-            });
-            console.log("[Supabase] 10-min membership auto-renewed until:", newValidUntil);
-          } else {
-            data.status = "expired";
-          }
+          data.status = "expired";
         }
       }
 

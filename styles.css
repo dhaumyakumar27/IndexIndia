@@ -6576,19 +6576,7 @@ body.theme-dark .paid-member-intel {
   animation: fadeIn 0.4s ease;
 }
 
-/* Membership Profile Card Styles */
-.membership-profile-card {
-  background-color: var(--bg-card);
-  border: 1.5px solid var(--border-primary);
-  border-radius: 10px;
-  padding: 24px 28px;
-  margin: 24px 0 32px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-}
 
-body.theme-dark .membership-profile-card {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
 
 
 

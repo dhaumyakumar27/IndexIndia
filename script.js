@@ -1098,12 +1098,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (membership.plan_type === "lifetime") displayName = "Lifetime Sovereign";
       else if (membership.plan_type === "annual") displayName = "Annual Partner";
       else if (membership.plan_type === "monthly") displayName = "Monthly Pass";
-      else if (membership.plan_type === "10min_recurring") displayName = "₹1 / 10-Min Live Pass";
-      else if (membership.plan_type === "test") displayName = "₹1 Test Pass";
 
       if (badge) {
         badge.style.display = "inline-flex";
-        badge.textContent = `${(membership.plan_type === "10min_recurring" ? "10MIN" : (membership.plan_type || "PRO")).toUpperCase()} PASS`;
+        badge.textContent = `${(membership.plan_type || "PRO").toUpperCase()} PASS`;
         badge.style.background = "var(--status-optimal)";
         badge.style.color = "#FFFFFF";
       }
@@ -1150,7 +1148,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= DYNAMIC PAID MEMBER CONTENT ENGINE (OPTION B SUPABASE) =================
   async function syncMemberExclusiveContent(membership) {
-    const isMember = Boolean(membership && membership.status === "active");
+    const isMember = Boolean(
+      membership &&
+      membership.status === "active" &&
+      ["lifetime", "annual", "monthly"].includes(membership.plan_type)
+    );
 
     // 1. Section 1 (Unincorporated Entities): "sole proprietorship is best for start up"
     const unincorporatedSec = document.getElementById("sec-unincorporated");
@@ -1212,7 +1214,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="entity-item" style="border-left: 3.5px solid var(--status-optimal);">
                 <h4 class="entity-name" style="color: var(--status-optimal);">Clearance Protocol Active</h4>
                 <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 6px;">
-                  Continuous surveillance enabled. Next 10-min settlement checkpoint running in background telemetry.
+                  Continuous statutory surveillance enabled. MCA V3 statutory intelligence, auditor red flags, and sovereign models are active.
                 </p>
               </div>
             </div>
