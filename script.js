@@ -676,6 +676,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Close Directory Tree when clicking outside
+  document.addEventListener("mousedown", (e) => {
+    if (!isTreeCurrentlyOpen()) return;
+    const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
+    if (
+      railNavigator &&
+      !railNavigator.contains(e.target) &&
+      (!navTreeBtn || !navTreeBtn.contains(e.target))
+    ) {
+      closeTreeExplicitly();
+    }
+  });
+
   if (railNavigator) {
     railNavigator.addEventListener("mouseenter", () => {
       railNavigator.classList.remove("is-closed");
@@ -1118,7 +1131,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ctaBtn.style.color = "#FFFFFF";
         ctaBtn.style.border = "none";
       }
-      if (desc) desc.textContent = "Direct institutional telemetry, MCA V3 filings, and Ind AS forensic intelligence.";
+      if (desc) desc.textContent = "";
     }
   }
 
@@ -1963,6 +1976,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const contrastToggle = document.getElementById("contrast-toggle");
   const gridToggle = document.getElementById("grid-toggle");
+  const densityToggle = document.getElementById("density-toggle");
+
+  const savedDensity = localStorage.getItem("indexindian_compact_tables");
+  if (savedDensity === "false") {
+    document.body.classList.remove("compact-tables");
+    if (densityToggle) densityToggle.checked = false;
+  } else {
+    document.body.classList.add("compact-tables");
+    if (densityToggle) densityToggle.checked = true;
+  }
+
+  if (densityToggle) {
+    densityToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        document.body.classList.add("compact-tables");
+        localStorage.setItem("indexindian_compact_tables", "true");
+      } else {
+        document.body.classList.remove("compact-tables");
+        localStorage.setItem("indexindian_compact_tables", "false");
+      }
+    });
+  }
 
   const savedTheme = localStorage.getItem("indexindian_theme");
   if (savedTheme === "dark") {
@@ -3340,10 +3375,7 @@ INSTRUCTIONS:
         <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask any doubt or question..." autocomplete="off">
         <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask ↵</button>
       </div>
-      <div class="doubt-chips-container" id="doubt-chips-container">
-        <button type="button" class="doubt-chip-btn active" data-mode="doubts" id="chip-mode-doubts">💬 Doubts</button>
-        <button type="button" class="doubt-chip-btn" data-mode="keytakeaway" id="chip-mode-takeaway">📊 Key Takeaway</button>
-      </div>
+
       <div class="doubt-output-container" id="doubt-output-container"></div>
     </div>
   `;
@@ -4099,7 +4131,7 @@ INSTRUCTIONS:
 
   document.addEventListener("mousedown", (e) => {
     if (!doubtTile.classList.contains("is-open")) return;
-    if (!doubtTile.contains(e.target) && !doubtPill.contains(e.target) && !e.target.closest(".section-doubt-btn")) {
+    if (!doubtTile.contains(e.target) && !doubtPill.contains(e.target) && !e.target.closest(".section-doubt-btn") && !e.target.closest("#doubt-nav-btn")) {
       closeDoubtSolver();
     }
   });
@@ -4252,9 +4284,7 @@ INSTRUCTIONS:
       navSearchBarWrapper.className = "nav-search-bar-wrapper";
       navSearchBarWrapper.innerHTML = `
         <div class="nav-search-bar" id="nav-search-bar">
-          <span class="nav-search-icon">🔍</span>
-          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="Search website, shortcuts, sections... (/)" autocomplete="off" spellcheck="false" />
-          <kbd class="nav-search-kbd" title="Press / to search">/</kbd>
+          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="search (/)" autocomplete="off" spellcheck="false" />
         </div>
         <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
       `;
@@ -5092,7 +5122,7 @@ INSTRUCTIONS:
       <div id="annotation-selection-rect" class="annotation-selection-rect" style="display:none;"></div>
       <div id="selection-highlight-tooltip" class="selection-highlight-tooltip" style="display:none;">
         <button type="button" class="selection-highlight-btn" id="btn-quick-highlight">
-          <span>🖍️</span> Highlight
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 7-4.5-4.5-8.5 8.5 4.5 4.5L22 7z"/></svg> <span>Highlight</span>
         </button>
       </div>
     `;
@@ -5113,28 +5143,51 @@ INSTRUCTIONS:
     editAnnotationBar.setAttribute("role", "toolbar");
     editAnnotationBar.setAttribute("aria-label", "Edit & Annotation Palette");
     editAnnotationBar.innerHTML = `
-      <span class="palette-drag-handle" title="Drag Palette">⋮⋮</span>
+      <span class="palette-drag-handle" title="Drag Palette">
+        <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
+      </span>
       <div class="palette-tool-group">
         <button type="button" class="palette-tool-btn" data-tool="select" title="Select & Move (V)">
-          <span class="palette-tool-icon">↖️</span><span class="palette-tool-label">Select</span>
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+          </span>
+          <span class="palette-tool-label">Select</span>
         </button>
         <button type="button" class="palette-tool-btn active" data-tool="sketch" title="Pencil Sketch (P)">
-          <span class="palette-tool-icon">✏️</span><span class="palette-tool-label">Sketch</span>
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+          </span>
+          <span class="palette-tool-label">Sketch</span>
         </button>
         <button type="button" class="palette-tool-btn" data-tool="highlight" title="Text Highlight (H)">
-          <span class="palette-tool-icon">🖍️</span><span class="palette-tool-label">Highlight</span>
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 7-4.5-4.5-8.5 8.5 4.5 4.5L22 7z"/></svg>
+          </span>
+          <span class="palette-tool-label">Highlight</span>
         </button>
         <button type="button" class="palette-tool-btn" data-tool="textbox" title="Free Drag-to-Select Text Box (T)">
-          <span class="palette-tool-icon">🔲</span><span class="palette-tool-label">Box</span>
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          </span>
+          <span class="palette-tool-label">Box</span>
         </button>
         <button type="button" class="palette-tool-btn" data-tool="stickynote" title="Click-to-Place & Drag Sticky Note (S)">
-          <span class="palette-tool-icon">📌</span><span class="palette-tool-label">Note</span>
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><polyline points="15 3 21 9 15 9 15 3"/></svg>
+          </span>
+          <span class="palette-tool-label">Note</span>
         </button>
         <button type="button" class="palette-tool-btn" data-tool="sticker" id="palette-btn-sticker" title="Stickers Palette (K)">
-          <span class="palette-tool-icon">🏷️</span><span class="palette-tool-label">Stickers</span>
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </span>
+          <span class="palette-tool-label">Stickers</span>
         </button>
         <button type="button" class="palette-tool-btn" data-tool="eraser" title="Eraser / Click item to delete (X)">
-          <span class="palette-tool-icon">🧹</span><span class="palette-tool-label">Eraser</span>
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/></svg>
+          </span>
+          <span class="palette-tool-label">Eraser</span>
         </button>
       </div>
       <span class="palette-sep">|</span>
@@ -5163,16 +5216,32 @@ INSTRUCTIONS:
       <div class="palette-nav-group">
         <span class="palette-counter font-mono" id="annotation-counter">0 notes</span>
         <div class="finder-nav-btns">
-          <button type="button" class="finder-btn" id="annotation-btn-prev" title="Previous Annotation (▲)">▲</button>
-          <button type="button" class="finder-btn" id="annotation-btn-next" title="Next Annotation (▼)">▼</button>
+          <button type="button" class="finder-btn" id="annotation-btn-prev" title="Previous Annotation (▲)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+          </button>
+          <button type="button" class="finder-btn" id="annotation-btn-next" title="Next Annotation (▼)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
         </div>
       </div>
       <span class="palette-sep">|</span>
       <div class="palette-action-group">
-        <button type="button" class="palette-btn" id="annotation-btn-undo" title="Undo Last Annotation (Ctrl+Z)">↩️</button>
-        <button type="button" class="palette-btn" id="annotation-btn-clear" title="Clear All Annotations">🗑️</button>
+        <button type="button" class="palette-btn" id="annotation-btn-undo" title="Undo Last Annotation (Ctrl+Z)">
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          </span>
+          <span class="palette-tool-label">Undo</span>
+        </button>
+        <button type="button" class="palette-btn" id="annotation-btn-clear" title="Clear All Annotations">
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </span>
+          <span class="palette-tool-label">Clear</span>
+        </button>
       </div>
-      <button type="button" class="palette-close-btn" id="annotation-btn-close" title="Close Palette (Esc)">&times;</button>
+      <button type="button" class="palette-close-btn" id="annotation-btn-close" title="Close Palette (Esc)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     `;
     document.body.appendChild(editAnnotationBar);
   }

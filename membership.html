@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Sovereign Clearance & Memberships — IndexIndia Research Hub</title>
   <meta name="description" content="Direct institutional access to the Sovereign Governance Index, MCA V3 forensic telemetry, and AI Doubt Solver.">
-  <link rel="stylesheet" href="styles.css?v=8.7">
+  <link rel="stylesheet" href="styles.css?v=8.8">
 </head>
 <body class="theme-light">
 
@@ -20,9 +20,7 @@
 
       <div class="nav-search-bar-wrapper" id="nav-search-bar-wrapper">
         <div class="nav-search-bar" id="nav-search-bar">
-          <span class="nav-search-icon">🔍</span>
-          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="Search website, shortcuts, sections... (/)" autocomplete="off" spellcheck="false" />
-          <kbd class="nav-search-kbd" title="Press / to search">/</kbd>
+          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="search (/)" autocomplete="off" spellcheck="false" />
         </div>
         <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
       </div>
@@ -124,9 +122,6 @@
             <span class="font-mono" style="font-size: 0.7rem; color: var(--text-tertiary); font-weight: 700;">PRO ACCESS</span>
           </div>
 
-          <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 10px;" id="nav-upgrade-desc">
-            Direct institutional telemetry, MCA V3 filings, and Ind AS forensic intelligence.
-          </div>
 
           <div class="panel-divider" style="margin: 8px 0 10px;"></div>
 
@@ -183,11 +178,51 @@
 
         <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
           <div class="panel-section-title">VIEW PREFERENCES</div>
-          <div class="theme-toggle-row">
-            <span class="theme-toggle-label">Interface Mode</span>
-            <button type="button" class="theme-switch-btn" id="theme-switch-btn" aria-label="Toggle Color Theme">
-              <span class="theme-label" id="theme-mode-text">LIGHT</span>
-            </button>
+
+          <!-- Font Size Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Size</span>
+            <div class="custom-dropdown" id="dropdown-font-size">
+              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-size-label">Medium</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small (13px)</button>
+                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium" role="option">Medium (15px)</button>
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large (17.5px)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Font Style Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Style</span>
+            <div class="custom-dropdown" id="dropdown-font-style">
+              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-style-label">Long Reading</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading" role="option">Long Reading (Clean Sans)</button>
+                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter" role="option">Typewriter (Monospace)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="setting-toggle-row">
+            <label for="density-toggle">Compact Tables</label>
+            <input type="checkbox" id="density-toggle" checked>
+          </div>
+          <div class="setting-toggle-row">
+            <label for="grid-toggle">Background Grid</label>
+            <input type="checkbox" id="grid-toggle" checked>
+          </div>
+          <div class="setting-toggle-row">
+            <label for="contrast-toggle">Dark Theme</label>
+            <input type="checkbox" id="contrast-toggle">
           </div>
         </div>
       </div>
@@ -393,7 +428,7 @@
   <!-- Supabase SDK & App Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=8.7"></script>
-  <script src="script.js?v=8.7"></script>
+  <script src="script.js?v=8.8"></script>
 
   <!-- Checkout Initialization Script -->
   <script>
