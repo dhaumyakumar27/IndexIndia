@@ -1,5 +1,5 @@
 /* ==========================================================================
-   INDEXINDIAN (FIRM D) - INSTITUTIONAL MINIMALIST DESIGN SYSTEM
+   INDEXINDIA (FIRM D) - INSTITUTIONAL MINIMALIST DESIGN SYSTEM
    Aesthetic: Brutalist, Forensic, Institutional Authority
    Palette: Monochromatic (Obsidian & Crisp White) + Stark Safety Orange Accent
    ========================================================================== */
@@ -217,7 +217,7 @@ body.theme-dark .view-switcher {
   background: transparent;
   outline: none;
   cursor: pointer;
-  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
   user-select: none;
   text-decoration: none !important;
 }
@@ -246,40 +246,6 @@ body.theme-dark .switch-btn.active {
 .switch-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
-}
-
-/* Long-press Tab visual confirmation */
-.switch-btn.tab-hold-target {
-  position: relative;
-  overflow: hidden;
-  color: var(--text-primary);
-  background-color: rgba(0, 0, 0, 0.08);
-}
-
-body.theme-dark .switch-btn.tab-hold-target {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-}
-
-.switch-btn.tab-hold-target::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2.5px;
-  width: 100%;
-  background: var(--text-primary);
-  transform-origin: left;
-  animation: tabHoldProgress 0.38s cubic-bezier(0.2, 0, 0, 1) forwards;
-}
-
-body.theme-dark .switch-btn.tab-hold-target::after {
-  background: #FFFFFF;
-}
-
-@keyframes tabHoldProgress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
 }
 
 .brand-subtext {
@@ -4543,8 +4509,7 @@ body.theme-light .doubt-web-enrichment {
   background: var(--bg-card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   cursor: text;
-  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.16s ease,
+  transition: border-color 0.16s ease,
               box-shadow 0.16s ease;
 }
 
@@ -4555,7 +4520,6 @@ body.theme-dark .nav-search-bar {
 }
 
 .nav-search-bar:focus-within {
-  width: 148px;
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-subtle);
 }

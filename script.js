@@ -1,6 +1,6 @@
 /**
- * IndexIndian (Firm D) — Core Institutional Interactions
- * Zero-bloat, lightweight vanilla JS across all 8 modular pages.
+ * IndexIndia (Firm D) — Core Institutional Interactions
+ * Zero-bloat, lightweight vanilla JS across all modular pages.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1114,19 +1114,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (desc) desc.textContent = "Your institutional sovereign research clearance is verified with unlimited statutory telemetry.";
     } else {
       if (badge) {
-        badge.textContent = "RESEARCH PASS";
-        badge.style.background = "";
-        badge.style.color = "";
+        badge.textContent = "";
+        badge.style.display = "none";
       }
-      if (status) status.textContent = "FREE TIER";
+      if (status) status.textContent = "MEMBERSHIP";
       if (planName) planName.textContent = "Standard Access";
       if (planStatus) {
-        planStatus.textContent = "● Free Tier";
+        planStatus.textContent = "";
         planStatus.className = "font-mono";
         planStatus.style.color = "var(--text-secondary)";
       }
       if (ctaBtn) {
-        ctaBtn.textContent = "⚡ Upgrade to Premium Plan";
+        ctaBtn.textContent = "Upgrade to Premium Plan";
         ctaBtn.style.backgroundColor = "var(--accent)";
         ctaBtn.style.color = "#FFFFFF";
         ctaBtn.style.border = "none";
@@ -1169,7 +1168,6 @@ document.addEventListener("DOMContentLoaded", () => {
       updateNavUpgradePanel(membership);
 
       const hasPaidPlan = membership && membership.status === "active" && membership.plan_type !== "test";
-      const planBadge = hasPaidPlan ? `${membership.plan_type.toUpperCase()} PASS` : "RESEARCH PASS";
       const planStatusText = hasPaidPlan 
         ? (membership.valid_until ? `Active (${new Date(membership.valid_until).toLocaleDateString()})` : "Active (Lifetime)")
         : "Standard Access";
@@ -1177,7 +1175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       accountPanel.innerHTML = `
         <div class="panel-header">
           <div class="panel-user-meta">
-            <span class="user-role-badge" style="${hasPaidPlan ? 'background: #FF3B00; color: #fff;' : ''}">${planBadge}</span>
+            ${hasPaidPlan ? `<span class="user-role-badge" style="background: #FF3B00; color: #fff;">${membership.plan_type.toUpperCase()} PASS</span>` : ""}
             <span class="user-id">ACCOUNT DOSSIER</span>
           </div>
         </div>
@@ -1209,7 +1207,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
           ${!hasPaidPlan ? `
             <a href="membership.html" class="account-btn-action" style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700;">
-              ⚡ Upgrade to Sovereign Pass
+              Upgrade to Sovereign Pass
             </a>
           ` : `
             <a href="membership.html" style="font-size: 0.72rem; color: var(--accent); text-align: center; text-decoration: none; font-family: var(--font-mono); padding: 4px 0;">
@@ -1226,7 +1224,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div class="panel-footer" style="margin-top: 10px;">
-          <div class="panel-sub-note">IndexIndian Cross-Device Cloud Sync</div>
+          <div class="panel-sub-note">IndexIndia Cross-Device Cloud Sync</div>
         </div>
       `;
 
@@ -1260,7 +1258,6 @@ document.addEventListener("DOMContentLoaded", () => {
       accountPanel.innerHTML = `
         <div class="panel-header">
           <div class="panel-user-meta">
-            <span class="user-role-badge">RESEARCH PASS</span>
             <span class="user-id">GUEST / LOCAL</span>
           </div>
           <div class="active-pulse-indicator" style="color: var(--text-tertiary);" title="Local storage only">
@@ -1324,7 +1321,6 @@ document.addEventListener("DOMContentLoaded", () => {
     accountPanel.innerHTML = `
       <div class="panel-header">
         <div class="panel-user-meta">
-          <span class="user-role-badge">RESEARCH PASS</span>
           <span class="user-id">CLOUD READY</span>
         </div>
         <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Ready to sign in">
@@ -1641,29 +1637,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 2. "[" toggles Account (strictly alone)
-    if (e.key === "[" && noModifiers) {
-      e.preventDefault();
-      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-      if (accountWrapper) {
-        accountWrapper.classList.toggle("is-open");
-        if (accountWrapper.classList.contains("is-open") && typeof renderAccountPanel === "function") {
-          renderAccountPanel();
-        }
-      }
-      return;
-    }
-
-    // 3. "]" toggles Settings (strictly alone)
-    if (e.key === "]" && noModifiers) {
-      e.preventDefault();
-      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-      if (accountWrapper) accountWrapper.classList.remove("is-open");
-      if (settingsWrapper) settingsWrapper.classList.toggle("is-open");
-      return;
-    }
-
-    // 4. "?" toggles Keyboard Shortcuts Panel (strictly ? or Shift+/, no Ctrl, Alt, Meta)
+    // 2. "?" toggles Keyboard Shortcuts Panel (strictly ? or Shift+/, no Ctrl, Alt, Meta)
     if ((e.key === "?" || (e.shiftKey && e.key === "/")) && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       if (accountWrapper) accountWrapper.classList.remove("is-open");
@@ -1672,45 +1646,68 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 4b. "U" navigates to Membership & Pricing page (strictly alone, KeyU or 'u'/'U', no Ctrl, Alt, Meta)
-    if ((e.code === "KeyU" || e.key?.toLowerCase() === "u") && noModifiers) {
-      e.preventDefault();
-      window.location.href = "membership.html";
-      return;
-    }
-
-    // 5. "N" opens/closes Directory Tree (strictly alone, KeyN or 'n'/'N', no Ctrl, Alt, Meta)
-    if ((e.code === "KeyN" || e.key?.toLowerCase() === "n") && noModifiers) {
+    // 3. Directory Tree Drawer: Ctrl + ,
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "," || e.code === "Comma")) {
       e.preventDefault();
       toggleTree();
       return;
     }
 
-    // 5b. "/" focuses Universal Top Search Bar (strictly alone, KeySlash or '/')
-    if ((e.code === "Slash" || e.key === "/") && noModifiers) {
+    // 4. Universal Search & Commands: Ctrl + /
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "/" || e.code === "Slash")) {
       e.preventDefault();
       focusNavSearchBar();
       return;
     }
 
-    // 5c. "E" toggles In-Page Edit & Annotation Panel (strictly alone, KeyE or 'e'/'E', no Ctrl, Alt, Meta)
+    // 5. Gemini AI Doubt Solver: Ctrl + .
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "." || e.code === "Period")) {
+      e.preventDefault();
+      toggleDoubtSolver();
+      return;
+    }
+
+    // 6. "E" toggles In-Page Edit & Annotation Panel (strictly alone, KeyE or 'e'/'E', no Ctrl, Alt, Meta)
     if ((e.code === "KeyE" || e.key?.toLowerCase() === "e") && noModifiers) {
       e.preventDefault();
       toggleAnnotationPanel();
       return;
     }
 
-    // 5d. "F" toggles Top Bar (Expand Full-Height View) (strictly alone, KeyF or 'f'/'F', no Ctrl, Alt, Meta)
+    // 7. "F" toggles Top Bar (Expand Full-Height View) (strictly alone, KeyF or 'f'/'F', no Ctrl, Alt, Meta)
     if ((e.code === "KeyF" || e.key?.toLowerCase() === "f") && noModifiers) {
       e.preventDefault();
       toggleTopBar();
       return;
     }
 
-    // 6. Ctrl + Arrow: Directly move up/down section from current section WITHOUT showing directory tree (strictly Ctrl/Meta alone, no Shift, no Alt)
-    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+    // 8. Alt + Arrow Up / Down: Move Section
+    if (e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
-      closeTreeExplicitly(); // Guarantee directory tree is NOT shown
+      closeTreeExplicitly();
+      const sections = Array.from(document.querySelectorAll(".page-directory-section, .institutional-forum-section, #sec-footer"));
+      if (sections.length > 0) {
+        const scrollPos = window.scrollY + 120;
+        let currentIdx = 0;
+        for (let i = 0; i < sections.length; i++) {
+          if (sections[i].offsetTop <= scrollPos) {
+            currentIdx = i;
+          }
+        }
+        const direction = e.key === "ArrowDown" ? 1 : -1;
+        const targetIdx = Math.max(0, Math.min(sections.length - 1, currentIdx + direction));
+        sections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
+        if (typeof updateActiveSectionNode === "function") {
+          updateActiveSectionNode(targetIdx);
+        }
+      }
+      return;
+    }
+
+    // 9. Ctrl + Arrow Up / Down: Move Subsection
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      closeTreeExplicitly();
 
       if (hasInPageTree && treeNodes.length > 0) {
         let targetIdx = currentSubIndex;
@@ -1722,77 +1719,20 @@ document.addEventListener("DOMContentLoaded", () => {
         navigateToNode(targetIdx);
         return;
       }
-
-      const allSectionPages = [
-        "guide.html",
-        "index.html"
-      ];
-
-      const currentFile = pathname.split("/").pop().toLowerCase() || "index.html";
-      let currIdx = allSectionPages.findIndex((p) => currentFile === p || (currentFile === "" && p === "index.html"));
-      if (currIdx === -1) {
-        currIdx = allSectionPages.findIndex((p) => currentFile.includes(p.replace(".html", "")));
-      }
-      if (currIdx === -1) currIdx = 0;
-
-      let targetIdx = currIdx;
-      if (e.key === "ArrowDown") {
-        targetIdx = (currIdx + 1) % allSectionPages.length;
-      } else {
-        targetIdx = (currIdx - 1 + allSectionPages.length) % allSectionPages.length;
-      }
-
-      window.location.href = allSectionPages[targetIdx];
       return;
     }
 
-    // 7. Shift + Arrow: Directly jump through Acts (I | II | III | IV ...) WITHOUT showing directory tree
-    // Strictly Shift alone, no Ctrl, Alt, Meta (zero modifier crosstalk)
-    if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
-      e.preventDefault();
-      closeTreeExplicitly(); // Guarantee directory tree is NOT shown
-
-      const actIndices = getActNodeIndices();
-      if (actIndices.length > 0) {
-        if (e.key === "ArrowDown") {
-          const nextIdx = actIndices.find((idx) => idx > currentSubIndex);
-          if (nextIdx !== undefined) {
-            navigateToNode(nextIdx, true);
-          } else {
-            navigateToNode(actIndices[actIndices.length - 1], true);
-          }
-        } else {
-          const prevIndices = actIndices.filter((idx) => idx < currentSubIndex);
-          if (prevIndices.length > 0) {
-            const prevIdx = prevIndices[prevIndices.length - 1];
-            navigateToNode(prevIdx, true);
-          } else {
-            navigateToNode(actIndices[0], true);
-          }
-        }
-      }
-      return;
-    }
-
-    // 8. Normal Arrow Up / Down: Smooth delayless page scrolling (strictly alone, no modifiers)
-    // Instant 0ms start when holding, integer-pixel translation with zero subpixel font jumping
+    // 10. Normal Arrow Up / Down: Scroll Page Smoothly (strictly alone, no modifiers)
     if ((e.key === "ArrowDown" || e.key === "ArrowUp") && noModifiers) {
       e.preventDefault();
       startSmoothScroll(e.key === "ArrowDown" ? 1 : -1);
       return;
     }
 
-    // 9. Enter inside open tree navigates to current node (strictly alone)
+    // 11. Enter inside open tree navigates to current node (strictly alone)
     if (e.key === "Enter" && noModifiers && isTreeCurrentlyOpen()) {
       e.preventDefault();
       navigateToNode(currentSubIndex);
-      return;
-    }
-
-    // 10. Shortcut 'M': Toggle DuckDuckGo Doubt Solver (KeyM or 'm'/'M', no Ctrl, Alt, Meta)
-    if ((e.code === "KeyM" || e.key?.toLowerCase() === "m") && !e.ctrlKey && !e.altKey && !e.metaKey) {
-      e.preventDefault();
-      toggleDoubtSolver();
       return;
     }
 
@@ -1888,7 +1828,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (fontSizeLabel) fontSizeLabel.textContent = item.textContent.split(" ")[0];
         document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
         document.documentElement.classList.add(`font-size-${val}`);
-        localStorage.setItem("indexindian_font_size", val);
+        localStorage.setItem("indexindia_font_size", val);
         if (dropdownFontSize) dropdownFontSize.classList.remove("is-open");
         if (btnFontSizeTrigger) btnFontSizeTrigger.setAttribute("aria-expanded", "false");
       } else if (type === "font-style") {
@@ -1897,7 +1837,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (fontStyleLabel) fontStyleLabel.textContent = val === "reading" ? "Long Reading" : "Typewriter";
         document.body.classList.remove("font-style-reading", "font-style-typewriter");
         document.body.classList.add(`font-style-${val}`);
-        localStorage.setItem("indexindian_font_style", val);
+        localStorage.setItem("indexindia_font_style", val);
         if (dropdownFontStyle) dropdownFontStyle.classList.remove("is-open");
         if (btnFontStyleTrigger) btnFontStyleTrigger.setAttribute("aria-expanded", "false");
       }
@@ -1906,37 +1846,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const contrastToggle = document.getElementById("contrast-toggle");
   const gridToggle = document.getElementById("grid-toggle");
-  const densityToggle = document.getElementById("density-toggle");
 
-  const savedDensity = localStorage.getItem("indexindian_compact_tables");
-  if (savedDensity === "false") {
-    document.body.classList.remove("compact-tables");
-    if (densityToggle) densityToggle.checked = false;
-  } else {
-    document.body.classList.add("compact-tables");
-    if (densityToggle) densityToggle.checked = true;
-  }
-
-  if (densityToggle) {
-    densityToggle.addEventListener("change", (e) => {
-      if (e.target.checked) {
-        document.body.classList.add("compact-tables");
-        localStorage.setItem("indexindian_compact_tables", "true");
-      } else {
-        document.body.classList.remove("compact-tables");
-        localStorage.setItem("indexindian_compact_tables", "false");
-      }
-    });
-  }
-
-  const savedTheme = localStorage.getItem("indexindian_theme");
+  const savedTheme = localStorage.getItem("indexindia_theme");
   if (savedTheme === "dark") {
     document.body.classList.add("theme-dark");
     document.body.classList.remove("theme-light");
     if (contrastToggle) contrastToggle.checked = true;
   }
 
-  const savedFontSize = localStorage.getItem("indexindian_font_size");
+  const savedFontSize = localStorage.getItem("indexindia_font_size");
   if (savedFontSize) {
     document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
     document.documentElement.classList.add(`font-size-${savedFontSize}`);
@@ -1948,7 +1866,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  const savedFontStyle = localStorage.getItem("indexindian_font_style");
+  const savedFontStyle = localStorage.getItem("indexindia_font_style");
   if (savedFontStyle) {
     document.body.classList.remove("font-style-reading", "font-style-typewriter");
     document.body.classList.add(`font-style-${savedFontStyle}`);
@@ -1965,11 +1883,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target.checked) {
         document.body.classList.add("theme-dark");
         document.body.classList.remove("theme-light");
-        localStorage.setItem("indexindian_theme", "dark");
+        localStorage.setItem("indexindia_theme", "dark");
       } else {
         document.body.classList.remove("theme-dark");
         document.body.classList.add("theme-light");
-        localStorage.setItem("indexindian_theme", "light");
+        localStorage.setItem("indexindia_theme", "light");
       }
     });
   }
@@ -2049,7 +1967,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getLocalForumMessages(pageId, cutoffMs) {
     try {
-      const raw = localStorage.getItem(`indexindian_forum_${pageId}`);
+      const raw = localStorage.getItem(`indexindia_forum_${pageId}`);
       if (!raw) return [];
       const list = JSON.parse(raw);
       const valid = list.filter((m) => {
@@ -2057,11 +1975,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return !isNaN(t) && t >= cutoffMs;
       });
       if (valid.length !== list.length) {
-        localStorage.setItem(`indexindian_forum_${pageId}`, JSON.stringify(valid));
+        localStorage.setItem(`indexindia_forum_${pageId}`, JSON.stringify(valid));
       }
       return valid;
     } catch (e) {
-      console.warn("[IndexIndian Forum] Error reading local forum storage:", e);
+      console.warn("[IndexIndia Forum] Error reading local forum storage:", e);
       return [];
     }
   }
@@ -2080,10 +1998,10 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       current.push(newEntry);
       const trimmed = current.slice(-100);
-      localStorage.setItem(`indexindian_forum_${pageId}`, JSON.stringify(trimmed));
+      localStorage.setItem(`indexindia_forum_${pageId}`, JSON.stringify(trimmed));
       return newEntry;
     } catch (e) {
-      console.warn("[IndexIndian Forum] Error saving local forum message:", e);
+      console.warn("[IndexIndia Forum] Error saving local forum message:", e);
       return null;
     }
   }
@@ -2247,11 +2165,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res.ok) {
           messages = await res.json();
         } else {
-          console.warn("[IndexIndian Forum] Supabase fetch status:", res.status, "using local fallback");
+          console.warn("[IndexIndia Forum] Supabase fetch status:", res.status, "using local fallback");
           messages = getLocalForumMessages(pageId, cutoffMs);
         }
       } catch (err) {
-        console.warn("[IndexIndian Forum] Supabase network error, using local fallback:", err);
+        console.warn("[IndexIndia Forum] Supabase network error, using local fallback:", err);
         messages = getLocalForumMessages(pageId, cutoffMs);
       }
     } else {
@@ -2298,11 +2216,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (!res.ok) {
-          console.warn("[IndexIndian Forum] Supabase post failed, caching locally");
+          console.warn("[IndexIndia Forum] Supabase post failed, caching locally");
           saveLocalForumMessage(pageId, username, finalMessage, nowISO, parentId);
         }
       } catch (err) {
-        console.warn("[IndexIndian Forum] Network error during post, caching locally:", err);
+        console.warn("[IndexIndia Forum] Network error during post, caching locally:", err);
         saveLocalForumMessage(pageId, username, finalMessage, nowISO, parentId);
       }
     } else {
@@ -3966,7 +3884,7 @@ INSTRUCTIONS:
     const currentId = ++activeQueryId;
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
     if (doubtAskBtn) {
-      doubtAskBtn.textContent = hasKey ? "Asking Gemini... ✨" : "Solving... 🔍";
+      doubtAskBtn.textContent = ".....";
       doubtAskBtn.disabled = true;
     }
 
@@ -4260,12 +4178,12 @@ INSTRUCTIONS:
     if (theme === "dark") {
       document.body.classList.add("theme-dark");
       document.body.classList.remove("theme-light");
-      localStorage.setItem("indexindian_theme", "dark");
+      localStorage.setItem("indexindia_theme", "dark");
       if (contrastToggle) contrastToggle.checked = true;
     } else {
       document.body.classList.remove("theme-dark");
       document.body.classList.add("theme-light");
-      localStorage.setItem("indexindian_theme", "light");
+      localStorage.setItem("indexindia_theme", "light");
       if (contrastToggle) contrastToggle.checked = false;
     }
   }
@@ -4278,7 +4196,7 @@ INSTRUCTIONS:
   function applyFontSize(size) {
     document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
     document.documentElement.classList.add(`font-size-${size}`);
-    localStorage.setItem("indexindian_font_size", size);
+    localStorage.setItem("indexindia_font_size", size);
     if (fontSizeLabel) fontSizeLabel.textContent = size.charAt(0).toUpperCase() + size.slice(1);
     const activeItem = document.querySelector(`#list-font-size .dropdown-item[data-val="${size}"]`);
     if (activeItem) {
@@ -4290,7 +4208,7 @@ INSTRUCTIONS:
   function applyFontStyle(style) {
     document.body.classList.remove("font-style-reading", "font-style-typewriter");
     document.body.classList.add(`font-style-${style}`);
-    localStorage.setItem("indexindian_font_style", style);
+    localStorage.setItem("indexindia_font_style", style);
     if (fontStyleLabel) fontStyleLabel.textContent = style === "reading" ? "Long Reading" : "Typewriter";
     const activeItem = document.querySelector(`#list-font-style .dropdown-item[data-val="${style}"]`);
     if (activeItem) {
@@ -4469,13 +4387,6 @@ INSTRUCTIONS:
     return [
       {
         category: "KEYBOARD SHORTCUTS",
-        title: "Step Section Directly",
-        subtitle: "Move directly up or down sections without opening directory drawer",
-        badge: "Ctrl + ↓ / ↑",
-        keywords: "step section directly move next previous section jump ctrl down up arrow shortcut binding"
-      },
-      {
-        category: "KEYBOARD SHORTCUTS",
         title: "Switch Guide <=> Index Suite",
         subtitle: "Switch between Guide matrix and Index terminal",
         badge: "Tab",
@@ -4486,10 +4397,17 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        title: "Move Act (I | II | III | IV | V | VI)",
-        subtitle: "Jump directly through narrative story acts without opening drawer",
-        badge: "Shift + ↓ / ↑",
-        keywords: "move act shift down up jump chapter acts narrative story shortcut binding"
+        title: "Move Section",
+        subtitle: "Jump directly to the next or previous section",
+        badge: "Alt + ↓ / ↑",
+        keywords: "move section alt down up jump chapter sections narrative shortcut binding"
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
+        title: "Move Subsection",
+        subtitle: "Step through directory tree nodes and subsections",
+        badge: "Ctrl + ↓ / ↑",
+        keywords: "move subsection step section directly jump ctrl down up arrow shortcut binding"
       },
       {
         category: "KEYBOARD SHORTCUTS",
@@ -4502,24 +4420,24 @@ INSTRUCTIONS:
         category: "KEYBOARD SHORTCUTS",
         title: "Directory Tree Drawer",
         subtitle: "Toggle section tree drawer sticked to the left side of page",
-        badge: "N",
+        badge: "Ctrl + ,",
         keywords: "directory tree drawer sections table of contents navigation sticked left side shortcut binding",
         action: () => openTreeExplicitly(true)
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        title: "Universal Search & Command Palette",
+        title: "Universal Search & Commands",
         subtitle: "Focus top search bar to search website, shortcuts, settings, and sections",
-        badge: "/",
+        badge: "Ctrl + /",
         keywords: "universal search command palette search bar slash find everything shortcut binding",
         action: () => focusNavSearchBar()
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        title: "DuckDuckGo Doubt Solver",
+        title: "Gemini AI Doubt Solver",
         subtitle: "Toggle AI doubt solver drawer sticked to the right side of page",
-        badge: "M",
-        keywords: "doubt solver doubt ai duckduckgo ddg questions answers right drawer sticked right side shortcut binding",
+        badge: "Ctrl + .",
+        keywords: "doubt solver doubt ai google gemini questions answers right drawer shortcut binding",
         action: () => openDoubtSolver()
       },
       {
@@ -4542,42 +4460,12 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        title: "Account Dossier",
-        subtitle: "Toggle institutional profile, user clearance role, and sessions",
-        badge: "[",
-        keywords: "account dossier profile clearance role user session brackets shortcut binding",
-        action: () => {
-          if (accountWrapper) {
-            if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-            if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-            accountWrapper.classList.toggle("is-open");
-          }
-        }
-      },
-      {
-        category: "KEYBOARD SHORTCUTS",
-        title: "Display Settings Panel",
-        subtitle: "Toggle high-contrast themes, typography scale, and font styles",
-        badge: "]",
-        keywords: "display settings panel preferences contrast font size style typography brackets shortcut binding",
-        action: () => {
-          if (settingsWrapper) {
-            if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-            if (accountWrapper) accountWrapper.classList.remove("is-open");
-            settingsWrapper.classList.toggle("is-open");
-          }
-        }
-      },
-      {
-        category: "KEYBOARD SHORTCUTS",
         title: "Shortcuts Cheatsheet",
         subtitle: "Open the complete institutional keyboard shortcuts reference",
         badge: "?",
         keywords: "shortcuts panel cheatsheet keyboard reference help question mark shortcut binding",
         action: () => {
           if (shortcutsWrapper) {
-            if (accountWrapper) accountWrapper.classList.remove("is-open");
-            if (settingsWrapper) settingsWrapper.classList.remove("is-open");
             shortcutsWrapper.classList.toggle("is-open");
           }
         }
@@ -4594,13 +4482,6 @@ INSTRUCTIONS:
           closeNavSearchResults();
           clearFinderHighlights();
         }
-      },
-      {
-        category: "KEYBOARD SHORTCUTS",
-        title: "Send Forum Broadcast",
-        subtitle: "Publish query or finding to the anonymous institutional forum",
-        badge: "Ctrl + ↵",
-        keywords: "send forum broadcast publish post enter ctrl return comment shortcut binding"
       }
     ];
   }
@@ -4693,7 +4574,7 @@ INSTRUCTIONS:
         icon: "🌳",
         title: "Directory Sections Tree",
         subtitle: "Toggle section tree drawer sticked to left side",
-        badge: "N",
+        badge: "Ctrl + ,",
         keywords: "directory tree rail sections table of contents drawer navigation",
         action: () => openTreeExplicitly(true)
       },
@@ -4701,8 +4582,8 @@ INSTRUCTIONS:
         category: "NAVIGATION & PANELS",
         icon: "✨",
         title: "Gemini AI Doubt Solver",
-        subtitle: "Ask questions, resolve doubts, and scan screen with Google Gemini 1.5 Flash",
-        badge: "M",
+        subtitle: "Ask questions, resolve doubts, and scan screen with Google Gemini",
+        badge: "Ctrl + .",
         keywords: "doubt solver gemini ai google duckduckgo ddg explainer question ask search",
         action: () => openDoubtSolver()
       },
