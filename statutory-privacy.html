@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Statutory &amp; Privacy Dossier — IndexIndia</title>
+  <meta name="description" content="Official statutory disclosures, SEBI non-advisory compliance, Gemini AI telemetry & accuracy limits, privacy covenants, and sovereign settlement terms.">
+  <link rel="stylesheet" href="styles.css?v=9.1">
+</head>
+<body class="theme-light">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="top-nav" id="top-nav">
+    <div class="nav-left">
+      <!-- Segmented switch button on top left [Guide | Index] -->
+      <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
+        <a href="guide.html" class="switch-btn" id="btn-guide" role="tab" aria-selected="false" title="Switch to Guide (Tab)">
+          Guide
+        </a>
+        <a href="index.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false" title="Switch to Index (Tab)">
+          Index
+        </a>
+      </nav>
+      <!-- RIGID ALWAYS SEARCH BAR BESIDE GUIDE <=> INDEX BUTTON -->
+      <div class="nav-search-bar-wrapper" id="nav-search-bar-wrapper">
+        <div class="nav-search-bar" id="nav-search-bar">
+          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="search (/)" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+      </div>
+    </div>
+
+    <!-- Top Right Nav Buttons, Account and Settings -->
+    <div class="nav-right">
+      <!-- Directory Tree Round Button -->
+      <div class="panel-trigger-wrapper" id="nav-tree-wrapper">
+        <button type="button" class="icon-btn" id="nav-tree-toggle-btn" aria-label="Directory Tree Navigation" title="Directory Tree Navigation ( Ctrl + , )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Gemini AI Round Button -->
+      <div class="panel-trigger-wrapper" id="doubt-nav-wrapper">
+        <button type="button" class="icon-btn" id="doubt-nav-btn" aria-label="Gemini AI Doubt Solver" title="Gemini AI Doubt Solver ( Ctrl + . )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Expand / Hide Top Bar Button -->
+      <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
+        <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar" title="Full Screen / Hide Top Bar ( Ctrl + ' )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Edit / Annotations Button -->
+      <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
+        <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools" title="Edit &amp; Annotations ( Ctrl + ; )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            <path d="m15 5 4 4"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Shortcuts Button -->
+      <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
+        <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts" title="Keyboard Shortcuts ( Ctrl + \ )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel shortcuts-panel" id="shortcuts-panel" role="region" aria-label="Keyboard Shortcuts">
+          <div class="shortcuts-group">
+            <div class="shortcuts-group-title">NAVIGATION &amp; SUITE</div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Switch Guide &hArr; Index</span>
+              <span class="shortcut-keys"><kbd>Tab</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Move Section</span>
+              <span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Move Subsection</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Scroll Page</span>
+              <span class="shortcut-keys"><kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Directory Tree Drawer</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>,</kbd></span>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="shortcuts-group">
+            <div class="shortcuts-group-title">COMMANDS &amp; PREFERENCES</div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Shortcuts Panel</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>\</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Universal Search &amp; Commands</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>/</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">AI Doubt Solver</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>.</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Edit &amp; Markup Tools</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>;</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Full Screen (Toggle Top Bar)</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>'</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Toggle Background Grid</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>[</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Toggle Dark / Light Theme</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>]</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Close Open Overlays</span>
+              <span class="shortcut-keys"><kbd>Esc</kbd></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPGRADE MEMBERSHIP BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="upgrade-nav-wrapper">
+        <a href="membership.html" class="icon-btn" id="upgrade-nav-btn" aria-label="Sovereign Upgrade &amp; Membership" title="Upgrade Membership">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </a>
+
+        <div class="hover-flyout-panel upgrade-panel" id="upgrade-panel" role="region" aria-label="Membership Status &amp; Upgrade">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-role-badge" id="nav-upgrade-badge" style="display:none;"></span>
+              <span class="user-id" id="nav-upgrade-status">MEMBERSHIP</span>
+            </div>
+          </div>
+
+          <div class="panel-divider" style="margin: 8px 0 10px;"></div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Current Plan:</span>
+              <strong style="color: var(--text-primary);" id="nav-current-plan-name">Standard Access</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Status:</span>
+              <span class="status-verified font-mono" id="nav-current-plan-status" style="font-size: 0.72rem; font-weight: 700;">● Active</span>
+            </div>
+          </div>
+
+          <a href="membership.html" class="account-btn-action" id="nav-upgrade-cta-btn" style="margin-top: 12px; background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            ⚡ Upgrade to Premium Plan
+          </a>
+        </div>
+      </div>
+
+      <!-- ACCOUNT BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="account-wrapper">
+        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
+          <div class="panel-header">
+            <div class="panel-user-meta">
+              <span class="user-id">ACCOUNT DOSSIER</span>
+            </div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Connecting">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Initializing
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); padding: 8px 0; font-family: var(--font-mono);">
+            Synchronizing authentication telemetry...
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="settings-wrapper">
+        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" title="Display Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
+          <div class="panel-section-title">VIEW PREFERENCES</div>
+
+          <!-- Font Size Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Size</span>
+            <div class="custom-dropdown" id="dropdown-font-size">
+              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-size-label">Medium</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small (13px)</button>
+                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium" role="option">Medium (15px)</button>
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large (17.5px)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Font Style Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Style</span>
+            <div class="custom-dropdown" id="dropdown-font-style">
+              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-style-label">Long Reading</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading" role="option">Long Reading (Clean Sans)</button>
+                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter" role="option">Typewriter (Monospace)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="setting-toggle-row">
+            <label for="grid-toggle">Background Grid</label>
+            <input type="checkbox" id="grid-toggle" checked>
+          </div>
+          <div class="setting-toggle-row">
+            <label for="contrast-toggle">Dark Theme</label>
+            <input type="checkbox" id="contrast-toggle">
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Floating Restore Top Bar Button (Visible when top bar is hidden) -->
+  <button type="button" class="nav-restore-float-btn" id="nav-restore-float-btn" aria-label="Restore Top Navigation Bar" title="Restore Top Bar ( Ctrl + ' )">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"></path>
+    </svg>
+  </button>
+
+  <!-- ================= LEFT RAIL (Pure Ticks & Directory Tree Flyout) ================= -->
+  <aside class="rail-navigator" id="rail-navigator" aria-label="Left Rail Reference Ticks and Directory Navigator">
+    <!-- Hover Flyout Directory Tree Panel -->
+    <div class="rail-tree-panel" id="rail-tree-panel" role="region" aria-label="Directory Navigation Tree">
+      <div class="rail-tree-header" id="rail-tree-header">
+        <div class="rail-tree-header-meta">
+          <span class="rail-tree-tag font-mono">SECTIONS</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 08</span>
+        </div>
+        <div class="rail-tree-header-actions">
+          <button type="button" class="rail-header-btn close-btn" id="btn-close-tree" title="Close drawer (Esc or Space)" aria-label="Close Directory Tree">
+            <span class="font-mono">&times;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="rail-tree-body">
+        <div class="tree-content-scroll" id="tree-content-scroll">
+          <div class="tree-section-header">STATUTORY &amp; PRIVACY DOSSIER</div>
+          <a href="#sec-sebi-disclaimer" class="tree-node active" data-index="0">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">01. Investment Advice &amp; SEBI Compliance</span>
+            <span class="tree-badge font-mono">01</span>
+          </a>
+          <a href="#sec-ai-telemetry" class="tree-node" data-index="1">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">02. Gemini AI Telemetry &amp; Accuracy</span>
+            <span class="tree-badge font-mono">02</span>
+          </a>
+          <a href="#sec-terms-service" class="tree-node" data-index="2">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">03. Terms of Sovereign Clearance</span>
+            <span class="tree-badge font-mono">03</span>
+          </a>
+          <a href="#sec-privacy-policy" class="tree-node" data-index="3">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">04. Privacy Policy (Zero Data Selling)</span>
+            <span class="tree-badge font-mono">04</span>
+          </a>
+          <a href="#sec-fair-dealing" class="tree-node" data-index="4">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">05. Fair Dealing &amp; Research Diligence</span>
+            <span class="tree-badge font-mono">05</span>
+          </a>
+          <a href="#sec-merchant-settlement" class="tree-node" data-index="5">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">06. Cosmofeed &amp; Merchant Terms</span>
+            <span class="tree-badge font-mono">06</span>
+          </a>
+          <a href="#forum-section" class="tree-node" data-index="6">
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">07. Comments Directory Stream</span>
+            <span class="tree-badge font-mono">07</span>
+          </a>
+          <a href="#sec-footer" class="tree-node" data-index="7">
+            <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">08. Statutory Clearance Seal</span>
+            <span class="tree-badge font-mono">08</span>
+          </a>
+        </div>
+        <div class="tree-scrub-strip" id="tree-scrub-strip">
+          <div class="tree-scrub-indicator" id="tree-scrub-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN VIEWPORT CONTENT ================= -->
+  <main class="main-viewport-wrapper">
+    <div class="content-area" style="max-width: 980px; margin: 0 auto; padding: 24px 20px 80px;">
+
+      <div class="section-tag-row font-mono" style="margin-top: 8px;">
+        <span class="tag-bracket">[</span><span class="tag-text">STATUTORY JURISDICTION • REPUBLIC OF INDIA • SEBI &amp; COMPANIES ACT 2013</span><span class="tag-bracket">]</span>
+      </div>
+
+      <h1 class="institutional-title" style="margin-top: 12px; font-size: 2.2rem;">Statutory &amp; Privacy Governance Dossier</h1>
+      <p class="dossier-lead">
+        Comprehensive institutional disclosures, strict SEBI non-advisory covenants, Google Gemini AI usage limits, accuracy telemetry, zero-data-selling privacy protections, and sovereign merchant settlement terms.
+      </p>
+
+      <!-- ================= SECTION 01: SEBI & INVESTMENT ADVICE ================= -->
+      <section id="sec-sebi-disclaimer" class="page-directory-section" data-node-idx="0">
+        <div class="section-header-block">
+          <span class="section-badge font-mono">STATUTORY MANDATE • 01</span>
+          <h2 class="section-heading">01 — Strict Statutory &amp; Investment Non-Advisory Disclaimer</h2>
+        </div>
+        
+        <p class="story-narrative-lead">
+          All indices, ratios, telemetry streams, models, and forensic dossiers published by IndexIndia are provided strictly for educational, research, and technical diligence purposes.
+        </p>
+
+        <div class="statutory-content-block">
+          <h4 class="statutory-subhead font-mono">SEBI REGULATORY CLARIFICATION</h4>
+          <p>
+            IndexIndia (including its operators, researchers, contributors, and software developers) is <strong>not</strong> registered as an Investment Adviser under the Securities and Exchange Board of India (Investment Advisers) Regulations, 2013, nor as a Research Analyst entity under the SEBI (Research Analysts) Regulations, 2014, nor as a Portfolio Manager under the SEBI (Portfolio Managers) Regulations, 2020.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">NO FINANCIAL SOLICITATION OR RETURN GUARANTEES</h4>
+          <p>
+            No data point, computational ranking, forensic anomaly score, or automated observation generated on this platform constitutes an offer to buy, sell, or hold any security, derivative, commodity, or corporate debt instrument. No forward-looking return guarantees, alpha projections, or downside shielding assurances are made or implied. Past performance, backtested forensic models, and corporate historical filing correlations are not indicative of future market outcomes.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">INDEPENDENT DUE DILIGENCE MANDATE</h4>
+          <p>
+            Users and sovereign pass holders acknowledge that investment and corporate structuring involve substantial capital risk, including the loss of principal. Every user is solely responsible for conducting independent statutory, forensic, and financial due diligence, and must consult certified SEBI-registered professionals, Chartered Accountants (ICAI), Company Secretaries (ICSI), or qualified legal advocates before executing transactions or founding entities.
+          </p>
+        </div>
+
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">JURISDICTION: SEBI (INDIA)</span>
+          <span class="story-tag">STATUS: NON-ADVISORY RESEARCH</span>
+          <span class="story-tag status-ready">[STATUTORY COMPLIANT]</span>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 02: GEMINI AI TELEMETRY & ACCURACY ================= -->
+      <section id="sec-ai-telemetry" class="page-directory-section" data-node-idx="1">
+        <div class="section-header-block">
+          <span class="section-badge font-mono">AI INTELLIGENCE • 02</span>
+          <h2 class="section-heading">02 — Gemini AI Telemetry, Model Boundaries &amp; Accuracy Limits</h2>
+        </div>
+        
+        <p class="story-narrative-lead">
+          IndexIndia equips analysts with integrated Google Gemini artificial intelligence capabilities to expedite query resolution, statutory cross-referencing, and document synthesis.
+        </p>
+
+        <div class="statutory-content-block">
+          <h4 class="statutory-subhead font-mono">PROBABILISTIC LARGE LANGUAGE MODEL ARCHITECTURE</h4>
+          <p>
+            The Gemini AI Doubt Solver utilizes Google's foundation language models via secure edge telemetry (Cloudflare Workers / API gateway). Responses are computed probabilistically based on pattern matching, retrieved statutory context, and transformer token synthesis. While models are grounded on Indian regulatory statutes (Companies Act, 2013; SEBI LODR; LLP Act, 2008), automated responses may periodically hallucinate, omit recent MCA circular amendments, or misinterpret nuances of judicial precedent.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">NOT LEGAL, AUDIT, OR REGULATORY ADVICE</h4>
+          <p>
+            AI-generated answers, summaries, code, and comparisons are auxiliary reference guides only. They do not constitute formal legal opinions from an Advocate on Record, formal audit opinions from a statutory auditor, or binding administrative rulings from the Ministry of Corporate Affairs (MCA) or Registrar of Companies (ROC). Always corroborate critical filing codes, statutory due dates, and board quorum rules against official gazette notifications.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">RATE LIMITS, CONTEXT QUOTAS &amp; MODEL RETENTION</h4>
+          <p>
+            To prevent abuse and preserve institutional throughput, automated rate limits and sliding token windows apply to Gemini AI queries. Queries submitted through the Doubt Solver are processed in transient inference memory; neither IndexIndia nor its API gateways store prompt payloads for training public foundational machine learning models without express corporate clearance.
+          </p>
+        </div>
+
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">ENGINE: GOOGLE GEMINI LLM</span>
+          <span class="story-tag">TELEMETRY: EDGE-ISOLATED</span>
+          <span class="story-tag status-ready">[TELEMETRY SECURED]</span>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 03: TERMS OF SERVICE ================= -->
+      <section id="sec-terms-service" class="page-directory-section" data-node-idx="2">
+        <div class="section-header-block">
+          <span class="section-badge font-mono">SERVICE PROTOCOL • 03</span>
+          <h2 class="section-heading">03 — Terms &amp; Conditions of Sovereign Clearance</h2>
+        </div>
+        
+        <p class="story-narrative-lead">
+          Access to IndexIndia's proprietary directory nodes, high-density terminals, markups, and telemetry pipelines is governed by these contractual covenants.
+        </p>
+
+        <div class="statutory-content-block">
+          <h4 class="statutory-subhead font-mono">CLEARANCE GRANT &amp; SINGLE-ANALYST LICENSE</h4>
+          <p>
+            Purchasers of the Sovereign Pass or subscribers to institutional access tiers are granted a revocable, non-exclusive, non-transferable, single-analyst license to explore, query, and markup research datasets for their own internal business and analytical use. Credentials, session tokens, or sovereign pass clearances may not be shared, sublicensed, or redistributed across unauthorized enterprise networks.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">PROHIBITED AUTOMATED EXTRACTION (SCRAPING)</h4>
+          <p>
+            Users agree not to deploy automated crawlers, headless scraping scripts, botnets, or brute-force data exfiltration routines against IndexIndia's CDN endpoints, Supabase instances, or telemetry workers. Circumvention of rate-limiting throttles or authentication tokens will result in immediate clearance revocation without reimbursement.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">PLATFORM AVAILABILITY &amp; SYSTEM INTEGRITY</h4>
+          <p>
+            While IndexIndia strives for 99.9% uptime across its global CDN edge, access may occasionally be interrupted for scheduled statutory database schema updates, MCA filing API synchronizations, or upstream hosting provider maintenance. No liability is assumed for network latency or downstream diligence delays.
+          </p>
+        </div>
+
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">LICENSE: SINGLE ANALYST</span>
+          <span class="story-tag">RESTRICTION: ANTI-SCRAPING</span>
+          <span class="story-tag status-ready">[BINDING COVENANT]</span>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 04: PRIVACY POLICY ================= -->
+      <section id="sec-privacy-policy" class="page-directory-section" data-node-idx="3">
+        <div class="section-header-block">
+          <span class="section-badge font-mono">DATA SOVEREIGNTY • 04</span>
+          <h2 class="section-heading">04 — Privacy Policy &amp; Zero Third-Party Data Selling Guarantee</h2>
+        </div>
+        
+        <p class="story-narrative-lead">
+          We maintain an uncompromising institutional standard of user privacy. Your diligence trails, reading activity, and research annotations are strictly sovereign.
+        </p>
+
+        <div class="statutory-content-block">
+          <h4 class="statutory-subhead font-mono">ABSOLUTE ZERO-DATA-SELLING GUARANTEE</h4>
+          <p>
+            IndexIndia does <strong>NOT</strong> sell, rent, monetize, broker, or trade user identities, email addresses, payment receipts, search queries, or research behaviors to third-party advertisers, data broker clearinghouses, algorithmic hedge funds, or telemetry aggregators. We operate on a direct value exchange funded exclusively by membership clearance and sovereign research subscriptions.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">LOCAL-FIRST STORAGE &amp; MARKUP PRIVACY</h4>
+          <p>
+            Your interactive pen strokes, sticky note drafts, custom text boxes, section audit status ticks (Read / Important), font preferences, and theme choices are stored locally inside your personal browser through standard HTML5 <code>localStorage</code>. For authenticated users, cloud backups are synchronized exclusively to your encrypted Supabase user profile for device portability.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">PAYMENT CREDENTIAL ISOLATION</h4>
+          <p>
+            IndexIndia never accesses, stores, or processes complete Credit/Debit card numbers, CVVs, or NetBanking net passwords. All financial transactions are encapsulated within PCI-DSS Level 1 certified gateways (Razorpay Software Pvt. Ltd. and Cosmofeed) adhering to Reserve Bank of India tokenization directives.
+          </p>
+        </div>
+
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">DATA SELLING: ZERO TOLERANCE</span>
+          <span class="story-tag">STORAGE: LOCAL-FIRST</span>
+          <span class="story-tag status-ready">[SOVEREIGN PROTECTED]</span>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 05: FAIR DEALING & PUBLIC DOMAIN ================= -->
+      <section id="sec-fair-dealing" class="page-directory-section" data-node-idx="4">
+        <div class="section-header-block">
+          <span class="section-badge font-mono">STATUTORY DILIGENCE • 05</span>
+          <h2 class="section-heading">05 — Fair Dealing, Public Domain Diligence &amp; Copyright Compliance</h2>
+        </div>
+        
+        <p class="story-narrative-lead">
+          IndexIndia compiles, cross-references, and structures data derived from public regulatory filings, parliamentary acts, and sovereign court records under established fair dealing protections.
+        </p>
+
+        <div class="statutory-content-block">
+          <h4 class="statutory-subhead font-mono">STATUTORY FAIR DEALING COVENANT</h4>
+          <p>
+            All citations, statutory clauses, balance sheet classifications, and corporate filing references are published in strict conformity with <strong>Section 52(1)(a)(i) of the Copyright Act, 1957 (India)</strong>, which protects fair dealing for private or personal use, including research, scholarship, criticism, and review.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">PUBLIC SECTOR REGULATORY SOURCING</h4>
+          <p>
+            Primary source material originates from publicly published gazette notifications of the Ministry of Corporate Affairs (MCA), the Securities and Exchange Board of India (SEBI), Reserve Bank of India (RBI) master directions, Insolvency and Bankruptcy Board of India (IBBI) records, BSE/NSE regulatory disclosures, and orders of the National Company Law Tribunal (NCLT). IndexIndia adds substantial original analysis, structured taxonomies, and forensic cross-linking.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">CORRECTION &amp; NOTICE PROTOCOL</h4>
+          <p>
+            If any entity or legal counsel identifies an inadvertent discrepancy or statutory error in our compiled filings, prompt notice may be delivered via the forum stream or official diligence channels. Verified discrepancies are audited and corrected within standard 48-hour regulatory review cycles.
+          </p>
+        </div>
+
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">STATUTE: COPYRIGHT ACT 1957</span>
+          <span class="story-tag">DOCTRINE: SEC 52(1)(A) FAIR DEALING</span>
+          <span class="story-tag status-ready">[PUBLIC SOURCED]</span>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 06: MERCHANT SETTLEMENT & COSMOFEED ================= -->
+      <section id="sec-merchant-settlement" class="page-directory-section" data-node-idx="5">
+        <div class="section-header-block">
+          <span class="section-badge font-mono">COMMERCIAL CLEARANCE • 06</span>
+          <h2 class="section-heading">06 — Cosmofeed, Razorpay &amp; Sovereign Merchant Terms</h2>
+        </div>
+        
+        <p class="story-narrative-lead">
+          Financial settlement protocol, instant digital fulfillment timelines, billing currency, and dispute handling governed under Indian e-commerce legislation.
+        </p>
+
+        <div class="statutory-content-block">
+          <h4 class="statutory-subhead font-mono">SETTLEMENT GATEWAYS &amp; CURRENCY</h4>
+          <p>
+            Membership dues, lifetime passes, and institutional clearance orders are settled securely in Indian Rupees (INR) through authorized merchant partners, including Razorpay Software Pvt. Ltd. and Cosmofeed Technologies Pvt. Ltd. All advertised amounts are inclusive of statutory Goods and Services Tax (GST) as applicable under Indian tax laws.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">INSTANT DIGITAL PROVISIONING</h4>
+          <p>
+            Upon cryptographic confirmation of payment from the gateway webhook, your sovereign clearance tier is activated instantaneously in the browser session and recorded in your Supabase authentication record. No physical goods are shipped.
+          </p>
+
+          <h4 class="statutory-subhead font-mono">CANCELLATION &amp; REFUND PROTOCOL</h4>
+          <p>
+            In compliance with the Consumer Protection (E-Commerce) Rules, 2020: because IndexIndia provisions immediate, irrevocable digital clearance to high-density proprietary forensic databases and downloadable research blueprints, one-time passes and recurring subscriptions are non-refundable once digital activation has occurred, except in cases of proven gateway double-charging or technical failure preventing account access for over 7 consecutive business days.
+          </p>
+        </div>
+
+        <div class="story-meta-tags font-mono">
+          <span class="story-tag">CURRENCY: INR (&#8377;)</span>
+          <span class="story-tag">GATEWAYS: RAZORPAY / COSMOFEED</span>
+          <span class="story-tag status-ready">[INSTANT FULFILLMENT]</span>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 07: DIRECTORY TREE COMMENTS FORUM ================= -->
+      <section class="institutional-forum-section page-directory-section" id="forum-section" data-node-idx="6" aria-label="Directory Tree Comments Forum">
+        <div class="forum-header">
+          <span class="forum-tree-label font-mono">[COMMENTS &bull; DIRECTORY TREE]</span>
+          <span class="forum-user-identity font-mono">
+            <span class="identity-dot" aria-hidden="true"></span>
+            IDENTITY: <strong id="current-ist-username">ANON_--:--:--_IST</strong>
+          </span>
+        </div>
+
+        <!-- Directory tree messages container -->
+        <div class="forum-messages-container" id="forum-messages-list" role="feed" aria-live="polite">
+          <div class="forum-loading-state font-mono" id="forum-loading-indicator">Synchronizing comments tree...</div>
+        </div>
+
+        <!-- Compact single-row composer -->
+        <form class="compact-forum-composer" id="forum-composer" autocomplete="off">
+          <div class="compact-composer-row">
+            <span class="tree-branch-symbol font-mono">└──</span>
+            <input type="text" class="compact-composer-input font-mono" id="forum-input" maxlength="300" placeholder="Type new thread comment... (Enter to send as ANON_IST)" />
+            <button type="submit" class="compact-composer-send font-mono" id="forum-send-btn">SEND</button>
+            <button type="button" class="compact-composer-refresh font-mono" id="forum-refresh-btn" title="Sync live comments">&#x21bb;</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ================= SECTION 08: MANDATORY INSTITUTIONAL FOOTER ================= -->
+      <footer class="institutional-footer" id="sec-footer">
+        <div class="footer-grid">
+          <div class="footer-col-main">
+            <div class="footer-brand-title">INDEXINDIA &bull; RESEARCH ARM</div>
+            <p class="strict-legal-disclaimer">
+              <strong>STRICT STATUTORY DISCLAIMER:</strong> All content, models, and forensic reports provided on IndexIndia are strictly for educational and informational purposes only. This does not constitute financial, investment, or legal advice. IndexIndia is not a SEBI-registered investment advisor, portfolio manager, or research analyst entity under the SEBI (Research Analysts) Regulations, 2014. No forward-looking return guarantees are made or implied.
+            </p>
+          </div>
+          
+          <div class="footer-col-links">
+            <div class="footer-links-title">
+              <a href="statutory-privacy.html" class="footer-statutory-link">STATUTORY &amp; PRIVACY &rarr;</a>
+            </div>
+            <p class="footer-statutory-subtext font-mono">
+              Official institutional disclosures, Gemini AI usage limits &amp; accuracy telemetry, SEBI compliance notice, privacy policy, and sovereign settlement terms.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=8.7"></script>
+  <script src="script.js?v=9.1"></script>
+</body>
+</html>

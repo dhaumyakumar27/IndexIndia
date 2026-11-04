@@ -359,7 +359,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         treeHtml += `<a href="#${item.id}" class="tree-node${activeClass}" data-index="${idx}" data-level="${item.level}">
   <span class="tree-guide font-mono">${guide}</span>
-  <span class="tree-icon">${item.icon}</span>
   <span class="tree-name font-mono">${item.displayName}</span>
   <span class="tree-badge font-mono">${badge}</span>
 </a>\n`;
@@ -1638,7 +1637,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2. "?" toggles Keyboard Shortcuts Panel (strictly ? or Shift+/, no Ctrl, Alt, Meta)
-    if ((e.key === "?" || (e.shiftKey && e.key === "/")) && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    // 2. Shortcut Panel: Ctrl + \ (or ?)
+    if (((e.ctrlKey || e.metaKey) && (e.key === "\\" || e.code === "Backslash")) ||
+        ((e.key === "?" || (e.shiftKey && e.key === "/")) && !e.ctrlKey && !e.altKey && !e.metaKey)) {
       e.preventDefault();
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
@@ -1667,17 +1668,48 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 6. "E" toggles In-Page Edit & Annotation Panel (strictly alone, KeyE or 'e'/'E', no Ctrl, Alt, Meta)
-    if ((e.code === "KeyE" || e.key?.toLowerCase() === "e") && noModifiers) {
+    // 6. In-Page Edit & Annotation Panel: Ctrl + ;
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === ";" || e.code === "Semicolon")) {
       e.preventDefault();
       toggleAnnotationPanel();
       return;
     }
 
-    // 7. "F" toggles Top Bar (Expand Full-Height View) (strictly alone, KeyF or 'f'/'F', no Ctrl, Alt, Meta)
-    if ((e.code === "KeyF" || e.key?.toLowerCase() === "f") && noModifiers) {
+    // 7. Full Screen (Toggle Top Bar): Ctrl + '
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "'" || e.code === "Quote")) {
       e.preventDefault();
       toggleTopBar();
+      return;
+    }
+
+    // 7b. Toggle Background Grid: Ctrl + [
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "[" || e.code === "BracketLeft")) {
+      e.preventDefault();
+      const gridTog = document.getElementById("grid-toggle");
+      const isNoGrid = document.body.classList.toggle("no-grid");
+      if (gridTog) gridTog.checked = !isNoGrid;
+      try {
+        localStorage.setItem("indexindia_grid", isNoGrid ? "off" : "on");
+      } catch (e) {}
+      return;
+    }
+
+    // 7c. Toggle Dark/Light Mode Theme: Ctrl + ]
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "]" || e.code === "BracketRight")) {
+      e.preventDefault();
+      const contrastTog = document.getElementById("contrast-toggle");
+      const isDark = document.body.classList.contains("theme-dark");
+      if (isDark) {
+        document.body.classList.remove("theme-dark");
+        document.body.classList.add("theme-light");
+        if (contrastTog) contrastTog.checked = false;
+        localStorage.setItem("indexindia_theme", "light");
+      } else {
+        document.body.classList.add("theme-dark");
+        document.body.classList.remove("theme-light");
+        if (contrastTog) contrastTog.checked = true;
+        localStorage.setItem("indexindia_theme", "dark");
+      }
       return;
     }
 
@@ -1956,6 +1988,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function getForumPageId() {
     const p = window.location.pathname.toLowerCase().split("/").pop() || "index.html";
     if (p.includes("guide")) return "guide";
+    if (p.includes("statutory")) return "statutory";
+    if (p.includes("membership")) return "membership";
     if (p.includes("founder")) return "founder";
     if (p.includes("investor")) return "investor";
     if (p.includes("bottleneck")) return "bottleneck";
@@ -4445,7 +4479,7 @@ INSTRUCTIONS:
         icon: "✏️",
         title: "Edit & Markup Palette",
         subtitle: "Toggle floating annotation toolbar for sketching, highlights, text boxes, and sticky notes",
-        badge: "E",
+        badge: "Ctrl + ;",
         keywords: "edit markup palette annotations pencil sketch highlight text box sticky note draw tools shortcut binding",
         action: () => toggleAnnotationPanel()
       },
@@ -4454,16 +4488,37 @@ INSTRUCTIONS:
         icon: "⤢",
         title: "Expand Full View (Toggle Top Bar)",
         subtitle: "Hide top bar (Guide, Index, Search) for distraction-free reading",
-        badge: "F",
+        badge: "Ctrl + '",
         keywords: "expand full view toggle top bar hide top bar header guide index search shortcut binding",
         action: () => toggleTopBar()
       },
       {
         category: "KEYBOARD SHORTCUTS",
+        title: "Toggle Background Grid",
+        subtitle: "Toggle subtle background alignment grid",
+        badge: "Ctrl + [",
+        keywords: "toggle grid background lines alignment shortcut binding",
+        action: () => {
+          const gridTog = document.getElementById("grid-toggle");
+          const isNoGrid = document.body.classList.toggle("no-grid");
+          if (gridTog) gridTog.checked = !isNoGrid;
+          try { localStorage.setItem("indexindia_grid", isNoGrid ? "off" : "on"); } catch (e) {}
+        }
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
+        title: "Toggle Dark / Light Theme",
+        subtitle: "Switch between dark OLED theme and clean light theme",
+        badge: "Ctrl + ]",
+        keywords: "toggle dark light mode contrast theme appearance shortcut binding",
+        action: () => toggleThemeMode()
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
         title: "Shortcuts Cheatsheet",
         subtitle: "Open the complete institutional keyboard shortcuts reference",
-        badge: "?",
-        keywords: "shortcuts panel cheatsheet keyboard reference help question mark shortcut binding",
+        badge: "Ctrl + \\",
+        keywords: "shortcuts panel cheatsheet keyboard reference help backslash shortcut binding",
         action: () => {
           if (shortcutsWrapper) {
             shortcutsWrapper.classList.toggle("is-open");
@@ -4631,7 +4686,9 @@ INSTRUCTIONS:
     // Core Hubs & Modular Directories
     const HUB_PAGES = [
       { title: "Guide Landing — The Complete Indian Entity & Registration Matrix", file: "guide.html", sub: "Definitive statutory index of all business structures", kw: "guide entities registration matrix corporate companies" },
-      { title: "Index Landing — Sovereign Governance Index Terminal", file: "index.html", sub: "Indian equity markets overview & forensic governance index", kw: "index market marketcap valuation multiples forensic" }
+      { title: "Index Landing — Sovereign Governance Index Terminal", file: "index.html", sub: "Indian equity markets overview & forensic governance index", kw: "index market marketcap valuation multiples forensic" },
+      { title: "Statutory & Privacy Dossier — Legal Disclosures & AI Telemetry", file: "statutory-privacy.html", sub: "SEBI non-advisory mandate, Gemini AI telemetry, privacy policy", kw: "statutory privacy legal sebi disclaimer gemini terms compliance refund cosmofeed razorpay" },
+      { title: "Sovereign Clearance & Memberships", file: "membership.html", sub: "Institutional access tiers & forensic models", kw: "membership pricing upgrade clearance access plan" }
     ];
 
     HUB_PAGES.forEach((hub) => {
@@ -5212,18 +5269,20 @@ INSTRUCTIONS:
         <button type="button" class="textbox-delete-btn" title="Delete Box">&times;</button>
       </div>
       <div class="textbox-content" contenteditable="true" placeholder="Type text here...">${tb.text || ""}</div>
+      <div class="textbox-resize-handle" title="Drag to resize"></div>
     `;
 
     const header = el.querySelector(".textbox-header");
     const content = el.querySelector(".textbox-content");
     const delBtn = el.querySelector(".textbox-delete-btn");
+    const resizeHandle = el.querySelector(".textbox-resize-handle");
 
     // Draggable header & select-mode move
     let isMoving = false;
     let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
 
     function startBoxDrag(e) {
-      if (e.target === delBtn) return;
+      if (e.target === delBtn || e.target === resizeHandle) return;
       isMoving = true;
       startX = e.pageX;
       startY = e.pageY;
@@ -5254,6 +5313,37 @@ INSTRUCTIONS:
     };
     header.addEventListener("pointerup", stopMove);
     header.addEventListener("pointercancel", stopMove);
+
+    // Explicit interactive resize handle
+    if (resizeHandle) {
+      let isResizing = false;
+      let rStartX = 0, rStartY = 0, rStartW = 0, rStartH = 0;
+      resizeHandle.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        isResizing = true;
+        rStartX = e.pageX;
+        rStartY = e.pageY;
+        rStartW = el.offsetWidth;
+        rStartH = el.offsetHeight;
+        resizeHandle.setPointerCapture(e.pointerId);
+      });
+      resizeHandle.addEventListener("pointermove", (e) => {
+        if (!isResizing) return;
+        const newW = Math.max(120, rStartW + (e.pageX - rStartX));
+        const newH = Math.max(60, rStartH + (e.pageY - rStartY));
+        el.style.width = `${newW}px`;
+        el.style.height = `${newH}px`;
+      });
+      const stopResize = () => {
+        if (!isResizing) return;
+        isResizing = false;
+        tb.width = el.offsetWidth;
+        tb.height = el.offsetHeight;
+        saveAnnotations();
+      };
+      resizeHandle.addEventListener("pointerup", stopResize);
+      resizeHandle.addEventListener("pointercancel", stopResize);
+    }
 
     // Save text changes
     content.addEventListener("input", () => {
@@ -5307,14 +5397,74 @@ INSTRUCTIONS:
           <button type="button" class="sticky-note-del-btn" title="Delete Note">&times;</button>
         </div>
         <textarea class="sticky-note-textarea" placeholder="Write sticky note here...">${sn.text || ""}</textarea>
+        <div class="sticky-note-resize-handle" title="Drag to resize"></div>
         <span class="sticky-note-click-hint">Hover to expand • Click to edit • Drag to move</span>
       </div>
     `;
 
     const pin = el.querySelector(".sticky-note-pin");
+    const card = el.querySelector(".sticky-note-card");
     const header = el.querySelector(".sticky-note-header");
     const textarea = el.querySelector(".sticky-note-textarea");
     const delBtn = el.querySelector(".sticky-note-del-btn");
+    const snResize = el.querySelector(".sticky-note-resize-handle");
+
+    // Load saved or remembered width and height
+    const rememberedW = sn.width || parseInt(localStorage.getItem("indexindia_stickynote_width"), 10) || 260;
+    const rememberedH = sn.height || parseInt(localStorage.getItem("indexindia_stickynote_height"), 10) || 160;
+    if (card) {
+      card.style.width = `${rememberedW}px`;
+      card.style.height = `${rememberedH}px`;
+    }
+
+    // Sticky Note Resizing Logic
+    if (snResize && card) {
+      let isResizingSn = false;
+      let snStartX = 0, snStartY = 0, snStartW = 0, snStartH = 0;
+      snResize.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        isResizingSn = true;
+        snStartX = e.pageX;
+        snStartY = e.pageY;
+        snStartW = card.offsetWidth;
+        snStartH = card.offsetHeight;
+        snResize.setPointerCapture(e.pointerId);
+      });
+      snResize.addEventListener("pointermove", (e) => {
+        if (!isResizingSn) return;
+        const newW = Math.max(200, snStartW + (e.pageX - snStartX));
+        const newH = Math.max(120, snStartH + (e.pageY - snStartY));
+        card.style.width = `${newW}px`;
+        card.style.height = `${newH}px`;
+      });
+      const stopSnResize = () => {
+        if (!isResizingSn) return;
+        isResizingSn = false;
+        sn.width = card.offsetWidth;
+        sn.height = card.offsetHeight;
+        try {
+          localStorage.setItem("indexindia_stickynote_width", sn.width);
+          localStorage.setItem("indexindia_stickynote_height", sn.height);
+        } catch (e) {}
+        saveAnnotations();
+      };
+      snResize.addEventListener("pointerup", stopSnResize);
+      snResize.addEventListener("pointercancel", stopSnResize);
+
+      card.addEventListener("mouseup", () => {
+        const curW = card.offsetWidth;
+        const curH = card.offsetHeight;
+        if (curW !== sn.width || curH !== sn.height) {
+          sn.width = curW;
+          sn.height = curH;
+          try {
+            localStorage.setItem("indexindia_stickynote_width", curW);
+            localStorage.setItem("indexindia_stickynote_height", curH);
+          } catch (e) {}
+          saveAnnotations();
+        }
+      });
+    }
 
     function setupDrag(dragTarget) {
       let isDragging = false;
@@ -5322,7 +5472,7 @@ INSTRUCTIONS:
       let hasMoved = false;
 
       dragTarget.addEventListener("pointerdown", (e) => {
-        if (e.target === delBtn) return;
+        if (e.target === delBtn || e.target === snResize) return;
         isDragging = true;
         hasMoved = false;
         startX = e.pageX;
@@ -5597,17 +5747,36 @@ INSTRUCTIONS:
     let minY = Math.min(boxStartY, e.pageY);
     let w = Math.abs(e.pageX - boxStartX);
     let h = Math.abs(e.pageY - boxStartY);
-    if (w < 35 || h < 25) {
-      w = 240;
-      h = 100;
+
+    // If user made a text selection on the page, use the exact selected text area
+    const sel = window.getSelection();
+    let initialText = "";
+    if (sel && !sel.isCollapsed && sel.toString().trim()) {
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      minX = rect.left + window.scrollX;
+      minY = rect.bottom + window.scrollY + 6;
+      w = Math.max(160, Math.round(rect.width));
+      h = Math.max(70, Math.round(rect.height + 30));
+      initialText = sel.toString().trim();
+      sel.removeAllRanges();
+    } else {
+      if (w < 20 && h < 20) {
+        w = 200;
+        h = 80;
+      } else {
+        w = Math.max(120, w);
+        h = Math.max(60, h);
+      }
     }
+
     const newTb = {
       id: `tb_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       left: Math.round(minX),
       top: Math.round(minY),
       width: Math.round(w),
       height: Math.round(h),
-      text: "",
+      text: initialText,
       color: annotationState.activeColor
     };
     annotationsData.textboxes.push(newTb);
@@ -6178,6 +6347,7 @@ INSTRUCTIONS:
   // --- 14. OPEN / CLOSE PALETTE CONTROLS ---
   openAnnotationPanel = function() {
     annotationState.isOpen = true;
+    document.body.classList.add("is-annotating");
     if (editAnnotationBar) editAnnotationBar.classList.add("is-visible");
     if (editNavBtn) editNavBtn.classList.add("is-active");
     syncAnnotationCanvasDimensions();
@@ -6187,6 +6357,7 @@ INSTRUCTIONS:
 
   closeAnnotationPanel = function() {
     annotationState.isOpen = false;
+    document.body.classList.remove("is-annotating");
     if (editAnnotationBar) editAnnotationBar.classList.remove("is-visible");
     if (editNavBtn) editNavBtn.classList.remove("is-active");
     if (stickerPopover) stickerPopover.classList.remove("is-open");
@@ -6268,9 +6439,189 @@ INSTRUCTIONS:
     }
   });
 
+  // Global Eraser Action (Click or Drag over any stroke, highlight, box, note, or sticker)
+  function handleEraserAction(e) {
+    if (!annotationState.isOpen || annotationState.activeTool !== "eraser") return;
+    const target = e.target;
+    if (target) {
+      const stroke = target.closest(".annotation-stroke");
+      if (stroke) {
+        deleteAnnotationItem(stroke.getAttribute("data-id"), "stroke");
+        return;
+      }
+      const tb = target.closest(".user-annotation-textbox");
+      if (tb) {
+        deleteAnnotationItem(tb.getAttribute("data-id"), "textbox");
+        return;
+      }
+      const sn = target.closest(".user-annotation-stickynote");
+      if (sn) {
+        deleteAnnotationItem(sn.getAttribute("data-id"), "stickynote");
+        return;
+      }
+      const stk = target.closest(".user-annotation-sticker");
+      if (stk) {
+        deleteAnnotationItem(stk.getAttribute("data-id"), "sticker");
+        return;
+      }
+      const hl = target.closest("mark.user-annotation-highlight");
+      if (hl) {
+        deleteAnnotationItem(hl.getAttribute("data-id"), "highlight");
+        return;
+      }
+    }
+
+    // Proximity check on SVG strokes
+    const x = e.pageX;
+    const y = e.pageY;
+    if (annotationsData.strokes && annotationsData.strokes.length > 0) {
+      for (const stroke of annotationsData.strokes) {
+        if (stroke.points && stroke.points.some((p) => Math.hypot(p.x - x, p.y - y) <= 22)) {
+          deleteAnnotationItem(stroke.id, "stroke");
+          return;
+        }
+      }
+    }
+  }
+
+  document.addEventListener("pointerdown", (e) => {
+    if (annotationState.isOpen && annotationState.activeTool === "eraser") {
+      if (isInsideNavigationPanels(e) || e.target.closest(".edit-annotation-bar")) return;
+      handleEraserAction(e);
+    }
+  });
+
+  document.addEventListener("pointermove", (e) => {
+    if (annotationState.isOpen && annotationState.activeTool === "eraser" && e.buttons > 0) {
+      if (isInsideNavigationPanels(e) || e.target.closest(".edit-annotation-bar")) return;
+      handleEraserAction(e);
+    }
+  });
+
+  // Section Read & Important Audit System (Toggled in Edit Mode, Stays Visible After Edit Closes)
+  function initSectionAuditControls() {
+    const pageId = getForumPageId();
+    const storageKey = `indexindia_section_audit_${pageId}`;
+    let auditData = {};
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) auditData = JSON.parse(raw);
+    } catch (e) {}
+
+    const sections = document.querySelectorAll(".page-directory-section");
+    sections.forEach((section, idx) => {
+      const sectionId = section.id || `section_${idx}`;
+      let state = auditData[sectionId] || { read: false, important: false };
+
+      let badgeWrap = section.querySelector(".section-audit-badge-wrap");
+      if (!badgeWrap) {
+        badgeWrap = document.createElement("div");
+        badgeWrap.className = "section-audit-badge-wrap";
+        badgeWrap.setAttribute("data-section-id", sectionId);
+
+        const targetAnchor = section.querySelector("h2, h1, .section-tag-row");
+        if (targetAnchor && targetAnchor.parentNode) {
+          targetAnchor.parentNode.insertBefore(badgeWrap, targetAnchor);
+        } else {
+          section.insertBefore(badgeWrap, section.firstChild);
+        }
+      }
+
+      function updateBadgeView() {
+        const isRead = Boolean(state.read);
+        const isImp = Boolean(state.important);
+
+        let statusClass = "status-none";
+        let statusHtml = "";
+        let statusTitle = "Click to set section read/important status";
+
+        // Read is 1 tick mark (Green), Important is 2 tick mark lines (Orange), Both is 2 tick mark lines (Yellow)
+        if (isRead && isImp) {
+          statusClass = "status-both";
+          statusHtml = `<span class="audit-ticks">&#10003;&#10003;</span> <span class="audit-label font-mono">READ &amp; IMPORTANT</span>`;
+          statusTitle = "Section marked Read & Important (Yellow ✓✓)";
+        } else if (isImp) {
+          statusClass = "status-important";
+          statusHtml = `<span class="audit-ticks">&#10003;&#10003;</span> <span class="audit-label font-mono">IMPORTANT</span>`;
+          statusTitle = "Section marked Important (Orange ✓✓)";
+        } else if (isRead) {
+          statusClass = "status-read";
+          statusHtml = `<span class="audit-ticks">&#10003;</span> <span class="audit-label font-mono">READ</span>`;
+          statusTitle = "Section marked Read (Green ✓)";
+        } else {
+          statusClass = "status-none";
+          statusHtml = `<span class="audit-ticks">&#9675;</span> <span class="audit-label font-mono">UNMARKED</span>`;
+          statusTitle = "Section unread";
+        }
+
+        badgeWrap.innerHTML = `
+          <div class="section-status-indicator ${statusClass}" title="${statusTitle}">
+            ${statusHtml}
+          </div>
+          <div class="section-audit-toggles">
+            <button type="button" class="audit-toggle-btn btn-toggle-read${isRead ? " active" : ""}" title="Tick section as read (Green ✓)">
+              <span>&#10003; Read</span>
+            </button>
+            <button type="button" class="audit-toggle-btn btn-toggle-important${isImp ? " active" : ""}" title="Tick section as important (Orange ✓✓)">
+              <span>&#10003;&#10003; Important</span>
+            </button>
+          </div>
+        `;
+
+        auditData[sectionId] = state;
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(auditData));
+        } catch (e) {}
+
+        const indicator = badgeWrap.querySelector(".section-status-indicator");
+        const readBtn = badgeWrap.querySelector(".btn-toggle-read");
+        const impBtn = badgeWrap.querySelector(".btn-toggle-important");
+
+        if (indicator) {
+          indicator.addEventListener("click", () => {
+            // Cycle: None -> Read -> Important -> Both -> None
+            if (!state.read && !state.important) {
+              state.read = true;
+              state.important = false;
+            } else if (state.read && !state.important) {
+              state.read = false;
+              state.important = true;
+            } else if (!state.read && state.important) {
+              state.read = true;
+              state.important = true;
+            } else {
+              state.read = false;
+              state.important = false;
+            }
+            updateBadgeView();
+          });
+        }
+
+        if (readBtn) {
+          readBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            state.read = !state.read;
+            updateBadgeView();
+          });
+        }
+
+        if (impBtn) {
+          impBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            state.important = !state.important;
+            updateBadgeView();
+          });
+        }
+      }
+
+      updateBadgeView();
+    });
+  }
+
   // Re-sync canvas and load saved notes
   syncAnnotationCanvasDimensions();
   loadAnnotations();
+  initSectionAuditControls();
   window.addEventListener("resize", syncAnnotationCanvasDimensions);
   window.addEventListener("scroll", syncAnnotationCanvasDimensions, { passive: true });
 

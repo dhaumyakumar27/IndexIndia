@@ -5451,6 +5451,23 @@ body.theme-dark .palette-tool-btn.active .palette-tool-icon svg {
   transition: box-shadow 0.15s ease;
 }
 
+.textbox-resize-handle {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, var(--box-border-color, var(--accent, #FF6B35)) 50%);
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.textbox-resize-handle:hover {
+  opacity: 1;
+}
+
 body.theme-dark .user-annotation-textbox {
   background: rgba(22, 26, 34, 0.95);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
@@ -5551,18 +5568,39 @@ body.theme-dark .user-annotation-textbox {
   position: absolute;
   top: 34px;
   left: -12px;
-  width: 250px;
+  width: 260px;
+  min-width: 220px;
+  min-height: 120px;
   background: var(--bg-card);
   border: 1.5px solid var(--note-color, var(--border-primary));
   border-radius: 8px;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
   padding: 10px 12px;
+  resize: both;
+  overflow: hidden;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);
   transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
   z-index: 70;
   font-family: inherit;
+}
+
+.sticky-note-resize-handle {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, var(--note-color, var(--accent, #FF6B35)) 50%);
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.sticky-note-resize-handle:hover {
+  opacity: 1;
 }
 
 body.theme-dark .sticky-note-card {
@@ -5711,8 +5749,152 @@ body.annotation-mode-eraser * {
   cursor: crosshair !important;
 }
 
+body.annotation-mode-eraser #annotation-svg-canvas {
+  pointer-events: auto !important;
+}
+
+body.annotation-mode-eraser .annotation-stroke {
+  pointer-events: stroke !important;
+  cursor: crosshair !important;
+}
+
+body.annotation-mode-eraser .user-annotation-textbox,
+body.annotation-mode-eraser .user-annotation-stickynote,
+body.annotation-mode-eraser .user-annotation-sticker,
+body.annotation-mode-eraser mark.user-annotation-highlight {
+  cursor: crosshair !important;
+  pointer-events: auto !important;
+}
+
 body.annotation-mode-sketch {
   user-select: none;
+}
+
+/* ==========================================================================
+   SECTION READ & IMPORTANT AUDIT BADGES & TOGGLES
+   ========================================================================== */
+.section-audit-badge-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  user-select: none;
+}
+
+.section-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+/* 1. Read: 1 tick mark (Green: #34D399) */
+.section-status-indicator.status-read {
+  background: rgba(52, 211, 153, 0.14);
+  color: #34D399;
+  border: 1px solid rgba(52, 211, 153, 0.45);
+}
+
+/* 2. Important: 2 tick marks (Orange: #FF6B35) */
+.section-status-indicator.status-important {
+  background: rgba(255, 107, 53, 0.14);
+  color: #FF6B35;
+  border: 1px solid rgba(255, 107, 53, 0.45);
+}
+
+/* 3. Both Read and Important: 2 tick marks (Yellow: #FFE066) */
+.section-status-indicator.status-both {
+  background: rgba(255, 224, 102, 0.16);
+  color: #FFE066;
+  border: 1px solid rgba(255, 224, 102, 0.5);
+}
+
+.section-status-indicator.status-none {
+  display: none;
+}
+
+body.is-annotating .section-status-indicator.status-none {
+  display: inline-flex;
+  color: var(--text-tertiary);
+  border: 1px dashed var(--border-subtle);
+  background: transparent;
+}
+
+.section-audit-toggles {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+body.is-annotating .section-audit-toggles {
+  display: inline-flex;
+}
+
+.audit-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.audit-toggle-btn:hover {
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.audit-toggle-btn.active.btn-toggle-read {
+  background: rgba(52, 211, 153, 0.16);
+  color: #34D399;
+  border-color: #34D399;
+}
+
+.audit-toggle-btn.active.btn-toggle-important {
+  background: rgba(255, 107, 53, 0.16);
+  color: #FF6B35;
+  border-color: #FF6B35;
+}
+
+/* Single statutory footer link */
+.footer-statutory-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s ease;
+}
+
+.footer-statutory-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.footer-statutory-subtext {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: 6px;
+  max-width: 420px;
 }
 
 /* ==========================================================================
@@ -6089,6 +6271,56 @@ body.theme-dark .user-annotation-sticker .sticker-inner {
   color: #FFFFFF;
   border-color: var(--danger, #EF4444);
 }
+
+/* ==========================================================================
+   STATUTORY & PRIVACY DOSSIER STYLING
+   ========================================================================== */
+.statutory-content-block {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.statutory-content-block p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.statutory-content-block strong {
+  color: var(--text-primary);
+}
+
+.statutory-subhead {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  margin-top: 8px;
+  margin-bottom: -4px;
+  text-transform: uppercase;
+}
+
+.section-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: rgba(255, 107, 53, 0.08);
+  border: 1px solid rgba(255, 107, 53, 0.22);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+body.theme-dark .section-badge {
+  background: rgba(255, 107, 53, 0.16);
+  border-color: rgba(255, 107, 53, 0.35);
+}
+
 
 
 
