@@ -271,44 +271,45 @@
       <!-- PRICING TIERS GRID -->
       <div class="membership-grid">
 
-        <!-- PLAN 0: 3-MIN TRANSACTION TEST PASS -->
-        <div class="membership-card" id="card-3min-test" style="border: 1.5px dashed var(--accent);">
+        <!-- PLAN 0: DAILY AUTOPAY 7-DAY TEST MANDATE -->
+        <div class="membership-card featured" id="card-daily-autopay" style="border: 2px solid var(--accent); background: var(--bg-card);">
+          <div class="membership-ribbon" style="background: var(--accent); color: #fff;">LIVE UPI AUTOPAY</div>
           <div>
-            <span class="membership-badge" style="color: var(--accent);">[3-MIN ACCESS &bull; TRANSACTION TEST]</span>
-            <h3 class="membership-title">&#8377;1 Live Gateway Test Pass</h3>
-            <p class="membership-desc">Quick 3-minute clearance pass to verify Razorpay bank settlement, UPI checkout, and instant Pro content unlock.</p>
+            <span class="membership-badge" style="color: var(--accent);">[DAILY AUTOPAY &bull; 7-DAY RECURRING MANDATE]</span>
+            <h3 class="membership-title">&#8377;1 Daily UPI AutoPay Test Pass</h3>
+            <p class="membership-desc">Genuine RBI-compliant UPI AutoPay recurring mandate powered by Razorpay Subscriptions. Cycles daily at &#8377;1 for 7 days. Cancel anytime inside Google Pay or on this site.</p>
             
             <div class="membership-price-wrap">
               <span class="membership-amount font-mono">&#8377;1</span>
-              <span class="membership-frequency">/ 3 minutes access</span>
+              <span class="membership-frequency">/ day (auto-renews daily &bull; 7 cycles)</span>
             </div>
 
             <ul class="membership-features font-mono">
               <li class="membership-feature-item">
                 <span class="feature-check">&#10003;</span>
-                <span>Live &#8377;1 bank settlement check via UPI (GPay/PhonePe) or Cards</span>
+                <span>Native Google Pay &amp; PhonePe UPI AutoPay e-mandate registration</span>
               </li>
               <li class="membership-feature-item">
                 <span class="feature-check">&#10003;</span>
-                <span>Immediate 3-minute unlock of Chapter 3 &amp; Pro in-section insights</span>
+                <span>Immediate 7-day unlock of Chapter 3 &amp; Pro in-section insights</span>
               </li>
               <li class="membership-feature-item">
                 <span class="feature-check">&#10003;</span>
-                <span>Live Supabase telemetry linkage to authenticated account</span>
+                <span>Automatic daily &#8377;1 debit with 24-hr advance RBI notification</span>
               </li>
               <li class="membership-feature-item">
                 <span class="feature-check">&#10003;</span>
-                <span>Single one-time payment &bull; zero recurring auto-pay</span>
+                <span>Autonomous mandate cancellation directly inside Google Pay or Account flyout</span>
               </li>
               <li class="membership-feature-item">
                 <span class="feature-check">&#10003;</span>
-                <span>Access automatically locks back after 3 minutes</span>
+                <span>Live Cloudflare Worker webhook telemetry synced with Supabase</span>
               </li>
             </ul>
           </div>
 
-          <button type="button" class="membership-btn font-mono" data-plan="3min_test" data-amount="1" id="btn-buy-3min" style="border-color: var(--accent); color: var(--accent);">
-            <span>TEST TRANSACTION &bull; &#8377;1 (3 MINS)</span>
+          <button type="button" class="membership-btn font-mono" data-plan="daily_autopay" data-amount="1" id="btn-buy-daily-autopay">
+            <span>SET UP UPI AUTOPAY &bull; &#8377;1/DAY</span>
           </button>
         </div>
 
@@ -500,12 +501,12 @@
   <!-- Supabase SDK & App Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=9.0"></script>
-  <script src="script.js?v=9.8"></script>
+  <script src="script.js?v=9.9"></script>
 
   <!-- Checkout Initialization Script -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "").trim();
+      const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
       const DEFAULT_RAZORPAY_KEY_ID = "rzp_live_Tvm5Coo5TFFYRa";
 
       async function refreshMembershipBadge() {
@@ -558,7 +559,89 @@
           btn.textContent = "Initiating Razorpay...";
 
           try {
-            // Attempt to create order via Cloudflare Worker if configured
+            // For UPI AutoPay Subscriptions (e.g. Daily ₹1 Mandate)
+            if (plan === "daily_autopay") {
+              btn.textContent = "Creating AutoPay Mandate...";
+
+              const subRes = await fetch(`${CLOUDFLARE_WORKER_URL}/api/create-subscription`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  plan: "daily_autopay",
+                  userId: user.id,
+                  email: user.email
+                })
+              });
+
+              const subData = await subRes.json();
+              if (!subRes.ok || !subData.subscription_id) {
+                const errMsg = subData.error || "Failed to create AutoPay subscription.";
+                console.error("Subscription create error:", subData);
+                alert(`Could not initialize UPI AutoPay:\n\n${errMsg}\n\nNote: Please ensure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are added to your Cloudflare Worker environment secrets.`);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+              }
+
+              const rzpKeyId = subData.keyId || DEFAULT_RAZORPAY_KEY_ID;
+              const subOptions = {
+                key: rzpKeyId,
+                subscription_id: subData.subscription_id,
+                name: "IndexIndia Sovereign Research",
+                description: "₹1 Daily UPI AutoPay (7 Cycles) • Cancel anytime in GPay",
+                prefill: {
+                  email: user.email || "",
+                  name: user.email ? user.email.split("@")[0] : "Institutional Reader"
+                },
+                theme: {
+                  color: "#FF3B00"
+                },
+                notes: {
+                  user_id: user.id,
+                  plan: "daily_autopay",
+                  subscription_id: subData.subscription_id
+                },
+                handler: async function (response) {
+                  btn.textContent = "Activating Clearance...";
+
+                  const validUntil = new Date(Date.now() + 7 * 86400000).toISOString();
+
+                  await sb.recordMembership({
+                    planType: "daily_autopay",
+                    paymentId: response.razorpay_payment_id || response.razorpay_subscription_id,
+                    orderId: response.razorpay_subscription_id,
+                    amountPaid: 1,
+                    validUntil: validUntil
+                  });
+
+                  alert(`✓ UPI AutoPay Mandate Approved!\n\nMandate ID: ${response.razorpay_subscription_id}\nPayment Ref: ${response.razorpay_payment_id || 'Settled'}\n\nYour ₹1 Daily AutoPay (7 Days) is now active.\nChapter 3 & Pro insights are unlocked.\nYou can pause or cancel this mandate anytime in Google Pay (Profile > Autopay) or from your Account panel.`);
+
+                  refreshMembershipBadge();
+                  if (typeof syncMemberExclusiveContent === "function") {
+                    syncMemberExclusiveContent({ status: "active", plan_type: "daily_autopay", valid_until: validUntil });
+                  }
+                  btn.innerHTML = originalText;
+                  btn.disabled = false;
+                },
+                modal: {
+                  ondismiss: function () {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                  }
+                }
+              };
+
+              const rzpSub = new window.Razorpay(subOptions);
+              rzpSub.on("payment.failed", function (resp) {
+                alert("AutoPay mandate authorization failed: " + (resp.error.description || "Unknown reason"));
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+              });
+              rzpSub.open();
+              return;
+            }
+
+            // Standard One-Time Clearance Plans (Lifetime, Monthly, Annual)
             let orderData = null;
             if (CLOUDFLARE_WORKER_URL) {
               try {

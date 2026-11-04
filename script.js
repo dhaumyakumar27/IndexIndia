@@ -1098,11 +1098,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (membership.plan_type === "lifetime") displayName = "Lifetime Sovereign";
       else if (membership.plan_type === "annual") displayName = "Annual Partner";
       else if (membership.plan_type === "monthly") displayName = "Monthly Pass";
+      else if (membership.plan_type === "daily_autopay") displayName = "₹1 Daily AutoPay (7 Days)";
       else if (membership.plan_type === "3min_test") displayName = "₹1 Test Pass (3-Min)";
 
       if (badge) {
         badge.style.display = "inline-flex";
-        badge.textContent = `${(membership.plan_type === "3min_test" ? "3MIN TEST" : (membership.plan_type || "PRO")).toUpperCase()} PASS`;
+        badge.textContent = `${(membership.plan_type === "daily_autopay" ? "AUTOPAY" : (membership.plan_type === "3min_test" ? "3MIN TEST" : (membership.plan_type || "PRO"))).toUpperCase()} PASS`;
         badge.style.background = "var(--status-optimal)";
         badge.style.color = "#FFFFFF";
       }
@@ -1152,7 +1153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isMember = Boolean(
       membership &&
       membership.status === "active" &&
-      ["lifetime", "annual", "monthly", "3min_test"].includes(membership.plan_type)
+      ["lifetime", "annual", "monthly", "daily_autopay", "3min_test"].includes(membership.plan_type)
     );
 
     // 1. Section 1 (Unincorporated Entities): "sole proprietorship is best for start up"

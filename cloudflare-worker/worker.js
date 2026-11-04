@@ -56,7 +56,225 @@ export default {
 
     const url = new URL(request.url);
 
-    // ================= RAZORPAY PAYMENT ENDPOINTS =================
+    // ================= RAZORPAY SUBSCRIPTION & PAYMENT ENDPOINTS =================
+    if (url.pathname === "/api/create-subscription") {
+      try {
+        const body = await request.json().catch(() => ({}));
+        const plan = (body.plan || "daily_autopay").toLowerCase();
+        const userId = body.userId;
+        const userEmail = body.email || "";
+
+        // Plan ID mapping
+        const planIds = {
+          daily_autopay: env.PLAN_ID_TEST_DAILY || "plan_TwAgpRAFXFr3pF",
+          test: env.PLAN_ID_TEST_DAILY || "plan_TwAgpRAFXFr3pF",
+          monthly: env.PLAN_ID_MONTHLY || ""
+        };
+
+        const planId = planIds[plan] || body.plan_id || "plan_TwAgpRAFXFr3pF";
+        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_Tvm5Coo5TFFYRa";
+        const keySecret = env.RAZORPAY_KEY_SECRET || env.RAZORPAY_SECRET || "";
+
+        if (!keyId || !keySecret) {
+          return new Response(
+            JSON.stringify({
+              error: "Razorpay credentials not configured in Cloudflare secrets.",
+              setupHelp: "Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to Cloudflare Worker secrets."
+            }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const totalCount = plan === "daily_autopay" ? 7 : (body.total_count || 12);
+        const authHeader = "Basic " + btoa(`${keyId}:${keySecret}`);
+
+        const rzpSubRes = await fetch("https://api.razorpay.com/v1/subscriptions", {
+          method: "POST",
+          headers: {
+            "Authorization": authHeader,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            plan_id: planId,
+            total_count: totalCount,
+            quantity: 1,
+            customer_notify: 1,
+            notes: {
+              user_id: userId || "",
+              email: userEmail,
+              plan: plan
+            }
+          })
+        });
+
+        const subData = await rzpSubRes.json();
+        if (!rzpSubRes.ok) {
+          return new Response(
+            JSON.stringify({
+              error: subData.error?.description || "Failed to create Razorpay AutoPay subscription.",
+              details: subData
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            subscription_id: subData.id,
+            plan_id: planId,
+            keyId: keyId,
+            plan: plan
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ error: err.message || "Subscription creation error." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    if (url.pathname === "/api/cancel-subscription") {
+      try {
+        const body = await request.json().catch(() => ({}));
+        const { subscription_id, cancel_at_cycle_end } = body;
+        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_Tvm5Coo5TFFYRa";
+        const keySecret = env.RAZORPAY_KEY_SECRET || env.RAZORPAY_SECRET || "";
+
+        if (!subscription_id) {
+          return new Response(
+            JSON.stringify({ error: "Missing subscription_id." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const authHeader = "Basic " + btoa(`${keyId}:${keySecret}`);
+        const rzpCancelRes = await fetch(`https://api.razorpay.com/v1/subscriptions/${subscription_id}/cancel`, {
+          method: "POST",
+          headers: {
+            "Authorization": authHeader,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            cancel_at_cycle_end: cancel_at_cycle_end ? 1 : 0
+          })
+        });
+
+        const cancelData = await rzpCancelRes.json();
+        return new Response(
+          JSON.stringify({ success: rzpCancelRes.ok, data: cancelData }),
+          { status: rzpCancelRes.ok ? 200 : 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ error: err.message || "Cancellation error." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    if (url.pathname === "/api/razorpay-webhook") {
+      try {
+        const rawBody = await request.text();
+        const signature = request.headers.get("x-razorpay-signature") || "";
+        const webhookSecret = env.RAZORPAY_WEBHOOK_SECRET || "Dhatry@27";
+        const supabaseUrl = env.SUPABASE_URL || "https://hssphsykrgyvejxfkfin.supabase.co";
+        const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY || "";
+
+        // Verify webhook signature if secret exists
+        if (signature && webhookSecret) {
+          const encoder = new TextEncoder();
+          const key = await crypto.subtle.importKey(
+            "raw",
+            encoder.encode(webhookSecret),
+            { name: "HMAC", hash: "SHA-256" },
+            false,
+            ["sign"]
+          );
+          const sigBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
+          const hexSignature = Array.from(new Uint8Array(sigBuffer))
+            .map(b => b.toString(16).padStart(2, "0"))
+            .join("");
+
+          if (hexSignature.toLowerCase() !== signature.toLowerCase()) {
+            console.warn("Invalid webhook signature received");
+            return new Response(JSON.stringify({ error: "Invalid webhook signature" }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+          }
+        }
+
+        const payload = JSON.parse(rawBody || "{}");
+        const event = payload.event;
+        const subEntity = payload.payload?.subscription?.entity;
+        const paymentEntity = payload.payload?.payment?.entity;
+
+        const userId = subEntity?.notes?.user_id || paymentEntity?.notes?.user_id;
+        const plan = subEntity?.notes?.plan || "daily_autopay";
+        const subscriptionId = subEntity?.id;
+        const paymentId = paymentEntity?.id;
+
+        if (userId && supabaseKey) {
+          if (event === "subscription.charged" || event === "subscription.activated") {
+            // Mandate charged: extend valid_until by 1 day for daily, 30 days for monthly
+            const extensionMs = plan === "daily_autopay" ? 24 * 3600 * 1000 : 30 * 24 * 3600 * 1000;
+            const validUntil = new Date(Date.now() + extensionMs).toISOString();
+
+            await fetch(`${supabaseUrl}/rest/v1/user_memberships`, {
+              method: "POST",
+              headers: {
+                "apikey": supabaseKey,
+                "Authorization": `Bearer ${supabaseKey}`,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                plan_type: plan,
+                status: "active",
+                payment_gateway: "razorpay",
+                payment_id: paymentId || null,
+                order_id: subscriptionId || null,
+                valid_until: validUntil,
+                updated_at: new Date().toISOString()
+              })
+            });
+            console.log(`[Webhook] User ${userId} membership renewed until ${validUntil}`);
+          } else if (event === "subscription.cancelled" || event === "subscription.halted") {
+            // Mandate cancelled in GPay or revoked
+            await fetch(`${supabaseUrl}/rest/v1/user_memberships`, {
+              method: "POST",
+              headers: {
+                "apikey": supabaseKey,
+                "Authorization": `Bearer ${supabaseKey}`,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                status: "cancelled",
+                updated_at: new Date().toISOString()
+              })
+            });
+            console.log(`[Webhook] User ${userId} AutoPay mandate cancelled/halted`);
+          }
+        }
+
+        return new Response(JSON.stringify({ status: "ok", event: event }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      } catch (wErr) {
+        console.error("Webhook processing error:", wErr);
+        return new Response(JSON.stringify({ error: wErr.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+    }
+
     if (url.pathname === "/api/create-order") {
       try {
         const body = await request.json().catch(() => ({}));
