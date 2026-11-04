@@ -2081,6 +2081,64 @@ body.theme-dark .story-act-divider {
   padding-left: 16px;
 }
 
+/* ==========================================================================
+   STATUTORY ENTITY & REGISTRATION MATRIX CARDS
+   ========================================================================== */
+.entity-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.entity-item {
+  padding: 14px 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-surface-subtle);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+body.theme-dark .entity-item {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.entity-name {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.entity-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.entity-details li {
+  margin: 0;
+}
+
+.entity-details li strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+
 /* Directive / Takeaway Box */
 .key-takeaways-box {
   background: var(--bg-surface-subtle);
@@ -4477,8 +4535,9 @@ body.theme-light .doubt-web-enrichment {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   padding: 3px;
+  width: 108px;
   border: 1.8px solid var(--border-primary);
   border-radius: 9999px;
   background: var(--bg-card);
@@ -4496,6 +4555,7 @@ body.theme-dark .nav-search-bar {
 }
 
 .nav-search-bar:focus-within {
+  width: 148px;
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-subtle);
 }
@@ -4508,17 +4568,17 @@ body.theme-dark .nav-search-bar {
 }
 
 .nav-search-input {
-  flex: 1 1 auto;
+  width: 100%;
   border: none;
   outline: none;
   background: transparent;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--text-primary);
   min-width: 0;
-  padding: 5px 14px;
+  padding: 4px 6px;
   border-radius: 9999px;
   text-align: center;
 }
@@ -4527,9 +4587,15 @@ body.theme-dark .nav-search-bar {
   color: var(--text-secondary);
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.82rem;
-  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
   opacity: 1;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.nav-search-input:focus::placeholder {
+  color: transparent !important;
+  opacity: 0 !important;
 }
 
 .nav-search-kbd {

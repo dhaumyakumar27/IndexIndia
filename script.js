@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ================= 1. PAGE CONTEXT & VIEW DETECTION =================
   const pathname = window.location.pathname.toLowerCase();
   const currentFile = pathname.split("/").pop() || "index.html";
-  const isGuideSuite = pathname.includes("guide") || pathname.includes("founder") || pathname.includes("investor") || pathname.includes("bottleneck");
+  const isGuideSuite = pathname.includes("guide");
   const isIndexSuite = !isGuideSuite;
 
   // Keyboard shortcut Tab switches between Guide landing <=> Index landing
@@ -1545,25 +1545,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================= 4. GLOBAL KEYBOARD SHORTCUTS =================
-  // Tab key state: short tap cycles 3 sub-pages (x | y | z), long press (held >= 380ms) switches Guide <=> Index
-  let tabHoldTimer = null;
-  let tabVisualTimer = null;
-  let isTabLongPressTriggered = false;
-  const TAB_LONG_PRESS_MS = 380;
-  const TAB_VISUAL_HINT_MS = 110;
-
-  function clearTabTimers() {
-    if (tabHoldTimer) {
-      clearTimeout(tabHoldTimer);
-      tabHoldTimer = null;
-    }
-    if (tabVisualTimer) {
-      clearTimeout(tabVisualTimer);
-      tabVisualTimer = null;
-    }
-    const otherSuiteBtn = isIndexSuite ? document.getElementById("btn-guide") : document.getElementById("btn-index");
-    if (otherSuiteBtn) otherSuiteBtn.classList.remove("tab-hold-target");
-  }
+  // Simple Tab press toggles directly between Guide <=> Index
 
   // ================= SMOOTH DELAYLESS KEYBOARD SCROLLING ENGINE =================
   // Continuous 60fps/120fps motion with ZERO repeat delay when holding arrow keys.
@@ -1650,34 +1632,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper: strictly true if NO modifier key (Ctrl, Shift, Alt, Meta) is pressed
     const noModifiers = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
 
-    // 1. Tab: strictly alone (no Ctrl, Shift, Alt, Meta)
+    // 1. Tab: strictly alone (no Ctrl, Shift, Alt, Meta) - simple tab press switches between Guide <=> Index
     if (e.key === "Tab") {
-      if (!noModifiers) {
-        clearTabTimers();
-        isTabLongPressTriggered = false;
-        return;
-      }
-
+      if (!noModifiers) return;
       e.preventDefault();
-      if (e.repeat) return; // Prevent autorepeat from resetting timer while held
-
-      isTabLongPressTriggered = false;
-      const otherSuiteBtn = isIndexSuite ? document.getElementById("btn-guide") : document.getElementById("btn-index");
-
-      // Show subtle holding progress underline on target suite button after 110ms
-      if (tabVisualTimer) clearTimeout(tabVisualTimer);
-      tabVisualTimer = setTimeout(() => {
-        if (otherSuiteBtn) otherSuiteBtn.classList.add("tab-hold-target");
-      }, TAB_VISUAL_HINT_MS);
-
-      // Trigger suite change if held >= 380ms
-      if (tabHoldTimer) clearTimeout(tabHoldTimer);
-      tabHoldTimer = setTimeout(() => {
-        isTabLongPressTriggered = true;
-        clearTabTimers();
-        window.location.href = targetOtherSuiteUrl;
-      }, TAB_LONG_PRESS_MS);
-
+      if (e.repeat) return;
+      window.location.href = targetOtherSuiteUrl;
       return;
     }
 
@@ -1765,13 +1725,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const allSectionPages = [
         "guide.html",
-        "founder.html",
-        "investor.html",
-        "bottleneck.html",
-        "index.html",
-        "graph.html",
-        "directory.html",
-        "source.html"
+        "index.html"
       ];
 
       const currentFile = pathname.split("/").pop().toLowerCase() || "index.html";
@@ -1880,33 +1834,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (e.key === "ArrowUp" && activeArrowDirection === -1) {
       stopSmoothScroll();
     }
-
-    if (e.key === "Tab") {
-      // Must trigger if and only if NO modifier key (Ctrl, Shift, Alt, Meta) was pressed
-      if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
-        clearTabTimers();
-        isTabLongPressTriggered = false;
-        return;
-      }
-
-      e.preventDefault();
-      clearTabTimers();
-
-      // If long press already fired, do not execute short tap action
-      if (isTabLongPressTriggered) {
-        isTabLongPressTriggered = false;
-        return;
-      }
-
-      // Tab toggles directly between Guide and Index
-      window.location.href = isIndexSuite ? "guide.html" : "index.html";
-      return;
-    }
   });
 
   window.addEventListener("blur", () => {
-    clearTabTimers();
-    isTabLongPressTriggered = false;
     cancelSmoothScrollImmediately();
   });
 
@@ -4539,7 +4469,6 @@ INSTRUCTIONS:
     return [
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Step Section Directly",
         subtitle: "Move directly up or down sections without opening directory drawer",
         badge: "Ctrl + ↓ / ↑",
@@ -4547,23 +4476,16 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
-        title: "Cycle Sub-Pages (x | y | z)",
-        subtitle: "Tab through contextual sub-views (Graph | Directory | Source)",
-        badge: "Tab",
-        keywords: "cycle sub pages tab perspective views graph directory source shortcut binding"
-      },
-      {
-        category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Switch Guide <=> Index Suite",
-        subtitle: "Switch between Guide institutional narrative and Index market intelligence",
-        badge: "Hold Tab",
-        keywords: "switch suite guide index hold tab long press toggle suite landing shortcut binding"
+        subtitle: "Switch between Guide matrix and Index terminal",
+        badge: "Tab",
+        keywords: "switch suite guide index tab toggle landing shortcut binding",
+        action: () => {
+          window.location.href = targetOtherSuiteUrl;
+        }
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Move Act (I | II | III | IV | V | VI)",
         subtitle: "Jump directly through narrative story acts without opening drawer",
         badge: "Shift + ↓ / ↑",
@@ -4571,7 +4493,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Scroll Page Smoothly",
         subtitle: "Continuous delayless page scrolling with zero subpixel font jump",
         badge: "↓ / ↑",
@@ -4579,7 +4500,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Directory Tree Drawer",
         subtitle: "Toggle section tree drawer sticked to the left side of page",
         badge: "N",
@@ -4588,7 +4508,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Universal Search & Command Palette",
         subtitle: "Focus top search bar to search website, shortcuts, settings, and sections",
         badge: "/",
@@ -4597,7 +4516,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "DuckDuckGo Doubt Solver",
         subtitle: "Toggle AI doubt solver drawer sticked to the right side of page",
         badge: "M",
@@ -4617,14 +4535,13 @@ INSTRUCTIONS:
         category: "KEYBOARD SHORTCUTS",
         icon: "⤢",
         title: "Expand Full View (Toggle Top Bar)",
-        subtitle: "Hide top bar (Guide, Index, Search, Perspectives) for distraction-free reading",
+        subtitle: "Hide top bar (Guide, Index, Search) for distraction-free reading",
         badge: "F",
-        keywords: "expand full view toggle top bar hide top bar header guide index search perspective shortcut binding",
+        keywords: "expand full view toggle top bar hide top bar header guide index search shortcut binding",
         action: () => toggleTopBar()
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Account Dossier",
         subtitle: "Toggle institutional profile, user clearance role, and sessions",
         badge: "[",
@@ -4639,7 +4556,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Display Settings Panel",
         subtitle: "Toggle high-contrast themes, typography scale, and font styles",
         badge: "]",
@@ -4654,7 +4570,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Shortcuts Cheatsheet",
         subtitle: "Open the complete institutional keyboard shortcuts reference",
         badge: "?",
@@ -4669,7 +4584,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Close Open Overlays",
         subtitle: "Dismiss all open drawers, flyouts, and in-page highlight finders",
         badge: "Esc",
@@ -4683,7 +4597,6 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        icon: "⚡",
         title: "Send Forum Broadcast",
         subtitle: "Publish query or finding to the anonymous institutional forum",
         badge: "Ctrl + ↵",
@@ -4796,9 +4709,9 @@ INSTRUCTIONS:
       {
         category: "NAVIGATION & PANELS",
         icon: "🔀",
-        title: isIndexSuite ? "Switch to Guide Suite (Narrative)" : "Switch to Index Suite (Market Hub)",
-        subtitle: isIndexSuite ? "Jump to Guide Landing (Acts I – VI)" : "Jump to Index Landing (B2B Data)",
-        badge: "Hold Tab",
+        title: isIndexSuite ? "Switch to Guide Suite (Matrix)" : "Switch to Index Suite (Market Hub)",
+        subtitle: isIndexSuite ? "Jump to Guide Landing" : "Jump to Index Landing",
+        badge: "Tab",
         keywords: "switch suite guide index tab toggle landing",
         action: () => {
           window.location.href = targetOtherSuiteUrl;
@@ -4836,14 +4749,8 @@ INSTRUCTIONS:
 
     // Core Hubs & Modular Directories
     const HUB_PAGES = [
-      { title: "Guide Landing — Complete Institutional Narrative", file: "guide.html", sub: "Acts I – VI Narrative & Case Study", kw: "guide story narrative prologue acts" },
-      { title: "Founder Dossier — Promoter Concentration & Pledging", file: "founder.html", sub: "Equity dilution, family trusts, pledge dynamics", kw: "founder promoter shares pledge trusts equity" },
-      { title: "Investor Dossier — Open-Source Forensic Evaluation Directory", file: "investor.html", sub: "MCA V3, CARO 2020, Ind AS notes & liquidity stress testing", kw: "investor forensic mca aoc-4 mgt-7 caro ind as cfo ebitda deep tech trl homologation" },
-      { title: "Bottleneck Matrix — Regulatory Chokepoints", file: "bottleneck.html", sub: "SEBI, RBI, MCA systemic friction points", kw: "bottleneck regulatory chokepoint sebi rbi mca friction" },
-      { title: "Index Landing — Market Capitalization Hub", file: "index.html", sub: "Indian equity markets overview & indices", kw: "index market marketcap valuation multiples" },
-      { title: "Graph Network — Ownership Webs & Circular Cross-Holdings", file: "graph.html", sub: "Ultimate beneficial ownership spider web", kw: "graph network ownership cross holding web corporate" },
-      { title: "Corporate Directory — Comprehensive Entity Registry", file: "directory.html", sub: "Nifty 50, Midcap, and categorized companies", kw: "directory corporate entities list companies database" },
-      { title: "Sources & Methodology — Disclosures & API Feeds", file: "source.html", sub: "Exchange filings, research papers, legal citations", kw: "sources methodology references citations exchange sebi filings api" }
+      { title: "Guide Landing — The Complete Indian Entity & Registration Matrix", file: "guide.html", sub: "Definitive statutory index of all business structures", kw: "guide entities registration matrix corporate companies" },
+      { title: "Index Landing — Sovereign Governance Index Terminal", file: "index.html", sub: "Indian equity markets overview & forensic governance index", kw: "index market marketcap valuation multiples forensic" }
     ];
 
     HUB_PAGES.forEach((hub) => {
@@ -4959,7 +4866,7 @@ INSTRUCTIONS:
       itemEl.setAttribute("data-index", String(index));
       itemEl.innerHTML = `
         <div class="palette-item-left">
-          <span class="palette-item-icon">${item.icon || "▸"}</span>
+          ${item.icon ? `<span class="palette-item-icon">${item.icon}</span>` : ""}
           <div class="palette-item-text">
             <span class="palette-item-title">${escapeHtml(item.title)}</span>
             ${item.subtitle ? `<span class="palette-item-subtitle">${escapeHtml(item.subtitle)}</span>` : ""}
@@ -5008,6 +4915,8 @@ INSTRUCTIONS:
 
   focusNavSearchBar = function() {
     if (navSearchInput) {
+      navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
+      navSearchInput.placeholder = "";
       navSearchInput.focus();
       navSearchInput.select();
     }
@@ -5019,6 +4928,9 @@ INSTRUCTIONS:
       navSearchResultsDropdown.innerHTML = "";
     }
     if (navSearchInput) {
+      if (!navSearchInput.value) {
+        navSearchInput.placeholder = navSearchInput.dataset.originalPlaceholder || "search (/)";
+      }
       navSearchInput.blur();
     }
     paletteCurrentItems = [];
@@ -5029,6 +4941,28 @@ INSTRUCTIONS:
   window.closeNavSearchResults = closeNavSearchResults;
 
   if (navSearchInput) {
+    navSearchInput.addEventListener("focus", () => {
+      navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
+      navSearchInput.placeholder = "";
+      if (navSearchInput.value.trim().length > 0) {
+        renderSearchResults(navSearchInput.value);
+      }
+    });
+
+    navSearchInput.addEventListener("click", () => {
+      navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
+      navSearchInput.placeholder = "";
+      if (navSearchInput.value.trim().length > 0) {
+        renderSearchResults(navSearchInput.value);
+      }
+    });
+
+    navSearchInput.addEventListener("blur", () => {
+      if (!navSearchInput.value) {
+        navSearchInput.placeholder = navSearchInput.dataset.originalPlaceholder || "search (/)";
+      }
+    });
+
     navSearchInput.addEventListener("input", (e) => {
       renderSearchResults(e.target.value);
     });
