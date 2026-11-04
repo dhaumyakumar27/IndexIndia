@@ -85,6 +85,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function autoBuildDirectoryTree() {
     if (!treeContentScroll) return false;
 
+    // If HTML already provides curated manual tree nodes (such as guide.html), NEVER overwrite them!
+    const existingCuratedNodes = treeContentScroll.querySelectorAll(".tree-node");
+    if (existingCuratedNodes.length > 0) {
+      return false;
+    }
+
     const contentRoot = document.querySelector(".content-area") || document.querySelector("main") || document.querySelector("article");
     if (!contentRoot) return false;
 
@@ -844,7 +850,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (autoTreeDebounceTimer) clearTimeout(autoTreeDebounceTimer);
       autoTreeDebounceTimer = setTimeout(() => {
-        autoBuildDirectoryTree();
+        if (!treeContentScroll || treeContentScroll.querySelectorAll(".tree-node").length === 0) {
+          autoBuildDirectoryTree();
+        }
         if (typeof injectSectionDoubtButtons === "function") {
           injectSectionDoubtButtons();
         }
@@ -1218,6 +1226,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // Update Chapter 2 branch styling when Chapter 3 is present
+      const ch2Guide = document.getElementById("tree-guide-ch2");
+      const ch2Children = document.querySelectorAll(".tree-ch2-child .tree-guide");
+      if (ch2Guide) ch2Guide.innerHTML = "&#9500;&#9472;&#9472;";
+      ch2Children.forEach((g, i) => {
+        g.innerHTML = (i === ch2Children.length - 1) ? "│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;├──";
+      });
+
       // Inject Chapter 3 node into Directory Tree if not present
       if (!treeNodeCh3 && treeScroll) {
         const forumTreeNode = treeScroll.querySelector('a[href="#forum-section"]');
@@ -1229,7 +1245,7 @@ document.addEventListener("DOMContentLoaded", () => {
           treeNodeCh3.dataset.level = "1";
           treeNodeCh3.innerHTML = `
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">Chapter 3: Paid Membership Confirmed</span>
+            <span class="tree-name font-mono">3 Paid Membership Confirmed</span>
             <span class="tree-badge font-mono">CH 03</span>
           `;
           treeScroll.insertBefore(treeNodeCh3, forumTreeNode);
@@ -1238,6 +1254,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       document.body.classList.add("is-pro-member");
     } else {
+      // Revert Chapter 2 branch styling when Chapter 3 is absent
+      const ch2Guide = document.getElementById("tree-guide-ch2");
+      const ch2Children = document.querySelectorAll(".tree-ch2-child .tree-guide");
+      if (ch2Guide) ch2Guide.innerHTML = "&#9492;&#9472;&#9472;";
+      ch2Children.forEach((g, i) => {
+        g.innerHTML = (i === ch2Children.length - 1) ? "&nbsp;&nbsp;&nbsp;&nbsp;└──" : "&nbsp;&nbsp;&nbsp;&nbsp;├──";
+      });
+
       // Remove Chapter 3 and Directory Tree node
       if (memberCh3Container) {
         memberCh3Container.remove();

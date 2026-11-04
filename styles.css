@@ -1457,12 +1457,13 @@ body.theme-dark .tree-section-header {
 .tree-guide {
   color: var(--text-tertiary);
   opacity: 0.65;
-  font-family: var(--font-mono);
+  font-family: var(--font-mono) !important;
   font-size: 0.82rem;
   letter-spacing: -0.02em;
   flex-shrink: 0;
   display: inline-block;
   user-select: none;
+  white-space: pre !important;
 }
 
 .tree-icon {
@@ -1525,7 +1526,7 @@ body.theme-dark .tree-node.active .tree-badge {
 
 .tree-node[data-level="2"],
 .tree-node.tree-subtopic-node {
-  padding-left: 26px;
+  padding-left: 18px;
   font-weight: 400;
   font-size: 0.84rem;
 }
@@ -1533,8 +1534,8 @@ body.theme-dark .tree-node.active .tree-badge {
 .tree-node[data-level="2"] .tree-guide,
 .tree-node.tree-subtopic-node .tree-guide {
   color: var(--text-tertiary);
-  opacity: 0.6;
-  margin-right: 4px;
+  opacity: 0.75;
+  margin-right: 6px;
 }
 
 .tree-node[data-level="3"] {
