@@ -5858,17 +5858,189 @@ body.is-annotating .section-audit-toggles {
   color: var(--text-primary);
 }
 
-.audit-toggle-btn.active.btn-toggle-read {
-  background: rgba(52, 211, 153, 0.16);
-  color: #34D399;
-  border-color: #34D399;
+/* ==========================================================================
+   PERMANENT SECTION ACTION CLUSTER (Black Dot & Gemini Icon)
+   ========================================================================== */
+.section-doubt-btn,
+.section-audit-badge-wrap {
+  display: none !important;
 }
 
-.audit-toggle-btn.active.btn-toggle-important {
-  background: rgba(255, 107, 53, 0.16);
-  color: #FF6B35;
-  border-color: #FF6B35;
+.section-action-cluster {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 20;
+  user-select: none;
 }
+
+@media (max-width: 640px) {
+  .section-action-cluster {
+    top: 10px;
+    right: 10px;
+    gap: 6px;
+  }
+}
+
+/* Ensure sections have relative positioning for top-right cluster */
+.doc-section,
+.doc-subsection,
+.doc-subsubsection,
+.story-node-section,
+.page-directory-section,
+.content-area > section {
+  position: relative;
+}
+
+/* Permanent Status Dot Button */
+.section-status-dot-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+
+.section-status-dot-btn:hover {
+  transform: scale(1.22);
+}
+
+.status-dot-glyph {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: #000000;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.theme-dark .status-dot-glyph {
+  background-color: #E4E4E7;
+}
+
+/* 1. Read: Green (#34D399) */
+.section-status-dot-btn.status-read .status-dot-glyph {
+  background-color: #34D399;
+  box-shadow: 0 0 0 2.5px rgba(52, 211, 153, 0.35);
+}
+
+/* 2. Important: Orange (#FF6B35) */
+.section-status-dot-btn.status-important .status-dot-glyph {
+  background-color: #FF6B35;
+  box-shadow: 0 0 0 2.5px rgba(255, 107, 53, 0.35);
+}
+
+/* 3. Read & Important: Sun Yellow with Mint Green outline (#FFE066 + #34D399) */
+.section-status-dot-btn.status-both .status-dot-glyph {
+  background-color: #FFE066;
+  box-shadow: 0 0 0 2px #34D399;
+}
+
+/* Permanent Gemini Icon Button */
+.section-gemini-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  outline: none;
+  border-radius: 4px;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.section-gemini-btn:hover {
+  color: var(--accent);
+  transform: scale(1.18);
+}
+
+.gemini-sparkle-svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* Bracket Tooltips on Hover */
+.section-bracket-tip {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 3px 7px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 4px;
+  background: #000000;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 30;
+}
+
+body.theme-dark .section-bracket-tip {
+  background: #FFFFFF;
+  color: #000000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
+}
+
+.section-status-dot-btn:hover .section-bracket-tip,
+.section-gemini-btn:hover .section-bracket-tip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(-8px);
+}
+
+/* Directory Tree Status Dots */
+.tree-status-dot {
+  display: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: 6px;
+  margin-right: 4px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.tree-status-dot.status-read {
+  display: inline-block;
+  background-color: #34D399;
+}
+
+.tree-status-dot.status-important {
+  display: inline-block;
+  background-color: #FF6B35;
+}
+
+.tree-status-dot.status-both {
+  display: inline-block;
+  background-color: #FFE066;
+  box-shadow: 0 0 0 1px #34D399;
+}
+
+.table-wrap-cell {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
 
 /* Single statutory footer link */
 .footer-statutory-link {

@@ -3471,11 +3471,11 @@ INSTRUCTIONS:
   }
 
   // 6. Section Hover & Floating "Ask Doubt" Button Injection
+  // 6. Section Hover & Actions Tracking
   function injectSectionDoubtButtons() {
     const sections = Array.from(document.querySelectorAll(
       ".doc-section, .doc-subsection, .doc-subsubsection, .story-node-section, .page-directory-section, .content-area > section"
     )).filter((sec) => {
-      // Exclude comment box / forum section completely
       if (sec.id === "forum-section" || sec.closest("#forum-section, .institutional-forum-section, .forum-directory-section, .compact-forum-composer, .forum-messages-container")) {
         return false;
       }
@@ -3492,22 +3492,6 @@ INSTRUCTIONS:
           lastHoveredSection = null;
         }
       });
-
-      // Avoid duplicate button injection
-      if (sec.querySelector(".section-doubt-btn")) return;
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "section-doubt-btn font-mono";
-      btn.title = "Ask Gemini AI a doubt about this section";
-      btn.innerHTML = `<span class="doubt-btn-icon">💬</span><span>Ask Doubt</span>`;
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openDoubtSolverForSection(sec);
-      });
-
-      sec.appendChild(btn);
     });
   }
 
@@ -4685,7 +4669,7 @@ INSTRUCTIONS:
 
     // Core Hubs & Modular Directories
     const HUB_PAGES = [
-      { title: "Guide Landing — The Complete Indian Entity & Registration Matrix", file: "guide.html", sub: "Definitive statutory index of all business structures", kw: "guide entities registration matrix corporate companies" },
+      { title: "Guide Landing — Chapter 1: Entities & Chapter 2: Payment Gateways", file: "guide.html", sub: "Definitive statutory index of all business structures & payment gateway directory", kw: "guide entities registration matrix payment gateways razorpay cosmofeed stripe aggregator neobanking" },
       { title: "Index Landing — Sovereign Governance Index Terminal", file: "index.html", sub: "Indian equity markets overview & forensic governance index", kw: "index market marketcap valuation multiples forensic" },
       { title: "Statutory & Privacy Dossier — Legal Disclosures & AI Telemetry", file: "statutory-privacy.html", sub: "SEBI non-advisory mandate, Gemini AI telemetry, privacy policy", kw: "statutory privacy legal sebi disclaimer gemini terms compliance refund cosmofeed razorpay" },
       { title: "Sovereign Clearance & Memberships", file: "membership.html", sub: "Institutional access tiers & forensic models", kw: "membership pricing upgrade clearance access plan" }
@@ -6498,8 +6482,10 @@ INSTRUCTIONS:
     }
   });
 
-  // Section Read & Important Audit System (Toggled in Edit Mode, Stays Visible After Edit Closes)
-  function initSectionAuditControls() {
+  // ==========================================================================
+  // PERMANENT SECTION ACTIONS CLUSTER (Black Dot & Gemini Icon on right-top side)
+  // ==========================================================================
+  function initSectionActionsCluster() {
     const pageId = getForumPageId();
     const storageKey = `indexindia_section_audit_${pageId}`;
     let auditData = {};
@@ -6508,120 +6494,196 @@ INSTRUCTIONS:
       if (raw) auditData = JSON.parse(raw);
     } catch (e) {}
 
-    const sections = document.querySelectorAll(".page-directory-section");
+    // Find all sections on the page, excluding comment box & forum containers
+    const sections = Array.from(document.querySelectorAll(
+      ".doc-section, .doc-subsection, .doc-subsubsection, .story-node-section, .page-directory-section, .content-area > section"
+    )).filter((sec) => {
+      if (sec.id === "forum-section" || sec.closest("#forum-section, .institutional-forum-section, .forum-directory-section, .compact-forum-composer, .forum-messages-container")) {
+        return false;
+      }
+      return true;
+    });
+
     sections.forEach((section, idx) => {
       const sectionId = section.id || `section_${idx}`;
       let state = auditData[sectionId] || { read: false, important: false };
 
-      let badgeWrap = section.querySelector(".section-audit-badge-wrap");
-      if (!badgeWrap) {
-        badgeWrap = document.createElement("div");
-        badgeWrap.className = "section-audit-badge-wrap";
-        badgeWrap.setAttribute("data-section-id", sectionId);
+      // Remove any obsolete legacy elements if present
+      const oldDoubtBtn = section.querySelector(".section-doubt-btn");
+      if (oldDoubtBtn) oldDoubtBtn.remove();
+      const oldAuditWrap = section.querySelector(".section-audit-badge-wrap");
+      if (oldAuditWrap) oldAuditWrap.remove();
 
-        const targetAnchor = section.querySelector("h2, h1, .section-tag-row");
-        if (targetAnchor && targetAnchor.parentNode) {
-          targetAnchor.parentNode.insertBefore(badgeWrap, targetAnchor);
-        } else {
-          section.insertBefore(badgeWrap, section.firstChild);
-        }
+      let cluster = section.querySelector(".section-action-cluster");
+      if (!cluster) {
+        cluster = document.createElement("div");
+        cluster.className = "section-action-cluster";
+        cluster.setAttribute("data-section-id", sectionId);
+
+        // 1. Permanent Status Dot Button
+        const dotBtn = document.createElement("button");
+        dotBtn.type = "button";
+        dotBtn.className = "section-status-dot-btn";
+        dotBtn.setAttribute("aria-label", "Toggle section status: Read / Important");
+
+        const dotGlyph = document.createElement("span");
+        dotGlyph.className = "status-dot-glyph";
+
+        const dotTip = document.createElement("span");
+        dotTip.className = "section-bracket-tip font-mono";
+
+        dotBtn.appendChild(dotGlyph);
+        dotBtn.appendChild(dotTip);
+
+        // 2. Permanent Gemini Icon Button (right - top most side)
+        const geminiBtn = document.createElement("button");
+        geminiBtn.type = "button";
+        geminiBtn.className = "section-gemini-btn";
+        geminiBtn.setAttribute("aria-label", "Ask Gemini AI Doubt about this section");
+        geminiBtn.innerHTML = `
+          <svg class="gemini-sparkle-svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/>
+          </svg>
+          <span class="section-bracket-tip font-mono">[Ask Doubt]</span>
+        `;
+
+        cluster.appendChild(dotBtn);
+        cluster.appendChild(geminiBtn);
+        section.appendChild(cluster);
+
+        // Dot Click: Cycles Unmarked (Black) -> Read (Green) -> Important (Orange) -> Both (Read-Important) -> Unmarked
+        dotBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (!state.read && !state.important) {
+            state.read = true;
+            state.important = false;
+          } else if (state.read && !state.important) {
+            state.read = false;
+            state.important = true;
+          } else if (!state.read && state.important) {
+            state.read = true;
+            state.important = true;
+          } else {
+            state.read = false;
+            state.important = false;
+          }
+
+          auditData[sectionId] = state;
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(auditData));
+          } catch (err) {}
+
+          updateClusterView();
+        });
+
+        // Gemini Click: Immediately opens AI Doubt Solver with section context
+        geminiBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openDoubtSolverForSection(section);
+        });
       }
 
-      function updateBadgeView() {
+      function updateClusterView() {
+        const dotBtn = cluster.querySelector(".section-status-dot-btn");
+        const dotTip = cluster.querySelector(".section-status-dot-btn .section-bracket-tip");
+        if (!dotBtn || !dotTip) return;
+
         const isRead = Boolean(state.read);
         const isImp = Boolean(state.important);
 
         let statusClass = "status-none";
-        let statusHtml = "";
-        let statusTitle = "Click to set section read/important status";
+        let tipText = "[Unmarked]";
 
-        // Read is 1 tick mark (Green), Important is 2 tick mark lines (Orange), Both is 2 tick mark lines (Yellow)
         if (isRead && isImp) {
           statusClass = "status-both";
-          statusHtml = `<span class="audit-ticks">&#10003;&#10003;</span> <span class="audit-label font-mono">READ &amp; IMPORTANT</span>`;
-          statusTitle = "Section marked Read & Important (Yellow ✓✓)";
+          tipText = "[Read & Important]";
         } else if (isImp) {
           statusClass = "status-important";
-          statusHtml = `<span class="audit-ticks">&#10003;&#10003;</span> <span class="audit-label font-mono">IMPORTANT</span>`;
-          statusTitle = "Section marked Important (Orange ✓✓)";
+          tipText = "[Important]";
         } else if (isRead) {
           statusClass = "status-read";
-          statusHtml = `<span class="audit-ticks">&#10003;</span> <span class="audit-label font-mono">READ</span>`;
-          statusTitle = "Section marked Read (Green ✓)";
+          tipText = "[Read]";
         } else {
           statusClass = "status-none";
-          statusHtml = `<span class="audit-ticks">&#9675;</span> <span class="audit-label font-mono">UNMARKED</span>`;
-          statusTitle = "Section unread";
+          tipText = "[Unmarked]";
         }
 
-        badgeWrap.innerHTML = `
-          <div class="section-status-indicator ${statusClass}" title="${statusTitle}">
-            ${statusHtml}
-          </div>
-          <div class="section-audit-toggles">
-            <button type="button" class="audit-toggle-btn btn-toggle-read${isRead ? " active" : ""}" title="Tick section as read (Green ✓)">
-              <span>&#10003; Read</span>
-            </button>
-            <button type="button" class="audit-toggle-btn btn-toggle-important${isImp ? " active" : ""}" title="Tick section as important (Orange ✓✓)">
-              <span>&#10003;&#10003; Important</span>
-            </button>
-          </div>
-        `;
+        dotBtn.className = `section-status-dot-btn ${statusClass}`;
+        dotTip.textContent = tipText;
 
-        auditData[sectionId] = state;
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(auditData));
-        } catch (e) {}
-
-        const indicator = badgeWrap.querySelector(".section-status-indicator");
-        const readBtn = badgeWrap.querySelector(".btn-toggle-read");
-        const impBtn = badgeWrap.querySelector(".btn-toggle-important");
-
-        if (indicator) {
-          indicator.addEventListener("click", () => {
-            // Cycle: None -> Read -> Important -> Both -> None
-            if (!state.read && !state.important) {
-              state.read = true;
-              state.important = false;
-            } else if (state.read && !state.important) {
-              state.read = false;
-              state.important = true;
-            } else if (!state.read && state.important) {
-              state.read = true;
-              state.important = true;
-            } else {
-              state.read = false;
-              state.important = false;
-            }
-            updateBadgeView();
-          });
-        }
-
-        if (readBtn) {
-          readBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            state.read = !state.read;
-            updateBadgeView();
-          });
-        }
-
-        if (impBtn) {
-          impBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            state.important = !state.important;
-            updateBadgeView();
-          });
-        }
+        syncDirectoryTreeDot(sectionId, statusClass, tipText);
       }
 
-      updateBadgeView();
+      updateClusterView();
+    });
+
+    syncAllDirectoryTreeDots(auditData);
+  }
+
+  function syncDirectoryTreeDot(sectionId, statusClass, tipText) {
+    const treeNode = document.querySelector(`.tree-node[href="#${sectionId}"]`);
+    if (!treeNode) return;
+
+    let treeDot = treeNode.querySelector(".tree-status-dot");
+    if (!treeDot) {
+      treeDot = document.createElement("span");
+      treeDot.className = "tree-status-dot";
+      treeDot.setAttribute("data-target", sectionId);
+      const nameSpan = treeNode.querySelector(".tree-name");
+      if (nameSpan && nameSpan.nextSibling) {
+        treeNode.insertBefore(treeDot, nameSpan.nextSibling);
+      } else {
+        treeNode.appendChild(treeDot);
+      }
+    }
+
+    if (statusClass === "status-both") {
+      treeDot.className = "tree-status-dot status-both";
+      treeDot.title = "[Read & Important]";
+    } else if (statusClass === "status-important") {
+      treeDot.className = "tree-status-dot status-important";
+      treeDot.title = "[Important]";
+    } else if (statusClass === "status-read") {
+      treeDot.className = "tree-status-dot status-read";
+      treeDot.title = "[Read]";
+    } else {
+      treeDot.className = "tree-status-dot";
+      treeDot.removeAttribute("title");
+    }
+  }
+
+  function syncAllDirectoryTreeDots(auditData) {
+    const treeNodes = document.querySelectorAll(".tree-node");
+    treeNodes.forEach((node) => {
+      const href = node.getAttribute("href") || "";
+      if (!href.startsWith("#")) return;
+      const sectionId = href.replace(/^#/, "");
+      const state = auditData[sectionId];
+      if (state) {
+        let statusClass = "status-none";
+        let tipText = "[Unmarked]";
+        if (state.read && state.important) {
+          statusClass = "status-both";
+          tipText = "[Read & Important]";
+        } else if (state.important) {
+          statusClass = "status-important";
+          tipText = "[Important]";
+        } else if (state.read) {
+          statusClass = "status-read";
+          tipText = "[Read]";
+        }
+        syncDirectoryTreeDot(sectionId, statusClass, tipText);
+      }
     });
   }
 
   // Re-sync canvas and load saved notes
   syncAnnotationCanvasDimensions();
   loadAnnotations();
-  initSectionAuditControls();
+  initSectionActionsCluster();
   window.addEventListener("resize", syncAnnotationCanvasDimensions);
   window.addEventListener("scroll", syncAnnotationCanvasDimensions, { passive: true });
 
