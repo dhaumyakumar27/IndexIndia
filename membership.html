@@ -236,11 +236,11 @@
             <span class="custom-dropdown-label">Font Style</span>
             <div class="custom-dropdown" id="dropdown-font-style">
               <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox" aria-expanded="false">
-                <span class="dropdown-selected-text" id="font-style-label">Long Reading</span>
+                <span class="dropdown-selected-text" id="font-style-label">Reading</span>
                 <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
               </button>
               <div class="dropdown-menu-list" id="list-font-style" role="listbox">
-                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading" role="option">Long Reading (Clean Sans)</button>
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading" role="option">Reading (Sans)</button>
                 <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter" role="option">Typewriter (Monospace)</button>
               </div>
             </div>
@@ -506,7 +506,7 @@
   <!-- Supabase SDK & App Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=8.9"></script>
-  <script src="script.js?v=9.5"></script>
+  <script src="script.js?v=9.6"></script>
 
   <!-- Checkout Initialization Script -->
   <script>
@@ -598,7 +598,6 @@
         profileCard.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
             <div>
-              <span class="user-role-badge font-mono" style="background: var(--status-optimal); color: #FFFFFF; margin-bottom: 6px;">PRO PASS VERIFIED</span>
               <h3 style="margin: 4px 0 2px; font-size: 1.3rem; font-weight: 700;">Account: ${user.email}</h3>
               <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; font-family: var(--font-mono);">
                 UID: ${user.id} &bull; Gateway: Razorpay Live Bank Settlement
@@ -640,10 +639,6 @@
             <button type="button" class="font-mono" id="btn-cancel-clearance" style="background: transparent; color: var(--text-secondary); border: 1px solid var(--border-primary); padding: 9px 14px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
               Cancel Clearance Immediately
             </button>
-
-            <a href="guide.html#sec-chapter-3" class="font-mono" style="margin-left: auto; font-size: 0.86rem; color: var(--accent); text-decoration: none; font-weight: 700;">
-              View Unlocked Chapter 3 &rarr;
-            </a>
           </div>
         `;
 
@@ -687,7 +682,7 @@
           const expiresAt = new Date(membership.valid_until).getTime();
           const diff = expiresAt - Date.now();
           if (diff <= 0) {
-            if (isAutoRenew && membership.plan_type === "10min_recurring") {
+            if (isAutoRenew && (membership.plan_type === "10min_recurring" || membership.plan_type === "test")) {
               // Auto-renew fired in background
               sb.getUserMembership().then(renewedM => {
                 membership = renewedM;
@@ -705,9 +700,26 @@
             }
             return;
           }
-          const mins = Math.floor(diff / 60000);
-          const secs = Math.floor((diff % 60000) / 1000);
-          timerEl.textContent = `${mins}m ${secs < 10 ? '0' : ''}${secs}s remaining (${new Date(expiresAt).toLocaleTimeString()})`;
+
+          const totalSecs = Math.floor(diff / 1000);
+          const days = Math.floor(totalSecs / 86400);
+          const hours = Math.floor((totalSecs % 86400) / 3600);
+          const mins = Math.floor((totalSecs % 3600) / 60);
+          const secs = totalSecs % 60;
+
+          const dateStr = new Date(expiresAt).toLocaleDateString([], { month: "short", day: "numeric" });
+          const timeStr = new Date(expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+          let remainingText = "";
+          if (days > 0) {
+            remainingText = `${days}d ${hours}h ${mins}m remaining (${dateStr}, ${timeStr})`;
+          } else if (hours > 0) {
+            remainingText = `${hours}h ${mins}m ${secs < 10 ? '0' : ''}${secs}s remaining (${timeStr})`;
+          } else {
+            remainingText = `${mins}m ${secs < 10 ? '0' : ''}${secs}s remaining (${timeStr})`;
+          }
+
+          timerEl.textContent = remainingText;
         }
 
         updateTimer();

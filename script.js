@@ -2113,7 +2113,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (type === "font-style") {
         document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
         item.classList.add("active");
-        if (fontStyleLabel) fontStyleLabel.textContent = val === "reading" ? "Long Reading" : "Typewriter";
+        if (fontStyleLabel) fontStyleLabel.textContent = val === "reading" ? "Reading" : "Typewriter";
         document.body.classList.remove("font-style-reading", "font-style-typewriter");
         document.body.classList.add(`font-style-${val}`);
         localStorage.setItem("indexindia_font_style", val);
@@ -2153,7 +2153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeItem) {
       document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
       activeItem.classList.add("active");
-      if (fontStyleLabel) fontStyleLabel.textContent = savedFontStyle === "reading" ? "Long Reading" : "Typewriter";
+      if (fontStyleLabel) fontStyleLabel.textContent = savedFontStyle === "reading" ? "Reading" : "Typewriter";
     }
   }
 
@@ -4474,7 +4474,7 @@ INSTRUCTIONS:
     document.body.classList.remove("font-style-reading", "font-style-typewriter");
     document.body.classList.add(`font-style-${style}`);
     localStorage.setItem("indexindia_font_style", style);
-    if (fontStyleLabel) fontStyleLabel.textContent = style === "reading" ? "Long Reading" : "Typewriter";
+    if (fontStyleLabel) fontStyleLabel.textContent = style === "reading" ? "Reading" : "Typewriter";
     const activeItem = document.querySelector(`#list-font-style .dropdown-item[data-val="${style}"]`);
     if (activeItem) {
       document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
@@ -4838,7 +4838,7 @@ INSTRUCTIONS:
       {
         category: "SETTINGS & APPEARANCE",
         icon: "📖",
-        title: "Font Style: Long Reading (Serif)",
+        title: "Font Style: Reading (Sans)",
         subtitle: "Institutional editorial serif typography",
         badge: "Serif",
         keywords: "font style serif reading editorial typography book",
