@@ -1547,8 +1547,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Uses integer pixel rounding (Math.trunc) to eliminate subpixel font rasterization jumping.
   let smoothScrollRaf = null;
   let activeArrowDirection = 0; // +1 = down, -1 = up, 0 = idle
-  let smoothScrollRaf = null;
-  let activeArrowDirection = 0;
   let smoothVelocity = 0;
   let isArrowHeld = false;
   let isFastScroll = false;
