@@ -481,76 +481,165 @@
      * Fetch active membership for current logged-in user
      */
     async getUserMembership() {
-      if (!this.isAuthenticated() || !supabaseClient) return null;
+      if (!this.isAuthenticated()) return null;
 
+      const cacheKey = `indexindia_membership_${currentUser.id}`;
+      const autoRenewKey = `indexindia_autorenew_${currentUser.id}`;
+      let cached = null;
       try {
-        const { data, error } = await supabaseClient
-          .from("user_memberships")
-          .select("plan_type, status, amount_paid, valid_until, payment_id, updated_at")
-          .eq("user_id", currentUser.id)
-          .maybeSingle();
+        cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+      } catch (e) {}
 
-        if (error) {
-          console.warn("[Supabase] getUserMembership query error:", error.message);
-          return null;
+      let data = null;
+
+      if (supabaseClient) {
+        try {
+          const { data: dbData, error } = await supabaseClient
+            .from("user_memberships")
+            .select("plan_type, status, amount_paid, valid_until, payment_id, updated_at")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+          if (!error && dbData) {
+            data = dbData;
+          }
+        } catch (err) {
+          console.warn("[Supabase] getUserMembership query exception:", err);
         }
+      }
 
-        if (!data) return null;
+      if (!data && cached) {
+        data = cached;
+      }
 
-        // ₹1 test payment is ignored so it does not count as real clearance
-        if (data.plan_type === "test") {
-          return null;
-        }
+      if (!data) return null;
 
-        // Check expiration if valid_until is present
-        if (data.valid_until) {
-          const expiresAt = new Date(data.valid_until).getTime();
-          if (Date.now() > expiresAt) {
+      // Handle expiration and 10-minute auto-payment renewal
+      if (data.valid_until) {
+        const expiresAt = new Date(data.valid_until).getTime();
+        const now = Date.now();
+        const isAutoRenew = localStorage.getItem(autoRenewKey) !== "false";
+
+        if (now > expiresAt) {
+          if (data.plan_type === "10min_recurring" && isAutoRenew && data.status === "active") {
+            // Auto-renewal: extend by 10 minutes
+            const newValidUntil = new Date(now + 10 * 60 * 1000).toISOString();
+            data.valid_until = newValidUntil;
+            data.updated_at = new Date().toISOString();
+            data.status = "active";
+            await this.recordMembership({
+              planType: data.plan_type,
+              paymentId: `autorenew_${now}`,
+              amountPaid: 1,
+              validUntil: newValidUntil
+            });
+            console.log("[Supabase] 10-min membership auto-renewed until:", newValidUntil);
+          } else {
             data.status = "expired";
           }
         }
-
-        return data;
-      } catch (err) {
-        console.warn("[Supabase] getUserMembership exception:", err);
-        return null;
       }
+
+      // Update cache
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+      } catch (e) {}
+
+      return data;
     },
 
     /**
      * Record or update verified membership in Supabase
      */
     async recordMembership({ planType, paymentId, orderId, amountPaid, validUntil }) {
-      if (!this.isAuthenticated() || !supabaseClient) return false;
+      if (!this.isAuthenticated()) return false;
+
+      const cacheKey = `indexindia_membership_${currentUser.id}`;
+      const payload = {
+        user_id: currentUser.id,
+        plan_type: planType,
+        status: "active",
+        amount_paid: amountPaid || 0,
+        currency: "INR",
+        payment_gateway: "razorpay",
+        payment_id: paymentId || null,
+        order_id: orderId || null,
+        valid_until: validUntil || null,
+        updated_at: new Date().toISOString()
+      };
 
       try {
-        const payload = {
-          user_id: currentUser.id,
-          plan_type: planType,
-          status: "active",
-          amount_paid: amountPaid || 0,
-          currency: "INR",
-          payment_gateway: "razorpay",
-          payment_id: paymentId || null,
-          order_id: orderId || null,
-          valid_until: validUntil || null,
-          updated_at: new Date().toISOString()
-        };
+        localStorage.setItem(cacheKey, JSON.stringify(payload));
+      } catch (e) {}
 
-        const { data, error } = await supabaseClient
-          .from("user_memberships")
-          .upsert(payload, { onConflict: "user_id" });
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient
+            .from("user_memberships")
+            .upsert(payload, { onConflict: "user_id" });
 
-        if (error) {
-          console.warn("[Supabase] recordMembership upsert error:", error.message);
-          return false;
+          if (error) {
+            console.warn("[Supabase] recordMembership upsert error:", error.message);
+          }
+        } catch (err) {
+          console.warn("[Supabase] recordMembership exception:", err);
         }
-
-        return true;
-      } catch (err) {
-        console.warn("[Supabase] recordMembership exception:", err);
-        return false;
       }
+
+      return true;
+    },
+
+    /**
+     * Cancel or stop membership immediately
+     */
+    async cancelUserMembership() {
+      if (!this.isAuthenticated()) return false;
+
+      const cacheKey = `indexindia_membership_${currentUser.id}`;
+      const autoRenewKey = `indexindia_autorenew_${currentUser.id}`;
+      try {
+        localStorage.setItem(autoRenewKey, "false");
+        localStorage.removeItem(cacheKey);
+      } catch (e) {}
+
+      if (supabaseClient) {
+        try {
+          const payload = {
+            user_id: currentUser.id,
+            status: "cancelled",
+            valid_until: new Date(Date.now() - 1000).toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          await supabaseClient
+            .from("user_memberships")
+            .upsert(payload, { onConflict: "user_id" });
+        } catch (err) {
+          console.warn("[Supabase] cancelUserMembership exception:", err);
+        }
+      }
+
+      return true;
+    },
+
+    /**
+     * Toggle auto-renew state
+     */
+    setAutoRenew(enabled) {
+      if (!currentUser) return false;
+      const autoRenewKey = `indexindia_autorenew_${currentUser.id}`;
+      try {
+        localStorage.setItem(autoRenewKey, enabled ? "true" : "false");
+      } catch (e) {}
+      return true;
+    },
+
+    /**
+     * Check if auto-renew is active
+     */
+    getAutoRenew() {
+      if (!currentUser) return false;
+      const autoRenewKey = `indexindia_autorenew_${currentUser.id}`;
+      return localStorage.getItem(autoRenewKey) !== "false";
     }
   };
 

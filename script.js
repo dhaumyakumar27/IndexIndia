@@ -1084,28 +1084,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctaBtn = document.getElementById("nav-upgrade-cta-btn");
     const desc = document.getElementById("nav-upgrade-desc");
 
-    const hasPaid = membership && membership.status === "active" && membership.plan_type !== "test";
+    const hasPaid = membership && membership.status === "active";
     if (hasPaid) {
       let displayName = "Premium Pass";
       if (membership.plan_type === "lifetime") displayName = "Lifetime Sovereign";
       else if (membership.plan_type === "annual") displayName = "Annual Partner";
       else if (membership.plan_type === "monthly") displayName = "Monthly Pass";
+      else if (membership.plan_type === "10min_recurring") displayName = "₹1 / 10-Min Live Pass";
+      else if (membership.plan_type === "test") displayName = "₹1 Test Pass";
 
       if (badge) {
-        badge.textContent = `${(membership.plan_type || "PRO").toUpperCase()} PASS`;
+        badge.style.display = "inline-flex";
+        badge.textContent = `${(membership.plan_type === "10min_recurring" ? "10MIN" : (membership.plan_type || "PRO")).toUpperCase()} PASS`;
         badge.style.background = "var(--status-optimal)";
         badge.style.color = "#FFFFFF";
       }
       if (status) status.textContent = "VERIFIED";
       if (planName) planName.textContent = displayName;
       if (planStatus) {
-        planStatus.textContent = membership.valid_until 
-          ? `● Active (${new Date(membership.valid_until).toLocaleDateString()})` 
-          : "● Lifetime Active";
+        let validText = "● Lifetime Active";
+        if (membership.valid_until) {
+          const d = new Date(membership.valid_until);
+          const isToday = d.toDateString() === new Date().toDateString();
+          validText = isToday ? `● Active (${d.toLocaleTimeString()})` : `● Active (${d.toLocaleDateString()})`;
+        }
+        planStatus.textContent = validText;
         planStatus.className = "status-verified font-mono";
       }
       if (ctaBtn) {
-        ctaBtn.textContent = "Manage Premium Plan →";
+        ctaBtn.textContent = "Manage Clearance Profile →";
         ctaBtn.style.backgroundColor = "var(--bg-card)";
         ctaBtn.style.color = "var(--text-primary)";
         ctaBtn.style.border = "1px solid var(--border-primary)";
@@ -1132,6 +1139,122 @@ document.addEventListener("DOMContentLoaded", () => {
       if (desc) desc.textContent = "";
     }
   }
+
+  // ================= DYNAMIC PAID MEMBER CONTENT ENGINE (OPTION B SUPABASE) =================
+  async function syncMemberExclusiveContent(membership) {
+    const isMember = Boolean(membership && membership.status === "active");
+
+    // 1. Section 1 (Unincorporated Entities): "sole proprietorship is best for start up"
+    const unincorporatedSec = document.getElementById("sec-unincorporated");
+    if (unincorporatedSec) {
+      const entityItems = unincorporatedSec.querySelectorAll(".entity-item");
+      let solePropCard = null;
+      for (const item of entityItems) {
+        const titleEl = item.querySelector(".entity-name");
+        if (titleEl && titleEl.textContent.includes("Sole Proprietorship")) {
+          solePropCard = item;
+          break;
+        }
+      }
+
+      let existingNote = document.getElementById("paid-sole-prop-note");
+      if (isMember) {
+        if (!existingNote && solePropCard) {
+          const noteDiv = document.createElement("div");
+          noteDiv.className = "paid-member-intel font-mono";
+          noteDiv.id = "paid-sole-prop-note";
+          noteDiv.innerHTML = `
+            <span class="paid-intel-pill">[PRO INSIGHT]</span>
+            <span class="paid-intel-text">sole proprietorship is best for start up</span>
+          `;
+          solePropCard.appendChild(noteDiv);
+        }
+      } else {
+        if (existingNote) {
+          existingNote.remove();
+        }
+      }
+    }
+
+    // 2. Chapter 3: "Chapter 3: Paid Membership Confirmed"
+    const contentArea = document.querySelector(".content-area");
+    const forumSec = document.getElementById("forum-section");
+    const treeScroll = document.getElementById("tree-content-scroll");
+
+    let memberCh3Container = document.getElementById("member-chapter-3-container");
+    let treeNodeCh3 = document.getElementById("tree-node-chapter-3");
+
+    if (isMember) {
+      // Inject Chapter 3 into main viewport if not present
+      if (!memberCh3Container && contentArea && forumSec) {
+        memberCh3Container = document.createElement("div");
+        memberCh3Container.id = "member-chapter-3-container";
+        memberCh3Container.innerHTML = `
+          <div class="chapter-divider" style="margin: 54px 0 28px; border-top: 1.5px dashed var(--border-primary);"></div>
+          <div class="chapter-anchor" id="sec-chapter-3"></div>
+          <div class="section-tag-row font-mono main-chapter-header">
+            <span class="tag-bracket">[</span><span class="tag-text">CHAPTER 03 • PRO CLEARANCE EXCLUSIVE</span><span class="tag-bracket">]</span>
+          </div>
+          <h2 class="institutional-title" style="font-size: 2.1rem; margin-top: 10px;">Chapter 3: Paid Membership Confirmed</h2>
+          <section id="sec-chapter-3-content" class="page-directory-section member-exclusive-section" data-node-idx="13">
+            <p class="story-narrative-lead" style="font-size: 1.05rem; line-height: 1.7; margin-bottom: 16px;">
+              Your paid institutional membership is verified and active. All statutory telemetry, deep forensic filings, and sovereign models are unlocked across your account.
+            </p>
+            <div class="entity-cards-grid" style="margin-top: 16px;">
+              <div class="entity-item" style="border-left: 3.5px solid var(--status-optimal);">
+                <h4 class="entity-name" style="color: var(--status-optimal);">Clearance Protocol Active</h4>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 6px;">
+                  Continuous surveillance enabled. Next 10-min settlement checkpoint running in background telemetry.
+                </p>
+              </div>
+            </div>
+          </section>
+        `;
+        contentArea.insertBefore(memberCh3Container, forumSec);
+
+        // Attach action cluster to the new chapter section
+        if (typeof initSectionActionsCluster === "function") {
+          initSectionActionsCluster();
+        }
+      }
+
+      // Inject Chapter 3 node into Directory Tree if not present
+      if (!treeNodeCh3 && treeScroll) {
+        const forumTreeNode = treeScroll.querySelector('a[href="#forum-section"]');
+        if (forumTreeNode) {
+          treeNodeCh3 = document.createElement("a");
+          treeNodeCh3.href = "#sec-chapter-3";
+          treeNodeCh3.className = "tree-node tree-chapter-node";
+          treeNodeCh3.id = "tree-node-chapter-3";
+          treeNodeCh3.dataset.level = "1";
+          treeNodeCh3.innerHTML = `
+            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">Chapter 3: Paid Membership Confirmed</span>
+            <span class="tree-badge font-mono">CH 03</span>
+          `;
+          treeScroll.insertBefore(treeNodeCh3, forumTreeNode);
+        }
+      }
+
+      document.body.classList.add("is-pro-member");
+    } else {
+      // Remove Chapter 3 and Directory Tree node
+      if (memberCh3Container) {
+        memberCh3Container.remove();
+      }
+      if (treeNodeCh3) {
+        treeNodeCh3.remove();
+      }
+      document.body.classList.remove("is-pro-member");
+    }
+
+    // Rebind tree & ticks so scroll spy, arrow keys, and status dots update
+    if (typeof rebindTreeAndTicksEvents === "function") {
+      rebindTreeAndTicksEvents();
+    }
+  }
+
+  window.syncMemberExclusiveContent = syncMemberExclusiveContent;
 
   async function renderAccountPanel() {
     if (!accountPanel) return;
@@ -1166,10 +1289,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       updateNavUpgradePanel(membership);
 
-      const hasPaidPlan = membership && membership.status === "active" && membership.plan_type !== "test";
-      const planStatusText = hasPaidPlan 
-        ? (membership.valid_until ? `Active (${new Date(membership.valid_until).toLocaleDateString()})` : "Active (Lifetime)")
-        : "Standard Access";
+      const hasPaidPlan = membership && membership.status === "active";
+      let planStatusText = "Standard Access";
+      if (hasPaidPlan) {
+        if (membership.valid_until) {
+          const d = new Date(membership.valid_until);
+          const isToday = d.toDateString() === new Date().toDateString();
+          planStatusText = isToday ? `Active (Until ${d.toLocaleTimeString()})` : `Active (${d.toLocaleDateString()})`;
+        } else {
+          planStatusText = "Active (Lifetime)";
+        }
+      }
 
       accountPanel.innerHTML = `
         <div class="panel-header">
@@ -1512,32 +1642,55 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Bind auth state change to re-render account panel and trigger sync
-  if (window.IndexIndiaSupabase) {
-    window.IndexIndiaSupabase.onAuthStateChange((event, user) => {
-      renderAccountPanel();
-      if (user) {
-        triggerCloudSyncAll();
+  // Bind auth state change to re-render account panel, update badges, and sync exclusive content
+  async function handleAuthChange(event, user) {
+    renderAccountPanel();
+    if (user) {
+      triggerCloudSyncAll();
+      if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.getUserMembership === "function") {
+        try {
+          const m = await window.IndexIndiaSupabase.getUserMembership();
+          updateNavUpgradePanel(m);
+          syncMemberExclusiveContent(m);
+        } catch (e) {}
       }
-    });
+    } else {
+      updateNavUpgradePanel(null);
+      syncMemberExclusiveContent(null);
+    }
+  }
+
+  if (window.IndexIndiaSupabase) {
+    window.IndexIndiaSupabase.onAuthStateChange(handleAuthChange);
   } else {
-    // If client loads shortly after, initialize once ready
     window.addEventListener("load", () => {
       if (window.IndexIndiaSupabase) {
-        window.IndexIndiaSupabase.onAuthStateChange((event, user) => {
-          renderAccountPanel();
-          if (user) {
-            triggerCloudSyncAll();
-          }
-        });
+        window.IndexIndiaSupabase.onAuthStateChange(handleAuthChange);
       }
     });
   }
 
-  // Pre-render account panel on initial boot
+  // Pre-render account panel and check membership on initial boot
   if (typeof renderAccountPanel === "function") {
     renderAccountPanel();
   }
+  if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.getUserMembership === "function") {
+    window.IndexIndiaSupabase.getUserMembership().then((m) => {
+      updateNavUpgradePanel(m);
+      syncMemberExclusiveContent(m);
+    }).catch(() => {});
+  }
+
+  // Background 5-second telemetry heartbeat for auto-renewal and live access control
+  setInterval(async () => {
+    if (window.IndexIndiaSupabase && window.IndexIndiaSupabase.isAuthenticated()) {
+      try {
+        const m = await window.IndexIndiaSupabase.getUserMembership();
+        updateNavUpgradePanel(m);
+        syncMemberExclusiveContent(m);
+      } catch (e) {}
+    }
+  }, 5000);
 
   // ================= 4. GLOBAL KEYBOARD SHORTCUTS =================
   // Simple Tab press toggles directly between Guide <=> Index

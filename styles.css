@@ -6533,6 +6533,62 @@ body.theme-dark .section-badge {
   border-color: rgba(255, 107, 53, 0.35);
 }
 
+/* Paid Member Dynamic In-Section Content (Option B Supabase) */
+.paid-member-intel {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: rgba(37, 99, 235, 0.08);
+  border-left: 3.5px solid #2563EB;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeIn 0.3s ease;
+}
+
+body.theme-dark .paid-member-intel {
+  background: rgba(37, 99, 235, 0.16);
+  border-left-color: #3B82F6;
+}
+
+.paid-intel-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: #2563EB;
+  color: #FFFFFF;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.paid-intel-text {
+  font-weight: 500;
+}
+
+.member-exclusive-section {
+  border-left: 3.5px solid #2563EB !important;
+  background: var(--bg-card);
+  animation: fadeIn 0.4s ease;
+}
+
+/* Membership Profile Card Styles */
+.membership-profile-card {
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 10px;
+  padding: 24px 28px;
+  margin: 24px 0 32px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+body.theme-dark .membership-profile-card {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
 
 
 
