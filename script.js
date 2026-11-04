@@ -1547,18 +1547,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Uses integer pixel rounding (Math.trunc) to eliminate subpixel font rasterization jumping.
   let smoothScrollRaf = null;
   let activeArrowDirection = 0; // +1 = down, -1 = up, 0 = idle
+  let smoothScrollRaf = null;
+  let activeArrowDirection = 0;
   let smoothVelocity = 0;
   let isArrowHeld = false;
+  let isFastScroll = false;
   let lastFrameTime = 0;
   let subPixelAccumulator = 0;
 
-  const MAX_CRUISE_SPEED = 9.5; // pixels per frame at 60fps (~570px/sec cruising speed)
-  const TAP_INITIAL_VELOCITY = 3.8; // gentle initial impulse on tap (~26-30px total displacement)
-  const ACCELERATION = 0.42; // smooth ramp-up to cruising speed while held (~250ms)
+  const NORMAL_CRUISE_SPEED = 9.5; // pixels per frame at 60fps (~570px/sec cruising speed)
+  const NORMAL_TAP_VELOCITY = 3.8; // gentle initial impulse on tap (~26-30px total displacement)
+  const NORMAL_ACCEL = 0.42; // smooth ramp-up to cruising speed while held (~250ms)
+
+  const FAST_CRUISE_SPEED = 28.0; // accelerated cruising speed (~1680px/sec, ~2.9x faster)
+  const FAST_TAP_VELOCITY = 10.0; // crisp initial impulse for fast scroll
+  const FAST_ACCEL = 1.35; // smooth ramp-up to fast cruise speed (~250ms)
+
   const FRICTION = 0.84; // silky ~120ms ease-out on key release
 
   function cancelSmoothScrollImmediately() {
     isArrowHeld = false;
+    isFastScroll = false;
     smoothVelocity = 0;
     activeArrowDirection = 0;
     subPixelAccumulator = 0;
@@ -1574,9 +1583,14 @@ document.addEventListener("DOMContentLoaded", () => {
     lastFrameTime = timestamp;
     const timeScale = elapsed / 16.667; // Normalized to 60fps
 
+    const targetMax = isFastScroll ? FAST_CRUISE_SPEED : NORMAL_CRUISE_SPEED;
+    const targetAccel = isFastScroll ? FAST_ACCEL : NORMAL_ACCEL;
+
     if (isArrowHeld) {
-      if (smoothVelocity < MAX_CRUISE_SPEED) {
-        smoothVelocity = Math.min(MAX_CRUISE_SPEED, smoothVelocity + ACCELERATION * timeScale);
+      if (smoothVelocity < targetMax) {
+        smoothVelocity = Math.min(targetMax, smoothVelocity + targetAccel * timeScale);
+      } else if (smoothVelocity > targetMax) {
+        smoothVelocity = Math.max(targetMax, smoothVelocity * Math.pow(FRICTION, timeScale));
       }
     } else {
       smoothVelocity *= Math.pow(FRICTION, timeScale);
@@ -1604,11 +1618,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function startSmoothScroll(direction) {
+  function startSmoothScroll(direction, fast = false) {
     activeArrowDirection = direction;
     isArrowHeld = true;
-    if (smoothVelocity < TAP_INITIAL_VELOCITY) {
-      smoothVelocity = TAP_INITIAL_VELOCITY;
+    isFastScroll = !!fast;
+    const initialVelocity = isFastScroll ? FAST_TAP_VELOCITY : NORMAL_TAP_VELOCITY;
+    if (smoothVelocity < initialVelocity) {
+      smoothVelocity = initialVelocity;
     }
     if (!smoothScrollRaf) {
       lastFrameTime = 0;
@@ -1636,7 +1652,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 2. "?" toggles Keyboard Shortcuts Panel (strictly ? or Shift+/, no Ctrl, Alt, Meta)
     // 2. Shortcut Panel: Ctrl + \ (or ?)
     if (((e.ctrlKey || e.metaKey) && (e.key === "\\" || e.code === "Backslash")) ||
         ((e.key === "?" || (e.shiftKey && e.key === "/")) && !e.ctrlKey && !e.altKey && !e.metaKey)) {
@@ -1654,8 +1669,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 4. Universal Search & Commands: Ctrl + /
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "/" || e.code === "Slash")) {
+    // 4. Universal Search & Commands: Ctrl + / (or / alone)
+    if (((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "/" || e.code === "Slash")) || (e.key === "/" && noModifiers)) {
       e.preventDefault();
       focusNavSearchBar();
       return;
@@ -1713,30 +1728,64 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 8. Alt + Arrow Up / Down: Move Section
+    // 8. Alt + Arrow Up / Down: Move strictly between Main Chapters & Comments
     if (e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       closeTreeExplicitly();
-      const sections = Array.from(document.querySelectorAll(".page-directory-section, .institutional-forum-section, #sec-footer"));
-      if (sections.length > 0) {
+
+      if (hasInPageTree && treeNodes.length > 0) {
+        const chapterIndices = [];
+        treeNodes.forEach((node, idx) => {
+          const href = node.getAttribute("href") || "";
+          if (
+            node.classList.contains("tree-chapter-node") ||
+            node.dataset.level === "1" ||
+            href === "#sec-chapter-1" ||
+            href === "#sec-chapter-2" ||
+            href === "#forum-section" ||
+            href === "#sec-footer" ||
+            href.includes("chapter") ||
+            href.includes("forum")
+          ) {
+            if (!chapterIndices.includes(idx)) chapterIndices.push(idx);
+          }
+        });
+
+        if (chapterIndices.length === 0) {
+          chapterIndices.push(0);
+          if (treeNodes.length > 1) chapterIndices.push(treeNodes.length - 1);
+        }
+
+        if (e.key === "ArrowDown") {
+          const nextIdx = chapterIndices.find((idx) => idx > currentSubIndex);
+          const target = nextIdx !== undefined ? nextIdx : chapterIndices[chapterIndices.length - 1];
+          navigateToNode(target);
+        } else {
+          const prevIdx = chapterIndices.slice().reverse().find((idx) => idx < currentSubIndex);
+          const target = prevIdx !== undefined ? prevIdx : chapterIndices[0];
+          navigateToNode(target);
+        }
+        return;
+      }
+
+      // Fallback for pages without in-page tree
+      const mainSections = Array.from(document.querySelectorAll(".chapter-anchor, #sec-chapter-1, #sec-chapter-2, #forum-section, #sec-footer, .institutional-forum-section"));
+      if (mainSections.length > 0) {
         const scrollPos = window.scrollY + 120;
         let currentIdx = 0;
-        for (let i = 0; i < sections.length; i++) {
-          if (sections[i].offsetTop <= scrollPos) {
+        for (let i = 0; i < mainSections.length; i++) {
+          if (mainSections[i].offsetTop <= scrollPos) {
             currentIdx = i;
           }
         }
         const direction = e.key === "ArrowDown" ? 1 : -1;
-        const targetIdx = Math.max(0, Math.min(sections.length - 1, currentIdx + direction));
-        sections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
-        if (typeof updateActiveSectionNode === "function") {
-          updateActiveSectionNode(targetIdx);
-        }
+        const targetIdx = Math.max(0, Math.min(mainSections.length - 1, currentIdx + direction));
+        mainSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
       }
       return;
     }
 
-    // 9. Ctrl + Arrow Up / Down: Move Subsection
+    // 9. Ctrl + Arrow Up / Down: Move through ALL chapter-sections, subsections, comments, and footer
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       closeTreeExplicitly();
@@ -1751,13 +1800,34 @@ document.addEventListener("DOMContentLoaded", () => {
         navigateToNode(targetIdx);
         return;
       }
+
+      const allSections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .story-node-section, .institutional-forum-section, #sec-footer"));
+      if (allSections.length > 0) {
+        const scrollPos = window.scrollY + 120;
+        let currentIdx = 0;
+        for (let i = 0; i < allSections.length; i++) {
+          if (allSections[i].offsetTop <= scrollPos) {
+            currentIdx = i;
+          }
+        }
+        const direction = e.key === "ArrowDown" ? 1 : -1;
+        const targetIdx = Math.max(0, Math.min(allSections.length - 1, currentIdx + direction));
+        allSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
+      }
       return;
     }
 
     // 10. Normal Arrow Up / Down: Scroll Page Smoothly (strictly alone, no modifiers)
     if ((e.key === "ArrowDown" || e.key === "ArrowUp") && noModifiers) {
       e.preventDefault();
-      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1);
+      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1, false);
+      return;
+    }
+
+    // 10a. Shift + Arrow Up / Down: Fast Scroll Page Smoothly (accelerated cruising speed, zero flicker)
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      e.preventDefault();
+      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1, true);
       return;
     }
 
@@ -1805,6 +1875,8 @@ document.addEventListener("DOMContentLoaded", () => {
       stopSmoothScroll();
     } else if (e.key === "ArrowUp" && activeArrowDirection === -1) {
       stopSmoothScroll();
+    } else if (e.key === "Shift" && isArrowHeld) {
+      isFastScroll = false;
     }
   });
 
@@ -4415,17 +4487,24 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        title: "Move Section",
-        subtitle: "Jump directly to the next or previous section",
+        title: "Move Main Chapter & Comments",
+        subtitle: "Jump strictly between major chapters, comments forum, and statutory footer",
         badge: "Alt + ↓ / ↑",
-        keywords: "move section alt down up jump chapter sections narrative shortcut binding"
+        keywords: "move chapter alt down up jump chapter sections narrative shortcut binding"
       },
       {
         category: "KEYBOARD SHORTCUTS",
-        title: "Move Subsection",
-        subtitle: "Step through directory tree nodes and subsections",
+        title: "Move Section & Subsection",
+        subtitle: "Step through all directory tree nodes, subsections, topics, and comments",
         badge: "Ctrl + ↓ / ↑",
         keywords: "move subsection step section directly jump ctrl down up arrow shortcut binding"
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
+        title: "Fast Scroll Page",
+        subtitle: "Accelerated silky-smooth page scrolling with zero speed flicker",
+        badge: "Shift + ↓ / ↑",
+        keywords: "fast scroll page smoothly shift arrow down up keyboard scroll navigation shortcut binding"
       },
       {
         category: "KEYBOARD SHORTCUTS",
@@ -4866,7 +4945,8 @@ INSTRUCTIONS:
     navSearchInput.addEventListener("focus", () => {
       navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
       navSearchInput.placeholder = "";
-      if (navSearchInput.value.trim().length > 0) {
+      if (navSearchInput.value.length > 0) {
+        navSearchInput.select();
         renderSearchResults(navSearchInput.value);
       }
     });
@@ -4874,8 +4954,17 @@ INSTRUCTIONS:
     navSearchInput.addEventListener("click", () => {
       navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
       navSearchInput.placeholder = "";
-      if (navSearchInput.value.trim().length > 0) {
+      if (navSearchInput.value.length > 0) {
+        navSearchInput.select();
         renderSearchResults(navSearchInput.value);
+      }
+    });
+
+    navSearchInput.addEventListener("mouseup", (e) => {
+      if (navSearchInput.value.length > 0) {
+        if (navSearchInput.selectionStart === navSearchInput.selectionEnd) {
+          navSearchInput.select();
+        }
       }
     });
 
@@ -6638,6 +6727,20 @@ INSTRUCTIONS:
       } else {
         treeNode.appendChild(treeDot);
       }
+
+      // Allow clicking the tree dot to cycle section status directly from tree drawer
+      treeDot.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const sec = document.getElementById(sectionId);
+        if (sec) {
+          const dotBtn = sec.querySelector(".section-status-dot-btn");
+          if (dotBtn) {
+            dotBtn.click();
+            return;
+          }
+        }
+      });
     }
 
     if (statusClass === "status-both") {
@@ -6651,7 +6754,7 @@ INSTRUCTIONS:
       treeDot.title = "[Read]";
     } else {
       treeDot.className = "tree-status-dot";
-      treeDot.removeAttribute("title");
+      treeDot.title = "[Unmarked - Click to cycle]";
     }
   }
 
@@ -6661,10 +6764,10 @@ INSTRUCTIONS:
       const href = node.getAttribute("href") || "";
       if (!href.startsWith("#")) return;
       const sectionId = href.replace(/^#/, "");
-      const state = auditData[sectionId];
+      const state = (auditData && auditData[sectionId]) || null;
+      let statusClass = "status-none";
+      let tipText = "[Unmarked]";
       if (state) {
-        let statusClass = "status-none";
-        let tipText = "[Unmarked]";
         if (state.read && state.important) {
           statusClass = "status-both";
           tipText = "[Read & Important]";
@@ -6675,8 +6778,8 @@ INSTRUCTIONS:
           statusClass = "status-read";
           tipText = "[Read]";
         }
-        syncDirectoryTreeDot(sectionId, statusClass, tipText);
       }
+      syncDirectoryTreeDot(sectionId, statusClass, tipText);
     });
   }
 

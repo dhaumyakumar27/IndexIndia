@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Guide Landing — IndexIndia</title>
   <meta name="description" content="Definitive, statutory index of every legal business structure available in India under the Companies Act, 2013 and allied Indian statutes.">
-  <link rel="stylesheet" href="styles.css?v=9.2">
+  <link rel="stylesheet" href="styles.css?v=9.3">
 </head>
 <body class="theme-light">
 
@@ -85,15 +85,19 @@
               <span class="shortcut-keys"><kbd>Tab</kbd></span>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-desc">Move Section</span>
+              <span class="shortcut-desc">Move Main Chapter &amp; Comments</span>
               <span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-desc">Move Subsection</span>
+              <span class="shortcut-desc">Move Section &amp; Subsection</span>
               <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-desc">Scroll Page</span>
+              <span class="shortcut-desc">Fast Scroll Page</span>
+              <span class="shortcut-keys"><kbd>Shift</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Scroll Page Smoothly</span>
               <span class="shortcut-keys"><kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
             </div>
             <div class="shortcut-row">
@@ -277,7 +281,7 @@
       <div class="rail-tree-header" id="rail-tree-header">
         <div class="rail-tree-header-meta">
           <span class="rail-tree-tag font-mono">SECTIONS</span>
-          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 15</span>
+          <span class="rail-tree-status font-mono" id="rail-tree-status">01 / 17</span>
         </div>
         <div class="rail-tree-header-actions">
           <button type="button" class="rail-header-btn close-btn" id="btn-close-tree" title="Close drawer (Esc or Space)" aria-label="Close Directory Tree">
@@ -288,85 +292,101 @@
 
       <div class="rail-tree-body">
         <div class="tree-content-scroll" id="tree-content-scroll">
-          <div class="tree-section-header">CH 01 • STATUTORY ENTITY MATRIX</div>
-          <a href="#sec-unincorporated" class="tree-node active" data-index="0">
+          <div class="tree-section-header">DIRECTORY TREE HIERARCHY</div>
+
+          <!-- Chapter 1 Main Section -->
+          <a href="#sec-chapter-1" class="tree-node tree-chapter-node active" data-level="1" data-index="0">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">Chapter 1: Entity Matrix</span>
+            <span class="tree-badge font-mono">CH 01</span>
+          </a>
+
+          <!-- Chapter 1 Subsections (Indented Away from Starting Line) -->
+          <a href="#sec-unincorporated" class="tree-node tree-subtopic-node" data-level="2" data-index="1">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
             <span class="tree-name font-mono">01. Unincorporated Entities</span>
             <span class="tree-badge font-mono">01</span>
           </a>
-          <a href="#sec-llp" class="tree-node" data-index="1">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <a href="#sec-llp" class="tree-node tree-subtopic-node" data-level="2" data-index="2">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
             <span class="tree-name font-mono">02. Limited Liability Partnerships</span>
             <span class="tree-badge font-mono">02</span>
           </a>
-          <a href="#sec-shares" class="tree-node" data-index="2">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <a href="#sec-shares" class="tree-node tree-subtopic-node" data-level="2" data-index="3">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
             <span class="tree-name font-mono">03. Companies Limited by Shares</span>
             <span class="tree-badge font-mono">03</span>
           </a>
-          <a href="#sec-obscure" class="tree-node" data-index="3">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <a href="#sec-obscure" class="tree-node tree-subtopic-node" data-level="2" data-index="4">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
             <span class="tree-name font-mono">04. Obscure Corporate Structures</span>
             <span class="tree-badge font-mono">04</span>
           </a>
-          <a href="#sec-nonprofit" class="tree-node" data-index="4">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <a href="#sec-nonprofit" class="tree-node tree-subtopic-node" data-level="2" data-index="5">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
             <span class="tree-name font-mono">05. NGOs &amp; Non-Profits</span>
             <span class="tree-badge font-mono">05</span>
           </a>
-          <a href="#sec-specialized" class="tree-node" data-index="5">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <a href="#sec-specialized" class="tree-node tree-subtopic-node" data-level="2" data-index="6">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
             <span class="tree-name font-mono">06. Specialized Entities</span>
             <span class="tree-badge font-mono">06</span>
           </a>
-          <a href="#sec-foreign" class="tree-node" data-index="6">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
+          <a href="#sec-foreign" class="tree-node tree-subtopic-node" data-level="2" data-index="7">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
             <span class="tree-name font-mono">07. Foreign Entry Vehicles</span>
             <span class="tree-badge font-mono">07</span>
           </a>
 
-          <div class="tree-section-header" style="margin-top: 14px;">CH 02 • PAYMENT GATEWAYS &amp; INFRASTRUCTURE</div>
-          <a href="#sec-pg-creator" class="tree-node" data-index="7">
+          <!-- Chapter 2 Main Section -->
+          <a href="#sec-chapter-2" class="tree-node tree-chapter-node" data-level="1" data-index="8">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">08. Creator Storefronts</span>
+            <span class="tree-name font-mono">Chapter 2: Payment Gateways</span>
+            <span class="tree-badge font-mono">CH 02</span>
+          </a>
+
+          <!-- Chapter 2 Subsections (Indented Away from Starting Line) -->
+          <a href="#sec-pg-creator" class="tree-node tree-subtopic-node" data-level="2" data-index="9">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">01. Creator Storefronts</span>
             <span class="tree-badge font-mono">08</span>
           </a>
-          <a href="#sec-pg-aggregators" class="tree-node" data-index="8">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">09. Mainstream Aggregators</span>
+          <a href="#sec-pg-aggregators" class="tree-node tree-subtopic-node" data-level="2" data-index="10">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">02. Mainstream Aggregators</span>
             <span class="tree-badge font-mono">09</span>
           </a>
-          <a href="#sec-pg-crossborder" class="tree-node" data-index="9">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">10. Cross-Border Specialists</span>
+          <a href="#sec-pg-crossborder" class="tree-node tree-subtopic-node" data-level="2" data-index="11">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">03. Cross-Border Specialists</span>
             <span class="tree-badge font-mono">10</span>
           </a>
-          <a href="#sec-pg-enterprise" class="tree-node" data-index="10">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">11. Enterprise &amp; B2B Gateways</span>
+          <a href="#sec-pg-enterprise" class="tree-node tree-subtopic-node" data-level="2" data-index="12">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">04. Enterprise &amp; B2B Gateways</span>
             <span class="tree-badge font-mono">11</span>
           </a>
-          <a href="#sec-pg-ecosystems" class="tree-node" data-index="11">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">12. Corporate Ecosystems</span>
+          <a href="#sec-pg-ecosystems" class="tree-node tree-subtopic-node" data-level="2" data-index="13">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">05. Corporate Ecosystems</span>
             <span class="tree-badge font-mono">12</span>
           </a>
-          <a href="#sec-pg-neobanking" class="tree-node" data-index="12">
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">13. Neobanking &amp; API Layers</span>
+          <a href="#sec-pg-neobanking" class="tree-node tree-subtopic-node" data-level="2" data-index="14">
+            <span class="tree-guide font-mono">&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span>
+            <span class="tree-name font-mono">06. Neobanking &amp; API Layers</span>
             <span class="tree-badge font-mono">13</span>
           </a>
 
-          <div class="tree-section-header" style="margin-top: 14px;">FORUM &amp; STATUTORY</div>
-          <a href="#forum-section" class="tree-node" data-index="13">
+          <!-- Comments & Legal Main Sections -->
+          <a href="#forum-section" class="tree-node tree-chapter-node" data-level="1" data-index="15">
             <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">14. Comments Directory Stream</span>
-            <span class="tree-badge font-mono">14</span>
+            <span class="tree-name font-mono">Comments Directory Stream</span>
+            <span class="tree-badge font-mono">FORUM</span>
           </a>
-          <a href="#sec-footer" class="tree-node" data-index="14">
+          <a href="#sec-footer" class="tree-node tree-chapter-node" data-level="1" data-index="16">
             <span class="tree-guide font-mono">&#9492;&#9472;&#9472;</span>
-            <span class="tree-name font-mono">15. Statutory Disclaimer</span>
-            <span class="tree-badge font-mono">15</span>
+            <span class="tree-name font-mono">Statutory Disclaimer</span>
+            <span class="tree-badge font-mono">LEGAL</span>
           </a>
         </div>
         <div class="tree-scrub-strip" id="tree-scrub-strip">
@@ -379,7 +399,8 @@
   <!-- ================= MAIN VIEWPORT CONTENT ================= -->
   <main class="main-viewport-wrapper">
     <div class="content-area">
-      <div class="section-tag-row font-mono" style="margin-top: 8px;">
+      <div class="chapter-anchor" id="sec-chapter-1"></div>
+      <div class="section-tag-row font-mono main-chapter-header" style="margin-top: 8px;">
         <span class="tag-bracket">[</span><span class="tag-text">CHAPTER 01 • STATUTORY ENTITY MATRIX</span><span class="tag-bracket">]</span>
       </div>
       <h1 class="institutional-title" style="margin-top: 10px;">Chapter 1: The Complete Indian Entity &amp; Registration Matrix</h1>
@@ -598,7 +619,8 @@
 
       <!-- ================= CHAPTER 2: PAYMENT PLATFORMS, GATEWAYS & INFRASTRUCTURE ================= -->
       <div class="chapter-divider" style="margin: 54px 0 28px; border-top: 1.5px dashed var(--border-primary);"></div>
-      <div class="section-tag-row font-mono">
+      <div class="chapter-anchor" id="sec-chapter-2"></div>
+      <div class="section-tag-row font-mono main-chapter-header">
         <span class="tag-bracket">[</span><span class="tag-text">CHAPTER 02 • FINTECH INFRASTRUCTURE &amp; SETTLEMENT RAILS</span><span class="tag-bracket">]</span>
       </div>
       <h2 class="institutional-title" style="font-size: 2.1rem; margin-top: 10px;">Chapter 2: Indian Payment Platforms, Gateways &amp; Infrastructure Directory</h2>
@@ -984,6 +1006,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=8.7"></script>
-  <script src="script.js?v=9.2"></script>
+  <script src="script.js?v=9.3"></script>
 </body>
 </html>

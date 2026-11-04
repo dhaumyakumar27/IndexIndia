@@ -1509,21 +1509,50 @@ body.theme-dark .tree-node.active .tree-badge {
   font-family: inherit !important;
 }
 
-/* Tree Node Indentation Levels */
-.tree-node[data-level="1"] {
+/* Tree Node Indentation Levels & Traditional Hierarchy */
+.tree-node[data-level="1"],
+.tree-node.tree-chapter-node {
   padding-left: 10px;
+  font-weight: 700;
+  margin-top: 6px;
 }
 
-.tree-node[data-level="2"] {
-  padding-left: 22px;
+.tree-node[data-level="1"] .tree-name,
+.tree-node.tree-chapter-node .tree-name {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tree-node[data-level="2"],
+.tree-node.tree-subtopic-node {
+  padding-left: 26px;
+  font-weight: 400;
+  font-size: 0.84rem;
+}
+
+.tree-node[data-level="2"] .tree-guide,
+.tree-node.tree-subtopic-node .tree-guide {
+  color: var(--text-tertiary);
+  opacity: 0.6;
+  margin-right: 4px;
 }
 
 .tree-node[data-level="3"] {
-  padding-left: 34px;
+  padding-left: 36px;
 }
 
 .tree-node[data-level="4"] {
-  padding-left: 46px;
+  padding-left: 48px;
+}
+
+/* Chapter Anchors for Direct Navigation */
+.chapter-anchor {
+  position: relative;
+  display: block;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  scroll-margin-top: calc(var(--nav-height) + 16px);
 }
 
 /* Story Sections & In-Page Directory Anchors */
@@ -5809,11 +5838,11 @@ body.annotation-mode-sketch {
   border: 1px solid rgba(255, 107, 53, 0.45);
 }
 
-/* 3. Both Read and Important: 2 tick marks (Yellow: #FFE066) */
+/* 3. Both Read and Important: (Blue: #2563EB) */
 .section-status-indicator.status-both {
-  background: rgba(255, 224, 102, 0.16);
-  color: #FFE066;
-  border: 1px solid rgba(255, 224, 102, 0.5);
+  background: rgba(37, 99, 235, 0.16);
+  color: #2563EB;
+  border: 1px solid rgba(37, 99, 235, 0.5);
 }
 
 .section-status-indicator.status-none {
@@ -5939,10 +5968,10 @@ body.theme-dark .status-dot-glyph {
   box-shadow: 0 0 0 2.5px rgba(255, 107, 53, 0.35);
 }
 
-/* 3. Read & Important: Sun Yellow with Mint Green outline (#FFE066 + #34D399) */
+/* 3. Read & Important: Solid Whole Blue Dot (#2563EB) */
 .section-status-dot-btn.status-both .status-dot-glyph {
-  background-color: #FFE066;
-  box-shadow: 0 0 0 2px #34D399;
+  background-color: #2563EB;
+  box-shadow: 0 0 0 2.5px rgba(37, 99, 235, 0.4);
 }
 
 /* Permanent Gemini Icon Button */
@@ -6008,31 +6037,42 @@ body.theme-dark .section-bracket-tip {
 
 /* Directory Tree Status Dots */
 .tree-status-dot {
-  display: none;
+  display: inline-block;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  margin-left: 6px;
+  margin-left: 8px;
   margin-right: 4px;
+  background-color: #000000;
   vertical-align: middle;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  opacity: 0.35;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+body.theme-dark .tree-status-dot {
+  background-color: #E4E4E7;
+  opacity: 0.4;
 }
 
 .tree-status-dot.status-read {
-  display: inline-block;
+  opacity: 1;
   background-color: #34D399;
+  box-shadow: 0 0 0 1.5px rgba(52, 211, 153, 0.45);
 }
 
 .tree-status-dot.status-important {
-  display: inline-block;
+  opacity: 1;
   background-color: #FF6B35;
+  box-shadow: 0 0 0 1.5px rgba(255, 107, 53, 0.45);
 }
 
+/* 3. Read & Important: Solid Whole Blue Dot (#2563EB) */
 .tree-status-dot.status-both {
-  display: inline-block;
-  background-color: #FFE066;
-  box-shadow: 0 0 0 1px #34D399;
+  opacity: 1;
+  background-color: #2563EB;
+  box-shadow: 0 0 0 1.5px rgba(37, 99, 235, 0.45);
 }
 
 .table-wrap-cell {
