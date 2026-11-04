@@ -271,6 +271,47 @@
       <!-- PRICING TIERS GRID -->
       <div class="membership-grid">
 
+        <!-- PLAN 0: 3-MIN TRANSACTION TEST PASS -->
+        <div class="membership-card" id="card-3min-test" style="border: 1.5px dashed var(--accent);">
+          <div>
+            <span class="membership-badge" style="color: var(--accent);">[3-MIN ACCESS &bull; TRANSACTION TEST]</span>
+            <h3 class="membership-title">&#8377;1 Live Gateway Test Pass</h3>
+            <p class="membership-desc">Quick 3-minute clearance pass to verify Razorpay bank settlement, UPI checkout, and instant Pro content unlock.</p>
+            
+            <div class="membership-price-wrap">
+              <span class="membership-amount font-mono">&#8377;1</span>
+              <span class="membership-frequency">/ 3 minutes access</span>
+            </div>
+
+            <ul class="membership-features font-mono">
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Live &#8377;1 bank settlement check via UPI (GPay/PhonePe) or Cards</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Immediate 3-minute unlock of Chapter 3 &amp; Pro in-section insights</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Live Supabase telemetry linkage to authenticated account</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Single one-time payment &bull; zero recurring auto-pay</span>
+              </li>
+              <li class="membership-feature-item">
+                <span class="feature-check">&#10003;</span>
+                <span>Access automatically locks back after 3 minutes</span>
+              </li>
+            </ul>
+          </div>
+
+          <button type="button" class="membership-btn font-mono" data-plan="3min_test" data-amount="1" id="btn-buy-3min" style="border-color: var(--accent); color: var(--accent);">
+            <span>TEST TRANSACTION &bull; &#8377;1 (3 MINS)</span>
+          </button>
+        </div>
+
         <!-- PLAN 1: FIXED ONE-TIME LIFETIME PASS -->
         <div class="membership-card" id="card-lifetime">
           <div>
@@ -459,7 +500,7 @@
   <!-- Supabase SDK & App Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=9.0"></script>
-  <script src="script.js?v=9.7"></script>
+  <script src="script.js?v=9.8"></script>
 
   <!-- Checkout Initialization Script -->
   <script>
@@ -560,6 +601,7 @@
             let planDesc = "Lifetime Sovereign Research Clearance";
             if (plan === "annual") planDesc = "Annual Sovereign Partner Clearance (365 Days)";
             else if (plan === "monthly") planDesc = "Monthly Institutional Pass (30 Days)";
+            else if (plan === "3min_test") planDesc = "₹1 Live Gateway Settlement Check (3-Min Pass)";
 
             const options = {
               key: rzpKeyId,
@@ -605,7 +647,9 @@
 
                 // Calculate valid term
                 let validUntil = null;
-                if (plan === "monthly") {
+                if (plan === "3min_test") {
+                  validUntil = new Date(Date.now() + 3 * 60 * 1000).toISOString();
+                } else if (plan === "monthly") {
                   validUntil = new Date(Date.now() + 30 * 86400000).toISOString();
                 } else if (plan === "annual") {
                   validUntil = new Date(Date.now() + 365 * 86400000).toISOString();
@@ -622,7 +666,8 @@
                   validUntil: validUntil
                 });
 
-                alert(`✓ Payment Succeeded!\nPayment Reference: ${response.razorpay_payment_id}\n\nYour ${plan.toUpperCase()} Clearance is now active.\nForensic intelligence models and Chapter 3 are unlocked across your account.`);
+                const planTitle = plan === "3min_test" ? "₹1 / 3-Min Test Pass" : `${plan.toUpperCase()} Clearance`;
+                alert(`✓ Live ₹1 Payment Succeeded!\nPayment Reference: ${response.razorpay_payment_id}\n\nYour ${planTitle} is now active for 3 minutes.\nChapter 3 & Pro insights are unlocked on Guide.\nAccess will automatically lock back in 3 minutes.`);
 
                 refreshMembershipBadge();
                 if (typeof syncMemberExclusiveContent === "function") {

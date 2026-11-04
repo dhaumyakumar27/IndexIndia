@@ -65,13 +65,14 @@ export default {
         const userEmail = body.email || "";
 
         const planAmounts = {
+          "3min_test": 100, // ₹1 in paise (3-minute live transaction check)
           test: 100,        // ₹1 in paise (live gateway test & bank settlement check)
           lifetime: 99900,  // ₹999 in paise
           monthly: 49900,   // ₹499 in paise
           annual: 399900    // ₹3,999 in paise
         };
 
-        const amount = planAmounts[plan] || (plan === "test" ? 100 : 99900);
+        const amount = planAmounts[plan] || (plan === "3min_test" || plan === "test" ? 100 : 99900);
         const keyId = env.RAZORPAY_KEY_ID || "rzp_live_Tvm5Coo5TFFYRa";
         const keySecret = env.RAZORPAY_KEY_SECRET || "";
 
@@ -172,7 +173,9 @@ export default {
 
         // Calculate expiration date
         let validUntil = null;
-        if (plan === "monthly") {
+        if (plan === "3min_test") {
+          validUntil = new Date(Date.now() + 3 * 60 * 1000).toISOString();
+        } else if (plan === "monthly") {
           validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         } else if (plan === "annual") {
           validUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
