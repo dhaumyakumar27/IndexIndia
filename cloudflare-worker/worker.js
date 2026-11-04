@@ -72,7 +72,7 @@ export default {
         };
 
         const planId = planIds[plan] || body.plan_id || "plan_TwAgpRAFXFr3pF";
-        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_Tvm5Coo5TFFYRa";
+        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_TwBGCSnpYdT9r5";
         const keySecret = env.RAZORPAY_KEY_SECRET || env.RAZORPAY_SECRET || "";
 
         if (!keyId || !keySecret) {
@@ -139,7 +139,7 @@ export default {
       try {
         const body = await request.json().catch(() => ({}));
         const { subscription_id, cancel_at_cycle_end } = body;
-        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_Tvm5Coo5TFFYRa";
+        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_TwBGCSnpYdT9r5";
         const keySecret = env.RAZORPAY_KEY_SECRET || env.RAZORPAY_SECRET || "";
 
         if (!subscription_id) {
@@ -291,7 +291,7 @@ export default {
         };
 
         const amount = planAmounts[plan] || (plan === "3min_test" || plan === "test" ? 100 : 99900);
-        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_Tvm5Coo5TFFYRa";
+        const keyId = env.RAZORPAY_KEY_ID || "rzp_live_TwBGCSnpYdT9r5";
         const keySecret = env.RAZORPAY_KEY_SECRET || "";
 
         if (!keyId || !keySecret) {
