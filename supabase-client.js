@@ -633,6 +633,110 @@
       if (!currentUser) return false;
       const autoRenewKey = `indexindia_autorenew_${currentUser.id}`;
       return localStorage.getItem(autoRenewKey) !== "false";
+    },
+
+    // ---------------- CUSTOM KEYBOARD SHORTCUTS CLOUD SYNC ----------------
+
+    /**
+     * Get user shortcuts from cloud account or local storage fallback
+     */
+    async getUserShortcuts() {
+      // 1. Check local storage cache
+      let localShortcuts = null;
+      try {
+        const raw = localStorage.getItem("indexindia_custom_shortcuts");
+        if (raw) localShortcuts = JSON.parse(raw);
+      } catch (e) {}
+
+      // 2. If logged in, fetch from user account metadata
+      if (currentUser && currentUser.user_metadata && currentUser.user_metadata.custom_shortcuts) {
+        const cloudShortcuts = currentUser.user_metadata.custom_shortcuts;
+        try {
+          localStorage.setItem("indexindia_custom_shortcuts", JSON.stringify(cloudShortcuts));
+        } catch (e) {}
+        return cloudShortcuts;
+      }
+
+      // If user is authenticated but currentUser might need refreshing
+      if (this.isAuthenticated() && supabaseClient) {
+        try {
+          const { data: { user } } = await supabaseClient.auth.getUser();
+          if (user && user.user_metadata && user.user_metadata.custom_shortcuts) {
+            currentUser = user;
+            const cloudShortcuts = user.user_metadata.custom_shortcuts;
+            try {
+              localStorage.setItem("indexindia_custom_shortcuts", JSON.stringify(cloudShortcuts));
+            } catch (e) {}
+            return cloudShortcuts;
+          }
+        } catch (err) {
+          console.warn("[Supabase] getUserShortcuts fetch error:", err);
+        }
+      }
+
+      return localShortcuts;
+    },
+
+    /**
+     * Save custom shortcuts to account (cloud sync) and local storage
+     */
+    async saveUserShortcuts(shortcutsMap) {
+      if (!shortcutsMap || typeof shortcutsMap !== "object") return false;
+
+      // 1. Save to local storage first (instant local persistence)
+      try {
+        localStorage.setItem("indexindia_custom_shortcuts", JSON.stringify(shortcutsMap));
+      } catch (e) {}
+
+      // 2. If authenticated, update user metadata in Supabase Auth
+      if (this.isAuthenticated() && supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient.auth.updateUser({
+            data: {
+              custom_shortcuts: shortcutsMap,
+              shortcuts_updated_at: new Date().toISOString()
+            }
+          });
+
+          if (!error && data?.user) {
+            currentUser = data.user;
+            return true;
+          } else if (error) {
+            console.warn("[Supabase] updateUser custom_shortcuts error:", error.message);
+          }
+        } catch (err) {
+          console.warn("[Supabase] saveUserShortcuts exception:", err);
+        }
+      }
+
+      return false;
+    },
+
+    /**
+     * Reset shortcuts to default in local storage and account
+     */
+    async resetUserShortcuts() {
+      try {
+        localStorage.removeItem("indexindia_custom_shortcuts");
+      } catch (e) {}
+
+      if (this.isAuthenticated() && supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient.auth.updateUser({
+            data: {
+              custom_shortcuts: null,
+              shortcuts_updated_at: new Date().toISOString()
+            }
+          });
+          if (!error && data?.user) {
+            currentUser = data.user;
+            return true;
+          }
+        } catch (err) {
+          console.warn("[Supabase] resetUserShortcuts exception:", err);
+        }
+      }
+      return true;
     }
   };
 

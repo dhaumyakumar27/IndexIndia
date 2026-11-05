@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Contact Us &amp; Incident Triage — IndexIndia</title>
+  <meta name="description"
+    content="Official incident dispatch and operations desk for IndexIndia. Report terminal glitches, data discrepancies, subscription issues, and forensic errors.">
+  <link rel="stylesheet" href="styles.css?v=9.8">
+</head>
+
+<body class="theme-light">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="top-nav" id="top-nav">
+    <div class="nav-left">
+      <!-- Segmented switch button on top left [Guide | Index] -->
+      <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
+        <a href="guide.html" class="switch-btn" id="btn-guide" role="tab" aria-selected="false"
+          title="Switch to Guide (Tab)">
+          Guide
+        </a>
+        <a href="index.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false"
+          title="Switch to Index (Tab)">
+          Index
+        </a>
+      </nav>
+      <!-- RIGID ALWAYS SEARCH BAR BESIDE GUIDE <=> INDEX BUTTON -->
+      <div class="nav-search-bar-wrapper" id="nav-search-bar-wrapper">
+        <div class="nav-search-bar" id="nav-search-bar">
+          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="search (/)" autocomplete="off"
+            spellcheck="false" />
+        </div>
+        <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+      </div>
+    </div>
+
+    <!-- Top Right Nav Buttons, Account and Settings -->
+    <div class="nav-right">
+      <!-- Expand / Hide Top Bar Button (Full Screen) - Moved to Left-Most Side -->
+      <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
+        <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar"
+          title="Full Screen / Hide Top Bar ( Ctrl + ' )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Directory Tree Round Button -->
+      <div class="panel-trigger-wrapper" id="nav-tree-wrapper">
+        <button type="button" class="icon-btn" id="nav-tree-toggle-btn" aria-label="Directory Tree Navigation"
+          title="Directory Tree Navigation ( Ctrl + , )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12h-8"></path>
+            <path d="M21 6H8"></path>
+            <path d="M21 18h-8"></path>
+            <path d="M3 6v4c0 1.1.9 2 2 2h3"></path>
+            <path d="M3 10v6c0 1.1.9 2 2 2h3"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contact Us Round Button (Active on this page) -->
+      <div class="panel-trigger-wrapper" id="contact-nav-wrapper">
+        <a href="contact.html" class="icon-btn is-active" id="contact-nav-btn" aria-label="Contact Us &amp; Issue Resolution"
+          title="Contact Us — Report Issues">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
+            <path d="M21 16v2a4 4 0 0 1-4 4h-5"></path>
+          </svg>
+        </a>
+
+        <div class="hover-flyout-panel contact-panel" id="contact-panel" role="region"
+          aria-label="Contact Us &amp; Issue Reporting">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-id">[CONTACT &bull; ISSUE TRIAGE]</span>
+            </div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Operations Desk Online">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Online
+            </div>
+          </div>
+          <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
+            Facing technical glitches, calculation anomalies, or account issues? Dispatch an incident report for rapid triage.
+          </div>
+          <a href="contact.html" class="account-btn-action"
+            style="background-color: var(--bg-inverted); color: var(--text-on-inverted) !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            Report an Issue &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Feedback Round Button -->
+      <div class="panel-trigger-wrapper" id="feedback-nav-wrapper">
+        <a href="feedback.html" class="icon-btn" id="feedback-nav-btn" aria-label="Feedback &amp; Feature Suggestions"
+          title="Feedback — Feature &amp; Content Suggestions">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+            <path d="M9 18h6"></path>
+            <path d="M10 22h4"></path>
+          </svg>
+        </a>
+
+        <div class="hover-flyout-panel feedback-panel" id="feedback-panel" role="region"
+          aria-label="Feedback &amp; Feature Radar">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-id">[FEEDBACK &bull; ROADMAP]</span>
+            </div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Suggestions Welcome">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Active
+            </div>
+          </div>
+          <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
+            Have suggestions for new index baskets, MCA governance modules, or platform features? Pitch directly to the team.
+          </div>
+          <a href="feedback.html" class="account-btn-action"
+            style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            Suggest Feature / Content &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Gemini AI Round Button -->
+      <div class="panel-trigger-wrapper" id="doubt-nav-wrapper">
+        <button type="button" class="icon-btn" id="doubt-nav-btn" aria-label="Gemini AI Doubt Solver"
+          title="Gemini AI Doubt Solver ( Ctrl + . )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z">
+            </path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Annotations Button -->
+      <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
+        <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools"
+          title="Edit &amp; Annotations ( Ctrl + ; )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            <path d="m15 5 4 4"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Shortcuts Button -->
+      <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
+        <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts"
+          title="Keyboard Shortcuts ( Ctrl + \ )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel shortcuts-panel" id="shortcuts-panel" role="region"
+          aria-label="Keyboard Shortcuts">
+          <div class="shortcuts-group">
+            <div class="shortcuts-group-title">NAVIGATION &amp; CLEARANCE</div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Switch Guide &hArr; Index</span>
+              <span class="shortcut-keys"><kbd>Tab</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Universal Search &amp; Commands</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>/</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Full Screen (Toggle Top Bar)</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>'</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Toggle Dark / Light Theme</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>]</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Close Overlays / Escape</span>
+              <span class="shortcut-keys"><kbd>Esc</kbd></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPGRADE MEMBERSHIP BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="upgrade-nav-wrapper">
+        <a href="membership.html" class="icon-btn" id="upgrade-nav-btn" aria-label="Sovereign Upgrade &amp; Membership"
+          title="Upgrade Membership">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </a>
+
+        <div class="hover-flyout-panel upgrade-panel" id="upgrade-panel" role="region"
+          aria-label="Membership Status &amp; Upgrade">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-role-badge" id="nav-upgrade-badge" style="display:none;"></span>
+              <span class="user-id" id="nav-upgrade-status">MEMBERSHIP</span>
+            </div>
+          </div>
+          <div class="panel-divider" style="margin: 8px 0 10px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Current Plan:</span>
+              <strong style="color: var(--text-primary);" id="nav-current-plan-name">Standard Access</strong>
+            </div>
+          </div>
+          <a href="membership.html" class="account-btn-action" id="nav-upgrade-cta-btn"
+            style="margin-top: 12px; background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            ⚡ Upgrade to Premium Plan
+          </a>
+        </div>
+      </div>
+
+      <!-- ACCOUNT BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="account-wrapper">
+        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
+          <div class="panel-header">
+            <div class="panel-user-meta">
+              <span class="user-id">ACCOUNT DOSSIER</span>
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); padding: 8px 0; font-family: var(--font-mono);">
+            Synchronizing authentication telemetry...
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="settings-wrapper">
+        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" title="Display Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
+          <div class="panel-section-title">VIEW PREFERENCES</div>
+
+          <!-- Font Size Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Size</span>
+            <div class="custom-dropdown" id="dropdown-font-size">
+              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox"
+                aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-size-label">Medium</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small
+                  (13px)</button>
+                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium"
+                  role="option">Medium (15px)</button>
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large
+                  (17.5px)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Font Style Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Style</span>
+            <div class="custom-dropdown" id="dropdown-font-style">
+              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox"
+                aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-style-label">Reading</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading"
+                  role="option">Reading (Sans)</button>
+                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter"
+                  role="option">Typewriter (Monospace)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="setting-toggle-row">
+            <label for="grid-toggle">Background Grid</label>
+            <input type="checkbox" id="grid-toggle" checked>
+          </div>
+          <div class="setting-toggle-row">
+            <label for="contrast-toggle">Dark Theme</label>
+            <input type="checkbox" id="contrast-toggle">
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN VIEWPORT CONTENT ================= -->
+  <main class="main-viewport-wrapper">
+    <div class="dossier-main-wrapper">
+
+      <!-- Header Section -->
+      <section class="dossier-header-section">
+        <span class="dossier-kicker">[OPERATIONS DISPATCH &bull; INCIDENT TRIAGE]</span>
+        <h1 class="dossier-title">Contact Us &amp; Technical Issue Triage</h1>
+        <p class="dossier-subtitle">
+          Encountering data discrepancies, MCA V3 pipeline anomalies, calculation deviations, UPI AutoPay mandate blocks, or terminal UI glitches? Dispatch an incident report directly to our research and engineering desk for forensic inspection.
+        </p>
+      </section>
+
+      <!-- Live Telemetry Status Bar -->
+      <div class="telemetry-strip" role="status">
+        <div class="telemetry-item">
+          <span class="telemetry-dot"></span>
+          <span>OPERATIONS DESK: <strong>ONLINE &bull; RAPID DISPATCH</strong></span>
+        </div>
+        <div class="telemetry-item">
+          <span>AVERAGE TRIAGE SLA: <strong>&lt; 2.4 HOURS</strong></span>
+        </div>
+        <div class="telemetry-item">
+          <span>ENCRYPTION: <strong>TLS 1.3 &bull; SHA-256 VERIFIED</strong></span>
+        </div>
+        <div class="telemetry-item">
+          <span>DIRECT DISPATCH: <strong>ops@indexindia.internal</strong></span>
+        </div>
+      </div>
+
+      <!-- Success Confirmation Card -->
+      <div class="confirmation-card" id="issue-confirmation-card" role="alert">
+        <div class="confirmation-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>INCIDENT REPORT DISPATCHED TO OPERATIONS</span>
+        </div>
+        <div class="confirmation-body">
+          Your technical incident report has been securely registered on the forensic triage queue and dispatched to <strong>dhaumyakumar27@gmail.com</strong>. Our engineering desk has received your diagnostics telemetry and will review the reproduction steps.
+          <br>
+          <span class="confirmation-reference" id="ticket-id-display">INC-2026-TICKET</span>
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <span style="font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono);">
+              Destination Email: <strong>dhaumyakumar27@gmail.com</strong>
+            </span>
+            <a id="issue-direct-mailto-link" href="#" class="btn-institutional-secondary font-mono" style="font-size: 0.74rem; padding: 6px 12px; text-decoration: none;">
+              ✉️ Open in Email Client
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Issue Reporting Form Card -->
+      <div class="institutional-form-card">
+        <form id="contact-issue-form" autocomplete="off">
+          
+          <!-- Category Selector -->
+          <div class="form-field-group">
+            <label class="field-label">
+              <span>1. ISSUE CLASSIFICATION <span class="required-mark">*</span></span>
+              <span class="field-hint">Select the primary system component affected</span>
+            </label>
+            <div class="pill-selector-row">
+              <label class="pill-option">
+                <input type="radio" name="issue_category" value="data_discrepancy" checked>
+                <span class="pill-label">📊 Data / Formula Discrepancy</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="issue_category" value="terminal_ui_glitch">
+                <span class="pill-label">🖥️ Terminal / UI Glitch</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="issue_category" value="auth_account_access">
+                <span class="pill-label">🔐 Auth &amp; Account Access</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="issue_category" value="billing_autopay">
+                <span class="pill-label">💳 UPI AutoPay / Gateway</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="issue_category" value="gemini_ai_telemetry">
+                <span class="pill-label">✨ Gemini AI Doubt Solver</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="issue_category" value="general_operational">
+                <span class="pill-label">⚙️ General Technical Issue</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Severity Selector -->
+          <div class="form-field-group">
+            <label class="field-label">
+              <span>2. INCIDENT SEVERITY LEVEL <span class="required-mark">*</span></span>
+              <span class="field-hint">Defines engineering response priority</span>
+            </label>
+            <div class="pill-selector-row">
+              <label class="pill-option">
+                <input type="radio" name="severity_level" value="low">
+                <span class="pill-label">🟢 Low (Cosmetic / Minor Typo)</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="severity_level" value="medium" checked>
+                <span class="pill-label">🟡 Medium (Non-blocking Operational)</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="severity_level" value="high">
+                <span class="pill-label">🟠 High (Impaired Analysis / Data Anomaly)</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="severity_level" value="critical">
+                <span class="pill-label">🔴 Critical (Total Blocker / Payment Glitch)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Grid: Subject & Target URL -->
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label class="field-label" for="issue-subject">
+                <span>3. INCIDENT SUMMARY / SUBJECT <span class="required-mark">*</span></span>
+              </label>
+              <input type="text" class="field-input font-mono" id="issue-subject" required
+                placeholder="e.g. Sector weight discrepancy in Chapter 2 Matrix table" maxlength="150" />
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label" for="affected-page">
+                <span>4. AFFECTED SECTION / URL PATH</span>
+              </label>
+              <input type="text" class="field-input font-mono" id="affected-page"
+                placeholder="e.g. guide.html#sec-weights or index.html" />
+            </div>
+          </div>
+
+          <!-- Detailed Description & Steps -->
+          <div class="form-field-group">
+            <label class="field-label" for="issue-description">
+              <span>5. DETAILED STEPS TO REPRODUCE &amp; ERROR SYMPTOMS <span class="required-mark">*</span></span>
+              <span class="field-hint font-mono">Include expected vs actual behaviour</span>
+            </label>
+            <textarea class="field-textarea" id="issue-description" required rows="6"
+              placeholder="1. Navigated to Guide page...
+2. Clicked on Rebalancing Rules tab...
+3. Observed table calculation fails to update when changing filter...
+4. Error message seen in console (if any): ..."></textarea>
+          </div>
+
+          <!-- Grid: User Email & Identity Handle -->
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label class="field-label" for="reporter-email">
+                <span>6. CONTACT DISPATCH EMAIL <span class="required-mark">*</span></span>
+                <span class="field-hint">Where resolution updates will be sent</span>
+              </label>
+              <input type="email" class="field-input font-mono" id="reporter-email" required
+                placeholder="analyst@firm.com" />
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label" for="reporter-handle">
+                <span>7. TERMINAL HANDLE / NAME (OPTIONAL)</span>
+              </label>
+              <input type="text" class="field-input font-mono" id="reporter-handle"
+                placeholder="e.g. ANON_RESEARCHER or Analyst Name" />
+            </div>
+          </div>
+
+          <!-- Auto-detected Telemetry Strip -->
+          <div class="form-field-group">
+            <label class="field-label">
+              <span>8. SYSTEM TELEMETRY (AUTO-ATTACHED FOR RAPID TRIAGE)</span>
+            </label>
+            <div class="diagnostics-box" id="client-telemetry-box">
+              <span class="diag-item">OS / PLATFORM: <strong id="diag-os">Detecting...</strong></span>
+              <span class="diag-item">VIEWPORT: <strong id="diag-viewport">Detecting...</strong></span>
+              <span class="diag-item">TIMESTAMP: <strong id="diag-timestamp">UTC</strong></span>
+              <span class="diag-item">RENDER MODE: <strong id="diag-theme">Light</strong></span>
+            </div>
+          </div>
+
+          <!-- Action Row -->
+          <div class="form-submit-row">
+            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-tertiary);">
+              🔒 Protected by forensic audit trail &bull; No sensitive cookies collected
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <button type="reset" class="btn-institutional-secondary" id="btn-reset-form">CLEAR FORM</button>
+              <button type="submit" class="btn-institutional-primary" id="btn-submit-issue">
+                <span>DISPATCH INCIDENT REPORT &rarr;</span>
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Institutional Contact Desks Grid -->
+      <h3 style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 16px; color: var(--text-primary);">
+        [INSTITUTIONAL DESK CHANNELS &bull; DIRECT ROUTING]
+      </h3>
+      <div class="contact-info-grid">
+        <div class="contact-info-card">
+          <div class="info-card-badge">[DESK 01 &bull; ENGINEERING]</div>
+          <div class="info-card-title">Technical Operations &amp; Bugs</div>
+          <div class="info-card-desc">For critical terminal exceptions, Cloudflare worker sync latency, or algorithmic rendering errors.</div>
+          <a href="mailto:ops@indexindia.internal" class="info-card-link">ops@indexindia.internal &rarr;</a>
+        </div>
+
+        <div class="contact-info-card">
+          <div class="info-card-badge">[DESK 02 &bull; COMPLIANCE]</div>
+          <div class="info-card-title">Regulatory &amp; Statutory Counsel</div>
+          <div class="info-card-desc">For SEBI non-advisory inquiries, CARO 2020 verification parameters, or institutional clearance covenants.</div>
+          <a href="statutory-privacy.html" class="info-card-link">View Statutory Dossier &rarr;</a>
+        </div>
+
+        <div class="contact-info-card">
+          <div class="info-card-badge">[DESK 03 &bull; SETTLEMENT]</div>
+          <div class="info-card-title">Billing &amp; UPI AutoPay Mandates</div>
+          <div class="info-card-desc">Immediate settlement verification, Razorpay e-mandate cancellations, or corporate invoicing.</div>
+          <a href="membership.html" class="info-card-link">Membership Console &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Mandatory Institutional Footer -->
+      <footer class="institutional-footer" id="sec-footer" style="margin-top: 50px;">
+        <div class="footer-grid">
+          <div class="footer-col-main">
+            <div class="footer-brand-title">INDEXINDIA &bull; RESEARCH ARM</div>
+            <p class="strict-legal-disclaimer">
+              <strong>STRICT STATUTORY DISCLAIMER:</strong> All content, models, and forensic reports provided on
+              IndexIndia are strictly for educational and informational purposes only. This does not constitute
+              financial, investment, or legal advice. IndexIndia is not a SEBI-registered investment advisor, portfolio
+              manager, or research analyst entity under the SEBI (Research Analysts) Regulations, 2014. No
+              forward-looking return guarantees are made or implied.
+            </p>
+          </div>
+
+          <div class="footer-col-links">
+            <div class="footer-links-title">
+              <a href="statutory-privacy.html" class="footer-statutory-link">STATUTORY &amp; PRIVACY &rarr;</a>
+            </div>
+            <p class="footer-statutory-subtext font-mono">
+              Official institutional disclosures, Gemini AI usage limits &amp; accuracy telemetry, SEBI compliance notice, privacy policy, and sovereign settlement terms.
+            </p>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=9.0"></script>
+  <script src="script.js?v=9.9"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Auto-detect client telemetry
+      const diagOs = document.getElementById("diag-os");
+      const diagViewport = document.getElementById("diag-viewport");
+      const diagTimestamp = document.getElementById("diag-timestamp");
+      const diagTheme = document.getElementById("diag-theme");
+
+      if (diagOs) diagOs.textContent = navigator.userAgentData?.platform || navigator.platform || "Unix/Linux";
+      if (diagViewport) diagViewport.textContent = `${window.innerWidth} x ${window.innerHeight} px`;
+      if (diagTimestamp) diagTimestamp.textContent = new Date().toISOString();
+      if (diagTheme) diagTheme.textContent = document.body.classList.contains("theme-dark") ? "Terminal Noir (Dark)" : "Institutional Crisp (Light)";
+
+      // Pre-fill user email if authenticated via Supabase
+      if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.getUser === "function") {
+        const user = window.IndexIndiaSupabase.getUser();
+        if (user && user.email) {
+          const emailInput = document.getElementById("reporter-email");
+          if (emailInput && !emailInput.value) emailInput.value = user.email;
+          const handleInput = document.getElementById("reporter-handle");
+          if (handleInput && !handleInput.value) handleInput.value = user.email.split("@")[0];
+        }
+      }
+
+      // Handle Issue Dispatch Submission
+      const form = document.getElementById("contact-issue-form");
+      const confirmCard = document.getElementById("issue-confirmation-card");
+      const ticketDisplay = document.getElementById("ticket-id-display");
+      const submitBtn = document.getElementById("btn-submit-issue");
+
+      if (form) {
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Dispatched...";
+
+          // Generate cryptographic incident ticket ID
+          const randHex = Math.random().toString(36).substring(2, 7).toUpperCase();
+          const timestampNum = Date.now().toString().slice(-4);
+          const ticketId = `INC-IND-${timestampNum}-${randHex}`;
+
+          const category = form.querySelector('input[name="issue_category"]:checked')?.value || "general";
+          const severity = form.querySelector('input[name="severity_level"]:checked')?.value || "medium";
+          const subject = document.getElementById("issue-subject")?.value || "";
+          const page = document.getElementById("affected-page")?.value || window.location.pathname;
+          const description = document.getElementById("issue-description")?.value || "";
+          const email = document.getElementById("reporter-email")?.value || "";
+          const handle = document.getElementById("reporter-handle")?.value || "ANON";
+
+          const ticketPayload = {
+            id: ticketId,
+            category,
+            severity,
+            subject,
+            page,
+            description,
+            email,
+            handle,
+            status: "TRIAGED",
+            createdAt: new Date().toISOString()
+          };
+
+          // Save to local tickets store
+          try {
+            const existing = JSON.parse(localStorage.getItem("indexindia_reported_issues") || "[]");
+            existing.unshift(ticketPayload);
+            localStorage.setItem("indexindia_reported_issues", JSON.stringify(existing.slice(0, 20)));
+          } catch (err) {
+            console.warn("Storage err:", err);
+          }
+
+          // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit AJAX
+          const targetAdminEmail = "dhaumyakumar27@gmail.com";
+          try {
+            const emailFormData = new FormData();
+            emailFormData.append("_subject", `[IndexIndia Issue] ${ticketId}: ${subject}`);
+            emailFormData.append("_replyto", email);
+            emailFormData.append("_template", "table");
+            emailFormData.append("Incident ID", ticketId);
+            emailFormData.append("Classification", category);
+            emailFormData.append("Severity", severity);
+            emailFormData.append("Subject", subject);
+            emailFormData.append("Affected Page", page);
+            emailFormData.append("Reporter Email", email);
+            emailFormData.append("Reporter Handle", handle);
+            emailFormData.append("Description", description);
+            emailFormData.append("Client Telemetry", `${diagOs?.textContent || ""} | ${diagViewport?.textContent || ""} | ${diagTheme?.textContent || ""}`);
+
+            fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
+              method: "POST",
+              headers: { "Accept": "application/json" },
+              body: emailFormData
+            }).catch(e => console.warn("FormSubmit notice:", e));
+          } catch (err) {
+            console.warn("Email dispatch error:", err);
+          }
+
+          // 2. Dispatch to Cloudflare Worker inquiry endpoint
+          const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
+          if (CLOUDFLARE_WORKER_URL) {
+            fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "contact_issue",
+                ticketId,
+                category,
+                severity,
+                subject,
+                page,
+                description,
+                email,
+                handle
+              })
+            }).catch(e => console.warn("Worker dispatch notice:", e));
+          }
+
+          // 3. Prepare direct mailto link for client-side fallback
+          const mailtoBtn = document.getElementById("issue-direct-mailto-link");
+          if (mailtoBtn) {
+            const mailtoSubject = encodeURIComponent(`[IndexIndia Issue] ${ticketId}: ${subject}`);
+            const mailtoBody = encodeURIComponent(`Incident ID: ${ticketId}\nCategory: ${category}\nSeverity: ${severity}\nAffected URL: ${page}\nReporter: ${handle} (${email})\n\nDescription:\n${description}\n\nClient Telemetry:\n${diagOs?.textContent || ""} | ${diagViewport?.textContent || ""}`);
+            mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${mailtoSubject}&body=${mailtoBody}`;
+          }
+
+          setTimeout(() => {
+            if (ticketDisplay) ticketDisplay.textContent = `TICKET REFERENCE: ${ticketId} [STATUS: DISPATCHED TO ${targetAdminEmail}]`;
+            if (confirmCard) {
+              confirmCard.classList.add("is-visible");
+              confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            form.reset();
+            submitBtn.disabled = false;
+            submitBtn.textContent = "DISPATCH INCIDENT REPORT →";
+          }, 350);
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Feedback &amp; Feature Radar — IndexIndia</title>
+  <meta name="description"
+    content="Propose new features, quantitative content, sector baskets, and MCA governance tools for the IndexIndia sovereign research terminal.">
+  <link rel="stylesheet" href="styles.css?v=9.8">
+</head>
+
+<body class="theme-light">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="top-nav" id="top-nav">
+    <div class="nav-left">
+      <!-- Segmented switch button on top left [Guide | Index] -->
+      <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
+        <a href="guide.html" class="switch-btn" id="btn-guide" role="tab" aria-selected="false"
+          title="Switch to Guide (Tab)">
+          Guide
+        </a>
+        <a href="index.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false"
+          title="Switch to Index (Tab)">
+          Index
+        </a>
+      </nav>
+      <!-- RIGID ALWAYS SEARCH BAR BESIDE GUIDE <=> INDEX BUTTON -->
+      <div class="nav-search-bar-wrapper" id="nav-search-bar-wrapper">
+        <div class="nav-search-bar" id="nav-search-bar">
+          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="search (/)" autocomplete="off"
+            spellcheck="false" />
+        </div>
+        <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+      </div>
+    </div>
+
+    <!-- Top Right Nav Buttons, Account and Settings -->
+    <div class="nav-right">
+      <!-- Expand / Hide Top Bar Button (Full Screen) - Moved to Left-Most Side -->
+      <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
+        <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar"
+          title="Full Screen / Hide Top Bar ( Ctrl + ' )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Directory Tree Round Button -->
+      <div class="panel-trigger-wrapper" id="nav-tree-wrapper">
+        <button type="button" class="icon-btn" id="nav-tree-toggle-btn" aria-label="Directory Tree Navigation"
+          title="Directory Tree Navigation ( Ctrl + , )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12h-8"></path>
+            <path d="M21 6H8"></path>
+            <path d="M21 18h-8"></path>
+            <path d="M3 6v4c0 1.1.9 2 2 2h3"></path>
+            <path d="M3 10v6c0 1.1.9 2 2 2h3"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contact Us Round Button -->
+      <div class="panel-trigger-wrapper" id="contact-nav-wrapper">
+        <a href="contact.html" class="icon-btn" id="contact-nav-btn" aria-label="Contact Us &amp; Issue Resolution"
+          title="Contact Us — Report Issues">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
+            <path d="M21 16v2a4 4 0 0 1-4 4h-5"></path>
+          </svg>
+        </a>
+
+        <div class="hover-flyout-panel contact-panel" id="contact-panel" role="region"
+          aria-label="Contact Us &amp; Issue Reporting">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-id">[CONTACT &bull; ISSUE TRIAGE]</span>
+            </div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Operations Desk Online">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Online
+            </div>
+          </div>
+          <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
+            Facing technical glitches, calculation anomalies, or account issues? Dispatch an incident report for rapid triage.
+          </div>
+          <a href="contact.html" class="account-btn-action"
+            style="background-color: var(--bg-inverted); color: var(--text-on-inverted) !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            Report an Issue &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Feedback Round Button (Active on this page) -->
+      <div class="panel-trigger-wrapper" id="feedback-nav-wrapper">
+        <a href="feedback.html" class="icon-btn is-active" id="feedback-nav-btn" aria-label="Feedback &amp; Feature Suggestions"
+          title="Feedback — Feature &amp; Content Suggestions">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+            <path d="M9 18h6"></path>
+            <path d="M10 22h4"></path>
+          </svg>
+        </a>
+
+        <div class="hover-flyout-panel feedback-panel" id="feedback-panel" role="region"
+          aria-label="Feedback &amp; Feature Radar">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-id">[FEEDBACK &bull; ROADMAP]</span>
+            </div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Suggestions Welcome">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Active
+            </div>
+          </div>
+          <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
+            Have suggestions for new index baskets, MCA governance modules, or platform features? Pitch directly to the team.
+          </div>
+          <a href="feedback.html" class="account-btn-action"
+            style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            Suggest Feature / Content &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Gemini AI Round Button -->
+      <div class="panel-trigger-wrapper" id="doubt-nav-wrapper">
+        <button type="button" class="icon-btn" id="doubt-nav-btn" aria-label="Gemini AI Doubt Solver"
+          title="Gemini AI Doubt Solver ( Ctrl + . )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z">
+            </path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Annotations Button -->
+      <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
+        <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools"
+          title="Edit &amp; Annotations ( Ctrl + ; )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            <path d="m15 5 4 4"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Shortcuts Button -->
+      <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
+        <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts"
+          title="Keyboard Shortcuts ( Ctrl + \ )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel shortcuts-panel" id="shortcuts-panel" role="region"
+          aria-label="Keyboard Shortcuts">
+          <div class="shortcuts-group">
+            <div class="shortcuts-group-title">NAVIGATION &amp; CLEARANCE</div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Switch Guide &hArr; Index</span>
+              <span class="shortcut-keys"><kbd>Tab</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Universal Search &amp; Commands</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>/</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Full Screen (Toggle Top Bar)</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>'</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Toggle Dark / Light Theme</span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>]</kbd></span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Close Overlays / Escape</span>
+              <span class="shortcut-keys"><kbd>Esc</kbd></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPGRADE MEMBERSHIP BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="upgrade-nav-wrapper">
+        <a href="membership.html" class="icon-btn" id="upgrade-nav-btn" aria-label="Sovereign Upgrade &amp; Membership"
+          title="Upgrade Membership">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </a>
+
+        <div class="hover-flyout-panel upgrade-panel" id="upgrade-panel" role="region"
+          aria-label="Membership Status &amp; Upgrade">
+          <div class="panel-header" style="margin-bottom: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-role-badge" id="nav-upgrade-badge" style="display:none;"></span>
+              <span class="user-id" id="nav-upgrade-status">MEMBERSHIP</span>
+            </div>
+          </div>
+          <div class="panel-divider" style="margin: 8px 0 10px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
+              <span style="color: var(--text-secondary);">Current Plan:</span>
+              <strong style="color: var(--text-primary);" id="nav-current-plan-name">Standard Access</strong>
+            </div>
+          </div>
+          <a href="membership.html" class="account-btn-action" id="nav-upgrade-cta-btn"
+            style="margin-top: 12px; background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+            ⚡ Upgrade to Premium Plan
+          </a>
+        </div>
+      </div>
+
+      <!-- ACCOUNT BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="account-wrapper">
+        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
+          <div class="panel-header">
+            <div class="panel-user-meta">
+              <span class="user-id">ACCOUNT DOSSIER</span>
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); padding: 8px 0; font-family: var(--font-mono);">
+            Synchronizing authentication telemetry...
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS BUTTON & HOVER PANEL -->
+      <div class="panel-trigger-wrapper" id="settings-wrapper">
+        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" title="Display Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
+          <div class="panel-section-title">VIEW PREFERENCES</div>
+
+          <!-- Font Size Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Size</span>
+            <div class="custom-dropdown" id="dropdown-font-size">
+              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox"
+                aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-size-label">Medium</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small
+                  (13px)</button>
+                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium"
+                  role="option">Medium (15px)</button>
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large
+                  (17.5px)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Font Style Dropdown -->
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Style</span>
+            <div class="custom-dropdown" id="dropdown-font-style">
+              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox"
+                aria-expanded="false">
+                <span class="dropdown-selected-text" id="font-style-label">Reading</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading"
+                  role="option">Reading (Sans)</button>
+                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter"
+                  role="option">Typewriter (Monospace)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="setting-toggle-row">
+            <label for="grid-toggle">Background Grid</label>
+            <input type="checkbox" id="grid-toggle" checked>
+          </div>
+          <div class="setting-toggle-row">
+            <label for="contrast-toggle">Dark Theme</label>
+            <input type="checkbox" id="contrast-toggle">
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN VIEWPORT CONTENT ================= -->
+  <main class="main-viewport-wrapper">
+    <div class="dossier-main-wrapper">
+
+      <!-- Header Section -->
+      <section class="dossier-header-section">
+        <span class="dossier-kicker">[PRODUCT RADAR &bull; FEATURE &amp; CONTENT ROADMAP]</span>
+        <h1 class="dossier-title">Feedback &amp; Feature Proposals</h1>
+        <p class="dossier-subtitle">
+          Help expand India's sovereign data terminal. Suggest new quantitative index baskets, MCA corporate governance filings, forensic auditor red-flag algorithms, export modules, or UI workflows. Every proposal is reviewed directly by our research arm.
+        </p>
+      </section>
+
+      <!-- Live Radar Telemetry Bar -->
+      <div class="telemetry-strip" role="status">
+        <div class="telemetry-item">
+          <span class="telemetry-dot"></span>
+          <span>RADAR STATUS: <strong>OPEN &bull; ACCEPTING COMMUNITY PROPOSALS</strong></span>
+        </div>
+        <div class="telemetry-item">
+          <span>ACTIVE PIPELINE: <strong>05 PLANNED &bull; 02 IN PROGRESS</strong></span>
+        </div>
+        <div class="telemetry-item">
+          <span>NEXT SPRINT RELEASE: <strong>Q1 2027 MATRIX UPGRADE</strong></span>
+        </div>
+      </div>
+
+      <!-- Success Confirmation Card -->
+      <div class="confirmation-card" id="feedback-confirmation-card" role="alert">
+        <div class="confirmation-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>PROPOSAL REGISTERED ON PRODUCT RADAR</span>
+        </div>
+        <div class="confirmation-body">
+          Your proposal has been logged to the public radar feed, dispatched to <strong>dhaumyakumar27@gmail.com</strong>, and tagged for engineering feasibility analysis. Analysts and community members can now review and upvote your submission.
+          <br>
+          <span class="confirmation-reference" id="proposal-id-display">PROP-RADAR-SUBMISSION</span>
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <span style="font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono);">
+              Destination Email: <strong>dhaumyakumar27@gmail.com</strong>
+            </span>
+            <a id="feedback-direct-mailto-link" href="#" class="btn-institutional-secondary font-mono" style="font-size: 0.74rem; padding: 6px 12px; text-decoration: none;">
+              ✉️ Open in Email Client
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggestion Submission Form Card -->
+      <div class="institutional-form-card">
+        <form id="feedback-proposal-form" autocomplete="off">
+          
+          <!-- Proposal Type Selector -->
+          <div class="form-field-group">
+            <label class="field-label">
+              <span>1. PROPOSAL CLASSIFICATION <span class="required-mark">*</span></span>
+              <span class="field-hint">What type of addition or improvement are you proposing?</span>
+            </label>
+            <div class="pill-selector-row">
+              <label class="pill-option">
+                <input type="radio" name="proposal_type" value="feature_tool" checked>
+                <span class="pill-label">💡 New Tool / Analytical Feature</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="proposal_type" value="content_mca">
+                <span class="pill-label">📚 Content / MCA Filing Topic</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="proposal_type" value="index_basket">
+                <span class="pill-label">📈 Index Basket / Quantitative Metric</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="proposal_type" value="ui_workflow">
+                <span class="pill-label">⚡ UI / UX &amp; Workflow Utility</span>
+              </label>
+              <label class="pill-option">
+                <input type="radio" name="proposal_type" value="gemini_ai_prompt">
+                <span class="pill-label">🤖 Gemini AI Prompt Capability</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Grid: Proposal Title & Target Module -->
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label class="field-label" for="proposal-title">
+                <span>2. PROPOSAL TITLE <span class="required-mark">*</span></span>
+              </label>
+              <input type="text" class="field-input font-mono" id="proposal-title" required
+                placeholder="e.g. Add SEBI CIRP Insolvency Resolution Tracker for Listed Debts" maxlength="140" />
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label" for="target-section">
+                <span>3. TARGET MODULE / SECTION <span class="required-mark">*</span></span>
+              </label>
+              <select class="field-select font-mono" id="target-section" required>
+                <option value="Index Landing Suite (index.html)">Index Landing Suite (index.html)</option>
+                <option value="Sovereign Research Guide (guide.html)">Sovereign Research Guide (guide.html)</option>
+                <option value="Sector Weights & Matrices">Sector Weights &amp; Matrices</option>
+                <option value="MCA V3 Corporate Filings">MCA V3 Corporate Filings</option>
+                <option value="Gemini AI Doubt Solver">Gemini AI Doubt Solver</option>
+                <option value="Annotation & Markup Canvas">Annotation &amp; Markup Canvas</option>
+                <option value="Other / Entire Suite">Other / Entire Suite</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Description & Analytical Value -->
+          <div class="form-field-group">
+            <label class="field-label" for="proposal-description">
+              <span>4. PROPOSAL SPECIFICATIONS &amp; ANALYTICAL VALUE <span class="required-mark">*</span></span>
+              <span class="field-hint font-mono">Explain why this benefits institutional Indian market researchers</span>
+            </label>
+            <textarea class="field-textarea" id="proposal-description" required rows="6"
+              placeholder="Detail the feature or content addition:
+- What problem does it solve?
+- What data sources or formulas should be utilized? (e.g., MCA AOC-4 filings, BSE bhavcopy, SEBI LODR disclosures)
+- How should it appear inside the terminal?"></textarea>
+          </div>
+
+          <!-- Grid: Reference URL & Priority -->
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label class="field-label" for="reference-url">
+                <span>5. REFERENCE SOURCE / REGULATORY CITATION (OPTIONAL)</span>
+                <span class="field-hint">SEBI, MCA, RBI, or exchange URL</span>
+              </label>
+              <input type="url" class="field-input font-mono" id="reference-url"
+                placeholder="https://www.sebi.gov.in/legal/circulars/..." />
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label" for="proposal-impact">
+                <span>6. ESTIMATED RESEARCH IMPACT</span>
+              </label>
+              <select class="field-select font-mono" id="proposal-impact">
+                <option value="essential">🔴 High Impact / Essential Core Workflow</option>
+                <option value="valuable" selected>🟡 Medium Impact / Valuable Productivity Boost</option>
+                <option value="nice_to_have">🟢 Low Impact / Nice-to-Have Polish</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Submitter Handle & Email -->
+          <div class="form-grid-2">
+            <div class="form-field-group">
+              <label class="field-label" for="submitter-email">
+                <span>7. YOUR EMAIL (FOR ROADMAP STATUS NOTIFICATIONS)</span>
+              </label>
+              <input type="email" class="field-input font-mono" id="submitter-email"
+                placeholder="analyst@firm.com" />
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label" for="submitter-name">
+                <span>8. SUBMITTER HANDLE / FIRM (OPTIONAL)</span>
+              </label>
+              <input type="text" class="field-input font-mono" id="submitter-name"
+                placeholder="e.g. QuantLead_Mumbai or Anonymous" />
+            </div>
+          </div>
+
+          <!-- Action Row -->
+          <div class="form-submit-row">
+            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-tertiary);">
+              💡 Submissions are published to the public product roadmap board
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <button type="reset" class="btn-institutional-secondary">CLEAR</button>
+              <button type="submit" class="btn-institutional-primary" id="btn-submit-proposal">
+                <span>SUBMIT PROPOSAL TO RADAR &rarr;</span>
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Public Feature Radar & Community Proposals Board -->
+      <div class="radar-board-header">
+        <h3 class="radar-board-title">[ACTIVE FEATURE RADAR &bull; ROADMAP PROPOSALS]</h3>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">Click ▲ to upvote priority</span>
+      </div>
+
+      <div class="radar-cards-list" id="radar-cards-list">
+        
+        <!-- Proposal 1 -->
+        <div class="radar-item-card" data-proposal-id="prop-01">
+          <div class="radar-item-main">
+            <span class="radar-status-tag tag-in-progress font-mono">IN PROGRESS &bull; SPRINT 14</span>
+            <h4 class="radar-item-title">MCA V3 AOC-4 XBRL Automated Parser for Unlisted Unicorns</h4>
+            <p class="radar-item-desc">
+              Direct pipeline to ingest, normalize, and extract related-party transactions and auditor qualification footnotes from unlisted corporate balance sheets.
+            </p>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
+              MODULE: MCA Corporate Filings &bull; SUBMITTED BY: @Forensic_Desk &bull; TARGET: v10.0
+            </div>
+          </div>
+          <div class="radar-vote-col">
+            <button type="button" class="vote-btn" data-votes="42" aria-label="Upvote this feature proposal">
+              <span class="vote-arrow">&#9650;</span>
+              <span class="vote-count">42</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Proposal 2 -->
+        <div class="radar-item-card" data-proposal-id="prop-02">
+          <div class="radar-item-main">
+            <span class="radar-status-tag tag-planned font-mono">PLANNED &bull; Q1 2027</span>
+            <h4 class="radar-item-title">Quarterly Sovereign Index Historical Rebalancing Backtester</h4>
+            <p class="radar-item-desc">
+              Interactive timeline simulator to test sovereign weights against historical drawdown periods (March 2020, Adani 2023, Election 2024 volatility).
+            </p>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
+              MODULE: Sector Weights &bull; SUBMITTED BY: @MacroQuant_IN &bull; TARGET: Q1 2027
+            </div>
+          </div>
+          <div class="radar-vote-col">
+            <button type="button" class="vote-btn" data-votes="38" aria-label="Upvote this feature proposal">
+              <span class="vote-arrow">&#9650;</span>
+              <span class="vote-count">38</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Proposal 3 -->
+        <div class="radar-item-card" data-proposal-id="prop-03">
+          <div class="radar-item-main">
+            <span class="radar-status-tag tag-under-review font-mono">UNDER REVIEW &bull; RESEARCH DESK</span>
+            <h4 class="radar-item-title">CARO 2020 Auditor Cross-Entity Red-Flag Heatmap</h4>
+            <p class="radar-item-desc">
+              Visual cluster graph highlighting auditor resignations, adverse internal financial control (IFCoFR) remarks, and statutory dues delays across 500+ Indian corporations.
+            </p>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
+              MODULE: Sovereign Research Guide &bull; SUBMITTED BY: @AuditForensics &bull; TARGET: Under Review
+            </div>
+          </div>
+          <div class="radar-vote-col">
+            <button type="button" class="vote-btn" data-votes="29" aria-label="Upvote this feature proposal">
+              <span class="vote-arrow">&#9650;</span>
+              <span class="vote-count">29</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Proposal 4 -->
+        <div class="radar-item-card" data-proposal-id="prop-04">
+          <div class="radar-item-main">
+            <span class="radar-status-tag tag-planned font-mono">PLANNED &bull; UX WORKFLOW</span>
+            <h4 class="radar-item-title">High-DPI SVG / PNG Vector Chart Export for Annotations</h4>
+            <p class="radar-item-desc">
+              Export annotated financial charts with one-click forensic watermark and sovereign settlement clearance timestamp.
+            </p>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
+              MODULE: Annotation &amp; Markup Canvas &bull; SUBMITTED BY: @TerminalAnalyst &bull; TARGET: v9.9
+            </div>
+          </div>
+          <div class="radar-vote-col">
+            <button type="button" class="vote-btn" data-votes="25" aria-label="Upvote this feature proposal">
+              <span class="vote-arrow">&#9650;</span>
+              <span class="vote-count">25</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Mandatory Institutional Footer -->
+      <footer class="institutional-footer" id="sec-footer" style="margin-top: 50px;">
+        <div class="footer-grid">
+          <div class="footer-col-main">
+            <div class="footer-brand-title">INDEXINDIA &bull; RESEARCH ARM</div>
+            <p class="strict-legal-disclaimer">
+              <strong>STRICT STATUTORY DISCLAIMER:</strong> All content, models, and forensic reports provided on
+              IndexIndia are strictly for educational and informational purposes only. This does not constitute
+              financial, investment, or legal advice. IndexIndia is not a SEBI-registered investment advisor, portfolio
+              manager, or research analyst entity under the SEBI (Research Analysts) Regulations, 2014. No
+              forward-looking return guarantees are made or implied.
+            </p>
+          </div>
+
+          <div class="footer-col-links">
+            <div class="footer-links-title">
+              <a href="statutory-privacy.html" class="footer-statutory-link">STATUTORY &amp; PRIVACY &rarr;</a>
+            </div>
+            <p class="footer-statutory-subtext font-mono">
+              Official institutional disclosures, Gemini AI usage limits &amp; accuracy telemetry, SEBI compliance notice, privacy policy, and sovereign settlement terms.
+            </p>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=9.0"></script>
+  <script src="script.js?v=9.9"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Pre-fill user email if authenticated
+      if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.getUser === "function") {
+        const user = window.IndexIndiaSupabase.getUser();
+        if (user && user.email) {
+          const emailInput = document.getElementById("submitter-email");
+          if (emailInput && !emailInput.value) emailInput.value = user.email;
+          const nameInput = document.getElementById("submitter-name");
+          if (nameInput && !nameInput.value) nameInput.value = user.email.split("@")[0];
+        }
+      }
+
+      // Handle Upvote Toggles
+      document.querySelectorAll(".vote-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const countEl = btn.querySelector(".vote-count");
+          let current = parseInt(btn.getAttribute("data-votes"), 10) || 0;
+          if (btn.classList.contains("has-voted")) {
+            btn.classList.remove("has-voted");
+            current = Math.max(0, current - 1);
+          } else {
+            btn.classList.add("has-voted");
+            current += 1;
+          }
+          btn.setAttribute("data-votes", current);
+          if (countEl) countEl.textContent = current;
+        });
+      });
+
+      // Handle Proposal Submission
+      const form = document.getElementById("feedback-proposal-form");
+      const confirmCard = document.getElementById("feedback-confirmation-card");
+      const propIdDisplay = document.getElementById("proposal-id-display");
+      const radarList = document.getElementById("radar-cards-list");
+      const submitBtn = document.getElementById("btn-submit-proposal");
+
+      // Load user submitted proposals from localStorage
+      function loadUserProposals() {
+        try {
+          const proposals = JSON.parse(localStorage.getItem("indexindia_user_proposals") || "[]");
+          proposals.forEach(p => {
+            renderProposalCard(p, false);
+          });
+        } catch (e) {
+          console.warn("Could not load proposals:", e);
+        }
+      }
+
+      function renderProposalCard(data, prepend = true) {
+        if (!radarList) return;
+        const card = document.createElement("div");
+        card.className = "radar-item-card";
+        card.setAttribute("data-proposal-id", data.id);
+        card.innerHTML = `
+          <div class="radar-item-main">
+            <span class="radar-status-tag tag-under-review font-mono">COMMUNITY PITCH &bull; NEW</span>
+            <h4 class="radar-item-title">${escapeHTML(data.title)}</h4>
+            <p class="radar-item-desc">${escapeHTML(data.description)}</p>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
+              MODULE: ${escapeHTML(data.targetModule)} &bull; SUBMITTED BY: ${escapeHTML(data.handle)} &bull; ${new Date(data.createdAt).toLocaleDateString()}
+            </div>
+          </div>
+          <div class="radar-vote-col">
+            <button type="button" class="vote-btn has-voted" data-votes="1" aria-label="Upvote this feature proposal">
+              <span class="vote-arrow">&#9650;</span>
+              <span class="vote-count">1</span>
+            </button>
+          </div>
+        `;
+
+        const voteBtn = card.querySelector(".vote-btn");
+        voteBtn.addEventListener("click", () => {
+          const countEl = voteBtn.querySelector(".vote-count");
+          let current = parseInt(voteBtn.getAttribute("data-votes"), 10) || 0;
+          if (voteBtn.classList.contains("has-voted")) {
+            voteBtn.classList.remove("has-voted");
+            current = Math.max(0, current - 1);
+          } else {
+            voteBtn.classList.add("has-voted");
+            current += 1;
+          }
+          voteBtn.setAttribute("data-votes", current);
+          if (countEl) countEl.textContent = current;
+        });
+
+        if (prepend) {
+          radarList.prepend(card);
+        } else {
+          radarList.appendChild(card);
+        }
+      }
+
+      function escapeHTML(str) {
+        return (str || "").replace(/[&<>'"]/g, tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag));
+      }
+
+      loadUserProposals();
+
+      if (form) {
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Publishing to Radar...";
+
+          const randNum = Math.floor(1000 + Math.random() * 9000);
+          const proposalId = `PROP-RADAR-${randNum}`;
+
+          const type = form.querySelector('input[name="proposal_type"]:checked')?.value || "feature";
+          const title = document.getElementById("proposal-title")?.value || "";
+          const targetModule = document.getElementById("target-section")?.value || "General";
+          const description = document.getElementById("proposal-description")?.value || "";
+          const refUrl = document.getElementById("reference-url")?.value || "";
+          const impact = document.getElementById("proposal-impact")?.value || "valuable";
+          const email = document.getElementById("submitter-email")?.value || "";
+          const handle = document.getElementById("submitter-name")?.value || "Community Contributor";
+
+          const proposalPayload = {
+            id: proposalId,
+            type,
+            title,
+            targetModule,
+            description,
+            refUrl,
+            impact,
+            email,
+            handle,
+            votes: 1,
+            createdAt: new Date().toISOString()
+          };
+
+          // Save to local storage
+          try {
+            const existing = JSON.parse(localStorage.getItem("indexindia_user_proposals") || "[]");
+            existing.unshift(proposalPayload);
+            localStorage.setItem("indexindia_user_proposals", JSON.stringify(existing.slice(0, 30)));
+          } catch (err) {
+            console.warn("Storage err:", err);
+          }
+
+          // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit AJAX
+          const targetAdminEmail = "dhaumyakumar27@gmail.com";
+          try {
+            const emailFormData = new FormData();
+            emailFormData.append("_subject", `[IndexIndia Feedback] ${proposalId}: ${title}`);
+            emailFormData.append("_replyto", email);
+            emailFormData.append("_template", "table");
+            emailFormData.append("Proposal ID", proposalId);
+            emailFormData.append("Classification", type);
+            emailFormData.append("Title", title);
+            emailFormData.append("Target Module", targetModule);
+            emailFormData.append("Estimated Impact", impact);
+            emailFormData.append("Submitter Email", email);
+            emailFormData.append("Submitter Handle", handle);
+            emailFormData.append("Reference Link", refUrl);
+            emailFormData.append("Specifications & Rationale", description);
+
+            fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
+              method: "POST",
+              headers: { "Accept": "application/json" },
+              body: emailFormData
+            }).catch(e => console.warn("FormSubmit notice:", e));
+          } catch (err) {
+            console.warn("Email dispatch error:", err);
+          }
+
+          // 2. Dispatch to Cloudflare Worker inquiry endpoint
+          const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
+          if (CLOUDFLARE_WORKER_URL) {
+            fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "feedback_proposal",
+                proposalId,
+                proposal_type: type,
+                title,
+                targetModule,
+                impact,
+                refUrl,
+                description,
+                email,
+                handle
+              })
+            }).catch(e => console.warn("Worker dispatch notice:", e));
+          }
+
+          // 3. Prepare direct mailto link for client-side fallback
+          const mailtoBtn = document.getElementById("feedback-direct-mailto-link");
+          if (mailtoBtn) {
+            const mailtoSubject = encodeURIComponent(`[IndexIndia Feedback] ${proposalId}: ${title}`);
+            const mailtoBody = encodeURIComponent(`Proposal ID: ${proposalId}\nType: ${type}\nModule: ${targetModule}\nImpact: ${impact}\nSubmitter: ${handle} (${email})\nReference Link: ${refUrl}\n\nDescription & Analytical Value:\n${description}`);
+            mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${mailtoSubject}&body=${mailtoBody}`;
+          }
+
+          setTimeout(() => {
+            renderProposalCard(proposalPayload, true);
+            if (propIdDisplay) propIdDisplay.textContent = `PROPOSAL REFERENCE: ${proposalId} [DISPATCHED TO ${targetAdminEmail}]`;
+            if (confirmCard) {
+              confirmCard.classList.add("is-visible");
+              confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            form.reset();
+            submitBtn.disabled = false;
+            submitBtn.textContent = "SUBMIT PROPOSAL TO RADAR →";
+          }, 350);
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

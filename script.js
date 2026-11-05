@@ -1816,24 +1816,721 @@ document.addEventListener("DOMContentLoaded", () => {
     isArrowHeld = false;
   }
 
+  // ==========================================================================
+  // CUSTOMIZABLE & CLOUD-SYNCED KEYBOARD SHORTCUTS SYSTEM
+  // ==========================================================================
+  const ALLOWED_SOLO_KEYS = new Set([
+    "Tab",
+    "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+    "CapsLock",
+    "Backspace",
+    "Enter",
+    "Space", " ",
+    "Escape",
+    "PageUp", "PageDown", "Home", "End"
+  ]);
+
+  const DEFAULT_SHORTCUTS = {
+    switchSuite: {
+      id: "switchSuite",
+      group: "NAVIGATION & SUITE",
+      desc: "Switch Guide ⇔ Index",
+      key: "Tab",
+      code: "Tab",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Tab"
+    },
+    moveChapterDown: {
+      id: "moveChapterDown",
+      group: "NAVIGATION & SUITE",
+      desc: "Move Main Chapter Next",
+      key: "ArrowDown",
+      code: "ArrowDown",
+      ctrlKey: false,
+      altKey: true,
+      shiftKey: false,
+      metaKey: false,
+      display: "Alt + ↓"
+    },
+    moveChapterUp: {
+      id: "moveChapterUp",
+      group: "NAVIGATION & SUITE",
+      desc: "Move Main Chapter Prev",
+      key: "ArrowUp",
+      code: "ArrowUp",
+      ctrlKey: false,
+      altKey: true,
+      shiftKey: false,
+      metaKey: false,
+      display: "Alt + ↑"
+    },
+    moveSectionDown: {
+      id: "moveSectionDown",
+      group: "NAVIGATION & SUITE",
+      desc: "Move Section & Subsection Next",
+      key: "ArrowDown",
+      code: "ArrowDown",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ↓"
+    },
+    moveSectionUp: {
+      id: "moveSectionUp",
+      group: "NAVIGATION & SUITE",
+      desc: "Move Section & Subsection Prev",
+      key: "ArrowUp",
+      code: "ArrowUp",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ↑"
+    },
+    fastScrollDown: {
+      id: "fastScrollDown",
+      group: "NAVIGATION & SUITE",
+      desc: "Fast Scroll Page Down",
+      key: "ArrowDown",
+      code: "ArrowDown",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: true,
+      metaKey: false,
+      display: "Shift + ↓"
+    },
+    fastScrollUp: {
+      id: "fastScrollUp",
+      group: "NAVIGATION & SUITE",
+      desc: "Fast Scroll Page Up",
+      key: "ArrowUp",
+      code: "ArrowUp",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: true,
+      metaKey: false,
+      display: "Shift + ↑"
+    },
+    scrollDown: {
+      id: "scrollDown",
+      group: "NAVIGATION & SUITE",
+      desc: "Scroll Page Smoothly Down",
+      key: "ArrowDown",
+      code: "ArrowDown",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "↓"
+    },
+    scrollUp: {
+      id: "scrollUp",
+      group: "NAVIGATION & SUITE",
+      desc: "Scroll Page Smoothly Up",
+      key: "ArrowUp",
+      code: "ArrowUp",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "↑"
+    },
+    directoryTree: {
+      id: "directoryTree",
+      group: "NAVIGATION & SUITE",
+      desc: "Directory Tree Drawer",
+      key: ",",
+      code: "Comma",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ,"
+    },
+    contactUs: {
+      id: "contactUs",
+      group: "NAVIGATION & SUITE",
+      desc: "Contact Us (Report Issue)",
+      key: "c",
+      code: "KeyC",
+      ctrlKey: true,
+      altKey: true,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + Alt + C"
+    },
+    feedbackRadar: {
+      id: "feedbackRadar",
+      group: "NAVIGATION & SUITE",
+      desc: "Feedback (Suggest Feature)",
+      key: "f",
+      code: "KeyF",
+      ctrlKey: true,
+      altKey: true,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + Alt + F"
+    },
+    shortcutsPanel: {
+      id: "shortcutsPanel",
+      group: "COMMANDS & PREFERENCES",
+      desc: "Shortcuts Panel",
+      key: "\\",
+      code: "Backslash",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + \\"
+    },
+    universalSearch: {
+      id: "universalSearch",
+      group: "COMMANDS & PREFERENCES",
+      desc: "Universal Search & Commands",
+      key: "/",
+      code: "Slash",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + /"
+    },
+    doubtSolver: {
+      id: "doubtSolver",
+      group: "COMMANDS & PREFERENCES",
+      desc: "AI Doubt Solver",
+      key: ".",
+      code: "Period",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ."
+    },
+    editAnnotations: {
+      id: "editAnnotations",
+      group: "COMMANDS & PREFERENCES",
+      desc: "Edit & Markup Tools",
+      key: ";",
+      code: "Semicolon",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ;"
+    },
+    fullScreen: {
+      id: "fullScreen",
+      group: "COMMANDS & PREFERENCES",
+      desc: "Full Screen (Toggle Top Bar)",
+      key: "'",
+      code: "Quote",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + '"
+    },
+    toggleGrid: {
+      id: "toggleGrid",
+      group: "COMMANDS & PREFERENCES",
+      desc: "Toggle Background Grid",
+      key: "[",
+      code: "BracketLeft",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ["
+    },
+    toggleTheme: {
+      id: "toggleTheme",
+      group: "COMMANDS & PREFERENCES",
+      desc: "Toggle Dark / Light Theme",
+      key: "]",
+      code: "BracketRight",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ]"
+    },
+    closeOverlays: {
+      id: "closeOverlays",
+      group: "COMMANDS & PREFERENCES",
+      desc: "Close Open Overlays",
+      key: "Escape",
+      code: "Escape",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Esc"
+    }
+  };
+
+  let activeShortcuts = JSON.parse(JSON.stringify(DEFAULT_SHORTCUTS));
+  let recordingShortcutAction = null;
+  let recordingHandlerRef = null;
+
+  function loadLocalShortcuts() {
+    try {
+      const raw = localStorage.getItem("indexindia_custom_shortcuts");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        for (const k in parsed) {
+          if (activeShortcuts[k]) {
+            activeShortcuts[k] = Object.assign({}, activeShortcuts[k], parsed[k]);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse local shortcuts:", e);
+    }
+  }
+
+  loadLocalShortcuts();
+
+  function formatKeyDisplay(key, code) {
+    if (key === " ") return "Space";
+    if (key === "ArrowUp") return "↑";
+    if (key === "ArrowDown") return "↓";
+    if (key === "ArrowLeft") return "←";
+    if (key === "ArrowRight") return "→";
+    if (key === "Escape") return "Esc";
+    if (key && key.length === 1 && !["↑", "↓", "←", "→"].includes(key)) {
+      return key.toUpperCase();
+    }
+    return key || code || "";
+  }
+
+  function buildShortcutDisplay(ctrl, alt, shift, meta, key, code) {
+    const parts = [];
+    if (ctrl || meta) parts.push("Ctrl");
+    if (alt) parts.push("Alt");
+    if (shift) parts.push("Shift");
+    parts.push(formatKeyDisplay(key, code));
+    return parts.join(" + ");
+  }
+
+  function matchesShortcut(e, sc) {
+    if (!sc) return false;
+    const hasCtrl = !!(e.ctrlKey || e.metaKey);
+    const reqCtrl = !!(sc.ctrlKey || sc.metaKey);
+    if (hasCtrl !== reqCtrl) return false;
+
+    const hasAlt = !!e.altKey;
+    const reqAlt = !!sc.altKey;
+    if (hasAlt !== reqAlt) return false;
+
+    const hasShift = !!e.shiftKey;
+    const reqShift = !!sc.shiftKey;
+    if (hasShift !== reqShift) return false;
+
+    if (sc.key && e.key && sc.key.toLowerCase() === e.key.toLowerCase()) return true;
+    if (sc.code && e.code && sc.code === e.code) return true;
+
+    // Special symbol aliases
+    if (sc.key === "/" && (e.key === "/" || e.code === "Slash")) return true;
+    if (sc.key === "\\" && (e.key === "\\" || e.code === "Backslash")) return true;
+    if (sc.key === "[" && (e.key === "[" || e.code === "BracketLeft")) return true;
+    if (sc.key === "]" && (e.key === "]" || e.code === "BracketRight")) return true;
+    if (sc.key === "'" && (e.key === "'" || e.code === "Quote")) return true;
+    if (sc.key === ";" && (e.key === ";" || e.code === "Semicolon")) return true;
+    if (sc.key === "," && (e.key === "," || e.code === "Comma")) return true;
+    if (sc.key === "." && (e.key === "." || e.code === "Period")) return true;
+
+    return false;
+  }
+
+  // Validate according to user specifications:
+  // - User CANNOT enter a simple key (letter, number, symbol)
+  // - All of them must be Ctrl or Alt combination (Shift alone is not allowed)
+  // - Buttons such as Tab, Arrow keys, CapsLock, Backspace, Enter, Space allowed in ANY combination or ALONE
+  function validateShortcutInput(e) {
+    if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) {
+      return { valid: false, isModifierOnly: true };
+    }
+
+    const key = e.key;
+    const code = e.code;
+    const hasCtrl = !!(e.ctrlKey || e.metaKey);
+    const hasAlt = !!e.altKey;
+    const hasShift = !!e.shiftKey;
+
+    const isSpecialSolo = ALLOWED_SOLO_KEYS.has(key) || ALLOWED_SOLO_KEYS.has(code);
+
+    if (isSpecialSolo) {
+      return {
+        valid: true,
+        data: {
+          key: key,
+          code: code,
+          ctrlKey: hasCtrl,
+          altKey: hasAlt,
+          shiftKey: hasShift,
+          metaKey: e.metaKey,
+          display: buildShortcutDisplay(hasCtrl, hasAlt, hasShift, e.metaKey, key, code)
+        }
+      };
+    }
+
+    if (!hasCtrl && !hasAlt) {
+      if (hasShift) {
+        return {
+          valid: false,
+          isModifierOnly: false,
+          error: `Shift-only shortcut ("Shift + ${formatKeyDisplay(key, code)}") is disallowed to prevent conflicts while typing capital letters. Please use a Ctrl or Alt combination.`
+        };
+      } else {
+        return {
+          valid: false,
+          isModifierOnly: false,
+          error: `Single key ("${formatKeyDisplay(key, code)}") is disallowed to prevent conflicts while typing text. Please use a Ctrl or Alt combination (e.g. Ctrl + ${formatKeyDisplay(key, code)}).`
+        };
+      }
+    }
+
+    return {
+      valid: true,
+      data: {
+        key: key,
+        code: code,
+        ctrlKey: hasCtrl,
+        altKey: hasAlt,
+        shiftKey: hasShift,
+        metaKey: e.metaKey,
+        display: buildShortcutDisplay(hasCtrl, hasAlt, hasShift, e.metaKey, key, code)
+      }
+    };
+  }
+
+  function renderShortcutsPanelUI() {
+    const panel = document.getElementById("shortcuts-panel");
+    if (!panel) return;
+
+    const isAuthenticated = window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.isAuthenticated === "function" && window.IndexIndiaSupabase.isAuthenticated();
+    const syncStatusText = isAuthenticated ? "● Cloud Synced" : "● Local Storage";
+
+    const navItems = Object.values(activeShortcuts).filter(s => s.group === "NAVIGATION & SUITE");
+    const cmdItems = Object.values(activeShortcuts).filter(s => s.group === "COMMANDS & PREFERENCES");
+
+    panel.innerHTML = `
+      <div class="shortcuts-panel-header">
+        <span class="shortcuts-panel-title">KEYBOARD SHORTCUTS</span>
+        <div class="shortcuts-header-actions">
+          <span class="shortcut-sync-status font-mono" id="shortcut-sync-status">${syncStatusText}</span>
+          <button type="button" class="shortcut-reset-btn font-mono" id="btn-reset-shortcuts" title="Reset all shortcuts to defaults">Reset</button>
+        </div>
+      </div>
+      <div class="shortcut-hint-banner font-mono">
+        Click any shortcut badge to customize. Letters &amp; symbols require a Ctrl or Alt combination.
+      </div>
+      <div class="shortcut-recorder-box font-mono" id="shortcut-recorder-box" style="display:none;"></div>
+
+      <div class="shortcuts-group">
+        <div class="shortcuts-group-title">NAVIGATION &amp; SUITE</div>
+        ${navItems.map(s => `
+          <div class="shortcut-row" data-action-id="${s.id}">
+            <span class="shortcut-desc">${s.desc}</span>
+            <button type="button" class="shortcut-edit-btn ${recordingShortcutAction === s.id ? 'is-recording' : ''}" data-action-id="${s.id}" title="Click to customize shortcut for ${s.desc}">
+              <span class="shortcut-keys"><kbd>${recordingShortcutAction === s.id ? 'Press Keys...' : s.display}</kbd></span>
+              <span class="shortcut-pencil font-mono">✎</span>
+            </button>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="panel-divider" style="margin: 8px 0;"></div>
+
+      <div class="shortcuts-group">
+        <div class="shortcuts-group-title">COMMANDS &amp; PREFERENCES</div>
+        ${cmdItems.map(s => `
+          <div class="shortcut-row" data-action-id="${s.id}">
+            <span class="shortcut-desc">${s.desc}</span>
+            <button type="button" class="shortcut-edit-btn ${recordingShortcutAction === s.id ? 'is-recording' : ''}" data-action-id="${s.id}" title="Click to customize shortcut for ${s.desc}">
+              <span class="shortcut-keys"><kbd>${recordingShortcutAction === s.id ? 'Press Keys...' : s.display}</kbd></span>
+              <span class="shortcut-pencil font-mono">✎</span>
+            </button>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    attachShortcutPanelEvents();
+  }
+
+  function startRecordingShortcut(actionId) {
+    const item = activeShortcuts[actionId];
+    if (!item) return;
+
+    recordingShortcutAction = actionId;
+    renderShortcutsPanelUI();
+
+    const recorderBox = document.getElementById("shortcut-recorder-box");
+    if (recorderBox) {
+      recorderBox.style.display = "block";
+      recorderBox.className = "shortcut-recorder-box font-mono";
+      recorderBox.innerHTML = `<strong>[RECORDING]</strong> Press new shortcut for <em>${item.desc}</em>.<br><span style="opacity:0.8;">Must use Ctrl/Alt, or special keys (Tab, Arrows, Space, Enter). Press Esc to cancel.</span>`;
+    }
+
+    if (recordingHandlerRef) {
+      window.removeEventListener("keydown", recordingHandlerRef, true);
+    }
+
+    recordingHandlerRef = function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Escape alone cancels recording
+      if (e.key === "Escape" && !e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey) {
+        stopRecordingShortcut(false);
+        return;
+      }
+
+      const res = validateShortcutInput(e);
+
+      if (res.isModifierOnly) {
+        const liveMods = [];
+        if (e.ctrlKey || e.metaKey) liveMods.push("Ctrl");
+        if (e.altKey) liveMods.push("Alt");
+        if (e.shiftKey) liveMods.push("Shift");
+        if (recorderBox) {
+          recorderBox.innerHTML = `<strong>[RECORDING]</strong> ${liveMods.join(" + ")} + <span style="animation:pulse 0.8s infinite;">[press key]</span>`;
+        }
+        return;
+      }
+
+      const targetBtn = document.querySelector(`.shortcut-edit-btn[data-action-id="${actionId}"]`);
+
+      if (!res.valid) {
+        if (targetBtn) {
+          targetBtn.classList.remove("shortcut-shake");
+          void targetBtn.offsetWidth;
+          targetBtn.classList.add("shortcut-shake");
+        }
+        if (recorderBox) {
+          recorderBox.className = "shortcut-recorder-box is-error font-mono";
+          recorderBox.innerHTML = `⚠️ <strong>DISALLOWED:</strong> ${res.error}`;
+        }
+        return;
+      }
+
+      // Valid shortcut! Save it
+      activeShortcuts[actionId] = Object.assign({}, activeShortcuts[actionId], res.data);
+
+      try {
+        localStorage.setItem("indexindia_custom_shortcuts", JSON.stringify(activeShortcuts));
+      } catch (err) {}
+
+      // Cloud sync via Supabase if connected
+      if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.saveUserShortcuts === "function") {
+        window.IndexIndiaSupabase.saveUserShortcuts(activeShortcuts);
+      }
+
+      stopRecordingShortcut(true, `✓ Updated "${item.desc}" to ${res.data.display}! Synced.`);
+    };
+
+    window.addEventListener("keydown", recordingHandlerRef, true);
+  }
+
+  function stopRecordingShortcut(success = false, successMsg = "") {
+    if (recordingHandlerRef) {
+      window.removeEventListener("keydown", recordingHandlerRef, true);
+      recordingHandlerRef = null;
+    }
+    recordingShortcutAction = null;
+    renderShortcutsPanelUI();
+
+    const recorderBox = document.getElementById("shortcut-recorder-box");
+    if (recorderBox) {
+      if (success && successMsg) {
+        recorderBox.style.display = "block";
+        recorderBox.className = "shortcut-recorder-box is-success font-mono";
+        recorderBox.textContent = successMsg;
+        setTimeout(() => {
+          recorderBox.style.display = "none";
+        }, 2400);
+      } else {
+        recorderBox.style.display = "none";
+      }
+    }
+  }
+
+  function attachShortcutPanelEvents() {
+    const panel = document.getElementById("shortcuts-panel");
+    if (!panel) return;
+
+    // Attach click listeners to edit buttons
+    panel.querySelectorAll(".shortcut-edit-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const actionId = btn.getAttribute("data-action-id");
+        if (recordingShortcutAction === actionId) {
+          stopRecordingShortcut(false);
+        } else {
+          startRecordingShortcut(actionId);
+        }
+      });
+    });
+
+    // Reset button
+    const resetBtn = document.getElementById("btn-reset-shortcuts");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        activeShortcuts = JSON.parse(JSON.stringify(DEFAULT_SHORTCUTS));
+        try {
+          localStorage.removeItem("indexindia_custom_shortcuts");
+        } catch (err) {}
+
+        if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.resetUserShortcuts === "function") {
+          window.IndexIndiaSupabase.resetUserShortcuts();
+        }
+
+        stopRecordingShortcut(true, "✓ All shortcuts reset to defaults.");
+      });
+    }
+  }
+
+  // Hydrate shortcut panel on initialization
+  renderShortcutsPanelUI();
+
+  // Connect to Supabase account sync for cross-device shortcuts
+  if (window.IndexIndiaSupabase) {
+    if (typeof window.IndexIndiaSupabase.getUserShortcuts === "function") {
+      window.IndexIndiaSupabase.getUserShortcuts().then(cloudShortcuts => {
+        if (cloudShortcuts && typeof cloudShortcuts === "object") {
+          for (const k in cloudShortcuts) {
+            if (activeShortcuts[k]) {
+              activeShortcuts[k] = Object.assign({}, activeShortcuts[k], cloudShortcuts[k]);
+            }
+          }
+          renderShortcutsPanelUI();
+        }
+      }).catch(() => {});
+    }
+
+    if (typeof window.IndexIndiaSupabase.onAuthStateChange === "function") {
+      window.IndexIndiaSupabase.onAuthStateChange((event, user) => {
+        if (user && user.user_metadata && user.user_metadata.custom_shortcuts) {
+          const cloud = user.user_metadata.custom_shortcuts;
+          for (const k in cloud) {
+            if (activeShortcuts[k]) {
+              activeShortcuts[k] = Object.assign({}, activeShortcuts[k], cloud[k]);
+            }
+          }
+          renderShortcutsPanelUI();
+        } else if (user) {
+          // Push local shortcuts up to user account if account has none yet
+          if (typeof window.IndexIndiaSupabase.saveUserShortcuts === "function") {
+            window.IndexIndiaSupabase.saveUserShortcuts(activeShortcuts);
+          }
+          renderShortcutsPanelUI();
+        }
+      });
+    }
+  }
+
+  function navigateMainChapter(direction) {
+    if (hasInPageTree && treeNodes.length > 0) {
+      const chapterIndices = [];
+      treeNodes.forEach((node, idx) => {
+        const href = node.getAttribute("href") || "";
+        if (
+          node.classList.contains("tree-chapter-node") ||
+          node.dataset.level === "1" ||
+          href === "#sec-chapter-1" ||
+          href === "#sec-chapter-2" ||
+          href === "#forum-section" ||
+          href === "#sec-footer" ||
+          href.includes("chapter") ||
+          href.includes("forum")
+        ) {
+          if (!chapterIndices.includes(idx)) chapterIndices.push(idx);
+        }
+      });
+
+      if (chapterIndices.length === 0) {
+        chapterIndices.push(0);
+        if (treeNodes.length > 1) chapterIndices.push(treeNodes.length - 1);
+      }
+
+      if (direction === 1) {
+        const nextIdx = chapterIndices.find((idx) => idx > currentSubIndex);
+        const target = nextIdx !== undefined ? nextIdx : chapterIndices[chapterIndices.length - 1];
+        navigateToNode(target);
+      } else {
+        const prevIdx = chapterIndices.slice().reverse().find((idx) => idx < currentSubIndex);
+        const target = prevIdx !== undefined ? prevIdx : chapterIndices[0];
+        navigateToNode(target);
+      }
+      return;
+    }
+
+    const mainSections = Array.from(document.querySelectorAll(".chapter-anchor, #sec-chapter-1, #sec-chapter-2, #forum-section, #sec-footer, .institutional-forum-section"));
+    if (mainSections.length > 0) {
+      const scrollPos = window.scrollY + 120;
+      let currentIdx = 0;
+      for (let i = 0; i < mainSections.length; i++) {
+        if (mainSections[i].offsetTop <= scrollPos) {
+          currentIdx = i;
+        }
+      }
+      const targetIdx = Math.max(0, Math.min(mainSections.length - 1, currentIdx + direction));
+      mainSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function navigateSection(direction) {
+    if (hasInPageTree && treeNodes.length > 0) {
+      let targetIdx = currentSubIndex;
+      if (direction === 1) {
+        targetIdx = Math.min(treeNodes.length - 1, currentSubIndex + 1);
+      } else {
+        targetIdx = Math.max(0, currentSubIndex - 1);
+      }
+      navigateToNode(targetIdx);
+      return;
+    }
+
+    const allSections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .story-node-section, .institutional-forum-section, #sec-footer"));
+    if (allSections.length > 0) {
+      const scrollPos = window.scrollY + 120;
+      let currentIdx = 0;
+      for (let i = 0; i < allSections.length; i++) {
+        if (allSections[i].offsetTop <= scrollPos) {
+          currentIdx = i;
+        }
+      }
+      const targetIdx = Math.max(0, Math.min(allSections.length - 1, currentIdx + direction));
+      allSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  // Master Global Keydown Listener using dynamic activeShortcuts
   document.addEventListener("keydown", (e) => {
+    if (recordingShortcutAction) return;
+
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
-    // Helper: strictly true if NO modifier key (Ctrl, Shift, Alt, Meta) is pressed
     const noModifiers = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
 
-    // 1. Tab: strictly alone (no Ctrl, Shift, Alt, Meta) - simple tab press switches between Guide <=> Index
-    if (e.key === "Tab") {
-      if (!noModifiers) return;
+    // 1. Switch Guide <=> Index
+    if (matchesShortcut(e, activeShortcuts.switchSuite)) {
       e.preventDefault();
       if (e.repeat) return;
       window.location.href = targetOtherSuiteUrl;
       return;
     }
 
-    // 2. Shortcut Panel: Ctrl + \ (or ?)
-    if (((e.ctrlKey || e.metaKey) && (e.key === "\\" || e.code === "Backslash")) ||
-        ((e.key === "?" || (e.shiftKey && e.key === "/")) && !e.ctrlKey && !e.altKey && !e.metaKey)) {
+    // 2. Shortcut Panel
+    if (matchesShortcut(e, activeShortcuts.shortcutsPanel) || (e.key === "?" && noModifiers)) {
       e.preventDefault();
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
@@ -1841,55 +2538,69 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 3. Directory Tree Drawer: Ctrl + ,
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "," || e.code === "Comma")) {
+    // 3. Directory Tree Drawer
+    if (matchesShortcut(e, activeShortcuts.directoryTree)) {
       e.preventDefault();
       toggleTree();
       return;
     }
 
-    // 4. Universal Search & Commands: Ctrl + / (or / alone)
-    if (((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "/" || e.code === "Slash")) || (e.key === "/" && noModifiers)) {
+    // 4. Contact Us
+    if (matchesShortcut(e, activeShortcuts.contactUs)) {
+      e.preventDefault();
+      window.location.href = "contact.html";
+      return;
+    }
+
+    // 5. Feedback Radar
+    if (matchesShortcut(e, activeShortcuts.feedbackRadar)) {
+      e.preventDefault();
+      window.location.href = "feedback.html";
+      return;
+    }
+
+    // 6. Universal Search & Commands
+    if (matchesShortcut(e, activeShortcuts.universalSearch) || (e.key === "/" && noModifiers)) {
       e.preventDefault();
       focusNavSearchBar();
       return;
     }
 
-    // 5. Gemini AI Doubt Solver: Ctrl + .
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "." || e.code === "Period")) {
+    // 7. Gemini AI Doubt Solver
+    if (matchesShortcut(e, activeShortcuts.doubtSolver)) {
       e.preventDefault();
       toggleDoubtSolver();
       return;
     }
 
-    // 6. In-Page Edit & Annotation Panel: Ctrl + ;
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === ";" || e.code === "Semicolon")) {
+    // 8. In-Page Edit & Annotation Panel
+    if (matchesShortcut(e, activeShortcuts.editAnnotations)) {
       e.preventDefault();
       toggleAnnotationPanel();
       return;
     }
 
-    // 7. Full Screen (Toggle Top Bar): Ctrl + '
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "'" || e.code === "Quote")) {
+    // 9. Full Screen (Toggle Top Bar)
+    if (matchesShortcut(e, activeShortcuts.fullScreen)) {
       e.preventDefault();
       toggleTopBar();
       return;
     }
 
-    // 7b. Toggle Background Grid: Ctrl + [
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "[" || e.code === "BracketLeft")) {
+    // 10. Toggle Background Grid
+    if (matchesShortcut(e, activeShortcuts.toggleGrid)) {
       e.preventDefault();
       const gridTog = document.getElementById("grid-toggle");
       const isNoGrid = document.body.classList.toggle("no-grid");
       if (gridTog) gridTog.checked = !isNoGrid;
       try {
         localStorage.setItem("indexindia_grid", isNoGrid ? "off" : "on");
-      } catch (e) {}
+      } catch (err) {}
       return;
     }
 
-    // 7c. Toggle Dark/Light Mode Theme: Ctrl + ]
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "]" || e.code === "BracketRight")) {
+    // 11. Toggle Dark/Light Mode Theme
+    if (matchesShortcut(e, activeShortcuts.toggleTheme)) {
       e.preventDefault();
       const contrastTog = document.getElementById("contrast-toggle");
       const isDark = document.body.classList.contains("theme-dark");
@@ -1897,127 +2608,66 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.remove("theme-dark");
         document.body.classList.add("theme-light");
         if (contrastTog) contrastTog.checked = false;
-        localStorage.setItem("indexindia_theme", "light");
+        try { localStorage.setItem("indexindia_theme", "light"); } catch (err) {}
       } else {
         document.body.classList.add("theme-dark");
         document.body.classList.remove("theme-light");
         if (contrastTog) contrastTog.checked = true;
-        localStorage.setItem("indexindia_theme", "dark");
+        try { localStorage.setItem("indexindia_theme", "dark"); } catch (err) {}
       }
       return;
     }
 
-    // 8. Alt + Arrow Up / Down: Move strictly between Main Chapters & Comments
-    if (e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+    // 12. Move Main Chapter Next / Prev
+    if (matchesShortcut(e, activeShortcuts.moveChapterDown) || matchesShortcut(e, activeShortcuts.moveChapterUp)) {
       e.preventDefault();
       closeTreeExplicitly();
-
-      if (hasInPageTree && treeNodes.length > 0) {
-        const chapterIndices = [];
-        treeNodes.forEach((node, idx) => {
-          const href = node.getAttribute("href") || "";
-          if (
-            node.classList.contains("tree-chapter-node") ||
-            node.dataset.level === "1" ||
-            href === "#sec-chapter-1" ||
-            href === "#sec-chapter-2" ||
-            href === "#forum-section" ||
-            href === "#sec-footer" ||
-            href.includes("chapter") ||
-            href.includes("forum")
-          ) {
-            if (!chapterIndices.includes(idx)) chapterIndices.push(idx);
-          }
-        });
-
-        if (chapterIndices.length === 0) {
-          chapterIndices.push(0);
-          if (treeNodes.length > 1) chapterIndices.push(treeNodes.length - 1);
-        }
-
-        if (e.key === "ArrowDown") {
-          const nextIdx = chapterIndices.find((idx) => idx > currentSubIndex);
-          const target = nextIdx !== undefined ? nextIdx : chapterIndices[chapterIndices.length - 1];
-          navigateToNode(target);
-        } else {
-          const prevIdx = chapterIndices.slice().reverse().find((idx) => idx < currentSubIndex);
-          const target = prevIdx !== undefined ? prevIdx : chapterIndices[0];
-          navigateToNode(target);
-        }
-        return;
-      }
-
-      // Fallback for pages without in-page tree
-      const mainSections = Array.from(document.querySelectorAll(".chapter-anchor, #sec-chapter-1, #sec-chapter-2, #forum-section, #sec-footer, .institutional-forum-section"));
-      if (mainSections.length > 0) {
-        const scrollPos = window.scrollY + 120;
-        let currentIdx = 0;
-        for (let i = 0; i < mainSections.length; i++) {
-          if (mainSections[i].offsetTop <= scrollPos) {
-            currentIdx = i;
-          }
-        }
-        const direction = e.key === "ArrowDown" ? 1 : -1;
-        const targetIdx = Math.max(0, Math.min(mainSections.length - 1, currentIdx + direction));
-        mainSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      const isDown = matchesShortcut(e, activeShortcuts.moveChapterDown);
+      navigateMainChapter(isDown ? 1 : -1);
       return;
     }
 
-    // 9. Ctrl + Arrow Up / Down: Move through ALL chapter-sections, subsections, comments, and footer
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+    // 13. Move Section & Subsection Next / Prev
+    if (matchesShortcut(e, activeShortcuts.moveSectionDown) || matchesShortcut(e, activeShortcuts.moveSectionUp)) {
       e.preventDefault();
       closeTreeExplicitly();
-
-      if (hasInPageTree && treeNodes.length > 0) {
-        let targetIdx = currentSubIndex;
-        if (e.key === "ArrowDown") {
-          targetIdx = Math.min(treeNodes.length - 1, currentSubIndex + 1);
-        } else {
-          targetIdx = Math.max(0, currentSubIndex - 1);
-        }
-        navigateToNode(targetIdx);
-        return;
-      }
-
-      const allSections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .story-node-section, .institutional-forum-section, #sec-footer"));
-      if (allSections.length > 0) {
-        const scrollPos = window.scrollY + 120;
-        let currentIdx = 0;
-        for (let i = 0; i < allSections.length; i++) {
-          if (allSections[i].offsetTop <= scrollPos) {
-            currentIdx = i;
-          }
-        }
-        const direction = e.key === "ArrowDown" ? 1 : -1;
-        const targetIdx = Math.max(0, Math.min(allSections.length - 1, currentIdx + direction));
-        allSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      const isDown = matchesShortcut(e, activeShortcuts.moveSectionDown);
+      navigateSection(isDown ? 1 : -1);
       return;
     }
 
-    // 10. Normal Arrow Up / Down: Scroll Page Smoothly (strictly alone, no modifiers)
-    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && noModifiers) {
+    // 14. Smooth Scroll Down / Up (Normal)
+    if (matchesShortcut(e, activeShortcuts.scrollDown)) {
       e.preventDefault();
-      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1, false);
+      startSmoothScroll(1, false);
       return;
     }
-
-    // 10a. Shift + Arrow Up / Down: Fast Scroll Page Smoothly (accelerated cruising speed, zero flicker)
-    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (matchesShortcut(e, activeShortcuts.scrollUp)) {
       e.preventDefault();
-      startSmoothScroll(e.key === "ArrowDown" ? 1 : -1, true);
+      startSmoothScroll(-1, false);
       return;
     }
 
-    // 11. Enter inside open tree navigates to current node (strictly alone)
+    // 15. Fast Scroll Down / Up
+    if (matchesShortcut(e, activeShortcuts.fastScrollDown)) {
+      e.preventDefault();
+      startSmoothScroll(1, true);
+      return;
+    }
+    if (matchesShortcut(e, activeShortcuts.fastScrollUp)) {
+      e.preventDefault();
+      startSmoothScroll(-1, true);
+      return;
+    }
+
+    // 16. Enter inside open tree navigates to current node (strictly alone)
     if (e.key === "Enter" && noModifiers && isTreeCurrentlyOpen()) {
       e.preventDefault();
       navigateToNode(currentSubIndex);
       return;
     }
 
-    // 10b. In-Page Finder Active Navigation (Enter -> next match, Shift+Enter -> prev match)
+    // 17. In-Page Finder Active Navigation (Enter -> next match, Shift+Enter -> prev match)
     if (isFinderActive()) {
       if (e.key === "Enter" && !e.ctrlKey && !e.altKey && !e.metaKey) {
         e.preventDefault();
@@ -2030,8 +2680,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // 11. Escape closes all open panels, menus, directory tree, Doubt Solver, Command Palette, Finder, and Annotation Palette
-    if (e.key === "Escape" && noModifiers) {
+    // 18. Close Overlays
+    if (matchesShortcut(e, activeShortcuts.closeOverlays)) {
       if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
       if (accountWrapper) accountWrapper.classList.remove("is-open");
       if (settingsWrapper) settingsWrapper.classList.remove("is-open");
