@@ -1744,9 +1744,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const FRICTION = 0.84; // silky ~120ms ease-out on key release
 
+  let isShiftHeld = false;
+
   function cancelSmoothScrollImmediately() {
     isArrowHeld = false;
     isFastScroll = false;
+    isShiftHeld = false;
     smoothVelocity = 0;
     activeArrowDirection = 0;
     subPixelAccumulator = 0;
@@ -1762,8 +1765,9 @@ document.addEventListener("DOMContentLoaded", () => {
     lastFrameTime = timestamp;
     const timeScale = elapsed / 16.667; // Normalized to 60fps
 
-    const targetMax = isFastScroll ? FAST_CRUISE_SPEED : NORMAL_CRUISE_SPEED;
-    const targetAccel = isFastScroll ? FAST_ACCEL : NORMAL_ACCEL;
+    const isAccelerated = Boolean(isFastScroll || isShiftHeld);
+    const targetMax = isAccelerated ? FAST_CRUISE_SPEED : NORMAL_CRUISE_SPEED;
+    const targetAccel = isAccelerated ? FAST_ACCEL : NORMAL_ACCEL;
 
     if (isArrowHeld) {
       if (smoothVelocity < targetMax) {
@@ -2636,6 +2640,20 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Dynamic Shift modifier detection (allows pressing Shift while normal arrow is ALREADY held down)
+    if (e.key === "Shift") {
+      isShiftHeld = true;
+      if (isArrowHeld) {
+        isFastScroll = true;
+        if (smoothVelocity < FAST_TAP_VELOCITY) {
+          smoothVelocity = FAST_TAP_VELOCITY;
+        }
+      }
+    } else if (e.shiftKey && isArrowHeld) {
+      isShiftHeld = true;
+      isFastScroll = true;
+    }
+
     // 14. Smooth Scroll Down / Up (Normal)
     if (matchesShortcut(e, activeShortcuts.scrollDown)) {
       e.preventDefault();
@@ -2704,7 +2722,8 @@ document.addEventListener("DOMContentLoaded", () => {
       stopSmoothScroll();
     } else if (e.key === "ArrowUp" && activeArrowDirection === -1) {
       stopSmoothScroll();
-    } else if (e.key === "Shift" && isArrowHeld) {
+    } else if (e.key === "Shift") {
+      isShiftHeld = false;
       isFastScroll = false;
     }
   });
@@ -4120,17 +4139,8 @@ INSTRUCTIONS:
   let activeDoubtMode = "doubts";
   let activeQueryId = 0;
 
-  // Create UI elements
-  const doubtPill = document.createElement("div");
-  doubtPill.className = "doubt-selection-pill";
-  doubtPill.id = "doubt-selection-pill";
-  doubtPill.title = "Doubt Solver (Shortcut: M)";
-  doubtPill.innerHTML = `
-    <span class="doubt-pill-spark">💬</span>
-    <span>Ask Doubt</span>
-    <span class="doubt-pill-key">M</span>
-  `;
-  document.body.appendChild(doubtPill);
+  // Create UI elements (Cursor drag-and-select to ask Gemini removed; full sections sent only)
+  const doubtPill = null;
 
   const doubtTile = document.createElement("aside");
   doubtTile.className = "doubt-solver-tile";
@@ -4399,72 +4409,7 @@ INSTRUCTIONS:
   // Initial injection
   injectSectionDoubtButtons();
 
-
-  function handleTextSelection() {
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
-      doubtPill.classList.remove("is-visible");
-      return;
-    }
-    const text = selection.toString().trim();
-    if (text.length < 3) {
-      doubtPill.classList.remove("is-visible");
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      doubtPill.classList.remove("is-visible");
-      return;
-    }
-
-    const commonAncestor = range.commonAncestorContainer;
-    const parentEl = commonAncestor.nodeType === 1 ? commonAncestor : commonAncestor.parentElement;
-    if (parentEl && (parentEl.closest(".doubt-solver-tile") || parentEl.closest(".top-nav"))) {
-      doubtPill.classList.remove("is-visible");
-      return;
-    }
-
-    let top = window.scrollY + rect.top - 38;
-    if (top < window.scrollY + 10) {
-      top = window.scrollY + rect.bottom + 8;
-    }
-    const left = window.scrollX + Math.max(12, rect.left + (rect.width / 2) - 45);
-
-    doubtPill.style.top = `${top}px`;
-    doubtPill.style.left = `${left}px`;
-    doubtPill.classList.add("is-visible");
-  }
-
-  document.addEventListener("mouseup", () => {
-    setTimeout(handleTextSelection, 30);
-  });
-  document.addEventListener("selectionchange", () => {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) {
-      doubtPill.classList.remove("is-visible");
-    }
-  });
-
-  doubtPill.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
-
-  doubtPill.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const sel = window.getSelection();
-    const selectedText = sel ? sel.toString().trim() : "";
-    openDoubtSolver();
-    if (selectedText.length >= 2) {
-      if (doubtTextInput) doubtTextInput.value = selectedText;
-      askDoubt(selectedText);
-    }
-  });
-
-
+  // (Cursor drag-and-select to ask Gemini removed; queries sent via full sections only)
 
   function renderDoubtsView() {
     const history = getLocalDoubtsHistory();
@@ -4898,7 +4843,7 @@ INSTRUCTIONS:
 
   document.addEventListener("mousedown", (e) => {
     if (!doubtTile.classList.contains("is-open")) return;
-    if (!doubtTile.contains(e.target) && !doubtPill.contains(e.target) && !e.target.closest(".section-doubt-btn") && !e.target.closest("#doubt-nav-btn")) {
+    if (!doubtTile.contains(e.target) && !e.target.closest(".section-doubt-btn, #doubt-nav-btn, .section-gemini-btn")) {
       closeDoubtSolver();
     }
   });
@@ -6145,42 +6090,11 @@ INSTRUCTIONS:
             <span class="pulse-dot" style="background: var(--status-optimal);"></span> Ready
           </div>
         </div>
-        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 10px; font-family: var(--font-mono); line-height: 1.45;">
+        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 2px; font-family: var(--font-mono); line-height: 1.45;">
           Pencil sketch, freeform text boxes, sticky notes, and stamps on any section.
         </div>
-        <div class="panel-divider" style="margin: 6px 0 10px;"></div>
-        <div class="setting-toggle-row" style="margin-bottom: 10px;">
-          <label for="edit-flyout-snap-toggle" style="display: flex; flex-direction: column; cursor: pointer;">
-            <span style="font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
-              Snap to Grid
-            </span>
-            <span style="font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-mono); font-weight: normal;">Align sketches &amp; boxes to 24px grid</span>
-          </label>
-          <input type="checkbox" id="edit-flyout-snap-toggle" class="edit-flyout-snap-toggle" ${annotationState.snapToGrid ? "checked" : ""} />
-        </div>
-        <button type="button" class="account-btn-action" id="btn-open-markup-flyout"
-          style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex; width: 100%; border: none; cursor: pointer; padding: 7px 12px; border-radius: 4px; font-size: 0.8rem;">
-          Open Markup Toolbar (Ctrl + ;) &rarr;
-        </button>
       `;
       editWrapper.appendChild(flyout);
-    }
-
-    flyout.querySelectorAll(".edit-flyout-snap-toggle, #edit-flyout-snap-toggle").forEach((toggle) => {
-      toggle.checked = annotationState.snapToGrid;
-      toggle.addEventListener("change", (e) => {
-        setSnapToGrid(e.target.checked);
-      });
-    });
-
-    const openBtn = flyout.querySelector("#btn-open-markup-flyout");
-    if (openBtn) {
-      openBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openAnnotationPanel();
-      });
     }
   }
   initEditNavFlyout();
@@ -6464,8 +6378,8 @@ INSTRUCTIONS:
     const snResize = el.querySelector(".sticky-note-resize-handle");
 
     // Load saved or remembered width and height
-    const rememberedW = sn.width || parseInt(localStorage.getItem("indexindia_stickynote_width"), 10) || 260;
-    const rememberedH = sn.height || parseInt(localStorage.getItem("indexindia_stickynote_height"), 10) || 160;
+    const rememberedW = sn.width || parseInt(localStorage.getItem("indexindia_stickynote_width"), 10) || 240;
+    const rememberedH = sn.height || parseInt(localStorage.getItem("indexindia_stickynote_height"), 10) || 144;
     if (card) {
       card.style.width = `${rememberedW}px`;
       card.style.height = `${rememberedH}px`;
@@ -6913,8 +6827,8 @@ INSTRUCTIONS:
     if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
       return;
     }
-    const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 14);
-    const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 14);
+    const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 12);
+    const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 12);
     const timeStr = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     const newNote = {
       id: `sn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
