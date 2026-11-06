@@ -1939,6 +1939,73 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ================= MOUSE CANVAS PANNING (DRAG TO MOVE PAGE LEFT & RIGHT) =================
+  let isPanningCanvas = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panScrollStartX = 0;
+  let panScrollStartY = 0;
+  let isSpaceKeyDown = false;
+
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      if (!isSpaceKeyDown) {
+        isSpaceKeyDown = true;
+        if (typeof annotationState !== "undefined" && (annotationState.isOpen || document.body.classList.contains("is-annotating") || document.body.classList.contains("has-annotations"))) {
+          document.body.classList.add("is-panning-canvas");
+        }
+      }
+    }
+  });
+
+  window.addEventListener("keyup", (e) => {
+    if (e.code === "Space") {
+      isSpaceKeyDown = false;
+      if (!isPanningCanvas && (typeof annotationState === "undefined" || annotationState.activeTool !== "pan")) {
+        document.body.classList.remove("is-panning-canvas");
+      }
+    }
+  });
+
+  document.addEventListener("pointerdown", (e) => {
+    const isMiddleClick = e.button === 1;
+    const isPanMode = isSpaceKeyDown || (typeof annotationState !== "undefined" && annotationState.activeTool === "pan");
+    if (!isMiddleClick && !isPanMode) return;
+    if (typeof isInsideNavigationPanels === "function" && isInsideNavigationPanels(e)) return;
+
+    isPanningCanvas = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    panScrollStartX = window.scrollX;
+    panScrollStartY = window.scrollY;
+    document.body.classList.add("is-panning-canvas", "is-mouse-down");
+    e.preventDefault();
+  });
+
+  document.addEventListener("pointermove", (e) => {
+    if (!isPanningCanvas) return;
+    const dx = e.clientX - panStartX;
+    const dy = e.clientY - panStartY;
+    window.scrollTo({
+      left: Math.max(0, panScrollStartX - dx),
+      top: Math.max(0, panScrollStartY - dy),
+      behavior: "auto"
+    });
+  });
+
+  const stopCanvasPan = () => {
+    if (isPanningCanvas) {
+      isPanningCanvas = false;
+      document.body.classList.remove("is-mouse-down");
+      if (!isSpaceKeyDown && (typeof annotationState === "undefined" || annotationState.activeTool !== "pan")) {
+        document.body.classList.remove("is-panning-canvas");
+      }
+    }
+  };
+
+  document.addEventListener("pointerup", stopCanvasPan);
+  document.addEventListener("pointercancel", stopCanvasPan);
+
   // ==========================================================================
   // CUSTOMIZABLE & CLOUD-SYNCED KEYBOARD SHORTCUTS SYSTEM
   // ==========================================================================
@@ -6139,6 +6206,12 @@ INSTRUCTIONS:
           </span>
           <span class="palette-tool-label">Select</span>
         </button>
+        <button type="button" class="palette-tool-btn" data-tool="pan" id="palette-btn-pan" title="Pan Canvas Left/Right/Up/Down (Space + Drag or M)">
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+          </span>
+          <span class="palette-tool-label">Pan</span>
+        </button>
         <button type="button" class="palette-tool-btn active" data-tool="sketch" title="Pencil Sketch (P)">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
@@ -6212,6 +6285,12 @@ INSTRUCTIONS:
       </div>
       <span class="palette-sep">|</span>
       <div class="palette-action-group">
+        <button type="button" class="palette-btn" id="annotation-btn-center" title="Center Viewport to Main Content (Ctrl + ← / →)">
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+          </span>
+          <span class="palette-tool-label">Center</span>
+        </button>
         <button type="button" class="palette-btn ${annotationState.snapToGrid ? 'active' : ''}" id="annotation-btn-snap" title="Snap to Grid (G) — Align sketches &amp; boxes to 24px grid" aria-pressed="${annotationState.snapToGrid}">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
@@ -6278,6 +6357,7 @@ INSTRUCTIONS:
   const annotationCounter = editAnnotationBar.querySelector("#annotation-counter");
   const annotationBtnPrev = editAnnotationBar.querySelector("#annotation-btn-prev");
   const annotationBtnNext = editAnnotationBar.querySelector("#annotation-btn-next");
+  const annotationBtnCenter = editAnnotationBar.querySelector("#annotation-btn-center");
   const annotationBtnSnap = editAnnotationBar.querySelector("#annotation-btn-snap");
   const annotationBtnUndo = editAnnotationBar.querySelector("#annotation-btn-undo");
   const annotationBtnClear = editAnnotationBar.querySelector("#annotation-btn-clear");
@@ -6285,6 +6365,13 @@ INSTRUCTIONS:
   const paletteDragHandle = editAnnotationBar.querySelector(".palette-drag-handle");
   const btnQuickHighlight = selectionTooltip?.querySelector("#btn-quick-highlight");
   const btnCloseStickers = stickerPopover.querySelector("#btn-close-stickers");
+
+  if (annotationBtnCenter) {
+    annotationBtnCenter.addEventListener("click", (e) => {
+      e.preventDefault();
+      snapToMainContentSection();
+    });
+  }
 
   if (annotationBtnSnap) {
     annotationBtnSnap.addEventListener("click", (e) => {
@@ -6349,6 +6436,18 @@ INSTRUCTIONS:
       localStorage.setItem(ANNOTATION_STORAGE_KEY, JSON.stringify(annotationsData));
     } catch (err) {
       console.warn("IndexIndia: Unable to persist annotations to localStorage", err);
+    }
+    const hasAny = (
+      (annotationsData.stickynotes && annotationsData.stickynotes.length > 0) ||
+      (annotationsData.textboxes && annotationsData.textboxes.length > 0) ||
+      (annotationsData.strokes && annotationsData.strokes.length > 0) ||
+      (annotationsData.stickers && annotationsData.stickers.length > 0)
+    );
+    if (hasAny) {
+      document.body.classList.add("has-annotations");
+    }
+    if (typeof syncAnnotationCanvasDimensions === "function") {
+      syncAnnotationCanvasDimensions();
     }
     if (typeof triggerCloudAnnotationSync === "function") {
       triggerCloudAnnotationSync();
@@ -7439,6 +7538,20 @@ INSTRUCTIONS:
     }
     renderAllSavedAnnotations();
     updateAnnotationCounter();
+    const hasAny = (
+      (annotationsData.stickynotes && annotationsData.stickynotes.length > 0) ||
+      (annotationsData.textboxes && annotationsData.textboxes.length > 0) ||
+      (annotationsData.strokes && annotationsData.strokes.length > 0) ||
+      (annotationsData.stickers && annotationsData.stickers.length > 0)
+    );
+    if (hasAny) {
+      document.body.classList.add("has-annotations");
+      setTimeout(() => {
+        if (typeof snapToMainContentSection === "function") {
+          snapToMainContentSection();
+        }
+      }, 120);
+    }
     if (typeof triggerCloudAnnotationFetch === "function") {
       triggerCloudAnnotationFetch();
     }
@@ -7525,6 +7638,7 @@ INSTRUCTIONS:
             m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
           }
         });
+        document.body.classList.remove("has-annotations");
         saveAnnotations();
         updateAnnotationCounter();
       }
@@ -7575,6 +7689,7 @@ INSTRUCTIONS:
     document.body.classList.toggle("annotation-mode-sketch", tool === "sketch");
     document.body.classList.toggle("annotation-mode-eraser", tool === "eraser");
     document.body.classList.toggle("annotation-mode-select", tool === "select");
+    document.body.classList.toggle("annotation-mode-pan", tool === "pan");
     if (annotationSvgCanvas) {
       annotationSvgCanvas.classList.toggle("is-drawing", tool === "sketch");
     }
@@ -7625,6 +7740,11 @@ INSTRUCTIONS:
     syncAnnotationCanvasDimensions();
     setAnnotationTool(annotationState.activeTool || "sketch");
     updateAnnotationCounter();
+    setTimeout(() => {
+      if (typeof snapToMainContentSection === "function") {
+        snapToMainContentSection();
+      }
+    }, 60);
   };
 
   closeAnnotationPanel = function() {
@@ -7633,11 +7753,24 @@ INSTRUCTIONS:
     if (editAnnotationBar) editAnnotationBar.classList.remove("is-visible");
     if (editNavBtn) editNavBtn.classList.remove("is-active");
     if (stickerPopover) stickerPopover.classList.remove("is-open");
-    document.body.classList.remove("annotation-mode-sketch", "annotation-mode-eraser", "annotation-mode-select");
+    document.body.classList.remove("annotation-mode-sketch", "annotation-mode-eraser", "annotation-mode-select", "annotation-mode-pan");
     if (annotationSvgCanvas) annotationSvgCanvas.classList.remove("is-drawing");
     if (selectionTooltip) selectionTooltip.style.display = "none";
     document.querySelectorAll(".user-annotation-stickynote.is-editing").forEach((n) => n.classList.remove("is-editing"));
     document.querySelectorAll(".annotation-selected").forEach((el) => el.classList.remove("annotation-selected"));
+
+    const hasAnyAnnotations = (
+      (annotationsData.stickynotes && annotationsData.stickynotes.length > 0) ||
+      (annotationsData.textboxes && annotationsData.textboxes.length > 0) ||
+      (annotationsData.strokes && annotationsData.strokes.length > 0) ||
+      (annotationsData.stickers && annotationsData.stickers.length > 0)
+    );
+    if (hasAnyAnnotations) {
+      document.body.classList.add("has-annotations");
+    } else {
+      document.body.classList.remove("has-annotations");
+      window.scrollTo({ left: 0, behavior: "smooth" });
+    }
     syncAnnotationCanvasDimensions();
   };
 
@@ -7677,6 +7810,9 @@ INSTRUCTIONS:
     if ((e.code === "KeyV" || e.key?.toLowerCase() === "v") && noMod) {
       e.preventDefault();
       setAnnotationTool("select");
+    } else if ((e.code === "KeyM" || e.key?.toLowerCase() === "m") && noMod) {
+      e.preventDefault();
+      setAnnotationTool("pan");
     } else if ((e.code === "KeyP" || e.key?.toLowerCase() === "p") && noMod) {
       e.preventDefault();
       setAnnotationTool("sketch");
