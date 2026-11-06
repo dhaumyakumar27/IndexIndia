@@ -354,42 +354,35 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
-          <span id="confirmation-card-heading">PROPOSAL REGISTERED ON PRODUCT RADAR</span>
+          <span id="confirmation-card-heading">PROPOSAL REGISTERED &amp; PREPARED</span>
         </div>
         <div class="confirmation-body">
-          <div id="confirmation-status-text">
-            Your feedback proposal has been logged and queued for <strong>dhaumyakumar27@gmail.com</strong>.
+          <div id="confirmation-status-text" style="font-size: 0.88rem; line-height: 1.5; color: var(--text-primary);">
+            Your feedback proposal has been logged and prepared for <strong>dhaumyakumar27@gmail.com</strong>.
           </div>
-          <br>
-          <span class="confirmation-reference" id="proposal-id-display">PROP-RADAR-SUBMISSION</span>
+          <div style="margin: 8px 0 14px;">
+            <span class="confirmation-reference" id="proposal-id-display">PROP-RADAR-SUBMISSION</span>
+          </div>
 
-          <!-- One-Time FormSubmit Activation Alert -->
-          <div id="formsubmit-activation-banner" style="display:none; margin-top: 12px; background: rgba(239, 68, 68, 0.08); border: 1.5px solid #EF4444; border-radius: 6px; padding: 14px 16px; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5;">
-            <strong style="color: #EF4444; display: block; margin-bottom: 6px; font-size: 0.86rem;">⚠️ One-Time Activation Required for dhaumyakumar27@gmail.com:</strong>
-            FormSubmit requires a one-time email confirmation before messages arrive in your inbox. Check your <strong>Spam / Junk</strong> folder in Gmail for the FormSubmit activation link.
-            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-              <button type="button" id="btn-activate-formsubmit" class="btn-institutional-primary" style="font-size: 0.74rem; padding: 8px 14px; background: #EF4444; border-color: #DC2626;">
-                ⚡ Trigger / Resend FormSubmit Activation Link &rarr;
+          <!-- Direct One-Click Email Dispatch Buttons -->
+          <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 14px; margin-top: 10px;">
+            <div style="font-size: 0.76rem; font-family: var(--font-mono); font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
+              Direct Email Dispatch &bull; Target: dhaumyakumar27@gmail.com
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <a id="feedback-direct-gmail-link" href="#" target="_blank" class="btn-institutional-primary font-mono" style="font-size: 0.78rem; padding: 9px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #000000; color: #FFFFFF;">
+                <span>✉️</span> Send via Gmail Web (One-Click) &rarr;
+              </a>
+              <a id="feedback-direct-mailto-link" href="#" class="btn-institutional-primary font-mono" style="font-size: 0.78rem; padding: 9px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-primary);">
+                <span>📱</span> Send via Mail App (mailto)
+              </a>
+              <button type="button" id="feedback-copy-details-btn" class="btn-institutional-primary font-mono" style="font-size: 0.78rem; padding: 9px 14px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); cursor: pointer;">
+                📋 Copy Text
               </button>
             </div>
           </div>
-
-          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <span style="font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono);">
-              Target: <strong>dhaumyakumar27@gmail.com</strong>
-            </span>
-            <a id="feedback-direct-mailto-link" href="#" class="btn-institutional-primary font-mono" style="font-size: 0.76rem; padding: 8px 14px; text-decoration: none;">
-              ✉️ Open in Email Client (Guaranteed Instant Send)
-            </a>
-          </div>
         </div>
       </div>
-
-      <!-- Hidden Activation Trigger Form -->
-      <form id="feedback-activation-form" action="https://formsubmit.co/dhaumyakumar27@gmail.com" method="POST" target="_blank" style="display:none;">
-        <input type="hidden" name="_subject" value="[IndexIndia] Activate FormSubmit for dhaumyakumar27@gmail.com">
-        <input type="hidden" name="message" value="Activation request for IndexIndia feedback radar dispatch">
-      </form>
 
       <!-- Suggestion Submission Form Card -->
       <div class="institutional-form-card">
@@ -724,89 +717,102 @@
             renderHistory();
           }
 
-          // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit JSON API
-          let formSubmitDelivered = false;
-          let formSubmitMessage = "";
+          // 1. Prepare raw body and direct send URLs
+          const rawBody = `[INDEXINDIA FEATURE / CONTENT PROPOSAL]
+Proposal ID: ${proposalId}
+Date & Time: ${displayTime}
+Classification: ${category}
+User Contact Email: ${userEmail}
 
-          try {
-            const payload = {
-              _subject: emailSubject,
-              _replyto: userEmail,
-              _captcha: "false",
-              _template: "table",
-              "Stamp": "[INDEXINDIA FEEDBACK]",
-              "Proposal ID": proposalId,
-              "Classification": category,
-              "Submitter Email": userEmail,
-              "Feedback & Suggestions": description
-            };
+Feedback & Suggestions:
+--------------------------------------------------
+${description}
+--------------------------------------------------
+Terminal Telemetry:
+OS: ${navigator.platform || "Web"} | Viewport: ${window.innerWidth}x${window.innerHeight}
+Sent via IndexIndia Feedback Radar`;
 
-            const response = await fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-              },
-              body: JSON.stringify(payload)
-            });
+          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetAdminEmail)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(rawBody)}`;
+          const mailtoUrl = `mailto:${encodeURIComponent(targetAdminEmail)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(rawBody)}`;
 
-            const data = await response.json().catch(() => ({}));
-            if (response.ok && (data.success === "true" || data.success === true)) {
-              formSubmitDelivered = true;
-            } else if (data.message) {
-              formSubmitMessage = data.message;
-            }
-          } catch (err) {
-            console.warn("FormSubmit notice:", err);
-            formSubmitMessage = err.message || "";
-          }
-
-          // 2. Dispatch to Cloudflare Worker inquiry endpoint
-          const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
-          if (CLOUDFLARE_WORKER_URL) {
-            fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                type: "feedback_proposal",
-                proposalId,
-                category,
-                subject: emailSubject,
-                email: userEmail,
-                description
-              })
-            }).catch(e => console.warn("Worker dispatch notice:", e));
-          }
-
-          // 3. Prepare direct mailto link for client-side guaranteed instant dispatch
+          // 2. Wire Direct Action Buttons
+          const gmailBtn = document.getElementById("feedback-direct-gmail-link");
+          if (gmailBtn) gmailBtn.href = gmailUrl;
           const mailtoBtn = document.getElementById("feedback-direct-mailto-link");
-          if (mailtoBtn) {
-            const mailtoBody = encodeURIComponent(`Reference: ${proposalId}\nClassification: ${category}\nFrom: ${userEmail}\n\nFeedback & Suggestions:\n${description}`);
-            mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${encodeURIComponent(emailSubject)}&body=${mailtoBody}`;
+          if (mailtoBtn) mailtoBtn.href = mailtoUrl;
+
+          const copyBtn = document.getElementById("feedback-copy-details-btn");
+          if (copyBtn) {
+            copyBtn.onclick = () => {
+              if (navigator.clipboard) {
+                navigator.clipboard.writeText(rawBody).then(() => {
+                  copyBtn.textContent = "✅ Copied!";
+                  setTimeout(() => { copyBtn.textContent = "📋 Copy Text"; }, 2000);
+                }).catch(() => {});
+              }
+            };
           }
 
-          // Update UI
+          // 3. Update UI Confirmation Card
           if (propIdDisplay) propIdDisplay.textContent = `PROPOSAL REFERENCE: ${proposalId} [STATUS: LOGGED]`;
-
-          const activationBanner = document.getElementById("formsubmit-activation-banner");
           const statusText = document.getElementById("confirmation-status-text");
-
-          if (!formSubmitDelivered) {
-            // FormSubmit needs one-time activation or had a network hiccup
-            if (activationBanner) activationBanner.style.display = "block";
-            if (statusText) {
-              statusText.innerHTML = `Your proposal is registered. <strong>Attention:</strong> If ${targetAdminEmail} has not yet activated FormSubmit, please click below to complete the one-time activation, or use the direct Email Client button below.`;
-            }
-          } else {
-            if (activationBanner) activationBanner.style.display = "none";
-            if (statusText) {
-              statusText.innerHTML = `Your feedback proposal has been logged and dispatched to <strong>${targetAdminEmail}</strong>.`;
-            }
+          if (statusText) {
+            statusText.innerHTML = `Your feedback proposal has been logged and prepared for <strong>${targetAdminEmail}</strong>. Click below to dispatch immediately via Gmail or your mail app.`;
           }
 
           if (confirmCard) {
             confirmCard.classList.add("is-visible");
             confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+
+          // 4. Non-blocking background sync attempts (FormSubmit & Cloudflare Worker)
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              signal: controller.signal,
+              body: JSON.stringify({
+                _subject: emailSubject,
+                _replyto: userEmail,
+                _captcha: "false",
+                _template: "table",
+                "Stamp": "[INDEXINDIA FEEDBACK]",
+                "Proposal ID": proposalId,
+                "Classification": category,
+                "Submitter Email": userEmail,
+                "Feedback & Suggestions": description
+              })
+            }).then(() => clearTimeout(timeoutId)).catch(() => {});
+          } catch (e) {}
+
+          const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
+          if (CLOUDFLARE_WORKER_URL) {
+            try {
+              fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  type: "feedback_proposal",
+                  proposalId,
+                  category,
+                  subject: emailSubject,
+                  email: userEmail,
+                  description
+                })
+              }).catch(() => {});
+            } catch (e) {}
+          }
+
+          // 5. Automatically trigger Gmail Web in new tab or mailto fallback
+          try {
+            const popup = window.open(gmailUrl, "_blank");
+            if (!popup) {
+              window.location.href = mailtoUrl;
+            }
+          } catch (e) {
+            window.location.href = mailtoUrl;
           }
 
           form.reset();
