@@ -5881,7 +5881,15 @@ INSTRUCTIONS:
     if (snapBtn) {
       snapBtn.classList.toggle("active", annotationState.snapToGrid);
       snapBtn.setAttribute("aria-pressed", annotationState.snapToGrid ? "true" : "false");
+      const ind = snapBtn.querySelector(".palette-snap-indicator");
+      if (ind) {
+        ind.textContent = annotationState.snapToGrid ? "ON" : "OFF";
+      }
     }
+
+    document.querySelectorAll(".edit-flyout-snap-toggle, #edit-flyout-snap-toggle").forEach((toggle) => {
+      toggle.checked = annotationState.snapToGrid;
+    });
 
     if (annotationState.snapToGrid && document.body.classList.contains("no-grid")) {
       document.body.classList.remove("no-grid");
@@ -6042,6 +6050,7 @@ INSTRUCTIONS:
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
           </span>
           <span class="palette-tool-label">Snap</span>
+          <span class="palette-snap-indicator font-mono">${annotationState.snapToGrid ? 'ON' : 'OFF'}</span>
         </button>
         <button type="button" class="palette-btn" id="annotation-btn-undo" title="Undo Last Annotation (Ctrl+Z)">
           <span class="palette-tool-icon">
@@ -6136,8 +6145,19 @@ INSTRUCTIONS:
             <span class="pulse-dot" style="background: var(--status-optimal);"></span> Ready
           </div>
         </div>
-        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
+        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 10px; font-family: var(--font-mono); line-height: 1.45;">
           Pencil sketch, freeform text boxes, sticky notes, and stamps on any section.
+        </div>
+        <div class="panel-divider" style="margin: 6px 0 10px;"></div>
+        <div class="setting-toggle-row" style="margin-bottom: 10px;">
+          <label for="edit-flyout-snap-toggle" style="display: flex; flex-direction: column; cursor: pointer;">
+            <span style="font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+              Snap to Grid
+            </span>
+            <span style="font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-mono); font-weight: normal;">Align sketches &amp; boxes to 24px grid</span>
+          </label>
+          <input type="checkbox" id="edit-flyout-snap-toggle" class="edit-flyout-snap-toggle" ${annotationState.snapToGrid ? "checked" : ""} />
         </div>
         <button type="button" class="account-btn-action" id="btn-open-markup-flyout"
           style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex; width: 100%; border: none; cursor: pointer; padding: 7px 12px; border-radius: 4px; font-size: 0.8rem;">
@@ -6146,6 +6166,13 @@ INSTRUCTIONS:
       `;
       editWrapper.appendChild(flyout);
     }
+
+    flyout.querySelectorAll(".edit-flyout-snap-toggle, #edit-flyout-snap-toggle").forEach((toggle) => {
+      toggle.checked = annotationState.snapToGrid;
+      toggle.addEventListener("change", (e) => {
+        setSnapToGrid(e.target.checked);
+      });
+    });
 
     const openBtn = flyout.querySelector("#btn-open-markup-flyout");
     if (openBtn) {
@@ -6259,7 +6286,7 @@ INSTRUCTIONS:
 
     el.innerHTML = `
       <div class="textbox-header">
-        <span class="textbox-handle">:::</span>
+        <span class="textbox-handle">:: TEXT BOX</span>
         <button type="button" class="textbox-delete-btn" title="Delete Box">&times;</button>
       </div>
       <div class="textbox-content" contenteditable="true" placeholder="Type text here...">${tb.text || ""}</div>
@@ -6409,40 +6436,43 @@ INSTRUCTIONS:
   // --- 2. RENDER & DRAG / EDIT STICKY NOTE ---
   function renderStickyNoteDOM(sn) {
     if (!annotationHtmlElements) return null;
-    const g = getGridSize();
-    const defaultW = annotationState.snapToGrid ? g * 9 : 216;
-    const defaultH = annotationState.snapToGrid ? g * 6 : 144;
-    const rememberedW = sn.width || parseInt(localStorage.getItem("indexindia_stickynote_width"), 10) || defaultW;
-    const rememberedH = sn.height || parseInt(localStorage.getItem("indexindia_stickynote_height"), 10) || defaultH;
-
     const el = document.createElement("div");
     el.className = "user-annotation-stickynote";
     el.setAttribute("data-id", sn.id);
     el.style.left = `${sn.left}px`;
     el.style.top = `${sn.top}px`;
-    el.style.width = `${rememberedW}px`;
-    el.style.height = `${rememberedH}px`;
     el.style.setProperty("--note-color", sn.color || "#FFE066");
 
     el.innerHTML = `
-      <div class="sticky-note-header">
-        <div class="sticky-note-handle">
-          <span class="sticky-note-icon">📌</span>
-          <span class="textbox-handle">:::</span>
+      <button type="button" class="sticky-note-pin" title="Click to edit, Drag to move location">📌</button>
+      <div class="sticky-note-card">
+        <div class="sticky-note-header">
+          <span class="sticky-note-time">NOTE • ${sn.time || "IST"} (DRAG)</span>
+          <button type="button" class="sticky-note-del-btn" title="Delete Note">&times;</button>
         </div>
-        <button type="button" class="sticky-note-del-btn" title="Delete Note">&times;</button>
+        <textarea class="sticky-note-textarea" placeholder="Write sticky note here...">${sn.text || ""}</textarea>
+        <div class="sticky-note-resize-handle" title="Drag to resize"></div>
+        <span class="sticky-note-click-hint">Hover to expand • Click to edit • Drag to move</span>
       </div>
-      <textarea class="sticky-note-textarea" placeholder="Write sticky note here...">${sn.text || ""}</textarea>
-      <div class="sticky-note-resize-handle" title="Drag to resize"></div>
     `;
 
+    const pin = el.querySelector(".sticky-note-pin");
+    const card = el.querySelector(".sticky-note-card");
     const header = el.querySelector(".sticky-note-header");
     const textarea = el.querySelector(".sticky-note-textarea");
     const delBtn = el.querySelector(".sticky-note-del-btn");
     const snResize = el.querySelector(".sticky-note-resize-handle");
 
+    // Load saved or remembered width and height
+    const rememberedW = sn.width || parseInt(localStorage.getItem("indexindia_stickynote_width"), 10) || 260;
+    const rememberedH = sn.height || parseInt(localStorage.getItem("indexindia_stickynote_height"), 10) || 160;
+    if (card) {
+      card.style.width = `${rememberedW}px`;
+      card.style.height = `${rememberedH}px`;
+    }
+
     // Sticky Note Resizing Logic
-    if (snResize) {
+    if (snResize && card) {
       let isResizingSn = false;
       let snStartX = 0, snStartY = 0, snStartW = 0, snStartH = 0;
       snResize.addEventListener("pointerdown", (e) => {
@@ -6450,31 +6480,33 @@ INSTRUCTIONS:
         isResizingSn = true;
         snStartX = e.pageX;
         snStartY = e.pageY;
-        snStartW = el.offsetWidth;
-        snStartH = el.offsetHeight;
+        snStartW = card.offsetWidth;
+        snStartH = card.offsetHeight;
         snResize.setPointerCapture(e.pointerId);
       });
       snResize.addEventListener("pointermove", (e) => {
         if (!isResizingSn) return;
-        let newW = Math.max(144, snStartW + (e.pageX - snStartX));
-        let newH = Math.max(72, snStartH + (e.pageY - snStartY));
+        let newW = Math.max(200, snStartW + (e.pageX - snStartX));
+        let newH = Math.max(120, snStartH + (e.pageY - snStartY));
         if (annotationState.snapToGrid) {
+          const g = getGridSize();
           newW = Math.max(g * 6, snapVal(newW));
-          newH = Math.max(g * 3, snapVal(newH));
+          newH = Math.max(g * 4, snapVal(newH));
         }
-        el.style.width = `${newW}px`;
-        el.style.height = `${newH}px`;
+        card.style.width = `${newW}px`;
+        card.style.height = `${newH}px`;
       });
       const stopSnResize = () => {
         if (!isResizingSn) return;
         isResizingSn = false;
-        let finalW = el.offsetWidth;
-        let finalH = el.offsetHeight;
+        let finalW = card.offsetWidth;
+        let finalH = card.offsetHeight;
         if (annotationState.snapToGrid) {
+          const g = getGridSize();
           finalW = Math.max(g * 6, snapVal(finalW));
-          finalH = Math.max(g * 3, snapVal(finalH));
-          el.style.width = `${finalW}px`;
-          el.style.height = `${finalH}px`;
+          finalH = Math.max(g * 4, snapVal(finalH));
+          card.style.width = `${finalW}px`;
+          card.style.height = `${finalH}px`;
         }
         sn.width = finalW;
         sn.height = finalH;
@@ -6487,14 +6519,15 @@ INSTRUCTIONS:
       snResize.addEventListener("pointerup", stopSnResize);
       snResize.addEventListener("pointercancel", stopSnResize);
 
-      el.addEventListener("mouseup", () => {
-        let curW = el.offsetWidth;
-        let curH = el.offsetHeight;
+      card.addEventListener("mouseup", () => {
+        let curW = card.offsetWidth;
+        let curH = card.offsetHeight;
         if (annotationState.snapToGrid) {
+          const g = getGridSize();
           curW = Math.max(g * 6, snapVal(curW));
-          curH = Math.max(g * 3, snapVal(curH));
-          el.style.width = `${curW}px`;
-          el.style.height = `${curH}px`;
+          curH = Math.max(g * 4, snapVal(curH));
+          card.style.width = `${curW}px`;
+          card.style.height = `${curH}px`;
         }
         if (curW !== sn.width || curH !== sn.height) {
           sn.width = curW;
@@ -6508,60 +6541,73 @@ INSTRUCTIONS:
       });
     }
 
-    // Draggable header
-    let isDragging = false;
-    let startX = 0, startY = 0, initLeft = 0, initTop = 0;
-    let hasMoved = false;
+    function setupDrag(dragTarget) {
+      let isDragging = false;
+      let startX = 0, startY = 0, initLeft = 0, initTop = 0;
+      let hasMoved = false;
 
-    header.addEventListener("pointerdown", (e) => {
-      if (e.target === delBtn || e.target === snResize) return;
-      isDragging = true;
-      hasMoved = false;
-      startX = e.pageX;
-      startY = e.pageY;
-      initLeft = parseInt(el.style.left, 10) || sn.left;
-      initTop = parseInt(el.style.top, 10) || sn.top;
-      header.setPointerCapture(e.pointerId);
-      e.stopPropagation();
-    });
+      dragTarget.addEventListener("pointerdown", (e) => {
+        if (e.target === delBtn || e.target === snResize) return;
+        isDragging = true;
+        hasMoved = false;
+        startX = e.pageX;
+        startY = e.pageY;
+        initLeft = parseInt(el.style.left, 10) || sn.left;
+        initTop = parseInt(el.style.top, 10) || sn.top;
+        dragTarget.setPointerCapture(e.pointerId);
+        e.stopPropagation();
+      });
 
-    header.addEventListener("pointermove", (e) => {
-      if (!isDragging) return;
-      const dx = e.pageX - startX;
-      const dy = e.pageY - startY;
-      if (Math.hypot(dx, dy) > 3) {
-        hasMoved = true;
-        let newL = Math.max(0, initLeft + dx);
-        let newT = Math.max(0, initTop + dy);
-        if (annotationState.snapToGrid) {
-          newL = Math.max(0, snapVal(newL));
-          newT = Math.max(0, snapVal(newT));
+      dragTarget.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+        const dx = e.pageX - startX;
+        const dy = e.pageY - startY;
+        if (Math.hypot(dx, dy) > 4) {
+          hasMoved = true;
+          let newL = Math.max(0, initLeft + dx);
+          let newT = Math.max(0, initTop + dy);
+          if (annotationState.snapToGrid) {
+            newL = Math.max(0, snapVal(newL));
+            newT = Math.max(0, snapVal(newT));
+          }
+          el.style.left = `${newL}px`;
+          el.style.top = `${newT}px`;
         }
-        el.style.left = `${newL}px`;
-        el.style.top = `${newT}px`;
-      }
-    });
+      });
 
-    const stopDrag = () => {
-      if (!isDragging) return;
-      isDragging = false;
-      if (hasMoved) {
-        let finalL = parseInt(el.style.left, 10);
-        let finalT = parseInt(el.style.top, 10);
-        if (annotationState.snapToGrid) {
-          finalL = Math.max(0, snapVal(finalL));
-          finalT = Math.max(0, snapVal(finalT));
-          el.style.left = `${finalL}px`;
-          el.style.top = `${finalT}px`;
+      const stopDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (hasMoved) {
+          let finalL = parseInt(el.style.left, 10);
+          let finalT = parseInt(el.style.top, 10);
+          if (annotationState.snapToGrid) {
+            finalL = Math.max(0, snapVal(finalL));
+            finalT = Math.max(0, snapVal(finalT));
+            el.style.left = `${finalL}px`;
+            el.style.top = `${finalT}px`;
+          }
+          sn.left = finalL;
+          sn.top = finalT;
+          saveAnnotations();
+        } else if (dragTarget === pin) {
+          if (annotationState.activeTool === "eraser") {
+            deleteAnnotationItem(sn.id, "stickynote");
+            return;
+          }
+          el.classList.toggle("is-editing");
+          if (el.classList.contains("is-editing")) {
+            textarea.focus();
+          }
         }
-        sn.left = finalL;
-        sn.top = finalT;
-        saveAnnotations();
-      }
-    };
+      };
 
-    header.addEventListener("pointerup", stopDrag);
-    header.addEventListener("pointercancel", stopDrag);
+      dragTarget.addEventListener("pointerup", stopDrag);
+      dragTarget.addEventListener("pointercancel", stopDrag);
+    }
+
+    setupDrag(pin);
+    setupDrag(header);
 
     textarea.addEventListener("input", () => {
       sn.text = textarea.value;
@@ -6867,25 +6913,23 @@ INSTRUCTIONS:
     if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
       return;
     }
-    const g = getGridSize();
-    const defaultW = annotationState.snapToGrid ? g * 9 : 216;
-    const defaultH = annotationState.snapToGrid ? g * 6 : 144;
-    const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 20);
-    const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 12);
+    const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 14);
+    const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 14);
+    const timeStr = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     const newNote = {
       id: `sn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       left: Math.round(posX),
       top: Math.round(posY),
-      width: defaultW,
-      height: defaultH,
       text: "",
-      color: annotationState.activeColor
+      color: annotationState.activeColor,
+      time: timeStr
     };
     annotationsData.stickynotes.push(newNote);
     saveAnnotations();
     const noteEl = renderStickyNoteDOM(newNote);
     updateAnnotationCounter();
     if (noteEl) {
+      noteEl.classList.add("is-editing");
       const textarea = noteEl.querySelector(".sticky-note-textarea");
       if (textarea) {
         setTimeout(() => textarea.focus(), 60);
