@@ -346,6 +346,9 @@
           Your feedback proposal has been logged to the community radar feed and dispatched to <strong>dhaumyakumar27@gmail.com</strong> for feasibility analysis.
           <br>
           <span class="confirmation-reference" id="proposal-id-display">PROP-RADAR-SUBMISSION</span>
+          <div style="margin-top: 10px; font-size: 0.74rem; color: var(--text-secondary); font-family: var(--font-mono); background: var(--bg-surface-subtle); padding: 8px 12px; border-radius: 4px; border: 1px dashed var(--border-subtle);">
+            ℹ️ <strong>First-Time Delivery Notice:</strong> Check your <strong>Spam / Junk</strong> folder in Gmail for the one-time FormSubmit confirmation email and click &quot;Activate Form&quot; to allow incoming dispatches to reach your inbox.
+          </div>
           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <span style="font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono);">
               Destination Email: <strong>dhaumyakumar27@gmail.com</strong>
@@ -443,90 +446,13 @@
         </form>
       </div>
 
-      <!-- Public Feature Radar & Community Proposals Board -->
-      <div class="radar-board-header">
-        <h3 class="radar-board-title">[ACTIVE FEATURE RADAR &bull; ROADMAP PROPOSALS]</h3>
-        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">Click ▲ to upvote priority</span>
+      <!-- Submission History Section -->
+      <div class="history-board-header">
+        <h3 class="history-board-title">[SUBMISSION HISTORY]</h3>
       </div>
 
-      <div class="radar-cards-list" id="radar-cards-list">
-        
-        <!-- Proposal 1 -->
-        <div class="radar-item-card" data-proposal-id="prop-01">
-          <div class="radar-item-main">
-            <h4 class="radar-item-title">MCA V3 AOC-4 XBRL Automated Parser for Unlisted Unicorns</h4>
-            <p class="radar-item-desc">
-              Direct pipeline to ingest, normalize, and extract related-party transactions and auditor qualification footnotes from unlisted corporate balance sheets.
-            </p>
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
-              MODULE: MCA Corporate Filings &bull; SUBMITTED BY: @Forensic_Desk &bull; TARGET: v10.0
-            </div>
-          </div>
-          <div class="radar-vote-col">
-            <button type="button" class="vote-btn" data-votes="42" aria-label="Upvote this feature proposal">
-              <span class="vote-arrow">&#9650;</span>
-              <span class="vote-count">42</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Proposal 2 -->
-        <div class="radar-item-card" data-proposal-id="prop-02">
-          <div class="radar-item-main">
-            <h4 class="radar-item-title">Quarterly Sovereign Index Historical Rebalancing Backtester</h4>
-            <p class="radar-item-desc">
-              Interactive timeline simulator to test sovereign weights against historical drawdown periods (March 2020, Adani 2023, Election 2024 volatility).
-            </p>
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
-              MODULE: Sector Weights &bull; SUBMITTED BY: @MacroQuant_IN &bull; TARGET: Q1 2027
-            </div>
-          </div>
-          <div class="radar-vote-col">
-            <button type="button" class="vote-btn" data-votes="38" aria-label="Upvote this feature proposal">
-              <span class="vote-arrow">&#9650;</span>
-              <span class="vote-count">38</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Proposal 3 -->
-        <div class="radar-item-card" data-proposal-id="prop-03">
-          <div class="radar-item-main">
-            <h4 class="radar-item-title">CARO 2020 Auditor Cross-Entity Red-Flag Heatmap</h4>
-            <p class="radar-item-desc">
-              Visual cluster graph highlighting auditor resignations, adverse internal financial control (IFCoFR) remarks, and statutory dues delays across 500+ Indian corporations.
-            </p>
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
-              MODULE: Sovereign Research Guide &bull; SUBMITTED BY: @AuditForensics &bull; TARGET: Under Review
-            </div>
-          </div>
-          <div class="radar-vote-col">
-            <button type="button" class="vote-btn" data-votes="29" aria-label="Upvote this feature proposal">
-              <span class="vote-arrow">&#9650;</span>
-              <span class="vote-count">29</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Proposal 4 -->
-        <div class="radar-item-card" data-proposal-id="prop-04">
-          <div class="radar-item-main">
-            <h4 class="radar-item-title">High-DPI SVG / PNG Vector Chart Export for Annotations</h4>
-            <p class="radar-item-desc">
-              Export annotated financial charts with one-click forensic watermark and sovereign settlement clearance timestamp.
-            </p>
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
-              MODULE: Annotation &amp; Markup Canvas &bull; SUBMITTED BY: @TerminalAnalyst &bull; TARGET: v9.9
-            </div>
-          </div>
-          <div class="radar-vote-col">
-            <button type="button" class="vote-btn" data-votes="25" aria-label="Upvote this feature proposal">
-              <span class="vote-arrow">&#9650;</span>
-              <span class="vote-count">25</span>
-            </button>
-          </div>
-        </div>
-
+      <div class="history-cards-list" id="feedback-history-list">
+        <!-- Rendered dynamically -->
       </div>
 
       <!-- Mandatory Institutional Footer -->
@@ -565,6 +491,86 @@
     document.addEventListener("DOMContentLoaded", () => {
       let currentUser = null;
 
+      function escapeHTML(str) {
+        return (str || "").replace(/[&<>'"]/g, tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag));
+      }
+
+      function getHistoryStorageKey() {
+        if (!currentUser) return null;
+        const uid = currentUser.id || currentUser.email || "guest";
+        return `indexindia_feedback_history_${uid}`;
+      }
+
+      function loadUserHistory() {
+        const key = getHistoryStorageKey();
+        if (!key) return [];
+        try {
+          return JSON.parse(localStorage.getItem(key) || "[]");
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveUserHistory(items) {
+        const key = getHistoryStorageKey();
+        if (!key) return;
+        try {
+          localStorage.setItem(key, JSON.stringify(items.slice(0, 30)));
+        } catch (e) {}
+      }
+
+      function renderHistory() {
+        const historyList = document.getElementById("feedback-history-list");
+        if (!historyList) return;
+
+        if (!currentUser || !currentUser.email) {
+          historyList.innerHTML = `
+            <div class="history-guest-msg font-mono">
+              Log in to an account to view your past posts and track query progress.
+            </div>
+          `;
+          return;
+        }
+
+        const items = loadUserHistory();
+        if (!items || items.length === 0) {
+          historyList.innerHTML = `
+            <div class="history-empty-msg font-mono">
+              No past posts logged for this account yet. Newly submitted suggestions will appear here.
+            </div>
+          `;
+          return;
+        }
+
+        historyList.innerHTML = items.map((item, idx) => {
+          const s = Number(item.status || 0);
+          const b1 = s >= 1 ? "is-green" : "";
+          const b2 = s >= 2 ? "is-green" : "";
+          const b3 = s >= 3 ? "is-green" : "";
+          const b4 = s >= 4 ? "is-green" : "";
+
+          return `
+            <div class="query-history-card" data-index="${idx}">
+              <div class="query-status-badges">
+                <span class="query-badge ${b1}">[reviewed]</span>
+                <span class="query-badge ${b2}">[in progress]</span>
+                <span class="query-badge ${b3}">[solved]</span>
+                <span class="query-badge ${b4}">[check your email for our reply]</span>
+              </div>
+              <div class="query-comment-box">
+                <span class="query-post-time">${escapeHTML(item.displayTime)}</span> &gt; <strong class="query-post-text">${escapeHTML(item.text)}</strong>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
       // Handle user authentication detection
       function setAuthState(user) {
         currentUser = user;
@@ -588,6 +594,8 @@
             emailInput.required = true;
           }
         }
+
+        renderHistory();
       }
 
       // Check Supabase Auth state
@@ -599,101 +607,15 @@
         } else if (typeof window.IndexIndiaSupabase.getUser === "function") {
           setAuthState(window.IndexIndiaSupabase.getUser());
         }
+      } else {
+        renderHistory();
       }
-
-      // Handle Upvote Toggles
-      document.querySelectorAll(".vote-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const countEl = btn.querySelector(".vote-count");
-          let current = parseInt(btn.getAttribute("data-votes"), 10) || 0;
-          if (btn.classList.contains("has-voted")) {
-            btn.classList.remove("has-voted");
-            current = Math.max(0, current - 1);
-          } else {
-            btn.classList.add("has-voted");
-            current += 1;
-          }
-          btn.setAttribute("data-votes", current);
-          if (countEl) countEl.textContent = current;
-        });
-      });
 
       // Handle Proposal Submission
       const form = document.getElementById("feedback-proposal-form");
       const confirmCard = document.getElementById("feedback-confirmation-card");
       const propIdDisplay = document.getElementById("proposal-id-display");
-      const radarList = document.getElementById("radar-cards-list");
       const submitBtn = document.getElementById("btn-submit-proposal");
-
-      // Load user submitted proposals from localStorage
-      function loadUserProposals() {
-        try {
-          const proposals = JSON.parse(localStorage.getItem("indexindia_user_proposals") || "[]");
-          proposals.forEach(p => {
-            renderProposalCard(p, false);
-          });
-        } catch (e) {
-          console.warn("Could not load proposals:", e);
-        }
-      }
-
-      function renderProposalCard(data, prepend = true) {
-        if (!radarList) return;
-        const card = document.createElement("div");
-        card.className = "radar-item-card";
-        card.setAttribute("data-proposal-id", data.id);
-        
-        // Clean card without top status badges
-        const previewTitle = data.classification || "Community Suggestion";
-        card.innerHTML = `
-          <div class="radar-item-main">
-            <h4 class="radar-item-title">${escapeHTML(previewTitle)}</h4>
-            <p class="radar-item-desc">${escapeHTML(data.description)}</p>
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
-              CATEGORY: ${escapeHTML(data.classification)} &bull; SUBMITTED BY: ${escapeHTML(data.email)} &bull; ${new Date(data.createdAt).toLocaleDateString()}
-            </div>
-          </div>
-          <div class="radar-vote-col">
-            <button type="button" class="vote-btn has-voted" data-votes="1" aria-label="Upvote this feature proposal">
-              <span class="vote-arrow">&#9650;</span>
-              <span class="vote-count">1</span>
-            </button>
-          </div>
-        `;
-
-        const voteBtn = card.querySelector(".vote-btn");
-        voteBtn.addEventListener("click", () => {
-          const countEl = voteBtn.querySelector(".vote-count");
-          let current = parseInt(voteBtn.getAttribute("data-votes"), 10) || 0;
-          if (voteBtn.classList.contains("has-voted")) {
-            voteBtn.classList.remove("has-voted");
-            current = Math.max(0, current - 1);
-          } else {
-            voteBtn.classList.add("has-voted");
-            current += 1;
-          }
-          voteBtn.setAttribute("data-votes", current);
-          if (countEl) countEl.textContent = current;
-        });
-
-        if (prepend) {
-          radarList.prepend(card);
-        } else {
-          radarList.appendChild(card);
-        }
-      }
-
-      function escapeHTML(str) {
-        return (str || "").replace(/[&<>'"]/g, tag => ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
-        }[tag] || tag));
-      }
-
-      loadUserProposals();
 
       if (form) {
         form.addEventListener("submit", (e) => {
@@ -722,22 +644,31 @@
           const targetAdminEmail = "dhaumyakumar27@gmail.com";
           const emailSubject = `[INDEXINDIA FEEDBACK] - ${category}`;
 
-          const proposalPayload = {
-            id: proposalId,
-            classification: category,
-            description,
-            email: userEmail,
-            votes: 1,
-            createdAt: new Date().toISOString()
-          };
+          // Format current date and time
+          const now = new Date();
+          const displayTime = now.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          }) + ", " + now.toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+          });
 
-          // Save to local storage
-          try {
-            const existing = JSON.parse(localStorage.getItem("indexindia_user_proposals") || "[]");
-            existing.unshift(proposalPayload);
-            localStorage.setItem("indexindia_user_proposals", JSON.stringify(existing.slice(0, 30)));
-          } catch (err) {
-            console.warn("Storage err:", err);
+          // Save to user history
+          if (currentUser) {
+            const historyItems = loadUserHistory();
+            historyItems.unshift({
+              id: proposalId,
+              category,
+              displayTime,
+              text: description,
+              status: 0,
+              timestamp: Date.now()
+            });
+            saveUserHistory(historyItems);
+            renderHistory();
           }
 
           // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit AJAX
@@ -746,6 +677,7 @@
             emailFormData.append("_subject", emailSubject);
             emailFormData.append("_replyto", userEmail);
             emailFormData.append("_template", "table");
+            emailFormData.append("_captcha", "false");
             emailFormData.append("Stamp", "[INDEXINDIA FEEDBACK]");
             emailFormData.append("Proposal ID", proposalId);
             emailFormData.append("Classification", category);
@@ -786,7 +718,6 @@
           }
 
           setTimeout(() => {
-            renderProposalCard(proposalPayload, true);
             if (propIdDisplay) propIdDisplay.textContent = `PROPOSAL REFERENCE: ${proposalId} [DISPATCHED TO ${targetAdminEmail}]`;
             if (confirmCard) {
               confirmCard.classList.add("is-visible");

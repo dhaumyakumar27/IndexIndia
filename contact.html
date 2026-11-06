@@ -346,6 +346,9 @@
           Your technical error report has been securely registered and dispatched to <strong>dhaumyakumar27@gmail.com</strong>. Our engineering desk will review the reproduction details.
           <br>
           <span class="confirmation-reference" id="ticket-id-display">INC-2026-TICKET</span>
+          <div style="margin-top: 10px; font-size: 0.74rem; color: var(--text-secondary); font-family: var(--font-mono); background: var(--bg-surface-subtle); padding: 8px 12px; border-radius: 4px; border: 1px dashed var(--border-subtle);">
+            ℹ️ <strong>First-Time Delivery Notice:</strong> Check your <strong>Spam / Junk</strong> folder in Gmail for the one-time FormSubmit confirmation email and click &quot;Activate Form&quot; to allow incoming dispatches to reach your inbox.
+          </div>
           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <span style="font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono);">
               Destination Email: <strong>dhaumyakumar27@gmail.com</strong>
@@ -449,6 +452,15 @@
         </form>
       </div>
 
+      <!-- Submission History Section -->
+      <div class="history-board-header">
+        <h3 class="history-board-title">[SUBMISSION HISTORY]</h3>
+      </div>
+
+      <div class="history-cards-list" id="contact-history-list">
+        <!-- Rendered dynamically -->
+      </div>
+
       <!-- Mandatory Institutional Footer -->
       <footer class="institutional-footer" id="sec-footer" style="margin-top: 50px;">
         <div class="footer-grid">
@@ -485,6 +497,86 @@
     document.addEventListener("DOMContentLoaded", () => {
       let currentUser = null;
 
+      function escapeHTML(str) {
+        return (str || "").replace(/[&<>'"]/g, tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag));
+      }
+
+      function getHistoryStorageKey() {
+        if (!currentUser) return null;
+        const uid = currentUser.id || currentUser.email || "guest";
+        return `indexindia_contact_history_${uid}`;
+      }
+
+      function loadUserHistory() {
+        const key = getHistoryStorageKey();
+        if (!key) return [];
+        try {
+          return JSON.parse(localStorage.getItem(key) || "[]");
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveUserHistory(items) {
+        const key = getHistoryStorageKey();
+        if (!key) return;
+        try {
+          localStorage.setItem(key, JSON.stringify(items.slice(0, 30)));
+        } catch (e) {}
+      }
+
+      function renderHistory() {
+        const historyList = document.getElementById("contact-history-list");
+        if (!historyList) return;
+
+        if (!currentUser || !currentUser.email) {
+          historyList.innerHTML = `
+            <div class="history-guest-msg font-mono">
+              Log in to an account to view your past posts and track query progress.
+            </div>
+          `;
+          return;
+        }
+
+        const items = loadUserHistory();
+        if (!items || items.length === 0) {
+          historyList.innerHTML = `
+            <div class="history-empty-msg font-mono">
+              No past posts logged for this account yet. Newly submitted reports will appear here.
+            </div>
+          `;
+          return;
+        }
+
+        historyList.innerHTML = items.map((item, idx) => {
+          const s = Number(item.status || 0);
+          const b1 = s >= 1 ? "is-green" : "";
+          const b2 = s >= 2 ? "is-green" : "";
+          const b3 = s >= 3 ? "is-green" : "";
+          const b4 = s >= 4 ? "is-green" : "";
+
+          return `
+            <div class="query-history-card" data-index="${idx}">
+              <div class="query-status-badges">
+                <span class="query-badge ${b1}">[reviewed]</span>
+                <span class="query-badge ${b2}">[in progress]</span>
+                <span class="query-badge ${b3}">[solved]</span>
+                <span class="query-badge ${b4}">[check your email for our reply]</span>
+              </div>
+              <div class="query-comment-box">
+                <span class="query-post-time">${escapeHTML(item.displayTime)}</span> &gt; <strong class="query-post-text">${escapeHTML(item.text)}</strong>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
       // Handle user authentication detection
       function setAuthState(user) {
         currentUser = user;
@@ -508,6 +600,8 @@
             emailInput.required = true;
           }
         }
+
+        renderHistory();
       }
 
       // Check Supabase Auth state
@@ -519,6 +613,8 @@
         } else if (typeof window.IndexIndiaSupabase.getUser === "function") {
           setAuthState(window.IndexIndiaSupabase.getUser());
         }
+      } else {
+        renderHistory();
       }
 
       // Handle Issue Dispatch Submission
@@ -556,22 +652,31 @@
           const targetAdminEmail = "dhaumyakumar27@gmail.com";
           const emailSubject = `[INDEXINDIA CONTACT US] - ${category}`;
 
-          const ticketPayload = {
-            id: ticketId,
-            category,
-            email: userEmail,
-            description,
-            status: "SUBMITTED",
-            createdAt: new Date().toISOString()
-          };
+          // Format current date and time
+          const now = new Date();
+          const displayTime = now.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          }) + ", " + now.toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+          });
 
-          // Save locally
-          try {
-            const existing = JSON.parse(localStorage.getItem("indexindia_reported_issues") || "[]");
-            existing.unshift(ticketPayload);
-            localStorage.setItem("indexindia_reported_issues", JSON.stringify(existing.slice(0, 20)));
-          } catch (err) {
-            console.warn("Storage err:", err);
+          // Save to user history
+          if (currentUser) {
+            const historyItems = loadUserHistory();
+            historyItems.unshift({
+              id: ticketId,
+              category,
+              displayTime,
+              text: description,
+              status: 0,
+              timestamp: Date.now()
+            });
+            saveUserHistory(historyItems);
+            renderHistory();
           }
 
           // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit AJAX
@@ -580,6 +685,7 @@
             emailFormData.append("_subject", emailSubject);
             emailFormData.append("_replyto", userEmail);
             emailFormData.append("_template", "table");
+            emailFormData.append("_captcha", "false");
             emailFormData.append("Stamp", "[INDEXINDIA CONTACT US]");
             emailFormData.append("Incident ID", ticketId);
             emailFormData.append("Classification", category);
