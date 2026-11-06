@@ -71,22 +71,57 @@ export default {
         const description = body.description || "(No description provided)";
 
         // 1. Dispatch via Resend API if key is configured in Worker
-        if (env.RESEND_API_KEY) {
+        const resendKey = env.RESEND_API_KEY;
+        if (resendKey) {
           try {
-            await fetch("https://api.resend.com/emails", {
+            const resendPayload = {
+              from: "IndexIndia <onboarding@resend.dev>",
+              to: [targetEmail],
+              reply_to: userEmail,
+              subject: subject,
+              text: `${inquiryStamp} - ${category}\nFrom: ${userEmail}\nRef: ${referenceId}\n\n${description}`
+            };
+            if (body.html) {
+              resendPayload.html = body.html;
+            }
+            if (body.screenshot && body.screenshot.content) {
+              let cleanContent = body.screenshot.content;
+              if (typeof cleanContent === "string" && cleanContent.includes(",")) {
+                cleanContent = cleanContent.split(",")[1];
+              }
+              resendPayload.attachments = [{
+                filename: body.screenshot.filename || `screenshot-${referenceId}.jpg`,
+                content: cleanContent
+              }];
+            }
+            const resendResp = await fetch("https://api.resend.com/emails", {
               method: "POST",
               headers: {
-                "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+                "Authorization": `Bearer ${resendKey}`,
                 "Content-Type": "application/json"
               },
-              body: JSON.stringify({
-                from: "IndexIndia <onboarding@resend.dev>",
-                to: [targetEmail],
-                reply_to: userEmail,
-                subject: subject,
-                text: `${inquiryStamp} - ${category}\nFrom: ${userEmail}\nRef: ${referenceId}\n\n${description}`
-              })
+              body: JSON.stringify(resendPayload)
             });
+            if (resendResp.ok) {
+              const resendJson = await resendResp.json().catch(() => ({}));
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  provider: "resend",
+                  id: resendJson.id,
+                  recipient: targetEmail,
+                  referenceId: referenceId,
+                  status: "delivered"
+                }),
+                {
+                  status: 200,
+                  headers: { ...corsHeaders, "Content-Type": "application/json" }
+                }
+              );
+            } else {
+              const errText = await resendResp.text().catch(() => "");
+              console.warn("Resend API responded with error:", resendResp.status, errText);
+            }
           } catch (resendErr) {
             console.warn("Resend dispatch attempt notice:", resendErr);
           }

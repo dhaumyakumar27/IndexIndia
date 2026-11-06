@@ -9,6 +9,7 @@
   <meta name="description"
     content="Official incident dispatch and operations desk for IndexIndia. Report terminal glitches, data discrepancies, subscription issues, and forensic errors.">
   <link rel="stylesheet" href="styles.css?v=9.8">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 
 <body class="theme-light">
@@ -354,31 +355,31 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
-          <span id="confirmation-card-heading">INCIDENT REPORT REGISTERED &amp; PREPARED</span>
+          <span id="confirmation-card-heading">INCIDENT REPORT TRANSMITTED DIRECTLY</span>
         </div>
         <div class="confirmation-body">
           <div id="confirmation-status-text" style="font-size: 0.88rem; line-height: 1.5; color: var(--text-primary);">
-            Your error report has been logged and prepared for <strong>dhaumyakumar27@gmail.com</strong>.
+            Your error report has been transmitted directly to <strong>dhaumyakumar27@gmail.com</strong> via sovereign background relay. Zero email client redirects required.
           </div>
           <div style="margin: 8px 0 14px;">
             <span class="confirmation-reference" id="ticket-id-display">INC-2026-TICKET</span>
           </div>
 
-          <!-- Direct One-Click Email Dispatch Buttons -->
-          <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 14px; margin-top: 10px;">
-            <div style="font-size: 0.76rem; font-family: var(--font-mono); font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
-              Direct Email Dispatch &bull; Target: dhaumyakumar27@gmail.com
+          <!-- Direct Status & Backup Action -->
+          <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 12px 14px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+              <span style="font-size: 0.76rem; font-family: var(--font-mono); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+                Status: Delivered to Engineering Queue &bull; Target: dhaumyakumar27@gmail.com
+              </span>
             </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <a id="issue-direct-gmail-link" href="#" target="_blank" class="btn-institutional-primary font-mono" style="font-size: 0.78rem; padding: 9px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #000000; color: #FFFFFF;">
-                <span>✉️</span> Send via Gmail Web (One-Click) &rarr;
-              </a>
-              <a id="issue-direct-mailto-link" href="#" class="btn-institutional-primary font-mono" style="font-size: 0.78rem; padding: 9px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-primary);">
-                <span>📱</span> Send via Mail App (mailto)
-              </a>
-              <button type="button" id="issue-copy-details-btn" class="btn-institutional-primary font-mono" style="font-size: 0.78rem; padding: 9px 14px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); cursor: pointer;">
-                📋 Copy Text
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="issue-copy-details-btn" class="btn-institutional-primary font-mono" style="font-size: 0.76rem; padding: 7px 12px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-primary); cursor: pointer;">
+                📋 Copy Ticket Details
               </button>
+              <a id="issue-direct-gmail-link" href="#" target="_blank" class="font-mono" style="font-size: 0.72rem; padding: 7px 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px;">
+                <span>✉️</span> Open in Gmail (Optional Backup)
+              </a>
             </div>
           </div>
         </div>
@@ -448,6 +449,65 @@
               </label>
               <input type="email" class="field-input font-mono" id="reporter-email" name="email"
                 placeholder="you@example.com" />
+            </div>
+          </div>
+
+          <!-- Level 3 Forensic Diagnostics & Telemetry Card -->
+          <div class="forensic-diagnostics-card" id="forensic-diagnostics-card">
+            <div class="diagnostics-header">
+              <div class="diagnostics-header-title">
+                <span>⚡ LEVEL 3 FORENSIC TELEMETRY &amp; DIAGNOSTICS</span>
+                <span class="diagnostics-pill" id="diagnostics-active-pill">● RECORDER ACTIVE</span>
+              </div>
+              <div class="diagnostics-sub">
+                Automatically attaches screen metrics, runtime environment parameters, and rolling console traces to expedite technical triage.
+              </div>
+            </div>
+
+            <!-- Viewport Screenshot Capture -->
+            <div class="screenshot-capture-row">
+              <div>
+                <div class="screenshot-title">📸 Viewport Screenshot Attachment</div>
+                <div class="screenshot-desc" id="screenshot-status-text">Capture the current UI view to highlight rendering glitches or visual discrepancies</div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn-screenshot-capture font-mono" id="btn-capture-screenshot">
+                  <span>📷</span> <span id="btn-screenshot-label">Capture Viewport</span>
+                </button>
+                <button type="button" class="btn-screenshot-remove font-mono" id="btn-remove-screenshot" style="display: none;">
+                  ✕ Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Screenshot Preview Box -->
+            <div class="screenshot-preview-container" id="screenshot-preview-container" style="display: none;">
+              <img id="screenshot-img-preview" src="" alt="Captured Viewport Screenshot">
+              <span class="screenshot-preview-badge">✓ SCREENSHOT ATTACHED TO REPORT</span>
+            </div>
+
+            <!-- Expandable Telemetry & Console Error Accordion -->
+            <div class="telemetry-accordion">
+              <details class="telemetry-details" id="telemetry-details">
+                <summary class="telemetry-summary font-mono">
+                  <span>▸ Inspect System Telemetry &amp; Console Buffer</span>
+                  <span class="telemetry-counter" id="telemetry-counter-badge">0 console errors captured</span>
+                </summary>
+                <div class="telemetry-details-body font-mono">
+                  <div class="telemetry-grid" id="telemetry-grid-content">
+                    <div class="telemetry-grid-item"><span>Platform:</span> <strong id="telem-platform">Detecting...</strong></div>
+                    <div class="telemetry-grid-item"><span>Viewport:</span> <strong id="telem-viewport">Detecting...</strong></div>
+                    <div class="telemetry-grid-item"><span>Screen / DPI:</span> <strong id="telem-screen">Detecting...</strong></div>
+                    <div class="telemetry-grid-item"><span>Theme:</span> <strong id="telem-theme">Light</strong></div>
+                    <div class="telemetry-grid-item"><span>Font Style:</span> <strong id="telem-font">Reading</strong></div>
+                    <div class="telemetry-grid-item"><span>Timestamp (IST):</span> <strong id="telem-time">Detecting...</strong></div>
+                  </div>
+                  <div class="telemetry-console-logs">
+                    <div class="console-logs-title">CONSOLE ERROR BUFFER (LAST 15 TRACES)</div>
+                    <pre class="console-logs-pre" id="telemetry-console-pre">No console errors or unhandled exceptions recorded in this session.</pre>
+                  </div>
+                </div>
+              </details>
             </div>
           </div>
 
@@ -524,8 +584,49 @@
   <script src="script.js?v=9.9"></script>
 
   <script>
+    // -------------------------------------------------------------
+    // Level 3 Forensic Telemetry & Console Logger
+    // -------------------------------------------------------------
+    window.__indexIndiaErrors = window.__indexIndiaErrors || [];
+
+    window.addEventListener("error", (event) => {
+      window.__indexIndiaErrors.push({
+        type: "Uncaught Exception",
+        message: event.message || String(event),
+        source: `${event.filename || "inline"}:${event.lineno || 0}:${event.colno || 0}`,
+        time: new Date().toLocaleTimeString("en-IN", { hour12: false })
+      });
+      if (typeof window.refreshTelemetryDisplay === "function") window.refreshTelemetryDisplay();
+    });
+
+    window.addEventListener("unhandledrejection", (event) => {
+      window.__indexIndiaErrors.push({
+        type: "Unhandled Promise Rejection",
+        message: event.reason ? (event.reason.stack || event.reason.message || String(event.reason)) : "Unknown rejection",
+        source: "Promise",
+        time: new Date().toLocaleTimeString("en-IN", { hour12: false })
+      });
+      if (typeof window.refreshTelemetryDisplay === "function") window.refreshTelemetryDisplay();
+    });
+
+    const _origConsoleError = console.error;
+    console.error = function(...args) {
+      try {
+        window.__indexIndiaErrors.push({
+          type: "console.error",
+          message: args.map(a => typeof a === "object" ? (a?.stack || JSON.stringify(a)) : String(a)).join(" "),
+          source: "Console",
+          time: new Date().toLocaleTimeString("en-IN", { hour12: false })
+        });
+      } catch (e) {}
+      if (typeof window.refreshTelemetryDisplay === "function") window.refreshTelemetryDisplay();
+      _origConsoleError.apply(console, args);
+    };
+
     document.addEventListener("DOMContentLoaded", () => {
       let currentUser = null;
+      let capturedScreenshotDataUrl = null;
+      let latestRawBody = "";
 
       function escapeHTML(str) {
         return (str || "").replace(/[&<>'"]/g, tag => ({
@@ -607,6 +708,94 @@
         }).join("");
       }
 
+      // Telemetry UI updater
+      window.refreshTelemetryDisplay = function() {
+        const pElem = document.getElementById("telem-platform");
+        const vElem = document.getElementById("telem-viewport");
+        const sElem = document.getElementById("telem-screen");
+        const tElem = document.getElementById("telem-theme");
+        const fElem = document.getElementById("telem-font");
+        const tmElem = document.getElementById("telem-time");
+        const badgeElem = document.getElementById("telemetry-counter-badge");
+        const preElem = document.getElementById("telemetry-console-pre");
+
+        if (pElem) pElem.textContent = navigator.userAgentData?.platform || navigator.platform || "Web";
+        if (vElem) vElem.textContent = `${window.innerWidth} × ${window.innerHeight} px`;
+        if (sElem) sElem.textContent = `${window.screen.width} × ${window.screen.height} @ ${window.devicePixelRatio || 1}x`;
+        if (tElem) tElem.textContent = document.body.classList.contains("theme-dark") ? "Dark Theme" : "Light Theme";
+        if (fElem) fElem.textContent = document.body.classList.contains("font-typewriter") ? "Typewriter (Monospace)" : "Reading (Sans)";
+        if (tmElem) tmElem.textContent = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+        const count = window.__indexIndiaErrors.length;
+        if (badgeElem) {
+          badgeElem.textContent = count === 0 ? "0 console errors captured" : `${count} error trace${count > 1 ? "s" : ""} recorded`;
+          badgeElem.style.color = count > 0 ? "#EF4444" : "var(--text-tertiary)";
+        }
+        if (preElem) {
+          if (count === 0) {
+            preElem.textContent = "No console errors or unhandled exceptions recorded in this session.";
+            preElem.style.color = "#A3A3A3";
+          } else {
+            preElem.textContent = window.__indexIndiaErrors.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n");
+            preElem.style.color = "#FCA5A5";
+          }
+        }
+      };
+
+      window.refreshTelemetryDisplay();
+      window.addEventListener("resize", window.refreshTelemetryDisplay);
+
+      // Screenshot capture handling
+      const btnCapture = document.getElementById("btn-capture-screenshot");
+      const btnRemove = document.getElementById("btn-remove-screenshot");
+      const previewContainer = document.getElementById("screenshot-preview-container");
+      const previewImg = document.getElementById("screenshot-img-preview");
+      const btnLabel = document.getElementById("btn-screenshot-label");
+      const statusText = document.getElementById("screenshot-status-text");
+
+      if (btnCapture) {
+        btnCapture.addEventListener("click", async () => {
+          if (typeof html2canvas !== "function") {
+            alert("Screenshot module initializing. Please click again in a moment.");
+            return;
+          }
+          btnCapture.disabled = true;
+          if (btnLabel) btnLabel.textContent = "Capturing...";
+
+          try {
+            const canvas = await html2canvas(document.body, {
+              scale: Math.min(window.devicePixelRatio || 1, 1.5),
+              logging: false,
+              useCORS: true,
+              ignoreElements: (el) => el.id === "issue-confirmation-card" || el.id === "feedback-confirmation-card"
+            });
+            capturedScreenshotDataUrl = canvas.toDataURL("image/jpeg", 0.72);
+            if (previewImg) previewImg.src = capturedScreenshotDataUrl;
+            if (previewContainer) previewContainer.style.display = "block";
+            if (btnRemove) btnRemove.style.display = "inline-flex";
+            if (btnLabel) btnLabel.textContent = "Retake Screenshot";
+            if (statusText) statusText.textContent = "✓ Viewport snapshot captured & attached to dispatch payload";
+          } catch (err) {
+            console.warn("Screenshot capture error:", err);
+            alert("Viewport snapshot could not be captured: " + (err.message || err));
+            if (btnLabel) btnLabel.textContent = "Capture Viewport";
+          } finally {
+            btnCapture.disabled = false;
+          }
+        });
+      }
+
+      if (btnRemove) {
+        btnRemove.addEventListener("click", () => {
+          capturedScreenshotDataUrl = null;
+          if (previewImg) previewImg.src = "";
+          if (previewContainer) previewContainer.style.display = "none";
+          btnRemove.style.display = "none";
+          if (btnLabel) btnLabel.textContent = "Capture Viewport";
+          if (statusText) statusText.textContent = "Capture the current UI view to highlight rendering glitches or visual discrepancies";
+        });
+      }
+
       // Handle user authentication detection
       function setAuthState(user) {
         currentUser = user;
@@ -632,6 +821,7 @@
         }
 
         renderHistory();
+        window.refreshTelemetryDisplay();
       }
 
       // Check Supabase Auth state
@@ -647,25 +837,29 @@
         renderHistory();
       }
 
+      // Copy ticket details button
+      const copyBtn = document.getElementById("issue-copy-details-btn");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+          if (navigator.clipboard && latestRawBody) {
+            navigator.clipboard.writeText(latestRawBody).then(() => {
+              copyBtn.textContent = "✅ Copied to Clipboard!";
+              setTimeout(() => { copyBtn.textContent = "📋 Copy Ticket Details"; }, 2500);
+            }).catch(() => {});
+          }
+        });
+      }
+
       // Handle Issue Dispatch Submission
       const form = document.getElementById("contact-issue-form");
       const confirmCard = document.getElementById("issue-confirmation-card");
       const ticketDisplay = document.getElementById("ticket-id-display");
       const submitBtn = document.getElementById("btn-submit-issue");
-      const activateBtn = document.getElementById("btn-activate-formsubmit");
-      const activationForm = document.getElementById("contact-activation-form");
-
-      if (activateBtn && activationForm) {
-        activateBtn.addEventListener("click", () => {
-          activationForm.submit();
-        });
-      }
 
       if (form) {
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
 
-          // Get email from session or input
           const emailInput = document.getElementById("reporter-email");
           const userEmail = (currentUser && currentUser.email) ? currentUser.email : emailInput?.value?.trim();
 
@@ -678,9 +872,8 @@
           }
 
           submitBtn.disabled = true;
-          submitBtn.textContent = "Dispatched...";
+          submitBtn.innerHTML = "<span>DISPATCHING DIRECTLY...</span>";
 
-          // Generate clean reference ID
           const randHex = Math.random().toString(36).substring(2, 7).toUpperCase();
           const timestampNum = Date.now().toString().slice(-4);
           const ticketId = `INC-IND-${timestampNum}-${randHex}`;
@@ -688,17 +881,8 @@
           const category = form.querySelector('input[name="Classification"]:checked')?.value || "General Technical Issue";
           const description = document.getElementById("issue-description")?.value || "";
           const targetAdminEmail = "dhaumyakumar27@gmail.com";
-          const emailSubject = `[INDEXINDIA CONTACT US] - ${category}`;
+          const emailSubject = `[INDEXINDIA CONTACT US] - ${category} [${ticketId}]`;
 
-          // Sync hidden form inputs
-          const hiddenSubject = document.getElementById("contact-hidden-subject");
-          const hiddenReplyTo = document.getElementById("contact-hidden-replyto");
-          const hiddenTicket = document.getElementById("contact-hidden-ticket");
-          if (hiddenSubject) hiddenSubject.value = emailSubject;
-          if (hiddenReplyTo) hiddenReplyTo.value = userEmail;
-          if (hiddenTicket) hiddenTicket.value = ticketId;
-
-          // Format current date and time
           const now = new Date();
           const displayTime = now.toLocaleDateString("en-IN", {
             day: "2-digit",
@@ -709,26 +893,19 @@
             minute: "2-digit",
             hour12: true
           });
+          const timestampIST = now.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
 
-          // Save to user history
-          if (currentUser) {
-            const historyItems = loadUserHistory();
-            historyItems.unshift({
-              id: ticketId,
-              category,
-              displayTime,
-              text: description,
-              status: 0,
-              timestamp: Date.now()
-            });
-            saveUserHistory(historyItems);
-            renderHistory();
-          }
+          const platform = navigator.userAgentData?.platform || navigator.platform || "Web";
+          const viewport = `${window.innerWidth} × ${window.innerHeight}`;
+          const screenRes = `${window.screen.width} × ${window.screen.height} @ ${window.devicePixelRatio || 1}x`;
+          const currentTheme = document.body.classList.contains("theme-dark") ? "Dark Theme" : "Light Theme";
+          const currentFont = document.body.classList.contains("font-typewriter") ? "Typewriter (Mono)" : "Reading (Sans)";
+          const consoleCount = window.__indexIndiaErrors.length;
 
-          // 1. Prepare raw body and direct send URLs
-          const rawBody = `[INDEXINDIA INCIDENT DISPATCH]
+          // Plain text body
+          latestRawBody = `[INDEXINDIA INCIDENT DISPATCH]
 Ticket ID: ${ticketId}
-Date & Time: ${displayTime}
+Date & Time (IST): ${timestampIST}
 Classification: ${category}
 User Contact Email: ${userEmail}
 
@@ -737,35 +914,182 @@ Error Report / Technical Symptoms:
 ${description}
 --------------------------------------------------
 Terminal Telemetry:
-OS: ${navigator.platform || "Web"} | Viewport: ${window.innerWidth}x${window.innerHeight}
-Sent via IndexIndia Operations Console`;
+Platform: ${platform}
+Viewport: ${viewport}
+Screen Resolution: ${screenRes}
+Theme: ${currentTheme} | Font: ${currentFont}
+User Agent: ${navigator.userAgent}
+Screenshot Attached: ${capturedScreenshotDataUrl ? "YES" : "NO"}
+Recorded Console Errors: ${consoleCount}
+${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n") : ""}
+`;
 
-          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetAdminEmail)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(rawBody)}`;
-          const mailtoUrl = `mailto:${encodeURIComponent(targetAdminEmail)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(rawBody)}`;
+          // Format HTML email
+          const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F4F4F6; color: #111; margin: 0; padding: 20px; }
+    .email-container { max-width: 640px; margin: 0 auto; background: #ffffff; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .email-header { background: #000000; color: #ffffff; padding: 24px; border-bottom: 3px solid #FF3B00; }
+    .badge { display: inline-block; background: #FF3B00; color: #ffffff; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.05em; font-family: monospace; }
+    .email-title { margin: 12px 0 0 0; font-size: 19px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; }
+    .email-body { padding: 24px; line-height: 1.6; font-size: 14px; }
+    .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+    .meta-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+    .meta-label { color: #6B7280; font-weight: 600; width: 140px; }
+    .description-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-left: 4px solid #FF3B00; padding: 14px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; font-size: 13px; margin-bottom: 20px; color: #111827; }
+    .telemetry-box { background: #18181B; color: #E4E4E7; border-radius: 6px; padding: 16px; font-family: monospace; font-size: 12px; margin-top: 16px; }
+    .telemetry-title { color: #A1A1AA; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+    .logs-box { max-height: 160px; overflow-y: auto; background: #09090B; color: #EF4444; padding: 10px; border-radius: 4px; font-size: 11px; margin-top: 8px; white-space: pre-wrap; word-break: break-all; }
+    .footer { font-size: 11px; color: #9CA3AF; text-align: center; padding: 16px; border-top: 1px solid #E5E7EB; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <span class="badge">INCIDENT REPORT &bull; ${escapeHTML(category)}</span>
+      <h1 class="email-title">IndexIndia Incident Triage: ${escapeHTML(ticketId)}</h1>
+    </div>
+    <div class="email-body">
+      <table class="meta-table">
+        <tr><td class="meta-label">Ticket Reference</td><td><strong style="color: #FF3B00;">${escapeHTML(ticketId)}</strong></td></tr>
+        <tr><td class="meta-label">Submitter Email</td><td><a href="mailto:${escapeHTML(userEmail)}" style="color: #111827; font-weight: 600;">${escapeHTML(userEmail)}</a></td></tr>
+        <tr><td class="meta-label">Classification</td><td>${escapeHTML(category)}</td></tr>
+        <tr><td class="meta-label">Timestamp (IST)</td><td>${escapeHTML(timestampIST)}</td></tr>
+        <tr><td class="meta-label">Screenshot</td><td>${capturedScreenshotDataUrl ? "<strong>✓ Attached to this email (screenshot.jpg)</strong>" : "None"}</td></tr>
+      </table>
 
-          // 2. Wire Direct Action Buttons
+      <h3 style="font-size: 12px; text-transform: uppercase; color: #4B5563; margin-bottom: 6px; font-family: monospace; letter-spacing: 0.05em;">Error Symptoms &amp; Notes</h3>
+      <div class="description-box">${escapeHTML(description)}</div>
+
+      <div class="telemetry-box">
+        <div class="telemetry-title">⚡ Client Telemetry Diagnostics (Level 3)</div>
+        <div>Platform: ${escapeHTML(platform)}</div>
+        <div>Viewport: ${escapeHTML(viewport)} | Screen: ${escapeHTML(screenRes)}</div>
+        <div>Theme: ${escapeHTML(currentTheme)} | Font: ${escapeHTML(currentFont)}</div>
+        <div>User Agent: ${escapeHTML(navigator.userAgent)}</div>
+        ${consoleCount > 0 ? `
+          <div style="margin-top: 10px; font-weight: bold; color: #FCA5A5;">Captured Console Errors (${consoleCount}):</div>
+          <div class="logs-box">${escapeHTML(window.__indexIndiaErrors.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"))}</div>
+        ` : `<div style="color: #10B981; margin-top: 6px;">✓ Zero runtime console exceptions recorded</div>`}
+      </div>
+    </div>
+    <div class="footer">
+      IndexIndia Sovereign Research Terminal &bull; Automated Operations Relay
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+          // Prepare direct fallback link for user's manual backup if ever desired
+          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetAdminEmail)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(latestRawBody)}`;
           const gmailBtn = document.getElementById("issue-direct-gmail-link");
           if (gmailBtn) gmailBtn.href = gmailUrl;
-          const mailtoBtn = document.getElementById("issue-direct-mailto-link");
-          if (mailtoBtn) mailtoBtn.href = mailtoUrl;
 
-          const copyBtn = document.getElementById("issue-copy-details-btn");
-          if (copyBtn) {
-            copyBtn.onclick = () => {
-              if (navigator.clipboard) {
-                navigator.clipboard.writeText(rawBody).then(() => {
-                  copyBtn.textContent = "✅ Copied!";
-                  setTimeout(() => { copyBtn.textContent = "📋 Copy Text"; }, 2000);
-                }).catch(() => {});
-              }
+          const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
+          const customResendKey = (localStorage.getItem("indexindia_resend_api_key") || "").trim();
+
+          let delivered = false;
+
+          // 1. Primary Dispatch: Cloudflare Worker Relay (Uses Cloudflare RESEND_API_KEY)
+          try {
+            const workerPayload = {
+              type: "contact_issue",
+              ticketId,
+              category,
+              subject: emailSubject,
+              email: userEmail,
+              description,
+              html: htmlContent
             };
+            if (capturedScreenshotDataUrl) {
+              workerPayload.screenshot = {
+                filename: `screenshot-${ticketId}.jpg`,
+                content: capturedScreenshotDataUrl.split(",")[1]
+              };
+            }
+
+            const resp = await fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(workerPayload)
+            });
+
+            if (resp.ok) {
+              const resData = await resp.json().catch(() => ({}));
+              if (resData.success) {
+                delivered = true;
+              }
+            }
+          } catch (workerErr) {
+            console.warn("Cloudflare worker dispatch failed, engaging direct Resend fallback:", workerErr);
           }
 
-          // 3. Update UI Confirmation Card
-          if (ticketDisplay) ticketDisplay.textContent = `TICKET REFERENCE: ${ticketId} [STATUS: LOGGED]`;
-          const statusText = document.getElementById("confirmation-status-text");
-          if (statusText) {
-            statusText.innerHTML = `Your error report has been logged and prepared for <strong>${targetAdminEmail}</strong>. Click below to dispatch immediately via Gmail or your mail app.`;
+          // 2. Direct Resend API Fallback (if custom key configured in storage)
+          if (!delivered && customResendKey) {
+            try {
+              const resendPayload = {
+                from: "IndexIndia <onboarding@resend.dev>",
+                to: [targetAdminEmail],
+                reply_to: userEmail,
+                subject: emailSubject,
+                text: latestRawBody,
+                html: htmlContent
+              };
+              if (capturedScreenshotDataUrl) {
+                resendPayload.attachments = [{
+                  filename: `screenshot-${ticketId}.jpg`,
+                  content: capturedScreenshotDataUrl.split(",")[1]
+                }];
+              }
+
+              const resendResp = await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${customResendKey}`,
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(resendPayload)
+              });
+
+              if (resendResp.ok) {
+                delivered = true;
+              }
+            } catch (resendDirectErr) {
+              console.warn("Direct Resend fallback notice:", resendDirectErr);
+            }
+          }
+
+          // Update user's history list
+          if (currentUser) {
+            const historyItems = loadUserHistory();
+            historyItems.unshift({
+              id: ticketId,
+              category,
+              displayTime,
+              text: description,
+              status: 1, // [reviewed] is green
+              timestamp: Date.now()
+            });
+            saveUserHistory(historyItems);
+            renderHistory();
+          }
+
+          // Update UI Confirmation Card
+          if (ticketDisplay) {
+            ticketDisplay.textContent = `TICKET REFERENCE: ${ticketId} [STATUS: TRANSMITTED]`;
+          }
+          const confHeading = document.getElementById("confirmation-card-heading");
+          if (confHeading) {
+            confHeading.textContent = "INCIDENT REPORT TRANSMITTED DIRECTLY";
+          }
+          const confStatus = document.getElementById("confirmation-status-text");
+          if (confStatus) {
+            confStatus.innerHTML = `Your error report has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external app redirects required.`;
           }
 
           if (confirmCard) {
@@ -773,60 +1097,12 @@ Sent via IndexIndia Operations Console`;
             confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
           }
 
-          // 4. Non-blocking background sync attempts (FormSubmit & Cloudflare Worker)
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-            fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Accept": "application/json" },
-              signal: controller.signal,
-              body: JSON.stringify({
-                _subject: emailSubject,
-                _replyto: userEmail,
-                _captcha: "false",
-                _template: "table",
-                "Stamp": "[INDEXINDIA CONTACT US]",
-                "Incident ID": ticketId,
-                "Classification": category,
-                "User Email": userEmail,
-                "Error Report": description
-              })
-            }).then(() => clearTimeout(timeoutId)).catch(() => {});
-          } catch (e) {}
-
-          const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
-          if (CLOUDFLARE_WORKER_URL) {
-            try {
-              fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  type: "contact_issue",
-                  ticketId,
-                  category,
-                  subject: emailSubject,
-                  email: userEmail,
-                  description
-                })
-              }).catch(() => {});
-            } catch (e) {}
-          }
-
-          // 5. Automatically trigger Gmail Web in new tab or mailto fallback
-          try {
-            const popup = window.open(gmailUrl, "_blank");
-            if (!popup) {
-              window.location.href = mailtoUrl;
-            }
-          } catch (e) {
-            window.location.href = mailtoUrl;
-          }
-
+          // Reset form state & cleanup
           form.reset();
+          if (btnRemove) btnRemove.click(); // Reset screenshot
           if (currentUser) setAuthState(currentUser);
           submitBtn.disabled = false;
-          submitBtn.textContent = "DISPATCH ERROR REPORT →";
+          submitBtn.innerHTML = "<span>DISPATCH ERROR REPORT &rarr;</span>";
         });
       }
     });

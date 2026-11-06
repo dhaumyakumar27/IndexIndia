@@ -6882,6 +6882,215 @@ body.theme-dark .institutional-form-card {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
+/* ==========================================================================
+   LEVEL 3 FORENSIC TELEMETRY, LOGS & SCREENSHOT CAPTURE
+   ========================================================================== */
+.forensic-diagnostics-card {
+  background: var(--bg-surface-subtle);
+  border: 1px dashed var(--border-primary);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin: 20px 0 24px 0;
+}
+
+body.theme-dark .forensic-diagnostics-card {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--border-subtle);
+}
+
+.diagnostics-header {
+  margin-bottom: 14px;
+}
+
+.diagnostics-header-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.diagnostics-pill {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.diagnostics-sub {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.screenshot-capture-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.screenshot-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.screenshot-desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.btn-screenshot-capture {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 4px;
+  background: var(--bg-surface-subtle);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-screenshot-capture:hover {
+  background: var(--bg-card);
+  border-color: var(--accent, #FF3B00);
+}
+
+.btn-screenshot-remove {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 4px;
+  background: transparent;
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.btn-screenshot-remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.screenshot-preview-container {
+  position: relative;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1.5px solid var(--border-primary);
+  background: #000;
+  max-height: 220px;
+}
+
+.screenshot-preview-container img {
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+.screenshot-preview-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #10B981;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 4px;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.telemetry-accordion {
+  border-top: 1px dashed var(--border-subtle);
+  padding-top: 10px;
+}
+
+.telemetry-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  padding: 4px 0;
+  user-select: none;
+}
+
+.telemetry-summary:hover {
+  color: var(--text-primary);
+}
+
+.telemetry-counter {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+}
+
+.telemetry-details-body {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 0.72rem;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 16px;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+}
+
+.telemetry-grid-item span:first-child {
+  color: var(--text-tertiary);
+  margin-right: 6px;
+}
+
+.telemetry-console-logs {
+  border-top: 1px dashed var(--border-subtle);
+  padding-top: 8px;
+}
+
+.console-logs-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.console-logs-pre {
+  margin: 0;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #A3A3A3;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
