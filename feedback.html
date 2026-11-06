@@ -327,26 +327,11 @@
 
       <!-- Header Section -->
       <section class="dossier-header-section">
-        <span class="dossier-kicker">[PRODUCT RADAR &bull; FEATURE &amp; CONTENT ROADMAP]</span>
         <h1 class="dossier-title">Feedback &amp; Feature Proposals</h1>
         <p class="dossier-subtitle">
-          Help expand India's sovereign data terminal. Suggest new quantitative index baskets, MCA corporate governance filings, forensic auditor red-flag algorithms, export modules, or UI workflows. Every proposal is reviewed directly by our research arm.
+          Help expand India's sovereign data terminal. Suggest new quantitative index baskets, MCA corporate governance filings, forensic red-flag algorithms, export modules, or UI workflows.
         </p>
       </section>
-
-      <!-- Live Radar Telemetry Bar -->
-      <div class="telemetry-strip" role="status">
-        <div class="telemetry-item">
-          <span class="telemetry-dot"></span>
-          <span>RADAR STATUS: <strong>OPEN &bull; ACCEPTING COMMUNITY PROPOSALS</strong></span>
-        </div>
-        <div class="telemetry-item">
-          <span>ACTIVE PIPELINE: <strong>05 PLANNED &bull; 02 IN PROGRESS</strong></span>
-        </div>
-        <div class="telemetry-item">
-          <span>NEXT SPRINT RELEASE: <strong>Q1 2027 MATRIX UPGRADE</strong></span>
-        </div>
-      </div>
 
       <!-- Success Confirmation Card -->
       <div class="confirmation-card" id="feedback-confirmation-card" role="alert">
@@ -358,7 +343,7 @@
           <span>PROPOSAL REGISTERED ON PRODUCT RADAR</span>
         </div>
         <div class="confirmation-body">
-          Your proposal has been logged to the public radar feed, dispatched to <strong>dhaumyakumar27@gmail.com</strong>, and tagged for engineering feasibility analysis. Analysts and community members can now review and upvote your submission.
+          Your feedback proposal has been logged to the community radar feed and dispatched to <strong>dhaumyakumar27@gmail.com</strong> for feasibility analysis.
           <br>
           <span class="confirmation-reference" id="proposal-id-display">PROP-RADAR-SUBMISSION</span>
           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
@@ -379,123 +364,78 @@
           <!-- Proposal Type Selector -->
           <div class="form-field-group">
             <label class="field-label">
-              <span>1. PROPOSAL CLASSIFICATION <span class="required-mark">*</span></span>
-              <span class="field-hint">What type of addition or improvement are you proposing?</span>
+              <span>PROPOSAL CLASSIFICATION <span class="required-mark">*</span></span>
+              <span class="field-hint">Select the type of addition or improvement</span>
             </label>
             <div class="pill-selector-row">
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="feature_tool" checked>
+                <input type="radio" name="proposal_type" value="New Tool / Analytical Feature" checked>
                 <span class="pill-label">💡 New Tool / Analytical Feature</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="content_mca">
+                <input type="radio" name="proposal_type" value="Content / MCA Filing Topic">
                 <span class="pill-label">📚 Content / MCA Filing Topic</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="index_basket">
+                <input type="radio" name="proposal_type" value="Index Basket / Quantitative Metric">
                 <span class="pill-label">📈 Index Basket / Quantitative Metric</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="ui_workflow">
+                <input type="radio" name="proposal_type" value="UI / UX Workflow Utility">
                 <span class="pill-label">⚡ UI / UX &amp; Workflow Utility</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="gemini_ai_prompt">
+                <input type="radio" name="proposal_type" value="Gemini AI Prompt Capability">
                 <span class="pill-label">🤖 Gemini AI Prompt Capability</span>
               </label>
+              <label class="pill-option">
+                <input type="radio" name="proposal_type" value="General Feedback">
+                <span class="pill-label">💬 General Suggestion</span>
+              </label>
             </div>
           </div>
 
-          <!-- Grid: Proposal Title & Target Module -->
-          <div class="form-grid-2">
-            <div class="form-field-group">
-              <label class="field-label" for="proposal-title">
-                <span>2. PROPOSAL TITLE <span class="required-mark">*</span></span>
-              </label>
-              <input type="text" class="field-input font-mono" id="proposal-title" required
-                placeholder="e.g. Add SEBI CIRP Insolvency Resolution Tracker for Listed Debts" maxlength="140" />
+          <!-- Dynamic Auth State / Email Section -->
+          <div id="auth-state-container">
+            <div class="auth-status-banner logged-in" id="auth-logged-in-banner" style="display: none;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <div>
+                <span class="auth-badge-label">LOGGED IN ACCOUNT</span>
+                <span class="auth-badge-email" id="auth-user-email">analyst@indexindia</span>
+              </div>
             </div>
 
-            <div class="form-field-group">
-              <label class="field-label" for="target-section">
-                <span>3. TARGET MODULE / SECTION <span class="required-mark">*</span></span>
-              </label>
-              <select class="field-select font-mono" id="target-section" required>
-                <option value="Index Landing Suite (index.html)">Index Landing Suite (index.html)</option>
-                <option value="Sovereign Research Guide (guide.html)">Sovereign Research Guide (guide.html)</option>
-                <option value="Sector Weights & Matrices">Sector Weights &amp; Matrices</option>
-                <option value="MCA V3 Corporate Filings">MCA V3 Corporate Filings</option>
-                <option value="Gemini AI Doubt Solver">Gemini AI Doubt Solver</option>
-                <option value="Annotation & Markup Canvas">Annotation &amp; Markup Canvas</option>
-                <option value="Other / Entire Suite">Other / Entire Suite</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Description & Analytical Value -->
-          <div class="form-field-group">
-            <label class="field-label" for="proposal-description">
-              <span>4. PROPOSAL SPECIFICATIONS &amp; ANALYTICAL VALUE <span class="required-mark">*</span></span>
-              <span class="field-hint font-mono">Explain why this benefits institutional Indian market researchers</span>
-            </label>
-            <textarea class="field-textarea" id="proposal-description" required rows="6"
-              placeholder="Detail the feature or content addition:
-- What problem does it solve?
-- What data sources or formulas should be utilized? (e.g., MCA AOC-4 filings, BSE bhavcopy, SEBI LODR disclosures)
-- How should it appear inside the terminal?"></textarea>
-          </div>
-
-          <!-- Grid: Reference URL & Priority -->
-          <div class="form-grid-2">
-            <div class="form-field-group">
-              <label class="field-label" for="reference-url">
-                <span>5. REFERENCE SOURCE / REGULATORY CITATION (OPTIONAL)</span>
-                <span class="field-hint">SEBI, MCA, RBI, or exchange URL</span>
-              </label>
-              <input type="url" class="field-input font-mono" id="reference-url"
-                placeholder="https://www.sebi.gov.in/legal/circulars/..." />
-            </div>
-
-            <div class="form-field-group">
-              <label class="field-label" for="proposal-impact">
-                <span>6. ESTIMATED RESEARCH IMPACT</span>
-              </label>
-              <select class="field-select font-mono" id="proposal-impact">
-                <option value="essential">🔴 High Impact / Essential Core Workflow</option>
-                <option value="valuable" selected>🟡 Medium Impact / Valuable Productivity Boost</option>
-                <option value="nice_to_have">🟢 Low Impact / Nice-to-Have Polish</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Submitter Handle & Email -->
-          <div class="form-grid-2">
-            <div class="form-field-group">
+            <div class="form-field-group" id="guest-email-group">
               <label class="field-label" for="submitter-email">
-                <span>7. YOUR EMAIL (FOR ROADMAP STATUS NOTIFICATIONS)</span>
+                <span>YOUR EMAIL ADDRESS <span class="required-mark">*</span></span>
+                <span class="field-hint">Required for follow-up notifications</span>
               </label>
               <input type="email" class="field-input font-mono" id="submitter-email"
-                placeholder="analyst@firm.com" />
+                placeholder="you@example.com" />
             </div>
+          </div>
 
-            <div class="form-field-group">
-              <label class="field-label" for="submitter-name">
-                <span>8. SUBMITTER HANDLE / FIRM (OPTIONAL)</span>
-              </label>
-              <input type="text" class="field-input font-mono" id="submitter-name"
-                placeholder="e.g. QuantLead_Mumbai or Anonymous" />
-            </div>
+          <!-- Suggestions & Comments -->
+          <div class="form-field-group">
+            <label class="field-label" for="proposal-description">
+              <span>YOUR FEEDBACK &amp; SUGGESTIONS <span class="required-mark">*</span></span>
+            </label>
+            <textarea class="field-textarea" id="proposal-description" required rows="7"
+              placeholder="Share your idea, suggested feature, or content addition:
+- What should be added or improved?
+- How would it help your analysis or workflow?"></textarea>
           </div>
 
           <!-- Action Row -->
           <div class="form-submit-row">
-            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-tertiary);">
-              💡 Submissions are published to the public product roadmap board
-            </div>
+            <div></div>
             <div style="display:flex; gap:12px; align-items:center;">
               <button type="reset" class="btn-institutional-secondary">CLEAR</button>
               <button type="submit" class="btn-institutional-primary" id="btn-submit-proposal">
-                <span>SUBMIT PROPOSAL TO RADAR &rarr;</span>
+                <span>SUBMIT FEEDBACK &rarr;</span>
               </button>
             </div>
           </div>
@@ -514,7 +454,6 @@
         <!-- Proposal 1 -->
         <div class="radar-item-card" data-proposal-id="prop-01">
           <div class="radar-item-main">
-            <span class="radar-status-tag tag-in-progress font-mono">IN PROGRESS &bull; SPRINT 14</span>
             <h4 class="radar-item-title">MCA V3 AOC-4 XBRL Automated Parser for Unlisted Unicorns</h4>
             <p class="radar-item-desc">
               Direct pipeline to ingest, normalize, and extract related-party transactions and auditor qualification footnotes from unlisted corporate balance sheets.
@@ -534,7 +473,6 @@
         <!-- Proposal 2 -->
         <div class="radar-item-card" data-proposal-id="prop-02">
           <div class="radar-item-main">
-            <span class="radar-status-tag tag-planned font-mono">PLANNED &bull; Q1 2027</span>
             <h4 class="radar-item-title">Quarterly Sovereign Index Historical Rebalancing Backtester</h4>
             <p class="radar-item-desc">
               Interactive timeline simulator to test sovereign weights against historical drawdown periods (March 2020, Adani 2023, Election 2024 volatility).
@@ -554,7 +492,6 @@
         <!-- Proposal 3 -->
         <div class="radar-item-card" data-proposal-id="prop-03">
           <div class="radar-item-main">
-            <span class="radar-status-tag tag-under-review font-mono">UNDER REVIEW &bull; RESEARCH DESK</span>
             <h4 class="radar-item-title">CARO 2020 Auditor Cross-Entity Red-Flag Heatmap</h4>
             <p class="radar-item-desc">
               Visual cluster graph highlighting auditor resignations, adverse internal financial control (IFCoFR) remarks, and statutory dues delays across 500+ Indian corporations.
@@ -574,7 +511,6 @@
         <!-- Proposal 4 -->
         <div class="radar-item-card" data-proposal-id="prop-04">
           <div class="radar-item-main">
-            <span class="radar-status-tag tag-planned font-mono">PLANNED &bull; UX WORKFLOW</span>
             <h4 class="radar-item-title">High-DPI SVG / PNG Vector Chart Export for Annotations</h4>
             <p class="radar-item-desc">
               Export annotated financial charts with one-click forensic watermark and sovereign settlement clearance timestamp.
@@ -627,14 +563,41 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Pre-fill user email if authenticated
-      if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.getUser === "function") {
-        const user = window.IndexIndiaSupabase.getUser();
+      let currentUser = null;
+
+      // Handle user authentication detection
+      function setAuthState(user) {
+        currentUser = user;
+        const loggedInBanner = document.getElementById("auth-logged-in-banner");
+        const guestEmailGroup = document.getElementById("guest-email-group");
+        const userEmailSpan = document.getElementById("auth-user-email");
+        const emailInput = document.getElementById("submitter-email");
+
         if (user && user.email) {
-          const emailInput = document.getElementById("submitter-email");
-          if (emailInput && !emailInput.value) emailInput.value = user.email;
-          const nameInput = document.getElementById("submitter-name");
-          if (nameInput && !nameInput.value) nameInput.value = user.email.split("@")[0];
+          if (loggedInBanner) loggedInBanner.style.display = "flex";
+          if (userEmailSpan) userEmailSpan.textContent = user.email;
+          if (guestEmailGroup) guestEmailGroup.style.display = "none";
+          if (emailInput) {
+            emailInput.value = user.email;
+            emailInput.required = false;
+          }
+        } else {
+          if (loggedInBanner) loggedInBanner.style.display = "none";
+          if (guestEmailGroup) guestEmailGroup.style.display = "flex";
+          if (emailInput) {
+            emailInput.required = true;
+          }
+        }
+      }
+
+      // Check Supabase Auth state
+      if (window.IndexIndiaSupabase) {
+        if (typeof window.IndexIndiaSupabase.onAuthStateChange === "function") {
+          window.IndexIndiaSupabase.onAuthStateChange((event, user) => {
+            setAuthState(user);
+          });
+        } else if (typeof window.IndexIndiaSupabase.getUser === "function") {
+          setAuthState(window.IndexIndiaSupabase.getUser());
         }
       }
 
@@ -679,13 +642,15 @@
         const card = document.createElement("div");
         card.className = "radar-item-card";
         card.setAttribute("data-proposal-id", data.id);
+        
+        // Clean card without top status badges
+        const previewTitle = data.classification || "Community Suggestion";
         card.innerHTML = `
           <div class="radar-item-main">
-            <span class="radar-status-tag tag-under-review font-mono">COMMUNITY PITCH &bull; NEW</span>
-            <h4 class="radar-item-title">${escapeHTML(data.title)}</h4>
+            <h4 class="radar-item-title">${escapeHTML(previewTitle)}</h4>
             <p class="radar-item-desc">${escapeHTML(data.description)}</p>
             <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); margin-top: 6px;">
-              MODULE: ${escapeHTML(data.targetModule)} &bull; SUBMITTED BY: ${escapeHTML(data.handle)} &bull; ${new Date(data.createdAt).toLocaleDateString()}
+              CATEGORY: ${escapeHTML(data.classification)} &bull; SUBMITTED BY: ${escapeHTML(data.email)} &bull; ${new Date(data.createdAt).toLocaleDateString()}
             </div>
           </div>
           <div class="radar-vote-col">
@@ -733,31 +698,35 @@
       if (form) {
         form.addEventListener("submit", (e) => {
           e.preventDefault();
+
+          // Get email from session or input
+          const emailInput = document.getElementById("submitter-email");
+          const userEmail = (currentUser && currentUser.email) ? currentUser.email : emailInput?.value?.trim();
+
+          if (!userEmail) {
+            if (emailInput) {
+              emailInput.focus();
+              emailInput.reportValidity();
+            }
+            return;
+          }
+
           submitBtn.disabled = true;
           submitBtn.textContent = "Publishing to Radar...";
 
           const randNum = Math.floor(1000 + Math.random() * 9000);
           const proposalId = `PROP-RADAR-${randNum}`;
 
-          const type = form.querySelector('input[name="proposal_type"]:checked')?.value || "feature";
-          const title = document.getElementById("proposal-title")?.value || "";
-          const targetModule = document.getElementById("target-section")?.value || "General";
+          const category = form.querySelector('input[name="proposal_type"]:checked')?.value || "General Feedback";
           const description = document.getElementById("proposal-description")?.value || "";
-          const refUrl = document.getElementById("reference-url")?.value || "";
-          const impact = document.getElementById("proposal-impact")?.value || "valuable";
-          const email = document.getElementById("submitter-email")?.value || "";
-          const handle = document.getElementById("submitter-name")?.value || "Community Contributor";
+          const targetAdminEmail = "dhaumyakumar27@gmail.com";
+          const emailSubject = `[INDEXINDIA FEEDBACK] - ${category}`;
 
           const proposalPayload = {
             id: proposalId,
-            type,
-            title,
-            targetModule,
+            classification: category,
             description,
-            refUrl,
-            impact,
-            email,
-            handle,
+            email: userEmail,
             votes: 1,
             createdAt: new Date().toISOString()
           };
@@ -772,21 +741,16 @@
           }
 
           // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit AJAX
-          const targetAdminEmail = "dhaumyakumar27@gmail.com";
           try {
             const emailFormData = new FormData();
-            emailFormData.append("_subject", `[IndexIndia Feedback] ${proposalId}: ${title}`);
-            emailFormData.append("_replyto", email);
+            emailFormData.append("_subject", emailSubject);
+            emailFormData.append("_replyto", userEmail);
             emailFormData.append("_template", "table");
+            emailFormData.append("Stamp", "[INDEXINDIA FEEDBACK]");
             emailFormData.append("Proposal ID", proposalId);
-            emailFormData.append("Classification", type);
-            emailFormData.append("Title", title);
-            emailFormData.append("Target Module", targetModule);
-            emailFormData.append("Estimated Impact", impact);
-            emailFormData.append("Submitter Email", email);
-            emailFormData.append("Submitter Handle", handle);
-            emailFormData.append("Reference Link", refUrl);
-            emailFormData.append("Specifications & Rationale", description);
+            emailFormData.append("Classification", category);
+            emailFormData.append("Submitter Email", userEmail);
+            emailFormData.append("Feedback & Suggestions", description);
 
             fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
               method: "POST",
@@ -806,14 +770,10 @@
               body: JSON.stringify({
                 type: "feedback_proposal",
                 proposalId,
-                proposal_type: type,
-                title,
-                targetModule,
-                impact,
-                refUrl,
-                description,
-                email,
-                handle
+                category,
+                subject: emailSubject,
+                email: userEmail,
+                description
               })
             }).catch(e => console.warn("Worker dispatch notice:", e));
           }
@@ -821,9 +781,8 @@
           // 3. Prepare direct mailto link for client-side fallback
           const mailtoBtn = document.getElementById("feedback-direct-mailto-link");
           if (mailtoBtn) {
-            const mailtoSubject = encodeURIComponent(`[IndexIndia Feedback] ${proposalId}: ${title}`);
-            const mailtoBody = encodeURIComponent(`Proposal ID: ${proposalId}\nType: ${type}\nModule: ${targetModule}\nImpact: ${impact}\nSubmitter: ${handle} (${email})\nReference Link: ${refUrl}\n\nDescription & Analytical Value:\n${description}`);
-            mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${mailtoSubject}&body=${mailtoBody}`;
+            const mailtoBody = encodeURIComponent(`Reference: ${proposalId}\nClassification: ${category}\nFrom: ${userEmail}\n\nFeedback & Suggestions:\n${description}`);
+            mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${encodeURIComponent(emailSubject)}&body=${mailtoBody}`;
           }
 
           setTimeout(() => {
@@ -834,8 +793,10 @@
               confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
             }
             form.reset();
+            // Restore auth state on form reset
+            if (currentUser) setAuthState(currentUser);
             submitBtn.disabled = false;
-            submitBtn.textContent = "SUBMIT PROPOSAL TO RADAR →";
+            submitBtn.textContent = "SUBMIT FEEDBACK →";
           }, 350);
         });
       }

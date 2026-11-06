@@ -327,29 +327,11 @@
 
       <!-- Header Section -->
       <section class="dossier-header-section">
-        <span class="dossier-kicker">[OPERATIONS DISPATCH &bull; INCIDENT TRIAGE]</span>
         <h1 class="dossier-title">Contact Us &amp; Technical Issue Triage</h1>
         <p class="dossier-subtitle">
-          Encountering data discrepancies, MCA V3 pipeline anomalies, calculation deviations, UPI AutoPay mandate blocks, or terminal UI glitches? Dispatch an incident report directly to our research and engineering desk for forensic inspection.
+          Encountering data discrepancies, calculation deviations, UPI AutoPay issues, or terminal UI glitches? Submit your error report below for rapid technical inspection.
         </p>
       </section>
-
-      <!-- Live Telemetry Status Bar -->
-      <div class="telemetry-strip" role="status">
-        <div class="telemetry-item">
-          <span class="telemetry-dot"></span>
-          <span>OPERATIONS DESK: <strong>ONLINE &bull; RAPID DISPATCH</strong></span>
-        </div>
-        <div class="telemetry-item">
-          <span>AVERAGE TRIAGE SLA: <strong>&lt; 2.4 HOURS</strong></span>
-        </div>
-        <div class="telemetry-item">
-          <span>ENCRYPTION: <strong>TLS 1.3 &bull; SHA-256 VERIFIED</strong></span>
-        </div>
-        <div class="telemetry-item">
-          <span>DIRECT DISPATCH: <strong>ops@indexindia.internal</strong></span>
-        </div>
-      </div>
 
       <!-- Success Confirmation Card -->
       <div class="confirmation-card" id="issue-confirmation-card" role="alert">
@@ -361,7 +343,7 @@
           <span>INCIDENT REPORT DISPATCHED TO OPERATIONS</span>
         </div>
         <div class="confirmation-body">
-          Your technical incident report has been securely registered on the forensic triage queue and dispatched to <strong>dhaumyakumar27@gmail.com</strong>. Our engineering desk has received your diagnostics telemetry and will review the reproduction steps.
+          Your technical error report has been securely registered and dispatched to <strong>dhaumyakumar27@gmail.com</strong>. Our engineering desk will review the reproduction details.
           <br>
           <span class="confirmation-reference" id="ticket-id-display">INC-2026-TICKET</span>
           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
@@ -382,169 +364,89 @@
           <!-- Category Selector -->
           <div class="form-field-group">
             <label class="field-label">
-              <span>1. ISSUE CLASSIFICATION <span class="required-mark">*</span></span>
-              <span class="field-hint">Select the primary system component affected</span>
+              <span>PROBLEM CLASSIFICATION <span class="required-mark">*</span></span>
+              <span class="field-hint">Select the category that matches your issue</span>
             </label>
             <div class="pill-selector-row">
               <label class="pill-option">
-                <input type="radio" name="issue_category" value="data_discrepancy" checked>
+                <input type="radio" name="issue_category" value="Data / Formula Discrepancy" checked>
                 <span class="pill-label">📊 Data / Formula Discrepancy</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="issue_category" value="terminal_ui_glitch">
+                <input type="radio" name="issue_category" value="Terminal / UI Glitch">
                 <span class="pill-label">🖥️ Terminal / UI Glitch</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="issue_category" value="auth_account_access">
+                <input type="radio" name="issue_category" value="Auth & Account Access">
                 <span class="pill-label">🔐 Auth &amp; Account Access</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="issue_category" value="billing_autopay">
-                <span class="pill-label">💳 UPI AutoPay / Gateway</span>
+                <input type="radio" name="issue_category" value="Billing / Payment / UPI AutoPay">
+                <span class="pill-label">💳 Billing &amp; UPI AutoPay</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="issue_category" value="gemini_ai_telemetry">
+                <input type="radio" name="issue_category" value="Gemini AI Doubt Solver">
                 <span class="pill-label">✨ Gemini AI Doubt Solver</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="issue_category" value="general_operational">
-                <span class="pill-label">⚙️ General Technical Issue</span>
+                <input type="radio" name="issue_category" value="General Technical Issue">
+                <span class="pill-label">⚙️ Other / General Issue</span>
               </label>
             </div>
           </div>
 
-          <!-- Severity Selector -->
-          <div class="form-field-group">
-            <label class="field-label">
-              <span>2. INCIDENT SEVERITY LEVEL <span class="required-mark">*</span></span>
-              <span class="field-hint">Defines engineering response priority</span>
-            </label>
-            <div class="pill-selector-row">
-              <label class="pill-option">
-                <input type="radio" name="severity_level" value="low">
-                <span class="pill-label">🟢 Low (Cosmetic / Minor Typo)</span>
+          <!-- Dynamic Auth State / Email Section -->
+          <div id="auth-state-container">
+            <div class="auth-status-banner logged-in" id="auth-logged-in-banner" style="display: none;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <div>
+                <span class="auth-badge-label">LOGGED IN ACCOUNT</span>
+                <span class="auth-badge-email" id="auth-user-email">analyst@indexindia</span>
+              </div>
+            </div>
+
+            <div class="form-field-group" id="guest-email-group">
+              <label class="field-label" for="reporter-email">
+                <span>YOUR EMAIL ADDRESS <span class="required-mark">*</span></span>
+                <span class="field-hint">Required so our desk can get back to you</span>
               </label>
-              <label class="pill-option">
-                <input type="radio" name="severity_level" value="medium" checked>
-                <span class="pill-label">🟡 Medium (Non-blocking Operational)</span>
-              </label>
-              <label class="pill-option">
-                <input type="radio" name="severity_level" value="high">
-                <span class="pill-label">🟠 High (Impaired Analysis / Data Anomaly)</span>
-              </label>
-              <label class="pill-option">
-                <input type="radio" name="severity_level" value="critical">
-                <span class="pill-label">🔴 Critical (Total Blocker / Payment Glitch)</span>
-              </label>
+              <input type="email" class="field-input font-mono" id="reporter-email"
+                placeholder="you@example.com" />
             </div>
           </div>
 
-          <!-- Grid: Subject & Target URL -->
-          <div class="form-grid-2">
-            <div class="form-field-group">
-              <label class="field-label" for="issue-subject">
-                <span>3. INCIDENT SUMMARY / SUBJECT <span class="required-mark">*</span></span>
-              </label>
-              <input type="text" class="field-input font-mono" id="issue-subject" required
-                placeholder="e.g. Sector weight discrepancy in Chapter 2 Matrix table" maxlength="150" />
-            </div>
-
-            <div class="form-field-group">
-              <label class="field-label" for="affected-page">
-                <span>4. AFFECTED SECTION / URL PATH</span>
-              </label>
-              <input type="text" class="field-input font-mono" id="affected-page"
-                placeholder="e.g. guide.html#sec-weights or index.html" />
-            </div>
-          </div>
-
-          <!-- Detailed Description & Steps -->
+          <!-- Error Report Section with Organized Formatting Suggestions -->
           <div class="form-field-group">
             <label class="field-label" for="issue-description">
-              <span>5. DETAILED STEPS TO REPRODUCE &amp; ERROR SYMPTOMS <span class="required-mark">*</span></span>
-              <span class="field-hint font-mono">Include expected vs actual behaviour</span>
+              <span>ERROR REPORT <span class="required-mark">*</span></span>
             </label>
-            <textarea class="field-textarea" id="issue-description" required rows="6"
-              placeholder="1. Navigated to Guide page...
-2. Clicked on Rebalancing Rules tab...
-3. Observed table calculation fails to update when changing filter...
-4. Error message seen in console (if any): ..."></textarea>
-          </div>
-
-          <!-- Grid: User Email & Identity Handle -->
-          <div class="form-grid-2">
-            <div class="form-field-group">
-              <label class="field-label" for="reporter-email">
-                <span>6. CONTACT DISPATCH EMAIL <span class="required-mark">*</span></span>
-                <span class="field-hint">Where resolution updates will be sent</span>
-              </label>
-              <input type="email" class="field-input font-mono" id="reporter-email" required
-                placeholder="analyst@firm.com" />
+            <div class="error-format-hints">
+              <span class="hint-title">Tips for rapid resolution:</span>
+              <span>1. Describe what went wrong</span> &bull; 
+              <span>2. Paste any error message, code, or console output</span> &bull; 
+              <span>3. Specify where it happened</span>
             </div>
-
-            <div class="form-field-group">
-              <label class="field-label" for="reporter-handle">
-                <span>7. TERMINAL HANDLE / NAME (OPTIONAL)</span>
-              </label>
-              <input type="text" class="field-input font-mono" id="reporter-handle"
-                placeholder="e.g. ANON_RESEARCHER or Analyst Name" />
-            </div>
-          </div>
-
-          <!-- Auto-detected Telemetry Strip -->
-          <div class="form-field-group">
-            <label class="field-label">
-              <span>8. SYSTEM TELEMETRY (AUTO-ATTACHED FOR RAPID TRIAGE)</span>
-            </label>
-            <div class="diagnostics-box" id="client-telemetry-box">
-              <span class="diag-item">OS / PLATFORM: <strong id="diag-os">Detecting...</strong></span>
-              <span class="diag-item">VIEWPORT: <strong id="diag-viewport">Detecting...</strong></span>
-              <span class="diag-item">TIMESTAMP: <strong id="diag-timestamp">UTC</strong></span>
-              <span class="diag-item">RENDER MODE: <strong id="diag-theme">Light</strong></span>
-            </div>
+            <textarea class="field-textarea" id="issue-description" required rows="7"
+              placeholder="1. What went wrong:
+2. Error message or code (if any):
+3. Where / what were you doing:"></textarea>
           </div>
 
           <!-- Action Row -->
           <div class="form-submit-row">
-            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-tertiary);">
-              🔒 Protected by forensic audit trail &bull; No sensitive cookies collected
-            </div>
+            <div></div>
             <div style="display:flex; gap:12px; align-items:center;">
-              <button type="reset" class="btn-institutional-secondary" id="btn-reset-form">CLEAR FORM</button>
+              <button type="reset" class="btn-institutional-secondary" id="btn-reset-form">CLEAR</button>
               <button type="submit" class="btn-institutional-primary" id="btn-submit-issue">
-                <span>DISPATCH INCIDENT REPORT &rarr;</span>
+                <span>DISPATCH ERROR REPORT &rarr;</span>
               </button>
             </div>
           </div>
 
         </form>
-      </div>
-
-      <!-- Institutional Contact Desks Grid -->
-      <h3 style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 16px; color: var(--text-primary);">
-        [INSTITUTIONAL DESK CHANNELS &bull; DIRECT ROUTING]
-      </h3>
-      <div class="contact-info-grid">
-        <div class="contact-info-card">
-          <div class="info-card-badge">[DESK 01 &bull; ENGINEERING]</div>
-          <div class="info-card-title">Technical Operations &amp; Bugs</div>
-          <div class="info-card-desc">For critical terminal exceptions, Cloudflare worker sync latency, or algorithmic rendering errors.</div>
-          <a href="mailto:ops@indexindia.internal" class="info-card-link">ops@indexindia.internal &rarr;</a>
-        </div>
-
-        <div class="contact-info-card">
-          <div class="info-card-badge">[DESK 02 &bull; COMPLIANCE]</div>
-          <div class="info-card-title">Regulatory &amp; Statutory Counsel</div>
-          <div class="info-card-desc">For SEBI non-advisory inquiries, CARO 2020 verification parameters, or institutional clearance covenants.</div>
-          <a href="statutory-privacy.html" class="info-card-link">View Statutory Dossier &rarr;</a>
-        </div>
-
-        <div class="contact-info-card">
-          <div class="info-card-badge">[DESK 03 &bull; SETTLEMENT]</div>
-          <div class="info-card-title">Billing &amp; UPI AutoPay Mandates</div>
-          <div class="info-card-desc">Immediate settlement verification, Razorpay e-mandate cancellations, or corporate invoicing.</div>
-          <a href="membership.html" class="info-card-link">Membership Console &rarr;</a>
-        </div>
       </div>
 
       <!-- Mandatory Institutional Footer -->
@@ -581,25 +483,41 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Auto-detect client telemetry
-      const diagOs = document.getElementById("diag-os");
-      const diagViewport = document.getElementById("diag-viewport");
-      const diagTimestamp = document.getElementById("diag-timestamp");
-      const diagTheme = document.getElementById("diag-theme");
+      let currentUser = null;
 
-      if (diagOs) diagOs.textContent = navigator.userAgentData?.platform || navigator.platform || "Unix/Linux";
-      if (diagViewport) diagViewport.textContent = `${window.innerWidth} x ${window.innerHeight} px`;
-      if (diagTimestamp) diagTimestamp.textContent = new Date().toISOString();
-      if (diagTheme) diagTheme.textContent = document.body.classList.contains("theme-dark") ? "Terminal Noir (Dark)" : "Institutional Crisp (Light)";
+      // Handle user authentication detection
+      function setAuthState(user) {
+        currentUser = user;
+        const loggedInBanner = document.getElementById("auth-logged-in-banner");
+        const guestEmailGroup = document.getElementById("guest-email-group");
+        const userEmailSpan = document.getElementById("auth-user-email");
+        const emailInput = document.getElementById("reporter-email");
 
-      // Pre-fill user email if authenticated via Supabase
-      if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.getUser === "function") {
-        const user = window.IndexIndiaSupabase.getUser();
         if (user && user.email) {
-          const emailInput = document.getElementById("reporter-email");
-          if (emailInput && !emailInput.value) emailInput.value = user.email;
-          const handleInput = document.getElementById("reporter-handle");
-          if (handleInput && !handleInput.value) handleInput.value = user.email.split("@")[0];
+          if (loggedInBanner) loggedInBanner.style.display = "flex";
+          if (userEmailSpan) userEmailSpan.textContent = user.email;
+          if (guestEmailGroup) guestEmailGroup.style.display = "none";
+          if (emailInput) {
+            emailInput.value = user.email;
+            emailInput.required = false;
+          }
+        } else {
+          if (loggedInBanner) loggedInBanner.style.display = "none";
+          if (guestEmailGroup) guestEmailGroup.style.display = "flex";
+          if (emailInput) {
+            emailInput.required = true;
+          }
+        }
+      }
+
+      // Check Supabase Auth state
+      if (window.IndexIndiaSupabase) {
+        if (typeof window.IndexIndiaSupabase.onAuthStateChange === "function") {
+          window.IndexIndiaSupabase.onAuthStateChange((event, user) => {
+            setAuthState(user);
+          });
+        } else if (typeof window.IndexIndiaSupabase.getUser === "function") {
+          setAuthState(window.IndexIndiaSupabase.getUser());
         }
       }
 
@@ -612,36 +530,42 @@
       if (form) {
         form.addEventListener("submit", (e) => {
           e.preventDefault();
+
+          // Get email from session or input
+          const emailInput = document.getElementById("reporter-email");
+          const userEmail = (currentUser && currentUser.email) ? currentUser.email : emailInput?.value?.trim();
+
+          if (!userEmail) {
+            if (emailInput) {
+              emailInput.focus();
+              emailInput.reportValidity();
+            }
+            return;
+          }
+
           submitBtn.disabled = true;
           submitBtn.textContent = "Dispatched...";
 
-          // Generate cryptographic incident ticket ID
+          // Generate clean reference ID
           const randHex = Math.random().toString(36).substring(2, 7).toUpperCase();
           const timestampNum = Date.now().toString().slice(-4);
           const ticketId = `INC-IND-${timestampNum}-${randHex}`;
 
-          const category = form.querySelector('input[name="issue_category"]:checked')?.value || "general";
-          const severity = form.querySelector('input[name="severity_level"]:checked')?.value || "medium";
-          const subject = document.getElementById("issue-subject")?.value || "";
-          const page = document.getElementById("affected-page")?.value || window.location.pathname;
+          const category = form.querySelector('input[name="issue_category"]:checked')?.value || "General Technical Issue";
           const description = document.getElementById("issue-description")?.value || "";
-          const email = document.getElementById("reporter-email")?.value || "";
-          const handle = document.getElementById("reporter-handle")?.value || "ANON";
+          const targetAdminEmail = "dhaumyakumar27@gmail.com";
+          const emailSubject = `[INDEXINDIA CONTACT US] - ${category}`;
 
           const ticketPayload = {
             id: ticketId,
             category,
-            severity,
-            subject,
-            page,
+            email: userEmail,
             description,
-            email,
-            handle,
-            status: "TRIAGED",
+            status: "SUBMITTED",
             createdAt: new Date().toISOString()
           };
 
-          // Save to local tickets store
+          // Save locally
           try {
             const existing = JSON.parse(localStorage.getItem("indexindia_reported_issues") || "[]");
             existing.unshift(ticketPayload);
@@ -651,21 +575,16 @@
           }
 
           // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit AJAX
-          const targetAdminEmail = "dhaumyakumar27@gmail.com";
           try {
             const emailFormData = new FormData();
-            emailFormData.append("_subject", `[IndexIndia Issue] ${ticketId}: ${subject}`);
-            emailFormData.append("_replyto", email);
+            emailFormData.append("_subject", emailSubject);
+            emailFormData.append("_replyto", userEmail);
             emailFormData.append("_template", "table");
+            emailFormData.append("Stamp", "[INDEXINDIA CONTACT US]");
             emailFormData.append("Incident ID", ticketId);
             emailFormData.append("Classification", category);
-            emailFormData.append("Severity", severity);
-            emailFormData.append("Subject", subject);
-            emailFormData.append("Affected Page", page);
-            emailFormData.append("Reporter Email", email);
-            emailFormData.append("Reporter Handle", handle);
-            emailFormData.append("Description", description);
-            emailFormData.append("Client Telemetry", `${diagOs?.textContent || ""} | ${diagViewport?.textContent || ""} | ${diagTheme?.textContent || ""}`);
+            emailFormData.append("User Email", userEmail);
+            emailFormData.append("Error Report", description);
 
             fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
               method: "POST",
@@ -686,12 +605,9 @@
                 type: "contact_issue",
                 ticketId,
                 category,
-                severity,
-                subject,
-                page,
-                description,
-                email,
-                handle
+                subject: emailSubject,
+                email: userEmail,
+                description
               })
             }).catch(e => console.warn("Worker dispatch notice:", e));
           }
@@ -699,20 +615,21 @@
           // 3. Prepare direct mailto link for client-side fallback
           const mailtoBtn = document.getElementById("issue-direct-mailto-link");
           if (mailtoBtn) {
-            const mailtoSubject = encodeURIComponent(`[IndexIndia Issue] ${ticketId}: ${subject}`);
-            const mailtoBody = encodeURIComponent(`Incident ID: ${ticketId}\nCategory: ${category}\nSeverity: ${severity}\nAffected URL: ${page}\nReporter: ${handle} (${email})\n\nDescription:\n${description}\n\nClient Telemetry:\n${diagOs?.textContent || ""} | ${diagViewport?.textContent || ""}`);
-            mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${mailtoSubject}&body=${mailtoBody}`;
+            const mailtoBody = encodeURIComponent(`Reference: ${ticketId}\nClassification: ${category}\nFrom: ${userEmail}\n\nError Report:\n${description}`);
+            mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${encodeURIComponent(emailSubject)}&body=${mailtoBody}`;
           }
 
           setTimeout(() => {
-            if (ticketDisplay) ticketDisplay.textContent = `TICKET REFERENCE: ${ticketId} [STATUS: DISPATCHED TO ${targetAdminEmail}]`;
+            if (ticketDisplay) ticketDisplay.textContent = `TICKET REFERENCE: ${ticketId} [DISPATCHED TO ${targetAdminEmail}]`;
             if (confirmCard) {
               confirmCard.classList.add("is-visible");
               confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
             }
             form.reset();
+            // Restore auth state on form reset
+            if (currentUser) setAuthState(currentUser);
             submitBtn.disabled = false;
-            submitBtn.textContent = "DISPATCH INCIDENT REPORT →";
+            submitBtn.textContent = "DISPATCH ERROR REPORT →";
           }, 350);
         });
       }

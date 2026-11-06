@@ -62,10 +62,12 @@ export default {
         const body = await request.json().catch(() => ({}));
         const targetEmail = "dhaumyakumar27@gmail.com";
         const inquiryType = body.type || "contact_issue";
-        const subject = body.subject || body.title || "IndexIndia Inquiry";
+        const inquiryStamp = inquiryType === "contact_issue" ? "[INDEXINDIA CONTACT US]" : "[INDEXINDIA FEEDBACK]";
         const referenceId = body.ticketId || body.proposalId || ("REF-" + Date.now().toString().slice(-6));
         const userEmail = body.email || "anonymous@indexindia.internal";
-        const userHandle = body.handle || "Anonymous Analyst";
+        const userHandle = body.handle || userEmail.split("@")[0] || "User";
+        const category = body.category || body.proposal_type || "General";
+        const subject = body.subject || `${inquiryStamp} - ${category} [${referenceId}]`;
         const description = body.description || "(No description provided)";
 
         // 1. Dispatch via Mailchannels if available in Cloudflare Workers
@@ -85,29 +87,26 @@ export default {
                 email: userEmail,
                 name: userHandle
               },
-              subject: `[IndexIndia ${inquiryType === "contact_issue" ? "Issue Report" : "Feedback Proposal"}] ${referenceId}: ${subject}`,
+              subject: subject,
               content: [{
                 type: "text/html",
                 value: `
                   <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 24px; background: #FAFAFA; border: 1.5px solid #121212; border-radius: 6px;">
                     <div style="border-bottom: 2px solid #FF3B00; padding-bottom: 12px; margin-bottom: 16px;">
-                      <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: #FF3B00;">[INDEXINDIA &bull; ${inquiryType.toUpperCase()} DISPATCH]</span>
-                      <h2 style="margin: 6px 0 0; color: #0A0A0A; font-size: 20px;">${subject}</h2>
+                      <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: #FF3B00;">${inquiryStamp}</span>
+                      <h2 style="margin: 6px 0 0; color: #0A0A0A; font-size: 18px;">${category}</h2>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family: monospace; margin-bottom: 18px;">
                       <tr><td style="padding: 6px 0; color: #737373;">Reference ID:</td><td style="padding: 6px 0; font-weight: bold; color: #0A0A0A;">${referenceId}</td></tr>
-                      <tr><td style="padding: 6px 0; color: #737373;">Classification:</td><td style="padding: 6px 0; color: #0A0A0A;">${body.category || body.proposal_type || "N/A"}</td></tr>
-                      <tr><td style="padding: 6px 0; color: #737373;">Severity / Impact:</td><td style="padding: 6px 0; color: #0A0A0A;">${body.severity || body.impact || "N/A"}</td></tr>
-                      <tr><td style="padding: 6px 0; color: #737373;">Submitter Email:</td><td style="padding: 6px 0; color: #0A0A0A;"><a href="mailto:${userEmail}">${userEmail}</a></td></tr>
-                      <tr><td style="padding: 6px 0; color: #737373;">Submitter Handle:</td><td style="padding: 6px 0; color: #0A0A0A;">${userHandle}</td></tr>
-                      <tr><td style="padding: 6px 0; color: #737373;">URL / Module:</td><td style="padding: 6px 0; color: #0A0A0A;">${body.page || body.targetModule || "N/A"}</td></tr>
+                      <tr><td style="padding: 6px 0; color: #737373;">Classification:</td><td style="padding: 6px 0; font-weight: bold; color: #0A0A0A;">${category}</td></tr>
+                      <tr><td style="padding: 6px 0; color: #737373;">User Email:</td><td style="padding: 6px 0; color: #0A0A0A;"><a href="mailto:${userEmail}">${userEmail}</a></td></tr>
                     </table>
                     <div style="background: #FFFFFF; border: 1px solid #E2E2E5; border-radius: 4px; padding: 16px; margin-bottom: 16px;">
-                      <div style="font-family: monospace; font-size: 11px; font-weight: bold; color: #737373; margin-bottom: 8px;">SUBMISSION DETAILS:</div>
+                      <div style="font-family: monospace; font-size: 11px; font-weight: bold; color: #737373; margin-bottom: 8px;">SUBMISSION CONTENT:</div>
                       <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #0A0A0A; white-space: pre-wrap;">${description}</p>
                     </div>
                     <div style="font-size: 11px; font-family: monospace; color: #737373; border-top: 1px dashed #E2E2E5; padding-top: 12px;">
-                      Routed securely to ${targetEmail} via IndexIndia Operations Cloudflare Gateway &bull; ${new Date().toISOString()}
+                      Dispatched securely to ${targetEmail} via IndexIndia Operations &bull; ${new Date().toISOString()}
                     </div>
                   </div>
                 `
