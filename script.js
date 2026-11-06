@@ -1725,6 +1725,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= SMOOTH DELAYLESS KEYBOARD SCROLLING ENGINE =================
   // Continuous 60fps/120fps motion with ZERO repeat delay when holding arrow keys.
+  // Supports vertical (Up/Down) and horizontal (Left/Right) smooth scrolling.
   // Uses integer pixel rounding (Math.trunc) to eliminate subpixel font rasterization jumping.
   let smoothScrollRaf = null;
   let activeArrowDirection = 0; // +1 = down, -1 = up, 0 = idle
@@ -1733,6 +1734,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let isFastScroll = false;
   let lastFrameTime = 0;
   let subPixelAccumulator = 0;
+
+  let activeHorizontalDirection = 0; // +1 = right, -1 = left, 0 = idle
+  let smoothHorizontalVelocity = 0;
+  let isHorizontalHeld = false;
+  let isFastHorizontalScroll = false;
+  let subPixelHorizontalAccumulator = 0;
 
   const NORMAL_CRUISE_SPEED = 9.5; // pixels per frame at 60fps (~570px/sec cruising speed)
   const NORMAL_TAP_VELOCITY = 3.8; // gentle initial impulse on tap (~26-30px total displacement)
@@ -1748,11 +1755,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function cancelSmoothScrollImmediately() {
     isArrowHeld = false;
+    isHorizontalHeld = false;
     isFastScroll = false;
+    isFastHorizontalScroll = false;
     isShiftHeld = false;
     smoothVelocity = 0;
+    smoothHorizontalVelocity = 0;
     activeArrowDirection = 0;
+    activeHorizontalDirection = 0;
     subPixelAccumulator = 0;
+    subPixelHorizontalAccumulator = 0;
     if (smoothScrollRaf) {
       cancelAnimationFrame(smoothScrollRaf);
       smoothScrollRaf = null;
@@ -1765,36 +1777,89 @@ document.addEventListener("DOMContentLoaded", () => {
     lastFrameTime = timestamp;
     const timeScale = elapsed / 16.667; // Normalized to 60fps
 
-    const isAccelerated = Boolean(isFastScroll || isShiftHeld);
-    const targetMax = isAccelerated ? FAST_CRUISE_SPEED : NORMAL_CRUISE_SPEED;
-    const targetAccel = isAccelerated ? FAST_ACCEL : NORMAL_ACCEL;
+    // Vertical physics
+    const isAcceleratedV = Boolean(isFastScroll || isShiftHeld);
+    const targetMaxV = isAcceleratedV ? FAST_CRUISE_SPEED : NORMAL_CRUISE_SPEED;
+    const targetAccelV = isAcceleratedV ? FAST_ACCEL : NORMAL_ACCEL;
 
     if (isArrowHeld) {
-      if (smoothVelocity < targetMax) {
-        smoothVelocity = Math.min(targetMax, smoothVelocity + targetAccel * timeScale);
-      } else if (smoothVelocity > targetMax) {
-        smoothVelocity = Math.max(targetMax, smoothVelocity * Math.pow(FRICTION, timeScale));
+      if (smoothVelocity < targetMaxV) {
+        smoothVelocity = Math.min(targetMaxV, smoothVelocity + targetAccelV * timeScale);
+      } else if (smoothVelocity > targetMaxV) {
+        smoothVelocity = Math.max(targetMaxV, smoothVelocity * Math.pow(FRICTION, timeScale));
       }
     } else {
       smoothVelocity *= Math.pow(FRICTION, timeScale);
     }
 
-    if (smoothVelocity > 0.4) {
+    // Horizontal physics
+    const isAcceleratedH = Boolean(isFastHorizontalScroll || isShiftHeld);
+    const targetMaxH = isAcceleratedH ? FAST_CRUISE_SPEED : NORMAL_CRUISE_SPEED;
+    const targetAccelH = isAcceleratedH ? FAST_ACCEL : NORMAL_ACCEL;
+
+    if (isHorizontalHeld) {
+      if (smoothHorizontalVelocity < targetMaxH) {
+        smoothHorizontalVelocity = Math.min(targetMaxH, smoothHorizontalVelocity + targetAccelH * timeScale);
+      } else if (smoothHorizontalVelocity > targetMaxH) {
+        smoothHorizontalVelocity = Math.max(targetMaxH, smoothHorizontalVelocity * Math.pow(FRICTION, timeScale));
+      }
+    } else {
+      smoothHorizontalVelocity *= Math.pow(FRICTION, timeScale);
+    }
+
+    let hasMotion = false;
+
+    // Apply Vertical displacement
+    if (smoothVelocity > 0.4 && activeArrowDirection !== 0) {
+      hasMotion = true;
       subPixelAccumulator += activeArrowDirection * smoothVelocity * timeScale;
-      const intStep = Math.trunc(subPixelAccumulator);
+      const intStepY = Math.trunc(subPixelAccumulator);
 
-      if (intStep !== 0) {
-        subPixelAccumulator -= intStep;
+      if (intStepY !== 0) {
+        subPixelAccumulator -= intStepY;
         const prevScrollY = window.scrollY;
-        window.scrollBy(0, intStep);
+        window.scrollBy(0, intStepY);
 
-        // Stop if at top or bottom boundary
+        // Stop velocity if boundary reached
         if (window.scrollY === prevScrollY) {
-          cancelSmoothScrollImmediately();
-          return;
+          smoothVelocity = 0;
+          if (!isArrowHeld) {
+            activeArrowDirection = 0;
+          }
         }
       }
+    } else if (!isArrowHeld) {
+      smoothVelocity = 0;
+      activeArrowDirection = 0;
+      subPixelAccumulator = 0;
+    }
 
+    // Apply Horizontal displacement
+    if (smoothHorizontalVelocity > 0.4 && activeHorizontalDirection !== 0) {
+      hasMotion = true;
+      subPixelHorizontalAccumulator += activeHorizontalDirection * smoothHorizontalVelocity * timeScale;
+      const intStepX = Math.trunc(subPixelHorizontalAccumulator);
+
+      if (intStepX !== 0) {
+        subPixelHorizontalAccumulator -= intStepX;
+        const prevScrollX = window.scrollX;
+        window.scrollBy(intStepX, 0);
+
+        // Stop velocity if boundary reached
+        if (window.scrollX === prevScrollX) {
+          smoothHorizontalVelocity = 0;
+          if (!isHorizontalHeld) {
+            activeHorizontalDirection = 0;
+          }
+        }
+      }
+    } else if (!isHorizontalHeld) {
+      smoothHorizontalVelocity = 0;
+      activeHorizontalDirection = 0;
+      subPixelHorizontalAccumulator = 0;
+    }
+
+    if (hasMotion || isArrowHeld || isHorizontalHeld) {
       smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
     } else {
       cancelSmoothScrollImmediately();
@@ -1804,7 +1869,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function startSmoothScroll(direction, fast = false) {
     activeArrowDirection = direction;
     isArrowHeld = true;
-    isFastScroll = !!fast;
+    isFastScroll = Boolean(fast || isShiftHeld);
     const initialVelocity = isFastScroll ? FAST_TAP_VELOCITY : NORMAL_TAP_VELOCITY;
     if (smoothVelocity < initialVelocity) {
       smoothVelocity = initialVelocity;
@@ -1818,6 +1883,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function stopSmoothScroll() {
     isArrowHeld = false;
+  }
+
+  function startHorizontalSmoothScroll(direction, fast = false) {
+    activeHorizontalDirection = direction;
+    isHorizontalHeld = true;
+    isFastHorizontalScroll = Boolean(fast || isShiftHeld);
+    const initialVelocity = isFastHorizontalScroll ? FAST_TAP_VELOCITY : NORMAL_TAP_VELOCITY;
+    if (smoothHorizontalVelocity < initialVelocity) {
+      smoothHorizontalVelocity = initialVelocity;
+    }
+    if (!smoothScrollRaf) {
+      lastFrameTime = 0;
+      subPixelHorizontalAccumulator = 0;
+      smoothScrollRaf = requestAnimationFrame(stepSmoothScroll);
+    }
+  }
+
+  function stopHorizontalSmoothScroll() {
+    isHorizontalHeld = false;
+  }
+
+  function snapToMainContentSection() {
+    cancelSmoothScrollImmediately();
+    const mainEl = document.querySelector(".main-viewport-wrapper") ||
+                   document.querySelector(".content-area") ||
+                   document.querySelector("main") ||
+                   document.body;
+    if (!mainEl) {
+      window.scrollTo({ left: 0, behavior: "smooth" });
+      return;
+    }
+    const rect = mainEl.getBoundingClientRect();
+    const docLeft = rect.left + window.scrollX;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+    let leftOffset = 0;
+    if (typeof isTreeCurrentlyOpen === "function" && isTreeCurrentlyOpen() && railNavigator) {
+      leftOffset = railNavigator.offsetWidth || 520;
+    }
+
+    const availableWidth = Math.max(300, viewportWidth - leftOffset);
+    let targetX = 0;
+
+    if (rect.width < availableWidth) {
+      targetX = Math.round(docLeft - leftOffset - (availableWidth - rect.width) / 2);
+    } else {
+      targetX = Math.round(docLeft - leftOffset);
+    }
+
+    targetX = Math.max(0, targetX);
+    window.scrollTo({
+      left: targetX,
+      behavior: "smooth"
+    });
   }
 
   // ==========================================================================
@@ -1919,6 +2038,30 @@ document.addEventListener("DOMContentLoaded", () => {
       metaKey: false,
       display: "Shift + ↑"
     },
+    fastScrollRight: {
+      id: "fastScrollRight",
+      group: "NAVIGATION & SUITE",
+      desc: "Fast Scroll Page Right",
+      key: "ArrowRight",
+      code: "ArrowRight",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: true,
+      metaKey: false,
+      display: "Shift + →"
+    },
+    fastScrollLeft: {
+      id: "fastScrollLeft",
+      group: "NAVIGATION & SUITE",
+      desc: "Fast Scroll Page Left",
+      key: "ArrowLeft",
+      code: "ArrowLeft",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: true,
+      metaKey: false,
+      display: "Shift + ←"
+    },
     scrollDown: {
       id: "scrollDown",
       group: "NAVIGATION & SUITE",
@@ -1942,6 +2085,42 @@ document.addEventListener("DOMContentLoaded", () => {
       shiftKey: false,
       metaKey: false,
       display: "↑"
+    },
+    scrollRight: {
+      id: "scrollRight",
+      group: "NAVIGATION & SUITE",
+      desc: "Scroll Page Smoothly Right",
+      key: "ArrowRight",
+      code: "ArrowRight",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "→"
+    },
+    scrollLeft: {
+      id: "scrollLeft",
+      group: "NAVIGATION & SUITE",
+      desc: "Scroll Page Smoothly Left",
+      key: "ArrowLeft",
+      code: "ArrowLeft",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "←"
+    },
+    snapToMainContent: {
+      id: "snapToMainContent",
+      group: "NAVIGATION & SUITE",
+      desc: "Center Viewport to Main Content",
+      key: "ArrowLeft",
+      code: "ArrowLeft",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      display: "Ctrl + ← / →"
     },
     directoryTree: {
       id: "directoryTree",
@@ -2649,12 +2828,30 @@ document.addEventListener("DOMContentLoaded", () => {
           smoothVelocity = FAST_TAP_VELOCITY;
         }
       }
-    } else if (e.shiftKey && isArrowHeld) {
+      if (isHorizontalHeld) {
+        isFastHorizontalScroll = true;
+        if (smoothHorizontalVelocity < FAST_TAP_VELOCITY) {
+          smoothHorizontalVelocity = FAST_TAP_VELOCITY;
+        }
+      }
+    } else if (e.shiftKey) {
       isShiftHeld = true;
-      isFastScroll = true;
+      if (isArrowHeld) isFastScroll = true;
+      if (isHorizontalHeld) isFastHorizontalScroll = true;
     }
 
-    // 14. Smooth Scroll Down / Up (Normal)
+    // 14. Snap Back to Main Content Section (Ctrl + ArrowLeft or Ctrl + ArrowRight)
+    const isCtrlOnly = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey;
+    if (
+      matchesShortcut(e, activeShortcuts.snapToMainContent) ||
+      (isCtrlOnly && (e.key === "ArrowLeft" || e.key === "ArrowRight"))
+    ) {
+      e.preventDefault();
+      snapToMainContentSection();
+      return;
+    }
+
+    // 15. Smooth Scroll Down / Up / Right / Left (Normal)
     if (matchesShortcut(e, activeShortcuts.scrollDown)) {
       e.preventDefault();
       startSmoothScroll(1, false);
@@ -2665,8 +2862,18 @@ document.addEventListener("DOMContentLoaded", () => {
       startSmoothScroll(-1, false);
       return;
     }
+    if (matchesShortcut(e, activeShortcuts.scrollRight)) {
+      e.preventDefault();
+      startHorizontalSmoothScroll(1, false);
+      return;
+    }
+    if (matchesShortcut(e, activeShortcuts.scrollLeft)) {
+      e.preventDefault();
+      startHorizontalSmoothScroll(-1, false);
+      return;
+    }
 
-    // 15. Fast Scroll Down / Up
+    // 16. Fast Scroll Down / Up / Right / Left (Accelerated)
     if (matchesShortcut(e, activeShortcuts.fastScrollDown)) {
       e.preventDefault();
       startSmoothScroll(1, true);
@@ -2675,6 +2882,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (matchesShortcut(e, activeShortcuts.fastScrollUp)) {
       e.preventDefault();
       startSmoothScroll(-1, true);
+      return;
+    }
+    if (matchesShortcut(e, activeShortcuts.fastScrollRight)) {
+      e.preventDefault();
+      startHorizontalSmoothScroll(1, true);
+      return;
+    }
+    if (matchesShortcut(e, activeShortcuts.fastScrollLeft)) {
+      e.preventDefault();
+      startHorizontalSmoothScroll(-1, true);
       return;
     }
 
@@ -2722,9 +2939,14 @@ document.addEventListener("DOMContentLoaded", () => {
       stopSmoothScroll();
     } else if (e.key === "ArrowUp" && activeArrowDirection === -1) {
       stopSmoothScroll();
+    } else if (e.key === "ArrowRight" && activeHorizontalDirection === 1) {
+      stopHorizontalSmoothScroll();
+    } else if (e.key === "ArrowLeft" && activeHorizontalDirection === -1) {
+      stopHorizontalSmoothScroll();
     } else if (e.key === "Shift") {
       isShiftHeld = false;
       isFastScroll = false;
+      isFastHorizontalScroll = false;
     }
   });
 
@@ -7416,6 +7638,7 @@ INSTRUCTIONS:
     if (selectionTooltip) selectionTooltip.style.display = "none";
     document.querySelectorAll(".user-annotation-stickynote.is-editing").forEach((n) => n.classList.remove("is-editing"));
     document.querySelectorAll(".annotation-selected").forEach((el) => el.classList.remove("annotation-selected"));
+    syncAnnotationCanvasDimensions();
   };
 
   toggleAnnotationPanel = function() {

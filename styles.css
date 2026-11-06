@@ -6023,6 +6023,12 @@ body.is-annotating .section-audit-toggles {
   display: inline-flex;
 }
 
+@media (min-width: 769px) {
+  body.is-annotating {
+    min-width: calc(100vw + 600px);
+  }
+}
+
 .audit-toggle-btn {
   display: inline-flex;
   align-items: center;
