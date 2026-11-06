@@ -5854,8 +5854,53 @@ INSTRUCTIONS:
     activeSize: 4,
     currentFocusIdx: -1,
     activeSticker: { type: "tag", variant: "danger", label: "⚠️ HIGH RISK" },
-    selectedElementIds: new Set()
+    selectedElementIds: new Set(),
+    snapToGrid: localStorage.getItem("indexindia_snap_to_grid") === "true"
   };
+
+  function getGridSize() {
+    const rootStyles = getComputedStyle(document.documentElement);
+    const sizeStr = rootStyles.getPropertyValue("--grid-size").trim();
+    const parsed = parseInt(sizeStr, 10);
+    return isNaN(parsed) || parsed <= 0 ? 24 : parsed;
+  }
+
+  function snapVal(val, size) {
+    if (!annotationState.snapToGrid) return val;
+    const g = size || getGridSize();
+    return Math.round(val / g) * g;
+  }
+
+  function setSnapToGrid(enabled) {
+    annotationState.snapToGrid = Boolean(enabled);
+    try {
+      localStorage.setItem("indexindia_snap_to_grid", annotationState.snapToGrid ? "true" : "false");
+    } catch (e) {}
+
+    const snapBtn = document.getElementById("annotation-btn-snap");
+    if (snapBtn) {
+      snapBtn.classList.toggle("active", annotationState.snapToGrid);
+      snapBtn.setAttribute("aria-pressed", annotationState.snapToGrid ? "true" : "false");
+      const ind = snapBtn.querySelector(".palette-snap-indicator");
+      if (ind) {
+        ind.textContent = annotationState.snapToGrid ? "ON" : "OFF";
+      }
+    }
+
+    document.querySelectorAll(".edit-flyout-snap-toggle, #edit-flyout-snap-toggle").forEach((toggle) => {
+      toggle.checked = annotationState.snapToGrid;
+    });
+
+    if (annotationState.snapToGrid && document.body.classList.contains("no-grid")) {
+      document.body.classList.remove("no-grid");
+      const gridToggle = document.getElementById("grid-toggle");
+      if (gridToggle) gridToggle.checked = true;
+    }
+  }
+
+  function toggleSnapToGrid() {
+    setSnapToGrid(!annotationState.snapToGrid);
+  }
 
   function hexToRgba(hex, alpha) {
     let c = (hex || "#FFE066").replace("#", "");
@@ -6000,6 +6045,13 @@ INSTRUCTIONS:
       </div>
       <span class="palette-sep">|</span>
       <div class="palette-action-group">
+        <button type="button" class="palette-btn ${annotationState.snapToGrid ? 'active' : ''}" id="annotation-btn-snap" title="Snap to Grid (G) — Align sketches &amp; boxes to 24px grid" aria-pressed="${annotationState.snapToGrid}">
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+          </span>
+          <span class="palette-tool-label">Snap</span>
+          <span class="palette-snap-indicator font-mono">${annotationState.snapToGrid ? 'ON' : 'OFF'}</span>
+        </button>
         <button type="button" class="palette-btn" id="annotation-btn-undo" title="Undo Last Annotation (Ctrl+Z)">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
@@ -6059,12 +6111,79 @@ INSTRUCTIONS:
   const annotationCounter = editAnnotationBar.querySelector("#annotation-counter");
   const annotationBtnPrev = editAnnotationBar.querySelector("#annotation-btn-prev");
   const annotationBtnNext = editAnnotationBar.querySelector("#annotation-btn-next");
+  const annotationBtnSnap = editAnnotationBar.querySelector("#annotation-btn-snap");
   const annotationBtnUndo = editAnnotationBar.querySelector("#annotation-btn-undo");
   const annotationBtnClear = editAnnotationBar.querySelector("#annotation-btn-clear");
   const annotationBtnClose = editAnnotationBar.querySelector("#annotation-btn-close");
   const paletteDragHandle = editAnnotationBar.querySelector(".palette-drag-handle");
   const btnQuickHighlight = selectionTooltip?.querySelector("#btn-quick-highlight");
   const btnCloseStickers = stickerPopover.querySelector("#btn-close-stickers");
+
+  if (annotationBtnSnap) {
+    annotationBtnSnap.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleSnapToGrid();
+    });
+  }
+
+  function initEditNavFlyout() {
+    const editWrapper = document.getElementById("edit-nav-wrapper");
+    if (!editWrapper) return;
+    let flyout = editWrapper.querySelector("#edit-flyout-panel");
+    if (!flyout) {
+      flyout = document.createElement("div");
+      flyout.className = "hover-flyout-panel edit-panel";
+      flyout.id = "edit-flyout-panel";
+      flyout.setAttribute("role", "region");
+      flyout.setAttribute("aria-label", "Edit & Annotation Settings");
+      flyout.innerHTML = `
+        <div class="panel-header" style="margin-bottom: 8px;">
+          <div class="panel-user-meta">
+            <span class="user-id">[MARKUP &bull; CANVAS]</span>
+          </div>
+          <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Annotation System Ready">
+            <span class="pulse-dot" style="background: var(--status-optimal);"></span> Ready
+          </div>
+        </div>
+        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 10px; font-family: var(--font-mono); line-height: 1.45;">
+          Pencil sketch, freeform text boxes, sticky notes, and stamps on any section.
+        </div>
+        <div class="panel-divider" style="margin: 6px 0 10px;"></div>
+        <div class="setting-toggle-row" style="margin-bottom: 10px;">
+          <label for="edit-flyout-snap-toggle" style="display: flex; flex-direction: column; cursor: pointer;">
+            <span style="font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+              Snap to Grid
+            </span>
+            <span style="font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-mono); font-weight: normal;">Align sketches &amp; boxes to 24px grid</span>
+          </label>
+          <input type="checkbox" id="edit-flyout-snap-toggle" class="edit-flyout-snap-toggle" ${annotationState.snapToGrid ? "checked" : ""} />
+        </div>
+        <button type="button" class="account-btn-action" id="btn-open-markup-flyout"
+          style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex; width: 100%; border: none; cursor: pointer; padding: 7px 12px; border-radius: 4px; font-size: 0.8rem;">
+          Open Markup Toolbar (Ctrl + ;) &rarr;
+        </button>
+      `;
+      editWrapper.appendChild(flyout);
+    }
+
+    flyout.querySelectorAll(".edit-flyout-snap-toggle, #edit-flyout-snap-toggle").forEach((toggle) => {
+      toggle.checked = annotationState.snapToGrid;
+      toggle.addEventListener("change", (e) => {
+        setSnapToGrid(e.target.checked);
+      });
+    });
+
+    const openBtn = flyout.querySelector("#btn-open-markup-flyout");
+    if (openBtn) {
+      openBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openAnnotationPanel();
+      });
+    }
+  }
+  initEditNavFlyout();
 
   function syncAnnotationCanvasDimensions() {
     if (!annotationSvgCanvas) return;
@@ -6200,8 +6319,12 @@ INSTRUCTIONS:
       if (!isMoving) return;
       const dx = e.pageX - startX;
       const dy = e.pageY - startY;
-      const newL = Math.max(0, initialLeft + dx);
-      const newT = Math.max(0, initialTop + dy);
+      let newL = Math.max(0, initialLeft + dx);
+      let newT = Math.max(0, initialTop + dy);
+      if (annotationState.snapToGrid) {
+        newL = Math.max(0, snapVal(newL));
+        newT = Math.max(0, snapVal(newT));
+      }
       el.style.left = `${newL}px`;
       el.style.top = `${newT}px`;
     });
@@ -6209,8 +6332,16 @@ INSTRUCTIONS:
     const stopMove = () => {
       if (!isMoving) return;
       isMoving = false;
-      tb.left = parseInt(el.style.left, 10);
-      tb.top = parseInt(el.style.top, 10);
+      let finalL = parseInt(el.style.left, 10);
+      let finalT = parseInt(el.style.top, 10);
+      if (annotationState.snapToGrid) {
+        finalL = Math.max(0, snapVal(finalL));
+        finalT = Math.max(0, snapVal(finalT));
+        el.style.left = `${finalL}px`;
+        el.style.top = `${finalT}px`;
+      }
+      tb.left = finalL;
+      tb.top = finalT;
       saveAnnotations();
     };
     header.addEventListener("pointerup", stopMove);
@@ -6231,16 +6362,30 @@ INSTRUCTIONS:
       });
       resizeHandle.addEventListener("pointermove", (e) => {
         if (!isResizing) return;
-        const newW = Math.max(120, rStartW + (e.pageX - rStartX));
-        const newH = Math.max(60, rStartH + (e.pageY - rStartY));
+        let newW = Math.max(120, rStartW + (e.pageX - rStartX));
+        let newH = Math.max(60, rStartH + (e.pageY - rStartY));
+        if (annotationState.snapToGrid) {
+          const g = getGridSize();
+          newW = Math.max(g * 4, snapVal(newW));
+          newH = Math.max(g * 2, snapVal(newH));
+        }
         el.style.width = `${newW}px`;
         el.style.height = `${newH}px`;
       });
       const stopResize = () => {
         if (!isResizing) return;
         isResizing = false;
-        tb.width = el.offsetWidth;
-        tb.height = el.offsetHeight;
+        let finalW = el.offsetWidth;
+        let finalH = el.offsetHeight;
+        if (annotationState.snapToGrid) {
+          const g = getGridSize();
+          finalW = Math.max(g * 4, snapVal(finalW));
+          finalH = Math.max(g * 2, snapVal(finalH));
+          el.style.width = `${finalW}px`;
+          el.style.height = `${finalH}px`;
+        }
+        tb.width = finalW;
+        tb.height = finalH;
         saveAnnotations();
       };
       resizeHandle.addEventListener("pointerup", stopResize);
@@ -6255,8 +6400,15 @@ INSTRUCTIONS:
 
     // Detect resizing via mouseup
     el.addEventListener("mouseup", () => {
-      const curW = el.offsetWidth;
-      const curH = el.offsetHeight;
+      let curW = el.offsetWidth;
+      let curH = el.offsetHeight;
+      if (annotationState.snapToGrid) {
+        const g = getGridSize();
+        curW = Math.max(g * 4, snapVal(curW));
+        curH = Math.max(g * 2, snapVal(curH));
+        el.style.width = `${curW}px`;
+        el.style.height = `${curH}px`;
+      }
       if (curW !== tb.width || curH !== tb.height) {
         tb.width = curW;
         tb.height = curH;
@@ -6334,19 +6486,33 @@ INSTRUCTIONS:
       });
       snResize.addEventListener("pointermove", (e) => {
         if (!isResizingSn) return;
-        const newW = Math.max(200, snStartW + (e.pageX - snStartX));
-        const newH = Math.max(120, snStartH + (e.pageY - snStartY));
+        let newW = Math.max(200, snStartW + (e.pageX - snStartX));
+        let newH = Math.max(120, snStartH + (e.pageY - snStartY));
+        if (annotationState.snapToGrid) {
+          const g = getGridSize();
+          newW = Math.max(g * 6, snapVal(newW));
+          newH = Math.max(g * 4, snapVal(newH));
+        }
         card.style.width = `${newW}px`;
         card.style.height = `${newH}px`;
       });
       const stopSnResize = () => {
         if (!isResizingSn) return;
         isResizingSn = false;
-        sn.width = card.offsetWidth;
-        sn.height = card.offsetHeight;
+        let finalW = card.offsetWidth;
+        let finalH = card.offsetHeight;
+        if (annotationState.snapToGrid) {
+          const g = getGridSize();
+          finalW = Math.max(g * 6, snapVal(finalW));
+          finalH = Math.max(g * 4, snapVal(finalH));
+          card.style.width = `${finalW}px`;
+          card.style.height = `${finalH}px`;
+        }
+        sn.width = finalW;
+        sn.height = finalH;
         try {
-          localStorage.setItem("indexindia_stickynote_width", sn.width);
-          localStorage.setItem("indexindia_stickynote_height", sn.height);
+          localStorage.setItem("indexindia_stickynote_width", finalW);
+          localStorage.setItem("indexindia_stickynote_height", finalH);
         } catch (e) {}
         saveAnnotations();
       };
@@ -6354,8 +6520,15 @@ INSTRUCTIONS:
       snResize.addEventListener("pointercancel", stopSnResize);
 
       card.addEventListener("mouseup", () => {
-        const curW = card.offsetWidth;
-        const curH = card.offsetHeight;
+        let curW = card.offsetWidth;
+        let curH = card.offsetHeight;
+        if (annotationState.snapToGrid) {
+          const g = getGridSize();
+          curW = Math.max(g * 6, snapVal(curW));
+          curH = Math.max(g * 4, snapVal(curH));
+          card.style.width = `${curW}px`;
+          card.style.height = `${curH}px`;
+        }
         if (curW !== sn.width || curH !== sn.height) {
           sn.width = curW;
           sn.height = curH;
@@ -6391,8 +6564,14 @@ INSTRUCTIONS:
         const dy = e.pageY - startY;
         if (Math.hypot(dx, dy) > 4) {
           hasMoved = true;
-          el.style.left = `${Math.max(0, initLeft + dx)}px`;
-          el.style.top = `${Math.max(0, initTop + dy)}px`;
+          let newL = Math.max(0, initLeft + dx);
+          let newT = Math.max(0, initTop + dy);
+          if (annotationState.snapToGrid) {
+            newL = Math.max(0, snapVal(newL));
+            newT = Math.max(0, snapVal(newT));
+          }
+          el.style.left = `${newL}px`;
+          el.style.top = `${newT}px`;
         }
       });
 
@@ -6400,8 +6579,16 @@ INSTRUCTIONS:
         if (!isDragging) return;
         isDragging = false;
         if (hasMoved) {
-          sn.left = parseInt(el.style.left, 10);
-          sn.top = parseInt(el.style.top, 10);
+          let finalL = parseInt(el.style.left, 10);
+          let finalT = parseInt(el.style.top, 10);
+          if (annotationState.snapToGrid) {
+            finalL = Math.max(0, snapVal(finalL));
+            finalT = Math.max(0, snapVal(finalT));
+            el.style.left = `${finalL}px`;
+            el.style.top = `${finalT}px`;
+          }
+          sn.left = finalL;
+          sn.top = finalT;
           saveAnnotations();
         } else if (dragTarget === pin) {
           if (annotationState.activeTool === "eraser") {
@@ -6498,8 +6685,14 @@ INSTRUCTIONS:
       const dy = e.pageY - startY;
       if (Math.hypot(dx, dy) > 4) {
         hasMoved = true;
-        el.style.left = `${Math.max(0, initLeft + dx)}px`;
-        el.style.top = `${Math.max(0, initTop + dy)}px`;
+        let newL = Math.max(0, initLeft + dx);
+        let newT = Math.max(0, initTop + dy);
+        if (annotationState.snapToGrid) {
+          newL = Math.max(0, snapVal(newL));
+          newT = Math.max(0, snapVal(newT));
+        }
+        el.style.left = `${newL}px`;
+        el.style.top = `${newT}px`;
       }
     });
 
@@ -6507,8 +6700,16 @@ INSTRUCTIONS:
       if (!isDragging) return;
       isDragging = false;
       if (hasMoved) {
-        stk.left = parseInt(el.style.left, 10);
-        stk.top = parseInt(el.style.top, 10);
+        let finalL = parseInt(el.style.left, 10);
+        let finalT = parseInt(el.style.top, 10);
+        if (annotationState.snapToGrid) {
+          finalL = Math.max(0, snapVal(finalL));
+          finalT = Math.max(0, snapVal(finalT));
+          el.style.left = `${finalL}px`;
+          el.style.top = `${finalT}px`;
+        }
+        stk.left = finalL;
+        stk.top = finalT;
         saveAnnotations();
       }
     };
@@ -6616,8 +6817,8 @@ INSTRUCTIONS:
       return;
     }
     isBoxDragging = true;
-    boxStartX = e.pageX;
-    boxStartY = e.pageY;
+    boxStartX = snapVal(e.pageX);
+    boxStartY = snapVal(e.pageY);
     if (annotationDragPreview) {
       annotationDragPreview.style.left = `${boxStartX}px`;
       annotationDragPreview.style.top = `${boxStartY}px`;
@@ -6629,10 +6830,12 @@ INSTRUCTIONS:
 
   document.addEventListener("pointermove", (e) => {
     if (!isBoxDragging || !annotationDragPreview) return;
-    const minX = Math.min(boxStartX, e.pageX);
-    const minY = Math.min(boxStartY, e.pageY);
-    const w = Math.abs(e.pageX - boxStartX);
-    const h = Math.abs(e.pageY - boxStartY);
+    const curX = snapVal(e.pageX);
+    const curY = snapVal(e.pageY);
+    const minX = Math.min(boxStartX, curX);
+    const minY = Math.min(boxStartY, curY);
+    const w = Math.abs(curX - boxStartX);
+    const h = Math.abs(curY - boxStartY);
     annotationDragPreview.style.left = `${minX}px`;
     annotationDragPreview.style.top = `${minY}px`;
     annotationDragPreview.style.width = `${w}px`;
@@ -6645,10 +6848,12 @@ INSTRUCTIONS:
     if (annotationDragPreview) {
       annotationDragPreview.style.display = "none";
     }
-    let minX = Math.min(boxStartX, e.pageX);
-    let minY = Math.min(boxStartY, e.pageY);
-    let w = Math.abs(e.pageX - boxStartX);
-    let h = Math.abs(e.pageY - boxStartY);
+    const curX = snapVal(e.pageX);
+    const curY = snapVal(e.pageY);
+    let minX = Math.min(boxStartX, curX);
+    let minY = Math.min(boxStartY, curY);
+    let w = Math.abs(curX - boxStartX);
+    let h = Math.abs(curY - boxStartY);
 
     // If user made a text selection on the page, use the exact selected text area
     const sel = window.getSelection();
@@ -6660,15 +6865,23 @@ INSTRUCTIONS:
       minY = rect.bottom + window.scrollY + 6;
       w = Math.max(160, Math.round(rect.width));
       h = Math.max(70, Math.round(rect.height + 30));
+      if (annotationState.snapToGrid) {
+        const g = getGridSize();
+        minX = snapVal(minX);
+        minY = snapVal(minY);
+        w = Math.max(g * 4, snapVal(w));
+        h = Math.max(g * 2, snapVal(h));
+      }
       initialText = sel.toString().trim();
       sel.removeAllRanges();
     } else {
+      const g = getGridSize();
       if (w < 20 && h < 20) {
-        w = 200;
-        h = 80;
+        w = annotationState.snapToGrid ? g * 9 : 200;
+        h = annotationState.snapToGrid ? g * 3 : 80;
       } else {
-        w = Math.max(120, w);
-        h = Math.max(60, h);
+        w = Math.max(annotationState.snapToGrid ? g * 4 : 120, w);
+        h = Math.max(annotationState.snapToGrid ? g * 2 : 60, h);
       }
     }
 
@@ -6700,8 +6913,8 @@ INSTRUCTIONS:
     if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
       return;
     }
-    const posX = Math.max(10, e.pageX - 14);
-    const posY = Math.max(10, e.pageY - 14);
+    const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 14);
+    const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 14);
     const timeStr = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     const newNote = {
       id: `sn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -6731,8 +6944,8 @@ INSTRUCTIONS:
     if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
       return;
     }
-    const posX = Math.max(10, e.pageX - 20);
-    const posY = Math.max(10, e.pageY - 12);
+    const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 20);
+    const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 12);
     const active = annotationState.activeSticker || { type: "tag", variant: "danger", label: "⚠️ HIGH RISK" };
     const newStk = {
       id: `stk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -6781,9 +6994,16 @@ INSTRUCTIONS:
   let currentStrokePoints = [];
   let currentPathEl = null;
 
-  function pointsToSvgPath(pts) {
+  function pointsToSvgPath(pts, snap = false) {
     if (!pts || pts.length === 0) return "";
     if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y} L ${pts[0].x + 0.1} ${pts[0].y + 0.1}`;
+    if (snap) {
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 1; i < pts.length; i++) {
+        d += ` L ${pts[i].x} ${pts[i].y}`;
+      }
+      return d;
+    }
     let d = `M ${pts[0].x} ${pts[0].y}`;
     for (let i = 1; i < pts.length - 1; i++) {
       const xc = (pts[i].x + pts[i + 1].x) / 2;
@@ -6801,7 +7021,9 @@ INSTRUCTIONS:
       if (e.button !== 0) return;
       isDrawing = true;
       annotationSvgCanvas.setPointerCapture(e.pointerId);
-      currentStrokePoints = [{ x: e.pageX, y: e.pageY }];
+      const startX = snapVal(e.pageX);
+      const startY = snapVal(e.pageY);
+      currentStrokePoints = [{ x: startX, y: startY }];
 
       currentPathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
       currentPathEl.setAttribute("class", "annotation-stroke");
@@ -6811,15 +7033,20 @@ INSTRUCTIONS:
       currentPathEl.setAttribute("fill", "none");
       currentPathEl.setAttribute("stroke-linecap", "round");
       currentPathEl.setAttribute("stroke-linejoin", "round");
-      currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints));
+      currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints, annotationState.snapToGrid));
       annotationSvgCanvas.appendChild(currentPathEl);
       e.preventDefault();
     });
 
     annotationSvgCanvas.addEventListener("pointermove", (e) => {
       if (!isDrawing || !currentPathEl) return;
-      currentStrokePoints.push({ x: e.pageX, y: e.pageY });
-      currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints));
+      const ptX = snapVal(e.pageX);
+      const ptY = snapVal(e.pageY);
+      const lastPt = currentStrokePoints[currentStrokePoints.length - 1];
+      if (!lastPt || lastPt.x !== ptX || lastPt.y !== ptY) {
+        currentStrokePoints.push({ x: ptX, y: ptY });
+        currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints, annotationState.snapToGrid));
+      }
     });
 
     const stopDrawing = () => {
@@ -6833,7 +7060,8 @@ INSTRUCTIONS:
           size: annotationState.activeSize,
           d: currentPathEl.getAttribute("d"),
           y: currentStrokePoints[0].y,
-          points: currentStrokePoints.map((p) => ({ x: p.x, y: p.y }))
+          points: currentStrokePoints.map((p) => ({ x: p.x, y: p.y })),
+          snapped: annotationState.snapToGrid
         };
         annotationsData.strokes.push(strokeObj);
         setupStrokeMoveListener(currentPathEl, strokeObj);
@@ -6870,11 +7098,17 @@ INSTRUCTIONS:
 
     pathEl.addEventListener("pointermove", (e) => {
       if (!isMovingStroke || !initialPoints.length) return;
-      const dx = e.pageX - startX;
-      const dy = e.pageY - startY;
+      let dx = e.pageX - startX;
+      let dy = e.pageY - startY;
+      if (annotationState.snapToGrid) {
+        const g = getGridSize();
+        dx = Math.round(dx / g) * g;
+        dy = Math.round(dy / g) * g;
+      }
       const updatedPts = initialPoints.map((p) => ({ x: p.x + dx, y: p.y + dy }));
       strokeObj.points = updatedPts;
-      const newD = pointsToSvgPath(updatedPts);
+      const isSnapped = strokeObj.snapped || annotationState.snapToGrid;
+      const newD = pointsToSvgPath(updatedPts, isSnapped);
       strokeObj.d = newD;
       strokeObj.y = updatedPts[0].y;
       pathEl.setAttribute("d", newD);
@@ -7297,7 +7531,7 @@ INSTRUCTIONS:
     });
   }
 
-  // Keyboard shortcuts when annotation panel is open (V: select, P: sketch, H: highlight, T: textbox, S: note, K: sticker, X: eraser)
+  // Keyboard shortcuts when annotation panel is open (V: select, P: sketch, H: highlight, T: textbox, S: note, K: sticker, X: eraser, G: snap)
   document.addEventListener("keydown", (e) => {
     if (!isAnnotationPanelActive()) return;
     if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
@@ -7324,6 +7558,9 @@ INSTRUCTIONS:
     } else if ((e.code === "KeyX" || e.key?.toLowerCase() === "x") && noMod) {
       e.preventDefault();
       setAnnotationTool("eraser");
+    } else if ((e.code === "KeyG" || e.key?.toLowerCase() === "g") && noMod) {
+      e.preventDefault();
+      toggleSnapToGrid();
     } else if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === "z") {
       e.preventDefault();
       if (annotationBtnUndo) annotationBtnUndo.click();

@@ -406,7 +406,8 @@ body.theme-dark .sub-nav-sep {
 .account-panel,
 .upgrade-panel,
 .contact-panel,
-.feedback-panel {
+.feedback-panel,
+.edit-panel {
   width: 310px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 80px);
@@ -5434,12 +5435,14 @@ body.theme-dark .edit-annotation-bar {
   color: var(--text-primary);
 }
 
+.palette-btn.active,
 .palette-tool-btn.active {
   background: var(--text-primary);
   color: var(--bg-card);
   border-color: var(--text-primary);
 }
 
+body.theme-dark .palette-btn.active,
 body.theme-dark .palette-tool-btn.active {
   background: #FFFFFF;
   color: #000000;
@@ -5458,12 +5461,45 @@ body.theme-dark .palette-tool-btn.active {
   display: block;
 }
 
+.palette-btn.active .palette-tool-icon svg,
 .palette-tool-btn.active .palette-tool-icon svg {
   stroke: var(--bg-card);
 }
 
+body.theme-dark .palette-btn.active .palette-tool-icon svg,
 body.theme-dark .palette-tool-btn.active .palette-tool-icon svg {
   stroke: #000000;
+}
+
+#annotation-btn-snap {
+  position: relative;
+  transition: all 0.14s ease;
+}
+
+#annotation-btn-snap .palette-snap-indicator {
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  margin-left: 3px;
+  line-height: 1;
+  transition: all 0.14s ease;
+}
+
+#annotation-btn-snap.active .palette-snap-indicator {
+  background: #10B981;
+  color: #FFFFFF;
+  border-color: #10B981;
+}
+
+body.theme-dark #annotation-btn-snap.active .palette-snap-indicator {
+  background: #059669;
+  color: #FFFFFF;
+  border-color: #059669;
 }
 
 .palette-tool-label {
