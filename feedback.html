@@ -340,29 +340,52 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
-          <span>PROPOSAL REGISTERED ON PRODUCT RADAR</span>
+          <span id="confirmation-card-heading">PROPOSAL REGISTERED ON PRODUCT RADAR</span>
         </div>
         <div class="confirmation-body">
-          Your feedback proposal has been logged to the community radar feed and dispatched to <strong>dhaumyakumar27@gmail.com</strong> for feasibility analysis.
+          <div id="confirmation-status-text">
+            Your feedback proposal has been logged and queued for <strong>dhaumyakumar27@gmail.com</strong>.
+          </div>
           <br>
           <span class="confirmation-reference" id="proposal-id-display">PROP-RADAR-SUBMISSION</span>
-          <div style="margin-top: 10px; font-size: 0.74rem; color: var(--text-secondary); font-family: var(--font-mono); background: var(--bg-surface-subtle); padding: 8px 12px; border-radius: 4px; border: 1px dashed var(--border-subtle);">
-            ℹ️ <strong>First-Time Delivery Notice:</strong> Check your <strong>Spam / Junk</strong> folder in Gmail for the one-time FormSubmit confirmation email and click &quot;Activate Form&quot; to allow incoming dispatches to reach your inbox.
+
+          <!-- One-Time FormSubmit Activation Alert -->
+          <div id="formsubmit-activation-banner" style="display:none; margin-top: 12px; background: rgba(239, 68, 68, 0.08); border: 1.5px solid #EF4444; border-radius: 6px; padding: 14px 16px; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5;">
+            <strong style="color: #EF4444; display: block; margin-bottom: 6px; font-size: 0.86rem;">⚠️ One-Time Activation Required for dhaumyakumar27@gmail.com:</strong>
+            FormSubmit requires a one-time email confirmation before messages arrive in your inbox. Check your <strong>Spam / Junk</strong> folder in Gmail for the FormSubmit activation link.
+            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" id="btn-activate-formsubmit" class="btn-institutional-primary" style="font-size: 0.74rem; padding: 8px 14px; background: #EF4444; border-color: #DC2626;">
+                ⚡ Trigger / Resend FormSubmit Activation Link &rarr;
+              </button>
+            </div>
           </div>
+
           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <span style="font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono);">
-              Destination Email: <strong>dhaumyakumar27@gmail.com</strong>
+              Target: <strong>dhaumyakumar27@gmail.com</strong>
             </span>
-            <a id="feedback-direct-mailto-link" href="#" class="btn-institutional-secondary font-mono" style="font-size: 0.74rem; padding: 6px 12px; text-decoration: none;">
-              ✉️ Open in Email Client
+            <a id="feedback-direct-mailto-link" href="#" class="btn-institutional-primary font-mono" style="font-size: 0.76rem; padding: 8px 14px; text-decoration: none;">
+              ✉️ Open in Email Client (Guaranteed Instant Send)
             </a>
           </div>
         </div>
       </div>
 
+      <!-- Hidden Activation Trigger Form -->
+      <form id="feedback-activation-form" action="https://formsubmit.co/dhaumyakumar27@gmail.com" method="POST" target="_blank" style="display:none;">
+        <input type="hidden" name="_subject" value="[IndexIndia] Activate FormSubmit for dhaumyakumar27@gmail.com">
+        <input type="hidden" name="message" value="Activation request for IndexIndia feedback radar dispatch">
+      </form>
+
       <!-- Suggestion Submission Form Card -->
       <div class="institutional-form-card">
-        <form id="feedback-proposal-form" autocomplete="off">
+        <form id="feedback-proposal-form" action="https://formsubmit.co/dhaumyakumar27@gmail.com" method="POST" autocomplete="off">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_subject" id="feedback-hidden-subject" value="[INDEXINDIA FEEDBACK] - New Tool / Analytical Feature">
+          <input type="hidden" name="_replyto" id="feedback-hidden-replyto" value="">
+          <input type="hidden" name="Stamp" value="[INDEXINDIA FEEDBACK]">
+          <input type="hidden" name="Proposal_ID" id="feedback-hidden-prop" value="">
           
           <!-- Proposal Type Selector -->
           <div class="form-field-group">
@@ -372,27 +395,27 @@
             </label>
             <div class="pill-selector-row">
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="New Tool / Analytical Feature" checked>
+                <input type="radio" name="Classification" value="New Tool / Analytical Feature" checked>
                 <span class="pill-label">💡 New Tool / Analytical Feature</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="Content / MCA Filing Topic">
+                <input type="radio" name="Classification" value="Content / MCA Filing Topic">
                 <span class="pill-label">📚 Content / MCA Filing Topic</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="Index Basket / Quantitative Metric">
+                <input type="radio" name="Classification" value="Index Basket / Quantitative Metric">
                 <span class="pill-label">📈 Index Basket / Quantitative Metric</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="UI / UX Workflow Utility">
+                <input type="radio" name="Classification" value="UI / UX Workflow Utility">
                 <span class="pill-label">⚡ UI / UX &amp; Workflow Utility</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="Gemini AI Prompt Capability">
+                <input type="radio" name="Classification" value="Gemini AI Prompt Capability">
                 <span class="pill-label">🤖 Gemini AI Prompt Capability</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="proposal_type" value="General Feedback">
+                <input type="radio" name="Classification" value="General Feedback">
                 <span class="pill-label">💬 General Suggestion</span>
               </label>
             </div>
@@ -416,7 +439,7 @@
                 <span>YOUR EMAIL ADDRESS <span class="required-mark">*</span></span>
                 <span class="field-hint">Required for follow-up notifications</span>
               </label>
-              <input type="email" class="field-input font-mono" id="submitter-email"
+              <input type="email" class="field-input font-mono" id="submitter-email" name="email"
                 placeholder="you@example.com" />
             </div>
           </div>
@@ -426,7 +449,7 @@
             <label class="field-label" for="proposal-description">
               <span>YOUR FEEDBACK &amp; SUGGESTIONS <span class="required-mark">*</span></span>
             </label>
-            <textarea class="field-textarea" id="proposal-description" required rows="7"
+            <textarea class="field-textarea" id="proposal-description" name="message" required rows="7"
               placeholder="Share your idea, suggested feature, or content addition:
 - What should be added or improved?
 - How would it help your analysis or workflow?"></textarea>
@@ -616,9 +639,17 @@
       const confirmCard = document.getElementById("feedback-confirmation-card");
       const propIdDisplay = document.getElementById("proposal-id-display");
       const submitBtn = document.getElementById("btn-submit-proposal");
+      const activateBtn = document.getElementById("btn-activate-formsubmit");
+      const activationForm = document.getElementById("feedback-activation-form");
+
+      if (activateBtn && activationForm) {
+        activateBtn.addEventListener("click", () => {
+          activationForm.submit();
+        });
+      }
 
       if (form) {
-        form.addEventListener("submit", (e) => {
+        form.addEventListener("submit", async (e) => {
           e.preventDefault();
 
           // Get email from session or input
@@ -639,10 +670,18 @@
           const randNum = Math.floor(1000 + Math.random() * 9000);
           const proposalId = `PROP-RADAR-${randNum}`;
 
-          const category = form.querySelector('input[name="proposal_type"]:checked')?.value || "General Feedback";
+          const category = form.querySelector('input[name="Classification"]:checked')?.value || "General Feedback";
           const description = document.getElementById("proposal-description")?.value || "";
           const targetAdminEmail = "dhaumyakumar27@gmail.com";
           const emailSubject = `[INDEXINDIA FEEDBACK] - ${category}`;
+
+          // Sync hidden form inputs
+          const hiddenSubject = document.getElementById("feedback-hidden-subject");
+          const hiddenReplyTo = document.getElementById("feedback-hidden-replyto");
+          const hiddenProp = document.getElementById("feedback-hidden-prop");
+          if (hiddenSubject) hiddenSubject.value = emailSubject;
+          if (hiddenReplyTo) hiddenReplyTo.value = userEmail;
+          if (hiddenProp) hiddenProp.value = proposalId;
 
           // Format current date and time
           const now = new Date();
@@ -671,26 +710,41 @@
             renderHistory();
           }
 
-          // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit AJAX
-          try {
-            const emailFormData = new FormData();
-            emailFormData.append("_subject", emailSubject);
-            emailFormData.append("_replyto", userEmail);
-            emailFormData.append("_template", "table");
-            emailFormData.append("_captcha", "false");
-            emailFormData.append("Stamp", "[INDEXINDIA FEEDBACK]");
-            emailFormData.append("Proposal ID", proposalId);
-            emailFormData.append("Classification", category);
-            emailFormData.append("Submitter Email", userEmail);
-            emailFormData.append("Feedback & Suggestions", description);
+          // 1. Dispatch directly to dhaumyakumar27@gmail.com via FormSubmit JSON API
+          let formSubmitDelivered = false;
+          let formSubmitMessage = "";
 
-            fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
+          try {
+            const payload = {
+              _subject: emailSubject,
+              _replyto: userEmail,
+              _captcha: "false",
+              _template: "table",
+              "Stamp": "[INDEXINDIA FEEDBACK]",
+              "Proposal ID": proposalId,
+              "Classification": category,
+              "Submitter Email": userEmail,
+              "Feedback & Suggestions": description
+            };
+
+            const response = await fetch(`https://formsubmit.co/ajax/${targetAdminEmail}`, {
               method: "POST",
-              headers: { "Accept": "application/json" },
-              body: emailFormData
-            }).catch(e => console.warn("FormSubmit notice:", e));
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              body: JSON.stringify(payload)
+            });
+
+            const data = await response.json().catch(() => ({}));
+            if (response.ok && (data.success === "true" || data.success === true)) {
+              formSubmitDelivered = true;
+            } else if (data.message) {
+              formSubmitMessage = data.message;
+            }
           } catch (err) {
-            console.warn("Email dispatch error:", err);
+            console.warn("FormSubmit notice:", err);
+            formSubmitMessage = err.message || "";
           }
 
           // 2. Dispatch to Cloudflare Worker inquiry endpoint
@@ -710,25 +764,41 @@
             }).catch(e => console.warn("Worker dispatch notice:", e));
           }
 
-          // 3. Prepare direct mailto link for client-side fallback
+          // 3. Prepare direct mailto link for client-side guaranteed instant dispatch
           const mailtoBtn = document.getElementById("feedback-direct-mailto-link");
           if (mailtoBtn) {
             const mailtoBody = encodeURIComponent(`Reference: ${proposalId}\nClassification: ${category}\nFrom: ${userEmail}\n\nFeedback & Suggestions:\n${description}`);
             mailtoBtn.href = `mailto:${targetAdminEmail}?subject=${encodeURIComponent(emailSubject)}&body=${mailtoBody}`;
           }
 
-          setTimeout(() => {
-            if (propIdDisplay) propIdDisplay.textContent = `PROPOSAL REFERENCE: ${proposalId} [DISPATCHED TO ${targetAdminEmail}]`;
-            if (confirmCard) {
-              confirmCard.classList.add("is-visible");
-              confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Update UI
+          if (propIdDisplay) propIdDisplay.textContent = `PROPOSAL REFERENCE: ${proposalId} [STATUS: LOGGED]`;
+
+          const activationBanner = document.getElementById("formsubmit-activation-banner");
+          const statusText = document.getElementById("confirmation-status-text");
+
+          if (!formSubmitDelivered) {
+            // FormSubmit needs one-time activation or had a network hiccup
+            if (activationBanner) activationBanner.style.display = "block";
+            if (statusText) {
+              statusText.innerHTML = `Your proposal is registered. <strong>Attention:</strong> If ${targetAdminEmail} has not yet activated FormSubmit, please click below to complete the one-time activation, or use the direct Email Client button below.`;
             }
-            form.reset();
-            // Restore auth state on form reset
-            if (currentUser) setAuthState(currentUser);
-            submitBtn.disabled = false;
-            submitBtn.textContent = "SUBMIT FEEDBACK →";
-          }, 350);
+          } else {
+            if (activationBanner) activationBanner.style.display = "none";
+            if (statusText) {
+              statusText.innerHTML = `Your feedback proposal has been logged and dispatched to <strong>${targetAdminEmail}</strong>.`;
+            }
+          }
+
+          if (confirmCard) {
+            confirmCard.classList.add("is-visible");
+            confirmCard.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+
+          form.reset();
+          if (currentUser) setAuthState(currentUser);
+          submitBtn.disabled = false;
+          submitBtn.textContent = "SUBMIT FEEDBACK →";
         });
       }
     });

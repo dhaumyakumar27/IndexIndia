@@ -70,7 +70,53 @@ export default {
         const subject = body.subject || `${inquiryStamp} - ${category} [${referenceId}]`;
         const description = body.description || "(No description provided)";
 
-        // 1. Dispatch via Mailchannels if available in Cloudflare Workers
+        // 1. Dispatch via Resend API if key is configured in Worker
+        if (env.RESEND_API_KEY) {
+          try {
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                from: "IndexIndia <onboarding@resend.dev>",
+                to: [targetEmail],
+                reply_to: userEmail,
+                subject: subject,
+                text: `${inquiryStamp} - ${category}\nFrom: ${userEmail}\nRef: ${referenceId}\n\n${description}`
+              })
+            });
+          } catch (resendErr) {
+            console.warn("Resend dispatch attempt notice:", resendErr);
+          }
+        }
+
+        // 2. Dispatch via Web3Forms if key is configured in Worker
+        if (env.WEB3FORMS_ACCESS_KEY) {
+          try {
+            await fetch("https://api.web3forms.com/submit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              body: JSON.stringify({
+                access_key: env.WEB3FORMS_ACCESS_KEY,
+                subject: subject,
+                from_name: "IndexIndia Operations",
+                email: userEmail,
+                message: description,
+                category: category,
+                reference_id: referenceId
+              })
+            });
+          } catch (w3Err) {
+            console.warn("Web3Forms dispatch attempt notice:", w3Err);
+          }
+        }
+
+        // 3. Dispatch via Mailchannels fallback
         try {
           await fetch("https://api.mailchannels.net/tx/v1/send", {
             method: "POST",
