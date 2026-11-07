@@ -441,10 +441,16 @@ body.theme-dark .sub-nav-sep {
 .upgrade-panel,
 .contact-panel,
 .feedback-panel,
-.edit-panel,
-.search-panel {
+.edit-panel {
   width: 330px;
   max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.search-panel {
+  width: 380px;
+  max-width: calc(100vw - 24px);
   max-height: calc(100vh - 80px);
   overflow-y: auto;
 }
@@ -4815,9 +4821,10 @@ body.theme-dark .search-finder-count {
 
 /* Integrated Search Results Dropdown inside Search Panel */
 .search-panel .nav-search-results-dropdown {
-  position: static;
-  width: 100%;
-  max-width: 100%;
+  position: static !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
   max-height: 280px;
   overflow-y: auto;
   box-shadow: none;
@@ -4827,6 +4834,12 @@ body.theme-dark .search-finder-count {
   padding: 4px;
   margin-top: 4px;
   z-index: 1;
+  display: none !important;
+}
+
+.search-panel .nav-search-results-dropdown.is-open {
+  display: flex !important;
+  flex-direction: column;
 }
 
 /* Hide legacy floating inpage finder bar */

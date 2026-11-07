@@ -918,23 +918,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const settingsBtn = document.getElementById("settings-btn");
   const upgradeNavWrapper = document.getElementById("upgrade-nav-wrapper");
   const upgradeNavBtn = document.getElementById("upgrade-nav-btn");
-  const searchNavWrapper = document.getElementById("search-nav-wrapper");
-  const searchNavBtn = document.getElementById("search-nav-btn");
 
   const flyoutPanels = [
-    {
-      wrapper: searchNavWrapper,
-      btn: searchNavBtn,
-      onOpen: () => {
-        const inp = document.getElementById("nav-search-input");
-        if (inp) {
-          setTimeout(() => {
-            inp.focus();
-            if (inp.value) inp.select();
-          }, 30);
-        }
-      }
-    },
     {
       wrapper: shortcutsWrapper,
       btn: shortcutsBtn,
@@ -984,6 +969,8 @@ document.addEventListener("DOMContentLoaded", () => {
           other.wrapper.classList.remove("is-open");
         }
       });
+      const sWrap = document.getElementById("search-nav-wrapper");
+      if (sWrap) sWrap.classList.remove("is-open");
       item.wrapper.classList.add("is-open");
       if (typeof item.onOpen === "function") {
         item.onOpen();
@@ -1007,6 +994,8 @@ document.addEventListener("DOMContentLoaded", () => {
             other.wrapper.classList.remove("is-open");
           }
         });
+        const sWrap = document.getElementById("search-nav-wrapper");
+        if (sWrap) sWrap.classList.remove("is-open");
         if (willOpen) {
           item.wrapper.classList.add("is-open");
           if (typeof item.onOpen === "function") {
@@ -5275,7 +5264,7 @@ INSTRUCTIONS:
   let paletteSelectedIndex = -1;
 
   // In-Page Finder state
-  finderMatches = [];
+  let finderMatches = [];
   let currentFinderMatchIdx = 0;
   let currentFinderQuery = "";
 
