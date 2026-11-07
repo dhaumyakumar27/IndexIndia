@@ -916,27 +916,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const accountBtn = document.getElementById("account-btn");
   const settingsWrapper = document.getElementById("settings-wrapper");
   const settingsBtn = document.getElementById("settings-btn");
-  const upgradeNavWrapper = document.getElementById("upgrade-nav-wrapper");
-  const upgradeNavBtn = document.getElementById("upgrade-nav-btn");
 
   const flyoutPanels = [
     {
       wrapper: shortcutsWrapper,
       btn: shortcutsBtn,
       onOpen: null
-    },
-    {
-      wrapper: upgradeNavWrapper,
-      btn: upgradeNavBtn,
-      onOpen: async () => {
-        const sb = window.IndexIndiaSupabase;
-        if (sb && typeof sb.getUserMembership === "function") {
-          try {
-            const m = await sb.getUserMembership();
-            updateNavUpgradePanel(m);
-          } catch (e) {}
-        }
-      }
     },
     {
       wrapper: accountWrapper,
@@ -2464,12 +2449,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const cmdItems = Object.values(activeShortcuts).filter(s => s.group === "COMMANDS & PREFERENCES");
 
     panel.innerHTML = `
-      <div class="shortcuts-panel-header">
-        <span class="shortcuts-panel-title">KEYBOARD SHORTCUTS</span>
-        <div class="shortcuts-header-actions">
-          <span class="shortcut-sync-status font-mono" id="shortcut-sync-status">${syncStatusText}</span>
-          <button type="button" class="shortcut-reset-btn font-mono" id="btn-reset-shortcuts" title="Reset all shortcuts to defaults">Reset</button>
-        </div>
+      <div class="shortcuts-panel-header" style="justify-content: flex-end; margin-bottom: 6px;">
+        <button type="button" class="shortcut-reset-btn font-mono" id="btn-reset-shortcuts" title="Reset all shortcuts to defaults">Reset Defaults</button>
       </div>
       <div class="shortcut-hint-banner font-mono">
         Click any shortcut badge to customize. Letters &amp; symbols require a Ctrl or Alt combination.
@@ -5250,13 +5231,14 @@ INSTRUCTIONS:
     });
   }
 
-  // ================= 11. TOP-NAV SEARCH FLYOUT & COMMAND PALETTE (Triggered by / or Magnifier) =================
+  // ================= 11. TOP-NAV SEARCH FLOATING BAR & COMMAND PALETTE =================
   let searchNavWrapper = document.getElementById("search-nav-wrapper");
   let searchNavBtn = document.getElementById("search-nav-btn");
-  let searchFlyoutPanel = document.getElementById("search-flyout-panel");
+  let searchFloatingBar = document.getElementById("search-floating-bar");
   let navSearchInput = document.getElementById("nav-search-input");
   let navSearchResultsDropdown = document.getElementById("nav-search-results-dropdown");
   let searchClearBtn = document.getElementById("search-panel-clear-btn");
+  let searchBarCloseBtn = document.getElementById("search-bar-close-btn");
   let finderMatchCount = document.getElementById("finder-match-count");
   let finderBtnPrev = document.getElementById("finder-btn-prev");
   let finderBtnNext = document.getElementById("finder-btn-next");
@@ -5268,61 +5250,48 @@ INSTRUCTIONS:
   let currentFinderMatchIdx = 0;
   let currentFinderQuery = "";
 
-  // Dynamic fallback injection if searchNavWrapper is not in static DOM
-  if (!searchNavWrapper) {
-    const expandNav = document.getElementById("expand-nav-wrapper");
-    if (expandNav && expandNav.parentNode) {
-      searchNavWrapper = document.createElement("div");
-      searchNavWrapper.id = "search-nav-wrapper";
-      searchNavWrapper.className = "panel-trigger-wrapper";
-      searchNavWrapper.innerHTML = `
-        <button type="button" class="icon-btn" id="search-nav-btn" aria-label="Search Sovereign Terminal &amp; Page" title="Search &amp; Find ( Ctrl + / or / )">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
-          </svg>
-        </button>
-        <div class="hover-flyout-panel search-panel" id="search-flyout-panel" role="region" aria-label="Search &amp; Finder">
-          <div class="panel-header" style="margin-bottom: 10px;">
-            <div class="panel-user-meta"><span class="user-id">[SEARCH &bull; FINDER]</span></div>
-            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Finder Engine Active">
-              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Live
-            </div>
-          </div>
-          <div class="search-panel-input-box">
-            <svg class="search-panel-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
-            </svg>
-            <input type="text" class="search-panel-input" id="nav-search-input" placeholder="Search terminal or page..." autocomplete="off" spellcheck="false" />
-            <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
-          </div>
-          <div class="search-panel-finder-bar" id="search-panel-finder-bar">
-            <div class="search-finder-meta">
-              <span class="search-finder-label font-mono">PAGE MATCHES:</span>
-              <span class="search-finder-count font-mono" id="finder-match-count">0 matches</span>
-            </div>
-            <div class="search-finder-nav-btns">
-              <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-              </button>
-              <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+  // Dynamic fallback injection if searchFloatingBar is not in static DOM
+  if (!searchFloatingBar) {
+    searchFloatingBar = document.createElement("div");
+    searchFloatingBar.id = "search-floating-bar";
+    searchFloatingBar.className = "search-floating-bar";
+    searchFloatingBar.setAttribute("role", "search");
+    searchFloatingBar.setAttribute("aria-label", "Search & In-Page Finder");
+    searchFloatingBar.innerHTML = `
+      <span class="palette-drag-handle" title="Search Sovereign Terminal">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </span>
+      <div class="search-floating-input-wrap">
+        <input type="text" class="search-floating-input font-mono" id="nav-search-input" placeholder="Search terminal or page... ( / )" autocomplete="off" spellcheck="false" />
+        <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
+      </div>
+      <span class="palette-sep">|</span>
+      <div class="palette-nav-group">
+        <span class="palette-counter font-mono" id="finder-match-count">0 matches</span>
+        <div class="finder-nav-btns">
+          <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+          </button>
+          <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
         </div>
-      `;
-      expandNav.insertAdjacentElement("afterend", searchNavWrapper);
-      searchNavBtn = searchNavWrapper.querySelector("#search-nav-btn");
-      searchFlyoutPanel = searchNavWrapper.querySelector("#search-flyout-panel");
-      navSearchInput = searchNavWrapper.querySelector("#nav-search-input");
-      navSearchResultsDropdown = searchNavWrapper.querySelector("#nav-search-results-dropdown");
-      searchClearBtn = searchNavWrapper.querySelector("#search-panel-clear-btn");
-      finderMatchCount = searchNavWrapper.querySelector("#finder-match-count");
-      finderBtnPrev = searchNavWrapper.querySelector("#finder-btn-prev");
-      finderBtnNext = searchNavWrapper.querySelector("#finder-btn-next");
-    }
+      </div>
+      <button type="button" class="palette-close-btn" id="search-bar-close-btn" title="Close Search (Esc)" aria-label="Close">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+    `;
+    document.body.appendChild(searchFloatingBar);
+    navSearchInput = searchFloatingBar.querySelector("#nav-search-input");
+    navSearchResultsDropdown = searchFloatingBar.querySelector("#nav-search-results-dropdown");
+    searchClearBtn = searchFloatingBar.querySelector("#search-panel-clear-btn");
+    searchBarCloseBtn = searchFloatingBar.querySelector("#search-bar-close-btn");
+    finderMatchCount = searchFloatingBar.querySelector("#finder-match-count");
+    finderBtnPrev = searchFloatingBar.querySelector("#finder-btn-prev");
+    finderBtnNext = searchFloatingBar.querySelector("#finder-btn-next");
   }
 
   isFinderActive = function() {
@@ -5960,31 +5929,47 @@ INSTRUCTIONS:
     }
   }
 
-  focusNavSearchBar = function() {
-    const wrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
-    if (wrapper) {
-      document.querySelectorAll(".panel-trigger-wrapper.is-open").forEach(w => {
-        if (w !== wrapper) w.classList.remove("is-open");
-      });
-      wrapper.classList.add("is-open");
+  function openSearchPanel() {
+    const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
+    const btn = document.getElementById("search-nav-btn") || searchNavBtn;
+    if (bar) bar.classList.add("is-visible");
+    if (btn) btn.classList.add("is-active");
+    if (typeof closeAnnotationPanel === "function" && isAnnotationPanelActive && isAnnotationPanelActive()) {
+      closeAnnotationPanel();
     }
+    document.querySelectorAll(".panel-trigger-wrapper.is-open").forEach(w => w.classList.remove("is-open"));
     const inp = document.getElementById("nav-search-input") || navSearchInput;
     if (inp) {
-      inp.focus();
-      if (inp.value) {
-        inp.select();
-        renderSearchResults(inp.value);
-      }
+      setTimeout(() => {
+        inp.focus();
+        if (inp.value) {
+          inp.select();
+          renderSearchResults(inp.value);
+        }
+      }, 30);
     }
-  };
+  }
 
   function closeSearchPanel() {
-    const wrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
-    if (wrapper) wrapper.classList.remove("is-open");
+    const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
+    const btn = document.getElementById("search-nav-btn") || searchNavBtn;
+    if (bar) bar.classList.remove("is-visible");
+    if (btn) btn.classList.remove("is-active");
     closeNavSearchResults();
     const inp = document.getElementById("nav-search-input") || navSearchInput;
     if (inp) inp.blur();
   }
+
+  function toggleSearchPanel() {
+    const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
+    if (bar && bar.classList.contains("is-visible")) {
+      closeSearchPanel();
+    } else {
+      openSearchPanel();
+    }
+  }
+
+  focusNavSearchBar = openSearchPanel;
 
   closeNavSearchResults = function() {
     const dropdown = document.getElementById("nav-search-results-dropdown") || navSearchResultsDropdown;
@@ -5998,26 +5983,25 @@ INSTRUCTIONS:
 
   window.focusNavSearchBar = focusNavSearchBar;
   window.closeNavSearchResults = closeNavSearchResults;
+  window.openSearchPanel = openSearchPanel;
+  window.closeSearchPanel = closeSearchPanel;
+  window.toggleSearchPanel = toggleSearchPanel;
 
   const sNavBtn = document.getElementById("search-nav-btn") || searchNavBtn;
-  const sNavWrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
-  if (sNavBtn && sNavWrapper) {
+  if (sNavBtn) {
     sNavBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       e.stopPropagation();
-      const willOpen = !sNavWrapper.classList.contains("is-open");
-      document.querySelectorAll(".panel-trigger-wrapper.is-open").forEach(w => {
-        if (w !== sNavWrapper) w.classList.remove("is-open");
-      });
-      if (willOpen) {
-        sNavWrapper.classList.add("is-open");
-        const inp = document.getElementById("nav-search-input") || navSearchInput;
-        if (inp) {
-          inp.focus();
-          if (inp.value) inp.select();
-        }
-      } else {
-        closeSearchPanel();
-      }
+      toggleSearchPanel();
+    });
+  }
+
+  const sCloseBtn = document.getElementById("search-bar-close-btn") || searchBarCloseBtn;
+  if (sCloseBtn) {
+    sCloseBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSearchPanel();
     });
   }
 
@@ -6101,12 +6085,44 @@ INSTRUCTIONS:
     });
   }
 
+  const searchDragHandle = document.querySelector("#search-floating-bar .palette-drag-handle");
+  const sBarEl = document.getElementById("search-floating-bar") || searchFloatingBar;
+  if (searchDragHandle && sBarEl) {
+    let isDraggingSearchBar = false;
+    let searchOffsetX = 0;
+    let searchOffsetY = 0;
+
+    searchDragHandle.addEventListener("pointerdown", (e) => {
+      isDraggingSearchBar = true;
+      const rect = sBarEl.getBoundingClientRect();
+      searchOffsetX = e.clientX - rect.left;
+      searchOffsetY = e.clientY - rect.top;
+      searchDragHandle.setPointerCapture(e.pointerId);
+      sBarEl.style.transform = "none";
+      e.preventDefault();
+    });
+
+    searchDragHandle.addEventListener("pointermove", (e) => {
+      if (!isDraggingSearchBar) return;
+      const newX = Math.max(10, Math.min(window.innerWidth - sBarEl.offsetWidth - 10, e.clientX - searchOffsetX));
+      const newY = Math.max(10, Math.min(window.innerHeight - sBarEl.offsetHeight - 10, e.clientY - searchOffsetY));
+      sBarEl.style.left = `${newX}px`;
+      sBarEl.style.top = `${newY}px`;
+    });
+
+    const stopSearchDrag = () => {
+      isDraggingSearchBar = false;
+    };
+    searchDragHandle.addEventListener("pointerup", stopSearchDrag);
+    searchDragHandle.addEventListener("pointercancel", stopSearchDrag);
+  }
+
   document.addEventListener("mousedown", (e) => {
-    const wrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
-    if (wrapper && !wrapper.contains(e.target)) {
-      if (wrapper.classList.contains("is-open")) {
-        wrapper.classList.remove("is-open");
-        closeNavSearchResults();
+    const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
+    const btn = document.getElementById("search-nav-btn") || searchNavBtn;
+    if (bar && bar.classList.contains("is-visible")) {
+      if (!bar.contains(e.target) && (!btn || !btn.contains(e.target))) {
+        closeSearchPanel();
       }
     }
   });
@@ -6238,53 +6254,45 @@ INSTRUCTIONS:
         <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
       </span>
       <div class="palette-tool-group">
-        <button type="button" class="palette-tool-btn" data-tool="select" title="Select & Move (V)">
+        <button type="button" class="palette-tool-btn" data-tool="select" title="Select &amp; Move (V)" aria-label="Select">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
           </span>
-          <span class="palette-tool-label">Select</span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="pan" id="palette-btn-pan" title="Pan Canvas Left/Right/Up/Down (Space + Drag or M)">
+        <button type="button" class="palette-tool-btn" data-tool="pan" id="palette-btn-pan" title="Pan Canvas Left/Right/Up/Down (Space + Drag or M)" aria-label="Pan">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
           </span>
-          <span class="palette-tool-label">Pan</span>
         </button>
-        <button type="button" class="palette-tool-btn active" data-tool="sketch" title="Pencil Sketch (P)">
+        <button type="button" class="palette-tool-btn active" data-tool="sketch" title="Pencil Sketch (P)" aria-label="Sketch">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
           </span>
-          <span class="palette-tool-label">Sketch</span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="highlight" title="Text Highlight (H)">
+        <button type="button" class="palette-tool-btn" data-tool="highlight" title="Text Highlight (H)" aria-label="Highlight">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 7-4.5-4.5-8.5 8.5 4.5 4.5L22 7z"/></svg>
           </span>
-          <span class="palette-tool-label">Highlight</span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="textbox" title="Free Drag-to-Select Text Box (T)">
+        <button type="button" class="palette-tool-btn" data-tool="textbox" title="Free Drag-to-Select Text Box (T)" aria-label="Box">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
           </span>
-          <span class="palette-tool-label">Box</span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="stickynote" title="Click-to-Place & Drag Sticky Note (S)">
+        <button type="button" class="palette-tool-btn" data-tool="stickynote" title="Click-to-Place &amp; Drag Sticky Note (S)" aria-label="Note">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><polyline points="15 3 21 9 15 9 15 3"/></svg>
           </span>
-          <span class="palette-tool-label">Note</span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="sticker" id="palette-btn-sticker" title="Stickers Palette (K)">
+        <button type="button" class="palette-tool-btn" data-tool="sticker" id="palette-btn-sticker" title="Stickers Palette (K)" aria-label="Stickers">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
           </span>
-          <span class="palette-tool-label">Stickers</span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="eraser" title="Eraser / Click item to delete (X)">
+        <button type="button" class="palette-tool-btn" data-tool="eraser" title="Eraser / Click item to delete (X)" aria-label="Eraser">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/></svg>
           </span>
-          <span class="palette-tool-label">Eraser</span>
         </button>
       </div>
       <span class="palette-sep">|</span>
@@ -6414,14 +6422,6 @@ INSTRUCTIONS:
       flyout.setAttribute("role", "region");
       flyout.setAttribute("aria-label", "Edit & Annotation Settings");
       flyout.innerHTML = `
-        <div class="panel-header" style="margin-bottom: 8px;">
-          <div class="panel-user-meta">
-            <span class="user-id">[MARKUP &bull; CANVAS]</span>
-          </div>
-          <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Annotation System Ready">
-            <span class="pulse-dot" style="background: var(--status-optimal);"></span> Ready
-          </div>
-        </div>
         <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 2px; font-family: var(--font-mono); line-height: 1.45;">
           Pencil sketch, freeform text boxes, sticky notes, and stamps on any section.
         </div>
@@ -7853,6 +7853,7 @@ INSTRUCTIONS:
 
   // --- 14. OPEN / CLOSE PALETTE CONTROLS ---
   openAnnotationPanel = function() {
+    closeSearchPanel();
     annotationState.isOpen = true;
     document.body.classList.add("is-annotating");
     if (editAnnotationBar) editAnnotationBar.classList.add("is-visible");

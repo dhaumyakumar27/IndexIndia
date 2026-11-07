@@ -30,7 +30,7 @@
         </button>
       </div>
 
-      <!-- Search Trigger Round Button (Magnifier) & Integrated Search Panel -->
+            <!-- Search Trigger Round Button (Magnifier) -->
       <div class="panel-trigger-wrapper" id="search-nav-wrapper">
         <button type="button" class="icon-btn" id="search-nav-btn" aria-label="Search Sovereign Terminal &amp; Page"
           title="Search &amp; Find ( Ctrl + / or / )">
@@ -40,47 +40,6 @@
             <path d="m21 21-4.3-4.3"></path>
           </svg>
         </button>
-
-        <div class="hover-flyout-panel search-panel" id="search-flyout-panel" role="region"
-          aria-label="Search &amp; Finder">
-          <div class="panel-header" style="margin-bottom: 10px;">
-            <div class="panel-user-meta">
-              <span class="user-id">[SEARCH &bull; FINDER]</span>
-            </div>
-            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Finder Engine Active">
-              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Live
-            </div>
-          </div>
-
-          <!-- Integrated Search Input -->
-          <div class="search-panel-input-box">
-            <svg class="search-panel-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </svg>
-            <input type="text" class="search-panel-input" id="nav-search-input" placeholder="Search terminal or page..." autocomplete="off" spellcheck="false" />
-            <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
-          </div>
-
-          <!-- Integrated In-Page Up/Down Panel (Previous / Next Matches) -->
-          <div class="search-panel-finder-bar" id="search-panel-finder-bar">
-            <div class="search-finder-meta">
-              <span class="search-finder-label font-mono">PAGE MATCHES:</span>
-              <span class="search-finder-count font-mono" id="finder-match-count">0 matches</span>
-            </div>
-            <div class="search-finder-nav-btns">
-              <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-              </button>
-              <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Integrated Search Suggestions / Results Dropdown -->
-          <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
-        </div>
       </div>
 
       <!-- Directory Tree Round Button -->
@@ -106,14 +65,6 @@
         </a>
 
         <div class="hover-flyout-panel contact-panel" id="contact-panel" role="region" aria-label="Contact Us &amp; Issue Reporting">
-          <div class="panel-header" style="margin-bottom: 8px;">
-            <div class="panel-user-meta">
-              <span class="user-id">[CONTACT &bull; ISSUE TRIAGE]</span>
-            </div>
-            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Operations Desk Online">
-              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Online
-            </div>
-          </div>
           <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
             Facing technical glitches, calculation anomalies, or account issues? Dispatch an incident report for rapid triage.
           </div>
@@ -134,14 +85,6 @@
         </a>
 
         <div class="hover-flyout-panel feedback-panel" id="feedback-panel" role="region" aria-label="Feedback &amp; Feature Radar">
-          <div class="panel-header" style="margin-bottom: 8px;">
-            <div class="panel-user-meta">
-              <span class="user-id">[FEEDBACK &bull; ROADMAP]</span>
-            </div>
-            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Suggestions Welcome">
-              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Active
-            </div>
-          </div>
           <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
             Have suggestions for new index baskets, MCA governance modules, or platform features? Pitch directly to the team.
           </div>
@@ -170,14 +113,6 @@
         </button>
 
         <div class="hover-flyout-panel edit-panel" id="edit-flyout-panel" role="region" aria-label="Edit &amp; Annotation Settings">
-          <div class="panel-header" style="margin-bottom: 8px;">
-            <div class="panel-user-meta">
-              <span class="user-id">[MARKUP &bull; CANVAS]</span>
-            </div>
-            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Annotation System Ready">
-              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Ready
-            </div>
-          </div>
           <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 2px; font-family: var(--font-mono); line-height: 1.45;">
             Pencil sketch, freeform text boxes, sticky notes, and stamps on any section.
           </div>
@@ -262,42 +197,6 @@
         </div>
       </div>
 
-      <!-- UPGRADE MEMBERSHIP BUTTON & HOVER PANEL -->
-      <div class="panel-trigger-wrapper" id="upgrade-nav-wrapper">
-        <a href="membership.html" class="icon-btn" id="upgrade-nav-btn" aria-label="Sovereign Upgrade &amp; Membership" title="Upgrade Membership">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-          </svg>
-        </a>
-
-        <div class="hover-flyout-panel upgrade-panel" id="upgrade-panel" role="region" aria-label="Membership Status &amp; Upgrade">
-          <div class="panel-header" style="margin-bottom: 8px;">
-            <div class="panel-user-meta">
-              <span class="user-role-badge" id="nav-upgrade-badge" style="display:none;"></span>
-              <span class="user-id" id="nav-upgrade-status">MEMBERSHIP</span>
-            </div>
-          </div>
-
-
-          <div class="panel-divider" style="margin: 8px 0 10px;"></div>
-
-          <div style="display: flex; flex-direction: column; gap: 5px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
-              <span style="color: var(--text-secondary);">Current Plan:</span>
-              <strong style="color: var(--text-primary);" id="nav-current-plan-name">Standard Access</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-family: var(--font-mono);">
-              <span style="color: var(--text-secondary);">Status:</span>
-              <span class="status-verified font-mono" id="nav-current-plan-status" style="font-size: 0.72rem; font-weight: 700;">● Active</span>
-            </div>
-          </div>
-
-          <a href="membership.html" class="account-btn-action" id="nav-upgrade-cta-btn" style="margin-top: 12px; background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
-            ⚡ Upgrade to Premium Plan
-          </a>
-        </div>
-      </div>
-
       <!-- ACCOUNT BUTTON & HOVER PANEL -->
       <div class="panel-trigger-wrapper" id="account-wrapper">
         <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier">
@@ -379,6 +278,41 @@
       </div>
     </div>
   </header>
+  <!-- ================= FLOATING SEARCH & FINDER BAR (Identical to Edit Annotation Bar) ================= -->
+  <div class="search-floating-bar" id="search-floating-bar" role="search" aria-label="Search &amp; In-Page Finder">
+    <span class="palette-drag-handle" title="Search Sovereign Terminal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+      </svg>
+    </span>
+
+    <div class="search-floating-input-wrap">
+      <input type="text" class="search-floating-input font-mono" id="nav-search-input" placeholder="Search terminal or page... ( / )" autocomplete="off" spellcheck="false" />
+      <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
+    </div>
+
+    <span class="palette-sep">|</span>
+
+    <div class="palette-nav-group">
+      <span class="palette-counter font-mono" id="finder-match-count">0 matches</span>
+      <div class="finder-nav-btns">
+        <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+        </button>
+        <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="palette-close-btn" id="search-bar-close-btn" title="Close Search (Esc)" aria-label="Close">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <!-- Search Suggestions / Results Dropdown -->
+    <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+  </div>
+
 
   <!-- ================= MAIN VIEWPORT CONTENT ================= -->
   <main class="main-viewport-wrapper">

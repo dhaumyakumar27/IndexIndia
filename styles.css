@@ -438,19 +438,11 @@ body.theme-dark .sub-nav-sep {
 
 /* Specific panel widths */
 .account-panel,
-.upgrade-panel,
 .contact-panel,
 .feedback-panel,
 .edit-panel {
   width: 330px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
-}
-
-.search-panel {
-  width: 380px;
-  max-width: calc(100vw - 24px);
   max-height: calc(100vh - 80px);
   overflow-y: auto;
 }
@@ -5505,20 +5497,23 @@ body.theme-dark .page-tree-children .doc-subsection:hover {
    ========================================================================== */
 
 /* Top bar button active indicator */
-#edit-nav-btn.is-active {
+#edit-nav-btn.is-active,
+#search-nav-btn.is-active {
   background: var(--text-primary);
   color: var(--bg-card);
   border-color: var(--text-primary);
 }
 
-body.theme-dark #edit-nav-btn.is-active {
+body.theme-dark #edit-nav-btn.is-active,
+body.theme-dark #search-nav-btn.is-active {
   background: #FFFFFF;
   color: #000000;
   border-color: #FFFFFF;
 }
 
-/* Floating Edit & Annotation Palette (Styled identically to In-Page Finder) */
-.edit-annotation-bar {
+/* Floating Edit & Annotation Palette & Floating Search Bar */
+.edit-annotation-bar,
+.search-floating-bar {
   position: fixed;
   top: calc(var(--nav-height) + 14px);
   left: 50%;
@@ -5544,17 +5539,97 @@ body.theme-dark #edit-nav-btn.is-active {
   flex-wrap: nowrap;
 }
 
-body.theme-dark .edit-annotation-bar {
+body.theme-dark .edit-annotation-bar,
+body.theme-dark .search-floating-bar {
   background: rgba(22, 26, 34, 0.96);
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 16px 42px rgba(0, 0, 0, 0.65);
 }
 
-.edit-annotation-bar.is-visible {
+.edit-annotation-bar.is-visible,
+.search-floating-bar.is-visible {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
+}
+
+.search-floating-bar {
+  width: 580px;
+}
+
+.search-floating-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+}
+
+.search-floating-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 4px 24px 4px 6px;
+}
+
+.search-floating-input::placeholder {
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.search-floating-bar .search-panel-clear-btn {
+  position: absolute;
+  right: 4px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 0.12s ease;
+}
+
+.search-floating-bar .search-panel-clear-btn:hover {
+  color: var(--text-primary);
+}
+
+.search-floating-bar .nav-search-results-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 380px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: none;
+  flex-direction: column;
+  padding: 6px;
+  z-index: 100001;
+}
+
+body.theme-dark .search-floating-bar .nav-search-results-dropdown {
+  background: rgba(22, 26, 34, 0.98);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+}
+
+.search-floating-bar .nav-search-results-dropdown.is-open {
+  display: flex !important;
 }
 
 .palette-drag-handle {
@@ -5598,6 +5673,17 @@ body.theme-dark .edit-annotation-bar {
   transition: all 0.12s ease;
   outline: none;
   white-space: nowrap;
+}
+
+.palette-tool-group .palette-tool-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.palette-tool-group .palette-tool-label {
+  display: none !important;
 }
 
 .palette-btn:hover,
