@@ -2181,13 +2181,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: "snapToMainContent",
       group: "NAVIGATION & SUITE",
       desc: "Center Viewport to Main Content",
-      key: "ArrowLeft",
-      code: "ArrowLeft",
+      key: " ",
+      code: "Space",
       ctrlKey: true,
       altKey: false,
       shiftKey: false,
       metaKey: false,
-      display: "Ctrl + ← / →"
+      display: "Ctrl + Space"
     },
     directoryTree: {
       id: "directoryTree",
@@ -2332,6 +2332,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const raw = localStorage.getItem("indexindia_custom_shortcuts");
       if (raw) {
         const parsed = JSON.parse(raw);
+        if (parsed.snapToMainContent && (parsed.snapToMainContent.display === "Ctrl + ← / →" || parsed.snapToMainContent.key === "ArrowLeft")) {
+          delete parsed.snapToMainContent;
+          localStorage.setItem("indexindia_custom_shortcuts", JSON.stringify(parsed));
+        }
         for (const k in parsed) {
           if (activeShortcuts[k]) {
             activeShortcuts[k] = Object.assign({}, activeShortcuts[k], parsed[k]);
@@ -2393,6 +2397,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sc.key === ";" && (e.key === ";" || e.code === "Semicolon")) return true;
     if (sc.key === "," && (e.key === "," || e.code === "Comma")) return true;
     if (sc.key === "." && (e.key === "." || e.code === "Period")) return true;
+    if ((sc.key === " " || sc.code === "Space") && (e.key === " " || e.code === "Space" || e.key === "Spacebar")) return true;
 
     return false;
   }
@@ -2907,11 +2912,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isHorizontalHeld) isFastHorizontalScroll = true;
     }
 
-    // 14. Snap Back to Main Content Section (Ctrl + ArrowLeft or Ctrl + ArrowRight)
+    // 14. Snap Back / Center Viewport to Main Content Section (Ctrl + Space)
     const isCtrlOnly = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey;
     if (
       matchesShortcut(e, activeShortcuts.snapToMainContent) ||
-      (isCtrlOnly && (e.key === "ArrowLeft" || e.key === "ArrowRight"))
+      (isCtrlOnly && (e.code === "Space" || e.key === " " || e.key === "Spacebar"))
     ) {
       e.preventDefault();
       snapToMainContentSection();
@@ -6115,10 +6120,6 @@ INSTRUCTIONS:
     if (snapBtn) {
       snapBtn.classList.toggle("active", annotationState.snapToGrid);
       snapBtn.setAttribute("aria-pressed", annotationState.snapToGrid ? "true" : "false");
-      const ind = snapBtn.querySelector(".palette-snap-indicator");
-      if (ind) {
-        ind.textContent = annotationState.snapToGrid ? "ON" : "OFF";
-      }
     }
 
     document.querySelectorAll(".edit-flyout-snap-toggle, #edit-flyout-snap-toggle").forEach((toggle) => {
@@ -6285,18 +6286,11 @@ INSTRUCTIONS:
       </div>
       <span class="palette-sep">|</span>
       <div class="palette-action-group">
-        <button type="button" class="palette-btn" id="annotation-btn-center" title="Center Viewport to Main Content (Ctrl + ← / →)">
-          <span class="palette-tool-icon">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
-          </span>
-          <span class="palette-tool-label">Center</span>
-        </button>
         <button type="button" class="palette-btn ${annotationState.snapToGrid ? 'active' : ''}" id="annotation-btn-snap" title="Snap to Grid (G) — Align sketches &amp; boxes to 24px grid" aria-pressed="${annotationState.snapToGrid}">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
           </span>
           <span class="palette-tool-label">Snap</span>
-          <span class="palette-snap-indicator font-mono">${annotationState.snapToGrid ? 'ON' : 'OFF'}</span>
         </button>
         <button type="button" class="palette-btn" id="annotation-btn-undo" title="Undo Last Annotation (Ctrl+Z)">
           <span class="palette-tool-icon">
@@ -6357,7 +6351,6 @@ INSTRUCTIONS:
   const annotationCounter = editAnnotationBar.querySelector("#annotation-counter");
   const annotationBtnPrev = editAnnotationBar.querySelector("#annotation-btn-prev");
   const annotationBtnNext = editAnnotationBar.querySelector("#annotation-btn-next");
-  const annotationBtnCenter = editAnnotationBar.querySelector("#annotation-btn-center");
   const annotationBtnSnap = editAnnotationBar.querySelector("#annotation-btn-snap");
   const annotationBtnUndo = editAnnotationBar.querySelector("#annotation-btn-undo");
   const annotationBtnClear = editAnnotationBar.querySelector("#annotation-btn-clear");
@@ -6365,13 +6358,6 @@ INSTRUCTIONS:
   const paletteDragHandle = editAnnotationBar.querySelector(".palette-drag-handle");
   const btnQuickHighlight = selectionTooltip?.querySelector("#btn-quick-highlight");
   const btnCloseStickers = stickerPopover.querySelector("#btn-close-stickers");
-
-  if (annotationBtnCenter) {
-    annotationBtnCenter.addEventListener("click", (e) => {
-      e.preventDefault();
-      snapToMainContentSection();
-    });
-  }
 
   if (annotationBtnSnap) {
     annotationBtnSnap.addEventListener("click", (e) => {
@@ -6408,8 +6394,102 @@ INSTRUCTIONS:
   }
   initEditNavFlyout();
 
-  function syncAnnotationCanvasDimensions() {
+  let annotationCanvasSpacer = null;
+  function getAnnotationCanvasSpacer() {
+    if (!annotationCanvasSpacer) {
+      annotationCanvasSpacer = document.getElementById("annotation-canvas-spacer");
+    }
+    if (!annotationCanvasSpacer) {
+      annotationCanvasSpacer = document.createElement("div");
+      annotationCanvasSpacer.id = "annotation-canvas-spacer";
+      annotationCanvasSpacer.className = "annotation-canvas-spacer";
+      document.body.appendChild(annotationCanvasSpacer);
+    }
+    return annotationCanvasSpacer;
+  }
+
+  function getRightmostAnnotationX() {
+    let maxX = 0;
+    if (Array.isArray(annotationsData.textboxes)) {
+      for (let i = 0; i < annotationsData.textboxes.length; i++) {
+        const b = annotationsData.textboxes[i];
+        const right = (Number(b.x) || 0) + (Number(b.width) || 160);
+        if (right > maxX) maxX = right;
+      }
+    }
+    if (Array.isArray(annotationsData.stickynotes)) {
+      for (let i = 0; i < annotationsData.stickynotes.length; i++) {
+        const n = annotationsData.stickynotes[i];
+        const right = (Number(n.x) || 0) + (Number(n.width) || 200);
+        if (right > maxX) maxX = right;
+      }
+    }
+    if (Array.isArray(annotationsData.stickers)) {
+      for (let i = 0; i < annotationsData.stickers.length; i++) {
+        const s = annotationsData.stickers[i];
+        const right = (Number(s.x) || 0) + 120;
+        if (right > maxX) maxX = right;
+      }
+    }
+    if (Array.isArray(annotationsData.strokes)) {
+      for (let i = 0; i < annotationsData.strokes.length; i++) {
+        const pts = annotationsData.strokes[i].points;
+        if (Array.isArray(pts)) {
+          for (let j = 0; j < pts.length; j++) {
+            const pt = pts[j];
+            const px = (pt && typeof pt.x === "number") ? pt.x : (Array.isArray(pt) ? pt[0] : 0);
+            if (px > maxX) maxX = px;
+          }
+        }
+      }
+    }
+    return maxX;
+  }
+
+  function computeDynamicCanvasWidth(extraX = 0) {
+    const isAnnotating = document.body.classList.contains("is-annotating");
+    const hasAnnotations = document.body.classList.contains("has-annotations");
+
+    if (!isAnnotating && !hasAnnotations && extraX <= 0) {
+      return window.innerWidth || document.documentElement.clientWidth;
+    }
+
+    const mainEl = document.querySelector(".main-viewport-wrapper") ||
+                   document.querySelector(".content-area") ||
+                   document.querySelector("main") ||
+                   document.body;
+    const mainRect = mainEl ? mainEl.getBoundingClientRect() : null;
+    const contentRight = mainRect ? Math.round(mainRect.left + window.scrollX + mainRect.width) : (window.innerWidth || 1200);
+    const baseRight = Math.max(contentRight, window.innerWidth || 1200);
+
+    const rightmostAnnotation = Math.max(getRightmostAnnotationX(), Number(extraX) || 0);
+    const lastAnnotatedPoint = Math.max(baseRight, rightmostAnnotation);
+
+    // Dynamic 1000px clean area page from the last annotated sketch, box, sticker etc
+    return Math.round(lastAnnotatedPoint + 1000);
+  }
+
+  function syncAnnotationCanvasDimensions(activePointX = 0) {
     if (!annotationSvgCanvas) return;
+
+    const isAnnotating = document.body.classList.contains("is-annotating");
+    const hasAnnotations = document.body.classList.contains("has-annotations");
+    const spacer = getAnnotationCanvasSpacer();
+
+    let targetWidth = 0;
+    if (isAnnotating || hasAnnotations || activePointX > 0) {
+      targetWidth = computeDynamicCanvasWidth(activePointX);
+      if (spacer) {
+        spacer.style.width = targetWidth + "px";
+        spacer.style.display = "block";
+      }
+    } else {
+      if (spacer) {
+        spacer.style.width = "0px";
+        spacer.style.display = "none";
+      }
+    }
+
     const scrollH = Math.max(
       document.body.scrollHeight,
       document.documentElement.scrollHeight,
@@ -6420,8 +6500,10 @@ INSTRUCTIONS:
     const scrollW = Math.max(
       document.body.scrollWidth,
       document.documentElement.scrollWidth,
+      targetWidth,
       window.innerWidth
     );
+
     annotationSvgCanvas.style.width = scrollW + "px";
     annotationSvgCanvas.style.height = scrollH + "px";
     if (annotationLayerContainer) {
@@ -7075,6 +7157,9 @@ INSTRUCTIONS:
     annotationDragPreview.style.top = `${minY}px`;
     annotationDragPreview.style.width = `${w}px`;
     annotationDragPreview.style.height = `${h}px`;
+    if (minX + w + 500 > (annotationSvgCanvas ? parseInt(annotationSvgCanvas.style.width, 10) || 0 : 0)) {
+      syncAnnotationCanvasDimensions(minX + w);
+    }
   });
 
   document.addEventListener("pointerup", (e) => {
@@ -7281,6 +7366,9 @@ INSTRUCTIONS:
       if (!lastPt || lastPt.x !== ptX || lastPt.y !== ptY) {
         currentStrokePoints.push({ x: ptX, y: ptY });
         currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints, annotationState.snapToGrid));
+        if (currentStrokePoints.length % 6 === 0) {
+          syncAnnotationCanvasDimensions(ptX);
+        }
       }
     });
 
@@ -7546,11 +7634,6 @@ INSTRUCTIONS:
     );
     if (hasAny) {
       document.body.classList.add("has-annotations");
-      setTimeout(() => {
-        if (typeof snapToMainContentSection === "function") {
-          snapToMainContentSection();
-        }
-      }, 120);
     }
     if (typeof triggerCloudAnnotationFetch === "function") {
       triggerCloudAnnotationFetch();
@@ -7740,11 +7823,6 @@ INSTRUCTIONS:
     syncAnnotationCanvasDimensions();
     setAnnotationTool(annotationState.activeTool || "sketch");
     updateAnnotationCounter();
-    setTimeout(() => {
-      if (typeof snapToMainContentSection === "function") {
-        snapToMainContentSection();
-      }
-    }, 60);
   };
 
   closeAnnotationPanel = function() {

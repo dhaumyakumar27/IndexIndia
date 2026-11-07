@@ -5444,32 +5444,6 @@ body.theme-dark .palette-tool-btn.active .palette-tool-icon svg {
   transition: all 0.14s ease;
 }
 
-#annotation-btn-snap .palette-snap-indicator {
-  font-size: 0.62rem;
-  font-family: var(--font-mono);
-  font-weight: 800;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-  margin-left: 3px;
-  line-height: 1;
-  transition: all 0.14s ease;
-}
-
-#annotation-btn-snap.active .palette-snap-indicator {
-  background: #10B981;
-  color: #FFFFFF;
-  border-color: #10B981;
-}
-
-body.theme-dark #annotation-btn-snap.active .palette-snap-indicator {
-  background: #059669;
-  color: #FFFFFF;
-  border-color: #059669;
-}
-
 .palette-tool-label {
   font-size: 0.72rem;
   font-weight: 700;
@@ -6025,17 +5999,24 @@ body.is-annotating .section-audit-toggles {
 }
 
 /* ==========================================================================
-   CANVAS WORKSPACE (Moving Left and Right for Annotation Notes)
+   CANVAS WORKSPACE (Dynamic 1000px Clean Area from Last Annotation)
    ========================================================================== */
 @media (min-width: 769px) {
   body.is-annotating,
   body.has-annotations {
-    min-width: 2800px !important;
-    padding-left: 800px !important;
-    padding-right: 800px !important;
-    box-sizing: border-box !important;
     overflow-x: auto !important;
   }
+}
+
+.annotation-canvas-spacer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: -1;
 }
 
 body.is-panning-canvas,
