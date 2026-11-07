@@ -6,12 +6,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ================= 1. PAGE CONTEXT & VIEW DETECTION =================
   const pathname = window.location.pathname.toLowerCase();
-  const currentFile = pathname.split("/").pop() || "index.html";
-  const isGuideSuite = pathname.includes("guide");
-  const isIndexSuite = !isGuideSuite;
-
-  // Keyboard shortcut Tab switches between Guide landing <=> Index landing
-  const targetOtherSuiteUrl = isIndexSuite ? "guide.html" : "index.html";
+  const currentFile = pathname.split("/").pop() || "guide.html";
+  const isGuideSuite = true;
+  const isIndexSuite = false;
 
   // Forward declarations for Doubt Solver & Top Nav Search so global listeners can invoke them
   let toggleDoubtSolver = function() {};
@@ -921,8 +918,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const settingsBtn = document.getElementById("settings-btn");
   const upgradeNavWrapper = document.getElementById("upgrade-nav-wrapper");
   const upgradeNavBtn = document.getElementById("upgrade-nav-btn");
+  const searchNavWrapper = document.getElementById("search-nav-wrapper");
+  const searchNavBtn = document.getElementById("search-nav-btn");
 
   const flyoutPanels = [
+    {
+      wrapper: searchNavWrapper,
+      btn: searchNavBtn,
+      onOpen: () => {
+        const inp = document.getElementById("nav-search-input");
+        if (inp) {
+          setTimeout(() => {
+            inp.focus();
+            if (inp.value) inp.select();
+          }, 30);
+        }
+      }
+    },
     {
       wrapper: shortcutsWrapper,
       btn: shortcutsBtn,
@@ -2021,18 +2033,6 @@ document.addEventListener("DOMContentLoaded", () => {
   ]);
 
   const DEFAULT_SHORTCUTS = {
-    switchSuite: {
-      id: "switchSuite",
-      group: "NAVIGATION & SUITE",
-      desc: "Switch Guide ⇔ Index",
-      key: "Tab",
-      code: "Tab",
-      ctrlKey: false,
-      altKey: false,
-      shiftKey: false,
-      metaKey: false,
-      display: "Tab"
-    },
     moveChapterDown: {
       id: "moveChapterDown",
       group: "NAVIGATION & SUITE",
@@ -2775,14 +2775,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
 
     const noModifiers = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
-
-    // 1. Switch Guide <=> Index
-    if (matchesShortcut(e, activeShortcuts.switchSuite)) {
-      e.preventDefault();
-      if (e.repeat) return;
-      window.location.href = targetOtherSuiteUrl;
-      return;
-    }
 
     // 2. Shortcut Panel
     if (matchesShortcut(e, activeShortcuts.shortcutsPanel) || (e.key === "?" && noModifiers)) {
@@ -5269,10 +5261,16 @@ INSTRUCTIONS:
     });
   }
 
-  // ================= 11. RIGID TOP-NAV SEARCH BAR & COMMAND PALETTE (Triggered by /) =================
-  let navSearchBarWrapper = document.getElementById("nav-search-bar-wrapper");
+  // ================= 11. TOP-NAV SEARCH FLYOUT & COMMAND PALETTE (Triggered by / or Magnifier) =================
+  let searchNavWrapper = document.getElementById("search-nav-wrapper");
+  let searchNavBtn = document.getElementById("search-nav-btn");
+  let searchFlyoutPanel = document.getElementById("search-flyout-panel");
   let navSearchInput = document.getElementById("nav-search-input");
   let navSearchResultsDropdown = document.getElementById("nav-search-results-dropdown");
+  let searchClearBtn = document.getElementById("search-panel-clear-btn");
+  let finderMatchCount = document.getElementById("finder-match-count");
+  let finderBtnPrev = document.getElementById("finder-btn-prev");
+  let finderBtnNext = document.getElementById("finder-btn-next");
   let paletteCurrentItems = [];
   let paletteSelectedIndex = -1;
 
@@ -5281,54 +5279,65 @@ INSTRUCTIONS:
   let currentFinderMatchIdx = 0;
   let currentFinderQuery = "";
 
-  // If search bar is not in HTML, dynamically inject it into .nav-left beside .view-switcher
-  if (!navSearchBarWrapper) {
-    const navLeft = document.querySelector(".nav-left");
-    if (navLeft) {
-      navSearchBarWrapper = document.createElement("div");
-      navSearchBarWrapper.id = "nav-search-bar-wrapper";
-      navSearchBarWrapper.className = "nav-search-bar-wrapper";
-      navSearchBarWrapper.innerHTML = `
-        <div class="nav-search-bar" id="nav-search-bar">
-          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="search (/)" autocomplete="off" spellcheck="false" />
+  // Dynamic fallback injection if searchNavWrapper is not in static DOM
+  if (!searchNavWrapper) {
+    const expandNav = document.getElementById("expand-nav-wrapper");
+    if (expandNav && expandNav.parentNode) {
+      searchNavWrapper = document.createElement("div");
+      searchNavWrapper.id = "search-nav-wrapper";
+      searchNavWrapper.className = "panel-trigger-wrapper";
+      searchNavWrapper.innerHTML = `
+        <button type="button" class="icon-btn" id="search-nav-btn" aria-label="Search Sovereign Terminal &amp; Page" title="Search &amp; Find ( Ctrl + / or / )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+        </button>
+        <div class="hover-flyout-panel search-panel" id="search-flyout-panel" role="region" aria-label="Search &amp; Finder">
+          <div class="panel-header" style="margin-bottom: 10px;">
+            <div class="panel-user-meta"><span class="user-id">[SEARCH &bull; FINDER]</span></div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Finder Engine Active">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Live
+            </div>
+          </div>
+          <div class="search-panel-input-box">
+            <svg class="search-panel-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input type="text" class="search-panel-input" id="nav-search-input" placeholder="Search terminal or page..." autocomplete="off" spellcheck="false" />
+            <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
+          </div>
+          <div class="search-panel-finder-bar" id="search-panel-finder-bar">
+            <div class="search-finder-meta">
+              <span class="search-finder-label font-mono">PAGE MATCHES:</span>
+              <span class="search-finder-count font-mono" id="finder-match-count">0 matches</span>
+            </div>
+            <div class="search-finder-nav-btns">
+              <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+              </button>
+              <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
         </div>
-        <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
       `;
-      navLeft.appendChild(navSearchBarWrapper);
-      navSearchInput = navSearchBarWrapper.querySelector("#nav-search-input");
-      navSearchResultsDropdown = navSearchBarWrapper.querySelector("#nav-search-results-dropdown");
+      expandNav.insertAdjacentElement("afterend", searchNavWrapper);
+      searchNavBtn = searchNavWrapper.querySelector("#search-nav-btn");
+      searchFlyoutPanel = searchNavWrapper.querySelector("#search-flyout-panel");
+      navSearchInput = searchNavWrapper.querySelector("#nav-search-input");
+      navSearchResultsDropdown = searchNavWrapper.querySelector("#nav-search-results-dropdown");
+      searchClearBtn = searchNavWrapper.querySelector("#search-panel-clear-btn");
+      finderMatchCount = searchNavWrapper.querySelector("#finder-match-count");
+      finderBtnPrev = searchNavWrapper.querySelector("#finder-btn-prev");
+      finderBtnNext = searchNavWrapper.querySelector("#finder-btn-next");
     }
   }
 
-  // Build In-Page Finder Floating Bar DOM
-  inpageFinderBar = document.getElementById("inpage-finder-bar");
-  if (!inpageFinderBar) {
-    inpageFinderBar = document.createElement("div");
-    inpageFinderBar.id = "inpage-finder-bar";
-    inpageFinderBar.className = "inpage-finder-bar";
-    inpageFinderBar.setAttribute("role", "search");
-    inpageFinderBar.setAttribute("aria-label", "In-Page Finder");
-    inpageFinderBar.innerHTML = `
-      <span class="finder-icon">🔍</span>
-      <span class="finder-query-text" id="finder-query-text">""</span>
-      <span class="finder-match-count font-mono" id="finder-match-count">0 of 0</span>
-      <div class="finder-nav-btns">
-        <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)">▲</button>
-        <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)">▼</button>
-      </div>
-      <button type="button" class="finder-close-btn" id="finder-close-btn" title="Close Finder (Esc)">&times;</button>
-    `;
-    document.body.appendChild(inpageFinderBar);
-  }
-
-  const finderQueryText = inpageFinderBar.querySelector("#finder-query-text");
-  const finderMatchCount = inpageFinderBar.querySelector("#finder-match-count");
-  const finderBtnPrev = inpageFinderBar.querySelector("#finder-btn-prev");
-  const finderBtnNext = inpageFinderBar.querySelector("#finder-btn-next");
-  const finderCloseBtn = inpageFinderBar.querySelector("#finder-close-btn");
-
   isFinderActive = function() {
-    return Boolean(inpageFinderBar && inpageFinderBar.classList.contains("is-visible") && finderMatches.length > 0);
+    return Boolean(finderMatches && finderMatches.length > 0);
   };
 
   // Helper Functions for Settings Actions
@@ -5410,7 +5419,7 @@ INSTRUCTIONS:
     finderMatches = [];
     currentFinderMatchIdx = 0;
     currentFinderQuery = "";
-    if (inpageFinderBar) inpageFinderBar.classList.remove("is-visible");
+    updateFinderUI();
   };
 
   function countInPageMatches(query) {
@@ -5496,19 +5505,20 @@ INSTRUCTIONS:
       currentFinderMatchIdx = 0;
       updateFinderUI();
       showFinderMatch(0);
-      if (inpageFinderBar) inpageFinderBar.classList.add("is-visible");
+    } else {
+      updateFinderUI();
     }
 
     return finderMatches.length;
   }
 
   function updateFinderUI() {
-    if (finderQueryText) finderQueryText.textContent = `"${currentFinderQuery}"`;
-    if (finderMatchCount) {
+    const countEl = document.getElementById("finder-match-count") || finderMatchCount;
+    if (countEl) {
       if (finderMatches.length > 0) {
-        finderMatchCount.textContent = `${currentFinderMatchIdx + 1} of ${finderMatches.length}`;
+        countEl.textContent = `${currentFinderMatchIdx + 1} of ${finderMatches.length}`;
       } else {
-        finderMatchCount.textContent = "0 matches";
+        countEl.textContent = "0 matches";
       }
     }
   }
@@ -5536,23 +5546,14 @@ INSTRUCTIONS:
     showFinderMatch(currentFinderMatchIdx - 1);
   };
 
-  if (finderBtnNext) finderBtnNext.addEventListener("click", nextFinderMatch);
-  if (finderBtnPrev) finderBtnPrev.addEventListener("click", prevFinderMatch);
-  if (finderCloseBtn) finderCloseBtn.addEventListener("click", clearFinderHighlights);
+  const finderBtnNextEl = document.getElementById("finder-btn-next") || finderBtnNext;
+  const finderBtnPrevEl = document.getElementById("finder-btn-prev") || finderBtnPrev;
+  if (finderBtnNextEl) finderBtnNextEl.addEventListener("click", nextFinderMatch);
+  if (finderBtnPrevEl) finderBtnPrevEl.addEventListener("click", prevFinderMatch);
 
   // Universal Registries
   function getAllShortcutBindings() {
     return [
-      {
-        category: "KEYBOARD SHORTCUTS",
-        title: "Switch Guide <=> Index Suite",
-        subtitle: "Switch between Guide matrix and Index terminal",
-        badge: "Tab",
-        keywords: "switch suite guide index tab toggle landing shortcut binding",
-        action: () => {
-          window.location.href = targetOtherSuiteUrl;
-        }
-      },
       {
         category: "KEYBOARD SHORTCUTS",
         title: "Move Main Chapter & Comments",
@@ -5772,17 +5773,6 @@ INSTRUCTIONS:
         badge: "Ctrl + .",
         keywords: "doubt solver gemini ai google duckduckgo ddg explainer question ask search",
         action: () => openDoubtSolver()
-      },
-      {
-        category: "NAVIGATION & PANELS",
-        icon: "🔀",
-        title: isIndexSuite ? "Switch to Guide Suite (Matrix)" : "Switch to Index Suite (Market Hub)",
-        subtitle: isIndexSuite ? "Jump to Guide Landing" : "Jump to Index Landing",
-        badge: "Tab",
-        keywords: "switch suite guide index tab toggle landing",
-        action: () => {
-          window.location.href = targetOtherSuiteUrl;
-        }
       }
     ];
   }
@@ -5817,7 +5807,6 @@ INSTRUCTIONS:
     // Core Hubs & Modular Directories
     const HUB_PAGES = [
       { title: "Guide Landing — Chapter 1: Entities & Chapter 2: Payment Gateways", file: "guide.html", sub: "Definitive statutory index of all business structures & payment gateway directory", kw: "guide entities registration matrix payment gateways razorpay cosmofeed stripe aggregator neobanking" },
-      { title: "Index Landing — Sovereign Governance Index Terminal", file: "index.html", sub: "Indian equity markets overview & forensic governance index", kw: "index market marketcap valuation multiples forensic" },
       { title: "Statutory & Privacy Dossier — Legal Disclosures & AI Telemetry", file: "statutory-privacy.html", sub: "SEBI non-advisory mandate, Gemini AI telemetry, privacy policy", kw: "statutory privacy legal sebi disclaimer gemini terms compliance refund cosmofeed razorpay" },
       { title: "Sovereign Clearance & Memberships", file: "membership.html", sub: "Institutional access tiers & forensic models", kw: "membership pricing upgrade clearance access plan" }
     ];
@@ -5983,24 +5972,36 @@ INSTRUCTIONS:
   }
 
   focusNavSearchBar = function() {
-    if (navSearchInput) {
-      navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
-      navSearchInput.placeholder = "";
-      navSearchInput.focus();
-      navSearchInput.select();
+    const wrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
+    if (wrapper) {
+      document.querySelectorAll(".panel-trigger-wrapper.is-open").forEach(w => {
+        if (w !== wrapper) w.classList.remove("is-open");
+      });
+      wrapper.classList.add("is-open");
+    }
+    const inp = document.getElementById("nav-search-input") || navSearchInput;
+    if (inp) {
+      inp.focus();
+      if (inp.value) {
+        inp.select();
+        renderSearchResults(inp.value);
+      }
     }
   };
 
+  function closeSearchPanel() {
+    const wrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
+    if (wrapper) wrapper.classList.remove("is-open");
+    closeNavSearchResults();
+    const inp = document.getElementById("nav-search-input") || navSearchInput;
+    if (inp) inp.blur();
+  }
+
   closeNavSearchResults = function() {
-    if (navSearchResultsDropdown) {
-      navSearchResultsDropdown.classList.remove("is-open");
-      navSearchResultsDropdown.innerHTML = "";
-    }
-    if (navSearchInput) {
-      if (!navSearchInput.value) {
-        navSearchInput.placeholder = navSearchInput.dataset.originalPlaceholder || "search (/)";
-      }
-      navSearchInput.blur();
+    const dropdown = document.getElementById("nav-search-results-dropdown") || navSearchResultsDropdown;
+    if (dropdown) {
+      dropdown.classList.remove("is-open");
+      dropdown.innerHTML = "";
     }
     paletteCurrentItems = [];
     paletteSelectedIndex = -1;
@@ -6009,68 +6010,115 @@ INSTRUCTIONS:
   window.focusNavSearchBar = focusNavSearchBar;
   window.closeNavSearchResults = closeNavSearchResults;
 
-  if (navSearchInput) {
-    navSearchInput.addEventListener("focus", () => {
-      navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
-      navSearchInput.placeholder = "";
-      if (navSearchInput.value.length > 0) {
-        navSearchInput.select();
-        renderSearchResults(navSearchInput.value);
-      }
-    });
-
-    navSearchInput.addEventListener("click", () => {
-      navSearchInput.dataset.originalPlaceholder = navSearchInput.placeholder || "search (/)";
-      navSearchInput.placeholder = "";
-      if (navSearchInput.value.length > 0) {
-        navSearchInput.select();
-        renderSearchResults(navSearchInput.value);
-      }
-    });
-
-    navSearchInput.addEventListener("mouseup", (e) => {
-      if (navSearchInput.value.length > 0) {
-        if (navSearchInput.selectionStart === navSearchInput.selectionEnd) {
-          navSearchInput.select();
+  const sNavBtn = document.getElementById("search-nav-btn") || searchNavBtn;
+  const sNavWrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
+  if (sNavBtn && sNavWrapper) {
+    sNavBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const willOpen = !sNavWrapper.classList.contains("is-open");
+      document.querySelectorAll(".panel-trigger-wrapper.is-open").forEach(w => {
+        if (w !== sNavWrapper) w.classList.remove("is-open");
+      });
+      if (willOpen) {
+        sNavWrapper.classList.add("is-open");
+        const inp = document.getElementById("nav-search-input") || navSearchInput;
+        if (inp) {
+          inp.focus();
+          if (inp.value) inp.select();
         }
+      } else {
+        closeSearchPanel();
+      }
+    });
+  }
+
+  const sClearBtn = document.getElementById("search-panel-clear-btn") || searchClearBtn;
+  if (sClearBtn) {
+    sClearBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const inp = document.getElementById("nav-search-input") || navSearchInput;
+      if (inp) {
+        inp.value = "";
+        inp.focus();
+      }
+      sClearBtn.style.display = "none";
+      clearFinderHighlights();
+      renderSearchResults("");
+    });
+  }
+
+  const searchInputEl = document.getElementById("nav-search-input") || navSearchInput;
+  if (searchInputEl) {
+    searchInputEl.addEventListener("focus", () => {
+      if (searchInputEl.value.length > 0) {
+        renderSearchResults(searchInputEl.value);
       }
     });
 
-    navSearchInput.addEventListener("blur", () => {
-      if (!navSearchInput.value) {
-        navSearchInput.placeholder = navSearchInput.dataset.originalPlaceholder || "search (/)";
+    searchInputEl.addEventListener("click", () => {
+      if (searchInputEl.value.length > 0) {
+        renderSearchResults(searchInputEl.value);
       }
     });
 
-    navSearchInput.addEventListener("input", (e) => {
+    searchInputEl.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      const clr = document.getElementById("search-panel-clear-btn") || searchClearBtn;
+      if (clr) {
+        clr.style.display = e.target.value.length > 0 ? "block" : "none";
+      }
+      if (val.length >= 2) {
+        highlightInPageText(val);
+      } else {
+        clearFinderHighlights();
+      }
       renderSearchResults(e.target.value);
     });
 
-    navSearchInput.addEventListener("keydown", (e) => {
+    searchInputEl.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setPaletteSelectedIndex(paletteSelectedIndex + 1);
+        if (paletteCurrentItems.length > 0) {
+          e.preventDefault();
+          setPaletteSelectedIndex(paletteSelectedIndex + 1);
+        } else if (finderMatches.length > 0) {
+          e.preventDefault();
+          nextFinderMatch();
+        }
       } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setPaletteSelectedIndex(paletteSelectedIndex - 1);
+        if (paletteCurrentItems.length > 0) {
+          e.preventDefault();
+          setPaletteSelectedIndex(paletteSelectedIndex - 1);
+        } else if (finderMatches.length > 0) {
+          e.preventDefault();
+          prevFinderMatch();
+        }
       } else if (e.key === "Enter") {
         e.preventDefault();
         if (paletteSelectedIndex >= 0 && paletteSelectedIndex < paletteCurrentItems.length) {
           executePaletteItem(paletteSelectedIndex);
-        } else if (navSearchInput.value.trim().length >= 2) {
-          closeNavSearchResults();
-          highlightInPageText(navSearchInput.value.trim());
+        } else if (finderMatches.length > 0) {
+          if (e.shiftKey) {
+            prevFinderMatch();
+          } else {
+            nextFinderMatch();
+          }
+        } else if (searchInputEl.value.trim().length >= 2) {
+          highlightInPageText(searchInputEl.value.trim());
         }
       } else if (e.key === "Escape") {
         e.preventDefault();
-        closeNavSearchResults();
+        closeSearchPanel();
       }
     });
   }
 
   document.addEventListener("mousedown", (e) => {
-    if (navSearchBarWrapper && !navSearchBarWrapper.contains(e.target)) {
-      closeNavSearchResults();
+    const wrapper = document.getElementById("search-nav-wrapper") || searchNavWrapper;
+    if (wrapper && !wrapper.contains(e.target)) {
+      if (wrapper.classList.contains("is-open")) {
+        wrapper.classList.remove("is-open");
+        closeNavSearchResults();
+      }
     }
   });
 

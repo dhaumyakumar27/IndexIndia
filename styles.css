@@ -185,6 +185,39 @@ body.theme-dark .top-nav {
   gap: 16px;
 }
 
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  letter-spacing: 0.05em;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: opacity 0.15s ease;
+  user-select: none;
+}
+
+.nav-brand:hover {
+  opacity: 0.85;
+}
+
+.nav-brand-title {
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.06em;
+}
+
+.nav-brand-tag {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0.85;
+  letter-spacing: 0.04em;
+}
+
 /* Segmented Switch Button [ Guide | Index ] matching draw.io wireframe */
 .view-switcher {
   display: inline-flex;
@@ -408,8 +441,9 @@ body.theme-dark .sub-nav-sep {
 .upgrade-panel,
 .contact-panel,
 .feedback-panel,
-.edit-panel {
-  width: 310px;
+.edit-panel,
+.search-panel {
+  width: 330px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 80px);
   overflow-y: auto;
@@ -4643,6 +4677,163 @@ body.theme-light .doubt-web-enrichment {
 /* ==========================================================================
    RIGID TOP-NAV SEARCH BAR & DROPDOWN COMMAND PALETTE (Triggered by /)
    ========================================================================== */
+/* ==========================================================================
+   TOP-NAV SEARCH FLYOUT PANEL (Beside Full Screen button)
+   ========================================================================== */
+.search-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+.search-panel-input-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 6px;
+  background-color: var(--bg-surface-subtle);
+  border: 1.5px solid var(--border-primary);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-panel-input-box:focus-within {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(255, 153, 51, 0.25);
+}
+
+body.theme-dark .search-panel-input-box:focus-within {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255, 153, 51, 0.35);
+}
+
+.search-panel-input-icon {
+  flex-shrink: 0;
+  stroke: var(--text-secondary);
+}
+
+.search-panel-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.search-panel-input::placeholder {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.search-panel-clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 0.12s ease;
+}
+
+.search-panel-clear-btn:hover {
+  color: var(--text-primary);
+}
+
+/* Integrated In-Page Up/Down Panel (Finder Bar) */
+.search-panel-finder-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+}
+
+.search-finder-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-finder-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.search-finder-count {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #d97706;
+}
+
+body.theme-dark .search-finder-count {
+  color: #f59e0b;
+}
+
+.search-finder-nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.search-finder-nav-btns .finder-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.search-finder-nav-btns .finder-btn:hover {
+  background: var(--bg-inverted);
+  color: var(--text-on-inverted);
+  border-color: var(--bg-inverted);
+}
+
+.search-finder-nav-btns .finder-btn:hover svg {
+  stroke: var(--text-on-inverted);
+}
+
+/* Integrated Search Results Dropdown inside Search Panel */
+.search-panel .nav-search-results-dropdown {
+  position: static;
+  width: 100%;
+  max-width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-surface-subtle);
+  padding: 4px;
+  margin-top: 4px;
+  z-index: 1;
+}
+
+/* Hide legacy floating inpage finder bar */
+.inpage-finder-bar {
+  display: none !important;
+}
+
 .nav-search-bar-wrapper {
   position: relative;
   display: flex;

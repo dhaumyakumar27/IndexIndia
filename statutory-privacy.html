@@ -16,25 +16,10 @@
   <!-- ================= TOP NAVIGATION BAR ================= -->
   <header class="top-nav" id="top-nav">
     <div class="nav-left">
-      <!-- Segmented switch button on top left [Guide | Index] -->
-      <nav class="view-switcher" role="tablist" aria-label="Content View Switcher">
-        <a href="guide.html" class="switch-btn" id="btn-guide" role="tab" aria-selected="false"
-          title="Switch to Guide (Tab)">
-          Guide
-        </a>
-        <a href="index.html" class="switch-btn" id="btn-index" role="tab" aria-selected="false"
-          title="Switch to Index (Tab)">
-          Index
-        </a>
-      </nav>
-      <!-- RIGID ALWAYS SEARCH BAR BESIDE GUIDE <=> INDEX BUTTON -->
-      <div class="nav-search-bar-wrapper" id="nav-search-bar-wrapper">
-        <div class="nav-search-bar" id="nav-search-bar">
-          <input type="text" class="nav-search-input" id="nav-search-input" placeholder="search (/)" autocomplete="off"
-            spellcheck="false" />
-        </div>
-        <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
-      </div>
+      <a href="guide.html" class="nav-brand font-mono" title="INDEXINDIA Sovereign Research Terminal">
+        <span class="nav-brand-title">INDEXINDIA</span>
+        <span class="nav-brand-tag">&bull; SOVEREIGN TERMINAL</span>
+      </a>
     </div>
 
     <!-- Top Right Nav Buttons, Account and Settings -->
@@ -48,6 +33,59 @@
             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
           </svg>
         </button>
+      </div>
+
+      <!-- Search Trigger Round Button (Magnifier) & Integrated Search Panel -->
+      <div class="panel-trigger-wrapper" id="search-nav-wrapper">
+        <button type="button" class="icon-btn" id="search-nav-btn" aria-label="Search Sovereign Terminal &amp; Page"
+          title="Search &amp; Find ( Ctrl + / or / )">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+        </button>
+
+        <div class="hover-flyout-panel search-panel" id="search-flyout-panel" role="region"
+          aria-label="Search &amp; Finder">
+          <div class="panel-header" style="margin-bottom: 10px;">
+            <div class="panel-user-meta">
+              <span class="user-id">[SEARCH &bull; FINDER]</span>
+            </div>
+            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Finder Engine Active">
+              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Live
+            </div>
+          </div>
+
+          <!-- Integrated Search Input -->
+          <div class="search-panel-input-box">
+            <svg class="search-panel-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input type="text" class="search-panel-input" id="nav-search-input" placeholder="Search terminal or page..." autocomplete="off" spellcheck="false" />
+            <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
+          </div>
+
+          <!-- Integrated In-Page Up/Down Panel (Previous / Next Matches) -->
+          <div class="search-panel-finder-bar" id="search-panel-finder-bar">
+            <div class="search-finder-meta">
+              <span class="search-finder-label font-mono">PAGE MATCHES:</span>
+              <span class="search-finder-count font-mono" id="finder-match-count">0 matches</span>
+            </div>
+            <div class="search-finder-nav-btns">
+              <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+              </button>
+              <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Integrated Search Suggestions / Results Dropdown -->
+          <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
+        </div>
       </div>
 
       <!-- Directory Tree Round Button -->
@@ -182,10 +220,6 @@
           aria-label="Keyboard Shortcuts">
           <div class="shortcuts-group">
             <div class="shortcuts-group-title">NAVIGATION &amp; SUITE</div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Switch Guide &hArr; Index</span>
-              <span class="shortcut-keys"><kbd>Tab</kbd></span>
-            </div>
             <div class="shortcut-row">
               <span class="shortcut-desc">Move Main Chapter &amp; Comments</span>
               <span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
