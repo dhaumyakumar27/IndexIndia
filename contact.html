@@ -9,7 +9,6 @@
   <meta name="description"
     content="Official incident dispatch and operations desk for IndexIndia. Report terminal glitches, data discrepancies, subscription issues, and forensic errors.">
   <link rel="stylesheet" href="styles.css?v=9.8">
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 
 <body class="theme-light">
@@ -434,26 +433,28 @@
               </div>
             </div>
 
-            <!-- Viewport Screenshot Capture -->
-            <div class="screenshot-capture-row">
-              <div>
-                <div class="screenshot-title">📸 Viewport Screenshot Attachment</div>
-                <div class="screenshot-desc" id="screenshot-status-text">Capture the current UI view to highlight rendering glitches or visual discrepancies</div>
+            <!-- Manual Screenshot Upload Attachment (Max 2, 2.5 MB each) -->
+            <div class="screenshot-upload-section">
+              <div class="screenshot-upload-header">
+                <div>
+                  <div class="screenshot-title">📸 Attach Screenshots (Optional)</div>
+                  <div class="screenshot-desc" id="screenshot-status-text">
+                    Post up to 2 screenshots manually (PNG, JPG, WebP) &bull; Max 2.5 MB per file
+                  </div>
+                </div>
+                <div>
+                  <input type="file" id="contact-screenshot-input" accept="image/png, image/jpeg, image/webp" multiple style="display: none;">
+                  <button type="button" class="btn-screenshot-capture font-mono" id="btn-browse-screenshots">
+                    <span>📎</span> <span id="btn-screenshot-label">Upload Screenshot</span>
+                  </button>
+                </div>
               </div>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <button type="button" class="btn-screenshot-capture font-mono" id="btn-capture-screenshot">
-                  <span>📷</span> <span id="btn-screenshot-label">Capture Viewport</span>
-                </button>
-                <button type="button" class="btn-screenshot-remove font-mono" id="btn-remove-screenshot" style="display: none;">
-                  ✕ Remove
-                </button>
-              </div>
-            </div>
 
-            <!-- Screenshot Preview Box -->
-            <div class="screenshot-preview-container" id="screenshot-preview-container" style="display: none;">
-              <img id="screenshot-img-preview" src="" alt="Captured Viewport Screenshot">
-              <span class="screenshot-preview-badge">✓ SCREENSHOT ATTACHED TO REPORT</span>
+              <!-- Warning / error banner for file count or size limit violations -->
+              <div class="screenshot-upload-error font-mono" id="screenshot-upload-error" style="display: none;"></div>
+
+              <!-- Previews Grid for up to 2 screenshots -->
+              <div class="screenshot-previews-grid" id="screenshot-previews-grid" style="display: none;"></div>
             </div>
 
             <!-- Expandable Telemetry & Console Error Accordion -->
@@ -595,7 +596,7 @@
 
     function initContactPage() {
       let currentUser = null;
-      let capturedScreenshotDataUrl = null;
+      let uploadedScreenshots = [];
       let latestRawBody = "";
 
       function escapeHTML(str) {
@@ -715,54 +716,127 @@
       window.refreshTelemetryDisplay();
       window.addEventListener("resize", window.refreshTelemetryDisplay);
 
-      // Screenshot capture handling
-      const btnCapture = document.getElementById("btn-capture-screenshot");
-      const btnRemove = document.getElementById("btn-remove-screenshot");
-      const previewContainer = document.getElementById("screenshot-preview-container");
-      const previewImg = document.getElementById("screenshot-img-preview");
-      const btnLabel = document.getElementById("btn-screenshot-label");
+      // Manual Screenshot Upload handling (Max 2, 2.5 MB each)
+      const btnBrowse = document.getElementById("btn-browse-screenshots");
+      const fileInput = document.getElementById("contact-screenshot-input");
+      const errorBanner = document.getElementById("screenshot-upload-error");
+      const previewsGrid = document.getElementById("screenshot-previews-grid");
       const statusText = document.getElementById("screenshot-status-text");
+      const btnLabel = document.getElementById("btn-screenshot-label");
 
-      if (btnCapture) {
-        btnCapture.addEventListener("click", async () => {
-          if (typeof html2canvas !== "function") {
-            alert("Screenshot module initializing. Please click again in a moment.");
-            return;
-          }
-          btnCapture.disabled = true;
-          if (btnLabel) btnLabel.textContent = "Capturing...";
+      const MAX_SCREENSHOTS = 2;
+      const MAX_BYTES_PER_FILE = 2.5 * 1024 * 1024; // 2,621,440 bytes (2.5 MB)
 
-          try {
-            const canvas = await html2canvas(document.body, {
-              scale: Math.min(window.devicePixelRatio || 1, 1.5),
-              logging: false,
-              useCORS: true,
-              ignoreElements: (el) => el.id === "issue-confirmation-card" || el.id === "feedback-confirmation-card"
-            });
-            capturedScreenshotDataUrl = canvas.toDataURL("image/jpeg", 0.72);
-            if (previewImg) previewImg.src = capturedScreenshotDataUrl;
-            if (previewContainer) previewContainer.style.display = "block";
-            if (btnRemove) btnRemove.style.display = "inline-flex";
-            if (btnLabel) btnLabel.textContent = "Retake Screenshot";
-            if (statusText) statusText.textContent = "✓ Viewport snapshot captured & attached to dispatch payload";
-          } catch (err) {
-            console.warn("Screenshot capture error:", err);
-            alert("Viewport snapshot could not be captured: " + (err.message || err));
-            if (btnLabel) btnLabel.textContent = "Capture Viewport";
-          } finally {
-            btnCapture.disabled = false;
-          }
-        });
+      function showUploadError(msg) {
+        if (!errorBanner) return;
+        errorBanner.textContent = msg;
+        errorBanner.style.display = "block";
       }
 
-      if (btnRemove) {
-        btnRemove.addEventListener("click", () => {
-          capturedScreenshotDataUrl = null;
-          if (previewImg) previewImg.src = "";
-          if (previewContainer) previewContainer.style.display = "none";
-          btnRemove.style.display = "none";
-          if (btnLabel) btnLabel.textContent = "Capture Viewport";
-          if (statusText) statusText.textContent = "Capture the current UI view to highlight rendering glitches or visual discrepancies";
+      function clearUploadError() {
+        if (!errorBanner) return;
+        errorBanner.textContent = "";
+        errorBanner.style.display = "none";
+      }
+
+      function renderScreenshotPreviews() {
+        if (!previewsGrid) return;
+        previewsGrid.innerHTML = "";
+
+        if (uploadedScreenshots.length === 0) {
+          previewsGrid.style.display = "none";
+          if (btnBrowse) btnBrowse.disabled = false;
+          if (btnLabel) btnLabel.textContent = "Upload Screenshot";
+          if (statusText) statusText.textContent = "Post up to 2 screenshots manually (PNG, JPG, WebP) • Max 2.5 MB per file";
+          return;
+        }
+
+        previewsGrid.style.display = "grid";
+
+        uploadedScreenshots.forEach((s, idx) => {
+          const card = document.createElement("div");
+          card.className = "screenshot-preview-card";
+          card.innerHTML = `
+            <img src="${s.dataUrl}" alt="${escapeHTML(s.filename)}" class="screenshot-card-thumb" />
+            <div class="screenshot-card-info">
+              <span class="screenshot-card-name" title="${escapeHTML(s.filename)}">${escapeHTML(s.filename)}</span>
+              <span class="screenshot-card-size font-mono">${escapeHTML(s.sizeStr)}</span>
+            </div>
+            <button type="button" class="screenshot-card-remove" data-idx="${idx}" aria-label="Remove screenshot" data-hover-tag="[REMOVE]">✕</button>
+          `;
+          previewsGrid.appendChild(card);
+        });
+
+        previewsGrid.querySelectorAll(".screenshot-card-remove").forEach((rmBtn) => {
+          rmBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const idx = parseInt(rmBtn.getAttribute("data-idx"), 10);
+            if (!isNaN(idx)) {
+              uploadedScreenshots.splice(idx, 1);
+              clearUploadError();
+              renderScreenshotPreviews();
+            }
+          });
+        });
+
+        if (uploadedScreenshots.length >= MAX_SCREENSHOTS) {
+          if (btnBrowse) btnBrowse.disabled = true;
+          if (btnLabel) btnLabel.textContent = "Limit Reached (2/2)";
+          if (statusText) statusText.textContent = `✓ 2 screenshots attached (${uploadedScreenshots.map(s => s.sizeStr).join(", ")})`;
+        } else {
+          if (btnBrowse) btnBrowse.disabled = false;
+          if (btnLabel) btnLabel.textContent = `Add Another (${uploadedScreenshots.length}/${MAX_SCREENSHOTS})`;
+          if (statusText) statusText.textContent = `✓ 1 screenshot attached (${uploadedScreenshots[0].sizeStr}) • 1 slot remaining`;
+        }
+      }
+
+      if (btnBrowse && fileInput) {
+        btnBrowse.addEventListener("click", () => {
+          if (uploadedScreenshots.length >= MAX_SCREENSHOTS) {
+            showUploadError("Maximum 2 screenshots allowed. Please remove an existing screenshot to upload a new one.");
+            return;
+          }
+          fileInput.value = "";
+          fileInput.click();
+        });
+
+        fileInput.addEventListener("change", (e) => {
+          clearUploadError();
+          const files = Array.from(e.target.files || []);
+          if (!files.length) return;
+
+          const remainingSlots = MAX_SCREENSHOTS - uploadedScreenshots.length;
+          if (files.length > remainingSlots) {
+            showUploadError(`You can only attach a maximum of ${MAX_SCREENSHOTS} screenshots. Only ${remainingSlots} more slot${remainingSlots > 1 ? "s" : ""} available.`);
+            return;
+          }
+
+          for (const file of files) {
+            if (file.size > MAX_BYTES_PER_FILE) {
+              const mb = (file.size / (1024 * 1024)).toFixed(2);
+              showUploadError(`"${file.name}" exceeds 2.5 MB (${mb} MB). Please choose a screenshot under 2.5 MB.`);
+              return;
+            }
+          }
+
+          let loaded = 0;
+          files.forEach((file) => {
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+              const sizeInKb = (file.size / 1024).toFixed(1);
+              uploadedScreenshots.push({
+                file: file,
+                filename: file.name,
+                dataUrl: loadEvent.target.result,
+                sizeStr: file.size >= 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeInKb} KB`
+              });
+              loaded++;
+              if (loaded === files.length) {
+                renderScreenshotPreviews();
+              }
+            };
+            reader.readAsDataURL(file);
+          });
         });
       }
 
@@ -935,7 +1009,7 @@ Viewport: ${viewport}
 Screen Resolution: ${screenRes}
 Theme: ${currentTheme} | Font: ${currentFont}
 User Agent: ${navigator.userAgent}
-Screenshot Attached: ${capturedScreenshotDataUrl ? "YES" : "NO"}
+Screenshot Attached: ${uploadedScreenshots.length > 0 ? uploadedScreenshots.map(s => `${s.filename} (${s.sizeStr})`).join(", ") : "NO"}
 Recorded Console Errors: ${consoleCount}
 ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n") : ""}
 `;
@@ -976,7 +1050,7 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
         <tr><td class="meta-label">Classification</td><td><strong style="color: #000000;">${escapeHTML(category)}</strong></td></tr>
         <tr><td class="meta-label">Submitter Email</td><td><a href="mailto:${escapeHTML(userEmail)}" style="color: #111827; font-weight: 600;">${escapeHTML(userEmail)}</a></td></tr>
         <tr><td class="meta-label">Timestamp (IST)</td><td>${escapeHTML(timestampIST)}</td></tr>
-        <tr><td class="meta-label">Screenshot</td><td>${capturedScreenshotDataUrl ? "<strong>✓ Attached to this email (screenshot.jpg)</strong>" : "None"}</td></tr>
+        <tr><td class="meta-label">Screenshot(s)</td><td>${uploadedScreenshots.length > 0 ? uploadedScreenshots.map((s, i) => `<strong>✓ File ${i + 1}: ${escapeHTML(s.filename)} (${escapeHTML(s.sizeStr)})</strong>`).join("<br>") : "None"}</td></tr>
       </table>
 
       <h3 style="font-size: 12px; text-transform: uppercase; color: #4B5563; margin-bottom: 6px; font-family: monospace; letter-spacing: 0.05em;">${isIssue ? "Error Symptoms &amp; Notes" : "Improvement Proposal &amp; Notes"}</h3>
@@ -1023,11 +1097,12 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
               description,
               html: htmlContent
             };
-            if (capturedScreenshotDataUrl) {
-              workerPayload.screenshot = {
-                filename: `screenshot-${ticketId}.jpg`,
-                content: capturedScreenshotDataUrl.split(",")[1]
-              };
+            if (uploadedScreenshots.length > 0) {
+              workerPayload.screenshots = uploadedScreenshots.map((s, idx) => ({
+                filename: s.filename || `screenshot-${ticketId}-${idx + 1}.png`,
+                content: s.dataUrl.split(",")[1]
+              }));
+              workerPayload.screenshot = workerPayload.screenshots[0]; // backward compatibility
             }
 
             const resp = await fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
@@ -1057,11 +1132,11 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
                 text: latestRawBody,
                 html: htmlContent
               };
-              if (capturedScreenshotDataUrl) {
-                resendPayload.attachments = [{
-                  filename: `screenshot-${ticketId}.jpg`,
-                  content: capturedScreenshotDataUrl.split(",")[1]
-                }];
+              if (uploadedScreenshots.length > 0) {
+                resendPayload.attachments = uploadedScreenshots.map((s, idx) => ({
+                  filename: s.filename || `screenshot-${ticketId}-${idx + 1}.png`,
+                  content: s.dataUrl.split(",")[1]
+                }));
               }
 
               const resendResp = await fetch("https://api.resend.com/emails", {
@@ -1118,7 +1193,9 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
 
           // Reset form state & cleanup
           form.reset();
-          if (btnRemove) btnRemove.click(); // Reset screenshot
+          uploadedScreenshots = [];
+          clearUploadError();
+          renderScreenshotPreviews();
           if (currentUser) setAuthState(currentUser);
           updateSubmissionTypeUI();
           submitBtn.disabled = false;

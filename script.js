@@ -8262,7 +8262,7 @@ INSTRUCTIONS:
         dotBtn.appendChild(dotGlyph);
         dotBtn.appendChild(dotTip);
 
-        // 2. Permanent Gemini Icon Button (right - top most side)
+        // 2. Permanent Gemini Icon Button
         const geminiBtn = document.createElement("button");
         geminiBtn.type = "button";
         geminiBtn.className = "section-gemini-btn";
@@ -8274,8 +8274,20 @@ INSTRUCTIONS:
           <span class="section-bracket-tip font-mono">[Ask Doubt]</span>
         `;
 
+        // 3. Permanent Notepad Button ("A" glyph) in farthest right corner
+        const notepadBtn = document.createElement("button");
+        notepadBtn.type = "button";
+        notepadBtn.className = "section-notepad-btn";
+        notepadBtn.setAttribute("aria-label", "Add Section Note");
+        notepadBtn.setAttribute("data-hover-tag", "[NOTEPAD]");
+        notepadBtn.innerHTML = `
+          <span class="notepad-glyph-a font-mono">A</span>
+          <span class="section-bracket-tip font-mono">[NOTEPAD]</span>
+        `;
+
         cluster.appendChild(dotBtn);
         cluster.appendChild(geminiBtn);
+        cluster.appendChild(notepadBtn);
         section.appendChild(cluster);
 
         // Dot Click: Cycles Unmarked (Black) -> Read (Green) -> Important (Orange) -> Both (Read-Important) -> Unmarked
@@ -8310,6 +8322,13 @@ INSTRUCTIONS:
           e.preventDefault();
           e.stopPropagation();
           openDoubtSolverForSection(section);
+        });
+
+        // Notepad Click: Adds a section user note tab matching Chapter 1 tab style
+        notepadBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          addSectionUserNote(sectionId, section);
         });
       }
 
@@ -8348,6 +8367,156 @@ INSTRUCTIONS:
     });
 
     syncAllDirectoryTreeDots(auditData);
+    loadAllSectionUserNotes();
+  }
+
+  // ==========================================================================
+  // SECTION CUSTOM USER NOTES (Tab style matching Chapter 1 / Chapter 2 entity tabs)
+  // ==========================================================================
+  const SECTION_NOTES_STORAGE_KEY = "indexindia_section_notes";
+
+  function getStoredSectionNotes() {
+    try {
+      const raw = localStorage.getItem(SECTION_NOTES_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return {};
+  }
+
+  function saveStoredSectionNotes(notesMap) {
+    try {
+      localStorage.setItem(SECTION_NOTES_STORAGE_KEY, JSON.stringify(notesMap));
+    } catch (_) {}
+  }
+
+  function getSectionNotesGrid(section) {
+    let grid = section.querySelector(".entity-cards-grid");
+    if (!grid) {
+      grid = section.querySelector(".user-notes-grid");
+    }
+    if (!grid) {
+      grid = document.createElement("div");
+      grid.className = "entity-cards-grid user-notes-grid";
+      const tableWrap = section.querySelector(".table-wrapper");
+      if (tableWrap && tableWrap.nextSibling) {
+        section.insertBefore(grid, tableWrap.nextSibling);
+      } else {
+        section.appendChild(grid);
+      }
+    }
+    return grid;
+  }
+
+  function renderSingleNoteCard(sectionId, section, note, shouldFocus = false) {
+    const grid = getSectionNotesGrid(section);
+    const existing = grid.querySelector(`[data-note-id="${note.id}"]`);
+    if (existing) existing.remove();
+
+    const noteCard = document.createElement("div");
+    noteCard.className = "entity-item user-section-note-tab";
+    noteCard.setAttribute("data-note-id", note.id);
+
+    noteCard.innerHTML = `
+      <div class="user-note-header">
+        <div class="user-note-title-wrap">
+          <input type="text" class="entity-name user-note-title-input font-mono" value="${(note.title || "").replace(/"/g, '&quot;')}" placeholder="Section Note Title..." spellcheck="false" />
+        </div>
+        <div class="user-note-actions">
+          <span class="user-note-tag font-mono">[NOTE]</span>
+          <button type="button" class="user-note-delete-btn" aria-label="Delete note" data-hover-tag="[DELETE NOTE]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <textarea class="user-note-textarea font-mono" placeholder="Write personal statutory notes, action items, or remarks here..." rows="3">${(note.text || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+    `;
+
+    const titleInput = noteCard.querySelector(".user-note-title-input");
+    const textarea = noteCard.querySelector(".user-note-textarea");
+    const delBtn = noteCard.querySelector(".user-note-delete-btn");
+
+    function persistNote() {
+      const allNotes = getStoredSectionNotes();
+      if (!allNotes[sectionId]) allNotes[sectionId] = [];
+      const item = allNotes[sectionId].find(n => n.id === note.id);
+      if (item) {
+        item.title = titleInput.value;
+        item.text = textarea.value;
+        item.timestamp = Date.now();
+      } else {
+        allNotes[sectionId].push({
+          id: note.id,
+          title: titleInput.value,
+          text: textarea.value,
+          timestamp: Date.now()
+        });
+      }
+      saveStoredSectionNotes(allNotes);
+    }
+
+    titleInput.addEventListener("input", persistNote);
+    textarea.addEventListener("input", persistNote);
+
+    delBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      noteCard.remove();
+      const allNotes = getStoredSectionNotes();
+      if (allNotes[sectionId]) {
+        allNotes[sectionId] = allNotes[sectionId].filter(n => n.id !== note.id);
+        if (allNotes[sectionId].length === 0) delete allNotes[sectionId];
+        saveStoredSectionNotes(allNotes);
+      }
+      if (grid.classList.contains("user-notes-grid") && grid.children.length === 0) {
+        grid.remove();
+      }
+    });
+
+    grid.appendChild(noteCard);
+
+    if (shouldFocus) {
+      noteCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      setTimeout(() => {
+        titleInput.focus();
+        titleInput.select();
+      }, 60);
+    }
+  }
+
+  function addSectionUserNote(sectionId, section) {
+    const newNote = {
+      id: "note_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+      title: "My Section Note",
+      text: "",
+      timestamp: Date.now()
+    };
+
+    const allNotes = getStoredSectionNotes();
+    if (!allNotes[sectionId]) allNotes[sectionId] = [];
+    allNotes[sectionId].push(newNote);
+    saveStoredSectionNotes(allNotes);
+
+    renderSingleNoteCard(sectionId, section, newNote, true);
+  }
+
+  function loadAllSectionUserNotes() {
+    const allNotes = getStoredSectionNotes();
+    const sections = Array.from(document.querySelectorAll(
+      ".doc-section, .doc-subsection, .doc-subsubsection, .story-node-section, .page-directory-section, .content-area > section"
+    ));
+
+    sections.forEach((section, idx) => {
+      const sectionId = section.id || `section_${idx}`;
+      const notesList = allNotes[sectionId];
+      if (Array.isArray(notesList) && notesList.length > 0) {
+        notesList.forEach((note) => {
+          renderSingleNoteCard(sectionId, section, note, false);
+        });
+      }
+    });
   }
 
   function syncDirectoryTreeDot(sectionId, statusClass, tipText) {
@@ -8672,6 +8841,16 @@ INSTRUCTIONS:
   // ==========================================================================
   const SHORTCUT_CATALOG = [
     {
+      id: "select",
+      title: "Select & Move Tool",
+      tag: "[SELECT]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>`,
+      action: () => {
+        openAnnotationPanel();
+        setAnnotationTool("select");
+      }
+    },
+    {
       id: "sketch",
       title: "Sketch (Pencil Markup)",
       tag: "[SKETCH]",
@@ -8769,6 +8948,108 @@ INSTRUCTIONS:
       }
     },
     {
+      id: "expand",
+      title: "Full Screen / Expand Navigation",
+      tag: "[EXPAND]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("expand-nav-btn");
+        if (btn) btn.click();
+      }
+    },
+    {
+      id: "search",
+      title: "Search Sovereign Terminal",
+      tag: "[SEARCH]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("search-nav-btn");
+        if (btn) btn.click();
+      }
+    },
+    {
+      id: "tree",
+      title: "Directory Tree Navigation",
+      tag: "[DIRECTORY TREE]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12h-8"/><path d="M21 6H8"/><path d="M21 18h-8"/><path d="M3 6v12h4"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("nav-tree-toggle-btn");
+        if (btn) btn.click();
+      }
+    },
+    {
+      id: "doubt",
+      title: "Ask Gemini AI Doubt Solver",
+      tag: "[ASK AI]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("doubt-nav-btn");
+        if (btn) btn.click();
+      }
+    },
+    {
+      id: "edit",
+      title: "Annotation & Markup Panel",
+      tag: "[EDIT]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("edit-nav-btn");
+        if (btn) btn.click();
+      }
+    },
+    {
+      id: "shortcuts",
+      title: "Keyboard Shortcuts Matrix",
+      tag: "[SHORTCUTS]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("shortcuts-btn");
+        if (btn) btn.click();
+      }
+    },
+    {
+      id: "contact",
+      title: "Contact Us & Resolution",
+      tag: "[CONTACT US]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("contact-nav-btn");
+        if (btn) btn.click();
+        else window.location.href = "contact.html";
+      }
+    },
+    {
+      id: "home",
+      title: "Sovereign Terminal Home",
+      tag: "[HOME]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("nav-home-btn");
+        if (btn) btn.click();
+        else window.location.href = "guide.html";
+      }
+    },
+    {
+      id: "notepad",
+      title: "Section Notepad (Add Note)",
+      tag: "[NOTEPAD]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+      action: () => {
+        const sections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .content-area > section"));
+        let target = sections.find((s) => {
+          const r = s.getBoundingClientRect();
+          return r.top >= 0 && r.top <= window.innerHeight * 0.6;
+        }) || sections[0];
+        if (target) {
+          const btn = target.querySelector(".section-notepad-btn");
+          if (btn) btn.click();
+          else if (typeof addSectionUserNote === "function") {
+            addSectionUserNote(target.id || "sec-active", target);
+          }
+        }
+      }
+    },
+    {
       id: "darkmode",
       title: "Dark / Light Mode",
       tag: "[DARK MODE]",
@@ -8813,6 +9094,113 @@ INSTRUCTIONS:
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`,
       action: () => {
         window.print();
+      }
+    },
+    {
+      id: "font_size_up",
+      title: "Increase Text Size",
+      tag: "[FONT +]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5h3v14M11 19V5h3v14M18 12h5M20.5 9.5v5"/></svg>`,
+      action: () => {
+        const sel = document.getElementById("font-size-select");
+        if (sel && sel.selectedIndex < sel.options.length - 1) {
+          sel.selectedIndex += 1;
+          sel.dispatchEvent(new Event("change"));
+        }
+      }
+    },
+    {
+      id: "font_size_down",
+      title: "Decrease Text Size",
+      tag: "[FONT -]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5h3v14M11 19V5h3v14M18 12h5"/></svg>`,
+      action: () => {
+        const sel = document.getElementById("font-size-select");
+        if (sel && sel.selectedIndex > 0) {
+          sel.selectedIndex -= 1;
+          sel.dispatchEvent(new Event("change"));
+        }
+      }
+    },
+    {
+      id: "font_typewriter",
+      title: "Toggle Monospace Font",
+      tag: "[FONT STYLE]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>`,
+      action: () => {
+        const toggle = document.getElementById("font-toggle");
+        if (toggle) toggle.click();
+        else document.body.classList.toggle("font-typewriter");
+      }
+    },
+    {
+      id: "scroll_top",
+      title: "Scroll to Page Top",
+      tag: "[TOP]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    {
+      id: "scroll_bottom",
+      title: "Scroll to Page Bottom",
+      tag: "[BOTTOM]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>`,
+      action: () => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      }
+    },
+    {
+      id: "next_section",
+      title: "Jump to Next Section",
+      tag: "[NEXT]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+      action: () => {
+        const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+        const next = headings.find((h) => h.getBoundingClientRect().top > 80);
+        if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    },
+    {
+      id: "prev_section",
+      title: "Jump to Previous Section",
+      tag: "[PREVIOUS]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
+      action: () => {
+        const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+        const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
+        if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
+        else window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    {
+      id: "forum",
+      title: "Institutional Forum & Discussion",
+      tag: "[FORUM]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+      action: () => {
+        const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
+        if (forum) forum.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    },
+    {
+      id: "copy_link",
+      title: "Copy Link to Terminal",
+      tag: "[COPY LINK]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+      action: () => {
+        navigator.clipboard.writeText(window.location.href);
+      }
+    },
+    {
+      id: "settings",
+      title: "View Preferences & Settings",
+      tag: "[SETTINGS]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`,
+      action: () => {
+        const btn = document.getElementById("settings-toggle-btn");
+        if (btn) btn.click();
       }
     }
   ];
