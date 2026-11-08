@@ -16,307 +16,305 @@
   <!-- ================= TOP NAVIGATION BAR ================= -->
   <header class="top-nav" id="top-nav">
     <div class="nav-left">
-      <a href="guide.html" class="nav-brand font-mono" title="INDEXINDIA Sovereign Research Terminal">
-        <span class="nav-brand-title">INDEXINDIA</span>
-        <span class="nav-brand-tag">&bull; SOVEREIGN TERMINAL</span>
+      <a href="guide.html" class="icon-btn nav-home-btn" id="nav-home-btn" aria-label="Home" data-hover-tag="[HOME]">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
       </a>
     </div>
 
-    <!-- Top Right Nav Buttons, Account and Settings -->
-    <div class="nav-right">
-      <!-- Expand / Hide Top Bar Button (Full Screen) - Moved to Left-Most Side -->
-      <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
-        <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar"
-          title="Full Screen / Hide Top Bar ( Ctrl + ' )">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
-          </svg>
-        </button>
-      </div>
+    <!-- Center Cluster: Nav Buttons, Pinned Shortcuts & Add Shortcut Button -->
+    <div class="nav-center-cluster nav-right" id="nav-center-cluster">
+      <div class="nav-icons-group" id="nav-icons-group">
+        <!-- Expand / Hide Top Bar Button (Full Screen) -->
+        <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
+          <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar" data-hover-tag="[EXPAND]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+            </svg>
+          </button>
+        </div>
 
-            <!-- Search Trigger Round Button (Magnifier) -->
-      <div class="panel-trigger-wrapper" id="search-nav-wrapper">
-        <button type="button" class="icon-btn" id="search-nav-btn" aria-label="Search Sovereign Terminal &amp; Page"
-          title="Search &amp; Find ( Ctrl + / or / )">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
-          </svg>
-        </button>
-      </div>
+        <!-- Search Trigger Round Button (Magnifier) -->
+        <div class="panel-trigger-wrapper" id="search-nav-wrapper">
+          <button type="button" class="icon-btn" id="search-nav-btn" aria-label="Search Sovereign Terminal &amp; Page" data-hover-tag="[SEARCH]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+          </button>
+        </div>
 
-      <!-- Directory Tree Round Button -->
-      <div class="panel-trigger-wrapper" id="nav-tree-wrapper">
-        <button type="button" class="icon-btn" id="nav-tree-toggle-btn" aria-label="Directory Tree Navigation"
-          title="Directory Tree Navigation ( Ctrl + , )">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12h-8"></path>
-            <path d="M21 6H8"></path>
-            <path d="M21 18h-8"></path>
-            <path d="M3 6v4c0 1.1.9 2 2 2h3"></path>
-            <path d="M3 10v6c0 1.1.9 2 2 2h3"></path>
-          </svg>
-        </button>
-      </div>
+        <!-- Directory Tree Round Button -->
+        <div class="panel-trigger-wrapper" id="nav-tree-wrapper">
+          <button type="button" class="icon-btn" id="nav-tree-toggle-btn" aria-label="Directory Tree Navigation" data-hover-tag="[DIRECTORY TREE]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12h-8"></path>
+              <path d="M21 6H8"></path>
+              <path d="M21 18h-8"></path>
+              <path d="M3 6v4c0 1.1.9 2 2 2h3"></path>
+              <path d="M3 10v6c0 1.1.9 2 2 2h3"></path>
+            </svg>
+          </button>
+        </div>
 
-      <!-- Contact Us Round Button (Issues Faced) -->
-      <div class="panel-trigger-wrapper" id="contact-nav-wrapper">
-        <a href="contact.html" class="icon-btn" id="contact-nav-btn" aria-label="Contact Us &amp; Issue Resolution"
-          title="Contact Us — Report Issues">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
-            <path d="M21 16v2a4 4 0 0 1-4 4h-5"></path>
-          </svg>
-        </a>
-
-        <div class="hover-flyout-panel contact-panel" id="contact-panel" role="region"
-          aria-label="Contact Us &amp; Issue Reporting">
-          <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
-            Facing technical glitches, calculation anomalies, or account issues? Dispatch an incident report for rapid triage.
-          </div>
-          <a href="contact.html" class="account-btn-action"
-            style="background-color: var(--bg-inverted); color: var(--text-on-inverted) !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
-            Report an Issue &rarr;
+        <!-- Contact Us Round Button (Issues Faced) -->
+        <div class="panel-trigger-wrapper" id="contact-nav-wrapper">
+          <a href="contact.html" class="icon-btn" id="contact-nav-btn" aria-label="Contact Us &amp; Issue Resolution" data-hover-tag="[CONTACT]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
+              <path d="M21 16v2a4 4 0 0 1-4 4h-5"></path>
+            </svg>
           </a>
-        </div>
-      </div>
 
-      <!-- Feedback Round Button (Feature & Content Suggestions) -->
-      <div class="panel-trigger-wrapper" id="feedback-nav-wrapper">
-        <a href="feedback.html" class="icon-btn" id="feedback-nav-btn" aria-label="Feedback &amp; Feature Suggestions"
-          title="Feedback — Feature &amp; Content Suggestions">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
-            <path d="M9 18h6"></path>
-            <path d="M10 22h4"></path>
-          </svg>
-        </a>
-
-        <div class="hover-flyout-panel feedback-panel" id="feedback-panel" role="region"
-          aria-label="Feedback &amp; Feature Radar">
-          <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
-            Have suggestions for new index baskets, MCA governance modules, or platform features? Pitch directly to the team.
+          <div class="hover-flyout-panel contact-panel" id="contact-panel" role="region"
+            aria-label="Contact Us &amp; Issue Reporting">
+            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
+              Facing technical glitches, calculation anomalies, or account issues? Dispatch an incident report for rapid triage.
+            </div>
+            <a href="contact.html" class="account-btn-action"
+              style="background-color: var(--bg-inverted); color: var(--text-on-inverted) !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+              Report an Issue &rarr;
+            </a>
           </div>
-          <a href="feedback.html" class="account-btn-action"
-            style="background-color: #000000; color: #FFFFFF !important; border: 1px solid #000000; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
-            Suggest Feature / Content &rarr;
+        </div>
+
+        <!-- Feedback Round Button (Feature & Content Suggestions) -->
+        <div class="panel-trigger-wrapper" id="feedback-nav-wrapper">
+          <a href="feedback.html" class="icon-btn" id="feedback-nav-btn" aria-label="Feedback &amp; Feature Suggestions" data-hover-tag="[FEEDBACK]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+              <path d="M9 18h6"></path>
+              <path d="M10 22h4"></path>
+            </svg>
           </a>
-        </div>
-      </div>
 
-      <!-- Gemini AI Round Button -->
-      <div class="panel-trigger-wrapper" id="doubt-nav-wrapper">
-        <button type="button" class="icon-btn" id="doubt-nav-btn" aria-label="Gemini AI Doubt Solver"
-          title="Gemini AI Doubt Solver ( Ctrl + . )">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path
-              d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z">
-            </path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Edit / Annotations Button -->
-      <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
-        <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools"
-          title="Edit &amp; Annotations ( Ctrl + ; )">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-            <path d="m15 5 4 4"></path>
-          </svg>
-        </button>
-
-        <div class="hover-flyout-panel edit-panel" id="edit-flyout-panel" role="region" aria-label="Edit &amp; Annotation Settings">
-          <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 2px; font-family: var(--font-mono); line-height: 1.45;">
-            Pencil sketch, freeform text boxes, sticky notes, and stamps on any section.
+          <div class="hover-flyout-panel feedback-panel" id="feedback-panel" role="region"
+            aria-label="Feedback &amp; Feature Radar">
+            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
+              Have suggestions for new index baskets, MCA governance modules, or platform features? Pitch directly to the team.
+            </div>
+            <a href="feedback.html" class="account-btn-action"
+              style="background-color: #000000; color: #FFFFFF !important; border: 1px solid #000000; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
+              Suggest Feature / Content &rarr;
+            </a>
           </div>
         </div>
-      </div>
 
-      <!-- Shortcuts Button -->
-      <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
-        <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts"
-          title="Keyboard Shortcuts ( Ctrl + \ )">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
-            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"></path>
-          </svg>
-        </button>
-
-        <div class="hover-flyout-panel shortcuts-panel" id="shortcuts-panel" role="region"
-          aria-label="Keyboard Shortcuts">
-          <div class="shortcuts-group">
-            <div class="shortcuts-group-title">NAVIGATION &amp; SUITE</div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Move Main Chapter &amp; Comments</span>
-              <span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Move Section &amp; Subsection</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Fast Scroll Page</span>
-              <span class="shortcut-keys"><kbd>Shift</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Scroll Page Smoothly</span>
-              <span class="shortcut-keys"><kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Center Viewport (Main Content)</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Space</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Directory Tree Drawer</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>,</kbd></span>
-            </div>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <div class="shortcuts-group">
-            <div class="shortcuts-group-title">COMMANDS &amp; PREFERENCES</div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Shortcuts Panel</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>\</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Universal Search &amp; Commands</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>/</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">AI Doubt Solver</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>.</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Edit &amp; Markup Tools</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>;</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Full Screen (Toggle Top Bar)</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>'</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Toggle Background Grid</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>[</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Toggle Dark / Light Theme</span>
-              <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>]</kbd></span>
-            </div>
-            <div class="shortcut-row">
-              <span class="shortcut-desc">Close Open Overlays</span>
-              <span class="shortcut-keys"><kbd>Esc</kbd></span>
-            </div>
-          </div>
+        <!-- Gemini AI Round Button -->
+        <div class="panel-trigger-wrapper" id="doubt-nav-wrapper">
+          <button type="button" class="icon-btn" id="doubt-nav-btn" aria-label="Gemini AI Doubt Solver" data-hover-tag="[ASK AI]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z">
+              </path>
+            </svg>
+          </button>
         </div>
-      </div>
 
-      <!-- ACCOUNT BUTTON & HOVER PANEL -->
-      <div class="panel-trigger-wrapper" id="account-wrapper">
-        <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" title="Account Dossier">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </button>
-
-        <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
-          <div class="panel-header">
-            <div class="panel-user-meta">
-              <span class="user-id">ACCOUNT DOSSIER</span>
-            </div>
-            <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Connecting">
-              <span class="pulse-dot" style="background: var(--status-optimal);"></span> Initializing
-            </div>
-          </div>
-          <div style="font-size: 0.75rem; color: var(--text-secondary); padding: 8px 0; font-family: var(--font-mono);">
-            Synchronizing authentication telemetry...
-          </div>
+        <div class="panel-trigger-wrapper" id="edit-nav-wrapper">
+          <button type="button" class="icon-btn" id="edit-nav-btn" aria-label="Annotation &amp; Markup Tools" data-hover-tag="[EDIT]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+              <path d="m15 5 4 4"></path>
+            </svg>
+          </button>
         </div>
-      </div>
+        <div class="panel-trigger-wrapper" id="shortcuts-wrapper">
+          <button type="button" class="icon-btn" id="shortcuts-btn" aria-label="Keyboard Shortcuts" data-hover-tag="[SHORTCUTS]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
+              <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"></path>
+            </svg>
+          </button>
 
-      <!-- SETTINGS BUTTON & HOVER PANEL -->
-      <div class="panel-trigger-wrapper" id="settings-wrapper">
-        <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" title="Display Settings">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-            </path>
-          </svg>
-        </button>
+          <div class="hover-flyout-panel shortcuts-panel" id="shortcuts-panel" role="region"
+            aria-label="Keyboard Shortcuts">
+            <div class="shortcuts-group">
+              <div class="shortcuts-group-title">NAVIGATION &amp; SUITE</div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Move Main Chapter &amp; Comments</span>
+                <span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Move Section &amp; Subsection</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Fast Scroll Page</span>
+                <span class="shortcut-keys"><kbd>Shift</kbd>+<kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Scroll Page Smoothly</span>
+                <span class="shortcut-keys"><kbd>&darr;</kbd> / <kbd>&uarr;</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Center Viewport (Main Content)</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Space</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Directory Tree Drawer</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>,</kbd></span>
+              </div>
+            </div>
 
-        <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
-          <div class="panel-section-title">VIEW PREFERENCES</div>
+            <div class="panel-divider"></div>
 
-          <!-- Font Size Dropdown -->
-          <div class="custom-dropdown-row">
-            <span class="custom-dropdown-label">Font Size</span>
-            <div class="custom-dropdown" id="dropdown-font-size">
-              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox"
-                aria-expanded="false">
-                <span class="dropdown-selected-text" id="font-size-label">Medium</span>
-                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2.5">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
-              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
-                <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small
-                  (13px)</button>
-                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium"
-                  role="option">Medium (15px)</button>
-                <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large
-                  (17.5px)</button>
+            <div class="shortcuts-group">
+              <div class="shortcuts-group-title">COMMANDS &amp; PREFERENCES</div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Shortcuts Panel</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>\</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Universal Search &amp; Commands</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>/</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">AI Doubt Solver</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>.</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Edit &amp; Markup Tools</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>;</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Full Screen (Toggle Top Bar)</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>'</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Toggle Background Grid</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>[</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Toggle Dark / Light Theme</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>]</kbd></span>
+              </div>
+              <div class="shortcut-row">
+                <span class="shortcut-desc">Close Open Overlays</span>
+                <span class="shortcut-keys"><kbd>Esc</kbd></span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Font Style Dropdown -->
-          <div class="custom-dropdown-row">
-            <span class="custom-dropdown-label">Font Style</span>
-            <div class="custom-dropdown" id="dropdown-font-style">
-              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox"
-                aria-expanded="false">
-                <span class="dropdown-selected-text" id="font-style-label">Reading</span>
-                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2.5">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
-              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
-                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading"
-                  role="option">Reading (Sans)</button>
-                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter"
-                  role="option">Typewriter (Monospace)</button>
+        <!-- ACCOUNT BUTTON & HOVER PANEL -->
+        <div class="panel-trigger-wrapper" id="account-wrapper">
+          <button type="button" class="icon-btn" id="account-btn" aria-label="Account Dossier" data-hover-tag="[ACCOUNT]">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </button>
+
+          <div class="hover-flyout-panel account-panel" id="account-panel" role="region" aria-label="Account Details">
+            <div class="panel-header">
+              <div class="panel-user-meta">
+                <span class="user-id">ACCOUNT DOSSIER</span>
+              </div>
+              <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Connecting">
+                <span class="pulse-dot" style="background: var(--status-optimal);"></span> Initializing
               </div>
             </div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); padding: 8px 0; font-family: var(--font-mono);">
+              Synchronizing authentication telemetry...
+            </div>
           </div>
+        </div>
 
-          <div class="panel-divider"></div>
+        <!-- 2. SETTINGS BUTTON & HOVER PANEL -->
+        <div class="panel-trigger-wrapper" id="settings-wrapper">
+          <button type="button" class="icon-btn" id="settings-btn" aria-label="Display Settings" data-hover-tag="[SETTINGS]">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+              </path>
+            </svg>
+          </button>
 
-          <div class="setting-toggle-row">
-            <label for="grid-toggle">Background Grid</label>
-            <input type="checkbox" id="grid-toggle" checked>
-          </div>
-          <div class="setting-toggle-row">
-            <label for="contrast-toggle">Dark Theme</label>
-            <input type="checkbox" id="contrast-toggle">
+          <div class="hover-flyout-panel settings-panel" id="settings-panel" role="region" aria-label="Terminal Settings">
+            <div class="panel-section-title">VIEW PREFERENCES</div>
+
+            <!-- Font Size Dropdown -->
+            <div class="custom-dropdown-row">
+              <span class="custom-dropdown-label">Font Size</span>
+              <div class="custom-dropdown" id="dropdown-font-size">
+                <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox"
+                  aria-expanded="false">
+                  <span class="dropdown-selected-text" id="font-size-label">Medium</span>
+                  <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+                <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                  <button type="button" class="dropdown-item" data-type="font-size" data-val="small" role="option">Small
+                    (13px)</button>
+                  <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium"
+                    role="option">Medium (15px)</button>
+                  <button type="button" class="dropdown-item" data-type="font-size" data-val="large" role="option">Large
+                    (17.5px)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Font Style Dropdown -->
+            <div class="custom-dropdown-row">
+              <span class="custom-dropdown-label">Font Style</span>
+              <div class="custom-dropdown" id="dropdown-font-style">
+                <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox"
+                  aria-expanded="false">
+                  <span class="dropdown-selected-text" id="font-style-label">Reading</span>
+                  <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+                <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                  <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading"
+                    role="option">Reading (Sans)</button>
+                  <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter"
+                    role="option">Typewriter (Monospace)</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-divider"></div>
+
+            <div class="setting-toggle-row">
+              <label for="grid-toggle">Background Grid</label>
+              <input type="checkbox" id="grid-toggle" checked>
+            </div>
+            <div class="setting-toggle-row">
+              <label for="contrast-toggle">Dark Theme</label>
+              <input type="checkbox" id="contrast-toggle">
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Pinned Shortcuts Container -->
+      <div class="pinned-shortcuts-container" id="pinned-shortcuts-container"></div>
+
+      <!-- Add Shortcut Button (+) -->
+      <button type="button" class="icon-btn" id="add-shortcut-btn" aria-label="Add Shortcut" data-hover-tag="[ADD SHORTCUT]">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"></path>
+          <path d="M12 5v14"></path>
+        </svg>
+      </button>
     </div>
   </header>
   <!-- ================= FLOATING SEARCH & FINDER BAR (Identical to Edit Annotation Bar) ================= -->
@@ -329,7 +327,7 @@
 
     <div class="search-floating-input-wrap">
       <input type="text" class="search-floating-input font-mono" id="nav-search-input" placeholder="Search terminal or page... ( / )" autocomplete="off" spellcheck="false" />
-      <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
+      <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" data-hover-tag="[CLEAR]" aria-label="Clear" style="display: none;">&times;</button>
     </div>
 
     <span class="palette-sep">|</span>
@@ -337,16 +335,16 @@
     <div class="palette-nav-group">
       <span class="palette-counter font-mono" id="finder-match-count">0 matches</span>
       <div class="finder-nav-btns">
-        <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
+        <button type="button" class="finder-btn" id="finder-btn-prev" data-hover-tag="[PREVIOUS]" aria-label="Previous Match">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
         </button>
-        <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
+        <button type="button" class="finder-btn" id="finder-btn-next" data-hover-tag="[NEXT]" aria-label="Next Match">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </button>
       </div>
     </div>
 
-    <button type="button" class="palette-close-btn" id="search-bar-close-btn" title="Close Search (Esc)" aria-label="Close">
+    <button type="button" class="palette-close-btn" id="search-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
 

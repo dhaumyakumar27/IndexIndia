@@ -5287,21 +5287,21 @@ INSTRUCTIONS:
       </span>
       <div class="search-floating-input-wrap">
         <input type="text" class="search-floating-input font-mono" id="nav-search-input" placeholder="Search terminal or page... ( / )" autocomplete="off" spellcheck="false" />
-        <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" title="Clear Search" aria-label="Clear" style="display: none;">&times;</button>
+        <button type="button" class="search-panel-clear-btn" id="search-panel-clear-btn" data-hover-tag="[CLEAR]" aria-label="Clear" style="display: none;">&times;</button>
       </div>
       <span class="palette-sep">|</span>
       <div class="palette-nav-group">
         <span class="palette-counter font-mono" id="finder-match-count">0 matches</span>
         <div class="finder-nav-btns">
-          <button type="button" class="finder-btn" id="finder-btn-prev" title="Previous Match (Shift+Enter or ▲)" aria-label="Previous Match">
+          <button type="button" class="finder-btn" id="finder-btn-prev" data-hover-tag="[PREVIOUS]" aria-label="Previous Match">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
           </button>
-          <button type="button" class="finder-btn" id="finder-btn-next" title="Next Match (Enter or ▼)" aria-label="Next Match">
+          <button type="button" class="finder-btn" id="finder-btn-next" data-hover-tag="[NEXT]" aria-label="Next Match">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
         </div>
       </div>
-      <button type="button" class="palette-close-btn" id="search-bar-close-btn" title="Close Search (Esc)" aria-label="Close">
+      <button type="button" class="palette-close-btn" id="search-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
       <div class="nav-search-results-dropdown" id="nav-search-results-dropdown" role="listbox"></div>
@@ -6119,7 +6119,7 @@ INSTRUCTIONS:
       const rect = sBarEl.getBoundingClientRect();
       searchOffsetX = e.clientX - rect.left;
       searchOffsetY = e.clientY - rect.top;
-      searchDragHandle.setPointerCapture(e.pointerId);
+      try { searchDragHandle.setPointerCapture(e.pointerId); } catch (_) {}
       sBarEl.style.transform = "none";
       e.preventDefault();
     });
@@ -6227,13 +6227,15 @@ INSTRUCTIONS:
     const topNav = document.getElementById("top-nav");
     const topNavH = (topNav && !document.body.classList.contains("top-bar-hidden")) ? topNav.offsetHeight : 0;
     if (e.clientY < topNavH) return true;
+    const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
+    if (!targetEl || typeof targetEl.closest !== "function") return false;
     if (
-      e.target.closest(".top-nav") ||
-      e.target.closest(".rail-navigator") ||
-      e.target.closest("#doubt-solver-tile") ||
-      e.target.closest(".edit-annotation-bar") ||
-      e.target.closest(".sticker-popover") ||
-      e.target.closest(".nav-restore-float-btn")
+      targetEl.closest(".top-nav") ||
+      targetEl.closest(".rail-navigator") ||
+      targetEl.closest("#doubt-solver-tile") ||
+      targetEl.closest(".edit-annotation-bar") ||
+      targetEl.closest(".sticker-popover") ||
+      targetEl.closest(".nav-restore-float-btn")
     ) {
       return true;
     }
@@ -6276,42 +6278,37 @@ INSTRUCTIONS:
         <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
       </span>
       <div class="palette-tool-group">
-        <button type="button" class="palette-tool-btn" data-tool="select" title="Select &amp; Move (V)" aria-label="Select">
+        <button type="button" class="palette-tool-btn" data-tool="select" data-hover-tag="[SELECT]" aria-label="Select">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
           </span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="pan" id="palette-btn-pan" title="Pan Canvas Left/Right/Up/Down (Space + Drag or M)" aria-label="Pan">
-          <span class="palette-tool-icon">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
-          </span>
-        </button>
-        <button type="button" class="palette-tool-btn active" data-tool="sketch" title="Pencil Sketch (P)" aria-label="Sketch">
+        <button type="button" class="palette-tool-btn active" data-tool="sketch" data-hover-tag="[SKETCH]" aria-label="Sketch">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
           </span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="highlight" title="Text Highlight (H)" aria-label="Highlight">
+        <button type="button" class="palette-tool-btn" data-tool="highlight" data-hover-tag="[HIGHLIGHT]" aria-label="Highlight">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 7-4.5-4.5-8.5 8.5 4.5 4.5L22 7z"/></svg>
           </span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="textbox" title="Free Drag-to-Select Text Box (T)" aria-label="Box">
+        <button type="button" class="palette-tool-btn" data-tool="textbox" data-hover-tag="[TEXT]" aria-label="Box">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
           </span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="stickynote" title="Click-to-Place &amp; Drag Sticky Note (S)" aria-label="Note">
+        <button type="button" class="palette-tool-btn" data-tool="stickynote" data-hover-tag="[NOTE]" aria-label="Note">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><polyline points="15 3 21 9 15 9 15 3"/></svg>
           </span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="sticker" id="palette-btn-sticker" title="Stickers Palette (K)" aria-label="Stickers">
+        <button type="button" class="palette-tool-btn" data-tool="sticker" id="palette-btn-sticker" data-hover-tag="[STICKER]" aria-label="Stickers">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
           </span>
         </button>
-        <button type="button" class="palette-tool-btn" data-tool="eraser" title="Eraser / Click item to delete (X)" aria-label="Eraser">
+        <button type="button" class="palette-tool-btn" data-tool="eraser" data-hover-tag="[ERASER]" aria-label="Eraser">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/></svg>
           </span>
@@ -6319,60 +6316,50 @@ INSTRUCTIONS:
       </div>
       <span class="palette-sep">|</span>
       <div class="palette-color-group">
-        <button type="button" class="palette-color-btn active" data-color="#FFE066" style="--swatch-color: #FFE066;" title="Sun Yellow"></button>
-        <button type="button" class="palette-color-btn" data-color="#FF6B35" style="--swatch-color: #FF6B35;" title="Accent Orange"></button>
-        <button type="button" class="palette-color-btn" data-color="#38BDF8" style="--swatch-color: #38BDF8;" title="Cyan Blue"></button>
-        <button type="button" class="palette-color-btn" data-color="#34D399" style="--swatch-color: #34D399;" title="Mint Green"></button>
+        <button type="button" class="palette-color-btn active" data-color="#FFE066" style="--swatch-color: #FFE066;"></button>
+        <button type="button" class="palette-color-btn" data-color="#FF6B35" style="--swatch-color: #FF6B35;"></button>
+        <button type="button" class="palette-color-btn" data-color="#38BDF8" style="--swatch-color: #38BDF8;"></button>
+        <button type="button" class="palette-color-btn" data-color="#34D399" style="--swatch-color: #34D399;"></button>
       </div>
       <span class="palette-sep">|</span>
       <div class="palette-size-group">
-        <button type="button" class="palette-size-btn" data-size="2" title="Fine Stroke (2px)">
+        <button type="button" class="palette-size-btn" data-size="2">
           <span class="palette-size-dot" style="width: 3px; height: 3px;"></span>
         </button>
-        <button type="button" class="palette-size-btn active" data-size="4" title="Standard Stroke (4px)">
+        <button type="button" class="palette-size-btn active" data-size="4">
           <span class="palette-size-dot" style="width: 6px; height: 6px;"></span>
         </button>
-        <button type="button" class="palette-size-btn" data-size="8" title="Bold Stroke (8px)">
+        <button type="button" class="palette-size-btn" data-size="8">
           <span class="palette-size-dot" style="width: 10px; height: 10px;"></span>
         </button>
-        <button type="button" class="palette-size-btn" data-size="14" title="Marker Stroke (14px)">
+        <button type="button" class="palette-size-btn" data-size="14">
           <span class="palette-size-dot" style="width: 14px; height: 14px;"></span>
         </button>
       </div>
       <span class="palette-sep">|</span>
-      <div class="palette-nav-group">
-        <span class="palette-counter font-mono" id="annotation-counter">0 notes</span>
-        <div class="finder-nav-btns">
-          <button type="button" class="finder-btn" id="annotation-btn-prev" title="Previous Annotation (▲)">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-          </button>
-          <button type="button" class="finder-btn" id="annotation-btn-next" title="Next Annotation (▼)">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-        </div>
-      </div>
-      <span class="palette-sep">|</span>
       <div class="palette-action-group">
-        <button type="button" class="palette-btn ${annotationState.snapToGrid ? 'active' : ''}" id="annotation-btn-snap" title="Snap to Grid (G) — Align sketches &amp; boxes to 24px grid" aria-pressed="${annotationState.snapToGrid}">
+        <button type="button" class="palette-btn ${annotationState.snapToGrid ? 'active' : ''}" id="annotation-btn-snap" data-hover-tag="[SNAP TO GRID]" aria-pressed="${annotationState.snapToGrid}">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
           </span>
-          <span class="palette-tool-label">Snap</span>
         </button>
-        <button type="button" class="palette-btn" id="annotation-btn-undo" title="Undo Last Annotation (Ctrl+Z)">
+        <button type="button" class="palette-btn" id="annotation-btn-undo" data-hover-tag="[UNDO]">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
           </span>
-          <span class="palette-tool-label">Undo</span>
         </button>
-        <button type="button" class="palette-btn" id="annotation-btn-clear" title="Clear All Annotations">
+        <button type="button" class="palette-btn" id="annotation-btn-redo" data-hover-tag="[REDO]">
+          <span class="palette-tool-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+          </span>
+        </button>
+        <button type="button" class="palette-btn" id="annotation-btn-clear" data-hover-tag="[CLEAR]">
           <span class="palette-tool-icon">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
           </span>
-          <span class="palette-tool-label">Clear</span>
         </button>
       </div>
-      <button type="button" class="palette-close-btn" id="annotation-btn-close" title="Close Palette (Esc)">
+      <button type="button" class="palette-close-btn" id="annotation-btn-close" data-hover-tag="[CLOSE]">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     `;
@@ -6420,11 +6407,14 @@ INSTRUCTIONS:
   const annotationBtnNext = editAnnotationBar.querySelector("#annotation-btn-next");
   const annotationBtnSnap = editAnnotationBar.querySelector("#annotation-btn-snap");
   const annotationBtnUndo = editAnnotationBar.querySelector("#annotation-btn-undo");
+  const annotationBtnRedo = editAnnotationBar.querySelector("#annotation-btn-redo");
   const annotationBtnClear = editAnnotationBar.querySelector("#annotation-btn-clear");
   const annotationBtnClose = editAnnotationBar.querySelector("#annotation-btn-close");
   const paletteDragHandle = editAnnotationBar.querySelector(".palette-drag-handle");
   const btnQuickHighlight = selectionTooltip?.querySelector("#btn-quick-highlight");
   const btnCloseStickers = stickerPopover.querySelector("#btn-close-stickers");
+
+  const annotationRedoStack = [];
 
   if (annotationBtnSnap) {
     annotationBtnSnap.addEventListener("click", (e) => {
@@ -6433,25 +6423,7 @@ INSTRUCTIONS:
     });
   }
 
-  function initEditNavFlyout() {
-    const editWrapper = document.getElementById("edit-nav-wrapper");
-    if (!editWrapper) return;
-    let flyout = editWrapper.querySelector("#edit-flyout-panel");
-    if (!flyout) {
-      flyout = document.createElement("div");
-      flyout.className = "hover-flyout-panel edit-panel";
-      flyout.id = "edit-flyout-panel";
-      flyout.setAttribute("role", "region");
-      flyout.setAttribute("aria-label", "Edit & Annotation Settings");
-      flyout.innerHTML = `
-        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 2px; font-family: var(--font-mono); line-height: 1.45;">
-          Pencil sketch, freeform text boxes, sticky notes, and stamps on any section.
-        </div>
-      `;
-      editWrapper.appendChild(flyout);
-    }
-  }
-  initEditNavFlyout();
+
 
   let annotationCanvasSpacer = null;
   function getAnnotationCanvasSpacer() {
@@ -6661,69 +6633,124 @@ INSTRUCTIONS:
     el.style.setProperty("--box-border-color", tb.color || "#FFE066");
 
     el.innerHTML = `
-      <div class="textbox-header">
-        <span class="textbox-handle">:: TEXT BOX</span>
-        <button type="button" class="textbox-delete-btn" title="Delete Box">&times;</button>
-      </div>
-      <div class="textbox-content" contenteditable="true" placeholder="Type text here...">${tb.text || ""}</div>
+      <div class="textbox-content" contenteditable="false" placeholder="Type text here...">${tb.text || ""}</div>
       <div class="textbox-resize-handle" title="Drag to resize"></div>
     `;
 
-    const header = el.querySelector(".textbox-header");
     const content = el.querySelector(".textbox-content");
-    const delBtn = el.querySelector(".textbox-delete-btn");
     const resizeHandle = el.querySelector(".textbox-resize-handle");
 
-    // Draggable header & select-mode move
     let isMoving = false;
     let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+    let hasMoved = false;
 
-    function startBoxDrag(e) {
-      if (e.target === delBtn || e.target === resizeHandle) return;
+    function selectBox() {
+      document.querySelectorAll(".user-annotation-textbox.is-selected, .user-annotation-stickynote.is-selected").forEach((item) => {
+        if (item !== el) {
+          item.classList.remove("is-selected");
+          const c = item.querySelector(".textbox-content");
+          if (c) c.contentEditable = "false";
+        }
+      });
+      el.classList.add("is-selected");
+      if (!annotationState.selectedElementIds) annotationState.selectedElementIds = new Set();
+      annotationState.selectedElementIds.clear();
+      annotationState.selectedElementIds.add(tb.id);
+    }
+
+    function unselectBox() {
+      el.classList.remove("is-selected");
+      content.contentEditable = "false";
+      if (annotationState.selectedElementIds) {
+        annotationState.selectedElementIds.delete(tb.id);
+      }
+    }
+
+    el.addEventListener("pointerdown", (e) => {
+      if (annotationState.activeTool === "eraser") {
+        e.stopPropagation();
+        deleteAnnotationItem(tb.id, "textbox");
+        return;
+      }
+      if (e.target === resizeHandle) return;
+
+      // If user is already editing text and clicked inside content, allow normal text cursor / editing
+      if (content.contentEditable === "true" && e.target === content) {
+        return;
+      }
+
       isMoving = true;
+      hasMoved = false;
       startX = e.pageX;
       startY = e.pageY;
       initialLeft = parseInt(el.style.left, 10) || tb.left;
       initialTop = parseInt(el.style.top, 10) || tb.top;
-      header.setPointerCapture(e.pointerId);
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
       e.stopPropagation();
-    }
+    });
 
-    header.addEventListener("pointerdown", startBoxDrag);
-
-    header.addEventListener("pointermove", (e) => {
+    el.addEventListener("pointermove", (e) => {
       if (!isMoving) return;
       const dx = e.pageX - startX;
       const dy = e.pageY - startY;
-      let newL = Math.max(0, initialLeft + dx);
-      let newT = Math.max(0, initialTop + dy);
-      if (annotationState.snapToGrid) {
-        newL = Math.max(0, snapVal(newL));
-        newT = Math.max(0, snapVal(newT));
+      if (Math.hypot(dx, dy) > 3) {
+        hasMoved = true;
+        let newL = Math.max(0, initialLeft + dx);
+        let newT = Math.max(0, initialTop + dy);
+        if (annotationState.snapToGrid) {
+          newL = Math.max(0, snapVal(newL));
+          newT = Math.max(0, snapVal(newT));
+        }
+        el.style.left = `${newL}px`;
+        el.style.top = `${newT}px`;
       }
-      el.style.left = `${newL}px`;
-      el.style.top = `${newT}px`;
     });
 
-    const stopMove = () => {
+    const stopBoxMove = () => {
       if (!isMoving) return;
       isMoving = false;
-      let finalL = parseInt(el.style.left, 10);
-      let finalT = parseInt(el.style.top, 10);
-      if (annotationState.snapToGrid) {
-        finalL = Math.max(0, snapVal(finalL));
-        finalT = Math.max(0, snapVal(finalT));
-        el.style.left = `${finalL}px`;
-        el.style.top = `${finalT}px`;
+      if (hasMoved) {
+        let finalL = parseInt(el.style.left, 10);
+        let finalT = parseInt(el.style.top, 10);
+        if (annotationState.snapToGrid) {
+          finalL = Math.max(0, snapVal(finalL));
+          finalT = Math.max(0, snapVal(finalT));
+          el.style.left = `${finalL}px`;
+          el.style.top = `${finalT}px`;
+        }
+        tb.left = finalL;
+        tb.top = finalT;
+        saveAnnotations();
+      } else {
+        // Single click: select and enable editing
+        selectBox();
+        content.contentEditable = "true";
+        content.focus();
       }
-      tb.left = finalL;
-      tb.top = finalT;
-      saveAnnotations();
     };
-    header.addEventListener("pointerup", stopMove);
-    header.addEventListener("pointercancel", stopMove);
 
-    // Explicit interactive resize handle
+    el.addEventListener("pointerup", stopBoxMove);
+    el.addEventListener("pointercancel", stopBoxMove);
+
+    content.addEventListener("input", () => {
+      tb.text = content.innerText;
+      saveAnnotations();
+    });
+
+    content.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" || e.key === "Delete") {
+        const text = (content.textContent || content.innerText || "").replace(/\n/g, "").trim();
+        if (!text) {
+          e.preventDefault();
+          deleteAnnotationItem(tb.id, "textbox");
+        }
+      } else if (e.key === "Escape") {
+        unselectBox();
+        content.blur();
+      }
+    });
+
+    // Resize handle
     if (resizeHandle) {
       let isResizing = false;
       let rStartX = 0, rStartY = 0, rStartW = 0, rStartH = 0;
@@ -6734,12 +6761,12 @@ INSTRUCTIONS:
         rStartY = e.pageY;
         rStartW = el.offsetWidth;
         rStartH = el.offsetHeight;
-        resizeHandle.setPointerCapture(e.pointerId);
+        try { resizeHandle.setPointerCapture(e.pointerId); } catch (_) {}
       });
       resizeHandle.addEventListener("pointermove", (e) => {
         if (!isResizing) return;
         let newW = Math.max(120, rStartW + (e.pageX - rStartX));
-        let newH = Math.max(60, rStartH + (e.pageY - rStartY));
+        let newH = Math.max(50, rStartH + (e.pageY - rStartY));
         if (annotationState.snapToGrid) {
           const g = getGridSize();
           newW = Math.max(g * 4, snapVal(newW));
@@ -6768,13 +6795,6 @@ INSTRUCTIONS:
       resizeHandle.addEventListener("pointercancel", stopResize);
     }
 
-    // Save text changes
-    content.addEventListener("input", () => {
-      tb.text = content.innerText;
-      saveAnnotations();
-    });
-
-    // Detect resizing via mouseup
     el.addEventListener("mouseup", () => {
       let curW = el.offsetWidth;
       let curH = el.offsetHeight;
@@ -6790,12 +6810,6 @@ INSTRUCTIONS:
         tb.height = curH;
         saveAnnotations();
       }
-    });
-
-    // Delete box
-    delBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      deleteAnnotationItem(tb.id, "textbox");
     });
 
     el.addEventListener("click", (e) => {
@@ -6820,34 +6834,131 @@ INSTRUCTIONS:
     el.style.setProperty("--note-color", sn.color || "#FFE066");
 
     el.innerHTML = `
-      <button type="button" class="sticky-note-pin" title="Click to edit, Drag to move location">📌</button>
       <div class="sticky-note-card">
-        <div class="sticky-note-header">
-          <span class="sticky-note-time">NOTE • ${sn.time || "IST"} (DRAG)</span>
-          <button type="button" class="sticky-note-del-btn" title="Delete Note">&times;</button>
-        </div>
         <textarea class="sticky-note-textarea" placeholder="Write sticky note here...">${sn.text || ""}</textarea>
         <div class="sticky-note-resize-handle" title="Drag to resize"></div>
-        <span class="sticky-note-click-hint">Hover to expand • Click to edit • Drag to move</span>
       </div>
     `;
 
-    const pin = el.querySelector(".sticky-note-pin");
     const card = el.querySelector(".sticky-note-card");
-    const header = el.querySelector(".sticky-note-header");
     const textarea = el.querySelector(".sticky-note-textarea");
-    const delBtn = el.querySelector(".sticky-note-del-btn");
     const snResize = el.querySelector(".sticky-note-resize-handle");
 
-    // Load saved or remembered width and height
     const rememberedW = sn.width || parseInt(localStorage.getItem("indexindia_stickynote_width"), 10) || 240;
-    const rememberedH = sn.height || parseInt(localStorage.getItem("indexindia_stickynote_height"), 10) || 144;
+    const rememberedH = sn.height || parseInt(localStorage.getItem("indexindia_stickynote_height"), 10) || 130;
     if (card) {
       card.style.width = `${rememberedW}px`;
       card.style.height = `${rememberedH}px`;
     }
 
-    // Sticky Note Resizing Logic
+    let isMovingSn = false;
+    let startX = 0, startY = 0, initLeft = 0, initTop = 0;
+    let hasMovedSn = false;
+
+    function selectNote() {
+      document.querySelectorAll(".user-annotation-textbox.is-selected, .user-annotation-stickynote.is-selected").forEach((item) => {
+        if (item !== el) {
+          item.classList.remove("is-selected");
+          const c = item.querySelector(".textbox-content");
+          if (c) c.contentEditable = "false";
+        }
+      });
+      el.classList.add("is-selected");
+      if (!annotationState.selectedElementIds) annotationState.selectedElementIds = new Set();
+      annotationState.selectedElementIds.clear();
+      annotationState.selectedElementIds.add(sn.id);
+    }
+
+    function unselectNote() {
+      el.classList.remove("is-selected");
+      if (annotationState.selectedElementIds) {
+        annotationState.selectedElementIds.delete(sn.id);
+      }
+    }
+
+    card.addEventListener("pointerdown", (e) => {
+      if (annotationState.activeTool === "eraser") {
+        e.stopPropagation();
+        deleteAnnotationItem(sn.id, "stickynote");
+        return;
+      }
+      if (e.target === snResize) return;
+
+      // If textarea is already active and user clicks inside textarea, let them type
+      if (document.activeElement === textarea && e.target === textarea) {
+        return;
+      }
+
+      isMovingSn = true;
+      hasMovedSn = false;
+      startX = e.pageX;
+      startY = e.pageY;
+      initLeft = parseInt(el.style.left, 10) || sn.left;
+      initTop = parseInt(el.style.top, 10) || sn.top;
+      try { card.setPointerCapture(e.pointerId); } catch (_) {}
+      e.stopPropagation();
+    });
+
+    card.addEventListener("pointermove", (e) => {
+      if (!isMovingSn) return;
+      const dx = e.pageX - startX;
+      const dy = e.pageY - startY;
+      if (Math.hypot(dx, dy) > 3) {
+        hasMovedSn = true;
+        let newL = Math.max(0, initLeft + dx);
+        let newT = Math.max(0, initTop + dy);
+        if (annotationState.snapToGrid) {
+          newL = Math.max(0, snapVal(newL));
+          newT = Math.max(0, snapVal(newT));
+        }
+        el.style.left = `${newL}px`;
+        el.style.top = `${newT}px`;
+      }
+    });
+
+    const stopSnMove = () => {
+      if (!isMovingSn) return;
+      isMovingSn = false;
+      if (hasMovedSn) {
+        let finalL = parseInt(el.style.left, 10);
+        let finalT = parseInt(el.style.top, 10);
+        if (annotationState.snapToGrid) {
+          finalL = Math.max(0, snapVal(finalL));
+          finalT = Math.max(0, snapVal(finalT));
+          el.style.left = `${finalL}px`;
+          el.style.top = `${finalT}px`;
+        }
+        sn.left = finalL;
+        sn.top = finalT;
+        saveAnnotations();
+      } else {
+        // Single click: select note and focus textarea
+        selectNote();
+        textarea.focus();
+      }
+    };
+
+    card.addEventListener("pointerup", stopSnMove);
+    card.addEventListener("pointercancel", stopSnMove);
+
+    textarea.addEventListener("input", () => {
+      sn.text = textarea.value;
+      saveAnnotations();
+    });
+
+    textarea.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" || e.key === "Delete") {
+        if (!textarea.value.trim()) {
+          e.preventDefault();
+          deleteAnnotationItem(sn.id, "stickynote");
+        }
+      } else if (e.key === "Escape") {
+        unselectNote();
+        textarea.blur();
+      }
+    });
+
+    // Resize handler
     if (snResize && card) {
       let isResizingSn = false;
       let snStartX = 0, snStartY = 0, snStartW = 0, snStartH = 0;
@@ -6858,16 +6969,16 @@ INSTRUCTIONS:
         snStartY = e.pageY;
         snStartW = card.offsetWidth;
         snStartH = card.offsetHeight;
-        snResize.setPointerCapture(e.pointerId);
+        try { snResize.setPointerCapture(e.pointerId); } catch (_) {}
       });
       snResize.addEventListener("pointermove", (e) => {
         if (!isResizingSn) return;
-        let newW = Math.max(200, snStartW + (e.pageX - snStartX));
-        let newH = Math.max(120, snStartH + (e.pageY - snStartY));
+        let newW = Math.max(160, snStartW + (e.pageX - snStartX));
+        let newH = Math.max(80, snStartH + (e.pageY - snStartY));
         if (annotationState.snapToGrid) {
           const g = getGridSize();
-          newW = Math.max(g * 6, snapVal(newW));
-          newH = Math.max(g * 4, snapVal(newH));
+          newW = Math.max(g * 4, snapVal(newW));
+          newH = Math.max(g * 3, snapVal(newH));
         }
         card.style.width = `${newW}px`;
         card.style.height = `${newH}px`;
@@ -6879,8 +6990,8 @@ INSTRUCTIONS:
         let finalH = card.offsetHeight;
         if (annotationState.snapToGrid) {
           const g = getGridSize();
-          finalW = Math.max(g * 6, snapVal(finalW));
-          finalH = Math.max(g * 4, snapVal(finalH));
+          finalW = Math.max(g * 4, snapVal(finalW));
+          finalH = Math.max(g * 3, snapVal(finalH));
           card.style.width = `${finalW}px`;
           card.style.height = `${finalH}px`;
         }
@@ -6900,8 +7011,8 @@ INSTRUCTIONS:
         let curH = card.offsetHeight;
         if (annotationState.snapToGrid) {
           const g = getGridSize();
-          curW = Math.max(g * 6, snapVal(curW));
-          curH = Math.max(g * 4, snapVal(curH));
+          curW = Math.max(g * 4, snapVal(curW));
+          curH = Math.max(g * 3, snapVal(curH));
           card.style.width = `${curW}px`;
           card.style.height = `${curH}px`;
         }
@@ -6917,84 +7028,6 @@ INSTRUCTIONS:
       });
     }
 
-    function setupDrag(dragTarget) {
-      let isDragging = false;
-      let startX = 0, startY = 0, initLeft = 0, initTop = 0;
-      let hasMoved = false;
-
-      dragTarget.addEventListener("pointerdown", (e) => {
-        if (e.target === delBtn || e.target === snResize) return;
-        isDragging = true;
-        hasMoved = false;
-        startX = e.pageX;
-        startY = e.pageY;
-        initLeft = parseInt(el.style.left, 10) || sn.left;
-        initTop = parseInt(el.style.top, 10) || sn.top;
-        dragTarget.setPointerCapture(e.pointerId);
-        e.stopPropagation();
-      });
-
-      dragTarget.addEventListener("pointermove", (e) => {
-        if (!isDragging) return;
-        const dx = e.pageX - startX;
-        const dy = e.pageY - startY;
-        if (Math.hypot(dx, dy) > 4) {
-          hasMoved = true;
-          let newL = Math.max(0, initLeft + dx);
-          let newT = Math.max(0, initTop + dy);
-          if (annotationState.snapToGrid) {
-            newL = Math.max(0, snapVal(newL));
-            newT = Math.max(0, snapVal(newT));
-          }
-          el.style.left = `${newL}px`;
-          el.style.top = `${newT}px`;
-        }
-      });
-
-      const stopDrag = () => {
-        if (!isDragging) return;
-        isDragging = false;
-        if (hasMoved) {
-          let finalL = parseInt(el.style.left, 10);
-          let finalT = parseInt(el.style.top, 10);
-          if (annotationState.snapToGrid) {
-            finalL = Math.max(0, snapVal(finalL));
-            finalT = Math.max(0, snapVal(finalT));
-            el.style.left = `${finalL}px`;
-            el.style.top = `${finalT}px`;
-          }
-          sn.left = finalL;
-          sn.top = finalT;
-          saveAnnotations();
-        } else if (dragTarget === pin) {
-          if (annotationState.activeTool === "eraser") {
-            deleteAnnotationItem(sn.id, "stickynote");
-            return;
-          }
-          el.classList.toggle("is-editing");
-          if (el.classList.contains("is-editing")) {
-            textarea.focus();
-          }
-        }
-      };
-
-      dragTarget.addEventListener("pointerup", stopDrag);
-      dragTarget.addEventListener("pointercancel", stopDrag);
-    }
-
-    setupDrag(pin);
-    setupDrag(header);
-
-    textarea.addEventListener("input", () => {
-      sn.text = textarea.value;
-      saveAnnotations();
-    });
-
-    delBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      deleteAnnotationItem(sn.id, "stickynote");
-    });
-
     el.addEventListener("click", (e) => {
       if (annotationState.activeTool === "eraser") {
         e.stopPropagation();
@@ -7006,11 +7039,14 @@ INSTRUCTIONS:
     return el;
   }
 
-  // Close open sticky notes editing mode when clicking outside
-  document.addEventListener("mousedown", (e) => {
-    if (!e.target.closest(".user-annotation-stickynote")) {
-      document.querySelectorAll(".user-annotation-stickynote.is-editing").forEach((n) => {
-        n.classList.remove("is-editing");
+  // Close open sticky notes and textboxes editing mode when clicking outside
+  document.addEventListener("pointerdown", (e) => {
+    const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
+    if (!targetEl || typeof targetEl.closest !== "function" || (!targetEl.closest(".user-annotation-stickynote") && !targetEl.closest(".user-annotation-textbox"))) {
+      document.querySelectorAll(".user-annotation-stickynote.is-selected, .user-annotation-textbox.is-selected").forEach((n) => {
+        n.classList.remove("is-selected");
+        const c = n.querySelector(".textbox-content");
+        if (c) c.contentEditable = "false";
       });
     }
   });
@@ -7051,7 +7087,7 @@ INSTRUCTIONS:
       startY = e.pageY;
       initLeft = parseInt(el.style.left, 10) || stk.left;
       initTop = parseInt(el.style.top, 10) || stk.top;
-      el.setPointerCapture(e.pointerId);
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
       e.stopPropagation();
     });
 
@@ -7189,8 +7225,11 @@ INSTRUCTIONS:
   document.addEventListener("pointerdown", (e) => {
     if (!annotationState.isOpen || annotationState.activeTool !== "textbox") return;
     if (isInsideNavigationPanels(e)) return;
-    if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
-      return;
+    const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
+    if (targetEl && typeof targetEl.closest === "function") {
+      if (targetEl.closest(".user-annotation-textbox") || targetEl.closest(".user-annotation-stickynote") || targetEl.closest(".user-annotation-sticker")) {
+        return;
+      }
     }
     isBoxDragging = true;
     boxStartX = snapVal(e.pageX);
@@ -7273,6 +7312,7 @@ INSTRUCTIONS:
       text: initialText,
       color: annotationState.activeColor
     };
+    annotationRedoStack.length = 0;
     annotationsData.textboxes.push(newTb);
     saveAnnotations();
     const boxEl = renderTextBoxDOM(newTb);
@@ -7289,8 +7329,11 @@ INSTRUCTIONS:
   document.addEventListener("click", (e) => {
     if (!annotationState.isOpen || annotationState.activeTool !== "stickynote") return;
     if (isInsideNavigationPanels(e)) return;
-    if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
-      return;
+    const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
+    if (targetEl && typeof targetEl.closest === "function") {
+      if (targetEl.closest(".user-annotation-textbox") || targetEl.closest(".user-annotation-stickynote") || targetEl.closest(".user-annotation-sticker")) {
+        return;
+      }
     }
     const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 12);
     const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 12);
@@ -7303,12 +7346,13 @@ INSTRUCTIONS:
       color: annotationState.activeColor,
       time: timeStr
     };
+    annotationRedoStack.length = 0;
     annotationsData.stickynotes.push(newNote);
     saveAnnotations();
     const noteEl = renderStickyNoteDOM(newNote);
     updateAnnotationCounter();
     if (noteEl) {
-      noteEl.classList.add("is-editing");
+      noteEl.classList.add("is-selected");
       const textarea = noteEl.querySelector(".sticky-note-textarea");
       if (textarea) {
         setTimeout(() => textarea.focus(), 60);
@@ -7320,8 +7364,11 @@ INSTRUCTIONS:
   document.addEventListener("click", (e) => {
     if (!annotationState.isOpen || annotationState.activeTool !== "sticker") return;
     if (isInsideNavigationPanels(e)) return;
-    if (e.target.closest(".user-annotation-textbox") || e.target.closest(".user-annotation-stickynote") || e.target.closest(".user-annotation-sticker")) {
-      return;
+    const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
+    if (targetEl && typeof targetEl.closest === "function") {
+      if (targetEl.closest(".user-annotation-textbox") || targetEl.closest(".user-annotation-stickynote") || targetEl.closest(".user-annotation-sticker")) {
+        return;
+      }
     }
     const posX = annotationState.snapToGrid ? snapVal(e.pageX) : Math.max(10, e.pageX - 20);
     const posY = annotationState.snapToGrid ? snapVal(e.pageY) : Math.max(10, e.pageY - 12);
@@ -7335,6 +7382,7 @@ INSTRUCTIONS:
       label: active.label,
       icon: active.icon
     };
+    annotationRedoStack.length = 0;
     if (!annotationsData.stickers) annotationsData.stickers = [];
     annotationsData.stickers.push(newStk);
     saveAnnotations();
@@ -7399,7 +7447,7 @@ INSTRUCTIONS:
       if (isInsideNavigationPanels(e)) return;
       if (e.button !== 0) return;
       isDrawing = true;
-      annotationSvgCanvas.setPointerCapture(e.pointerId);
+      try { annotationSvgCanvas.setPointerCapture(e.pointerId); } catch (_) {}
       const startX = snapVal(e.pageX);
       const startY = snapVal(e.pageY);
       currentStrokePoints = [{ x: startX, y: startY }];
@@ -7445,6 +7493,7 @@ INSTRUCTIONS:
           points: currentStrokePoints.map((p) => ({ x: p.x, y: p.y })),
           snapped: annotationState.snapToGrid
         };
+        annotationRedoStack.length = 0;
         annotationsData.strokes.push(strokeObj);
         setupStrokeMoveListener(currentPathEl, strokeObj);
         saveAnnotations();
@@ -7474,7 +7523,7 @@ INSTRUCTIONS:
       startX = e.pageX;
       startY = e.pageY;
       initialPoints = (strokeObj.points || []).map((p) => ({ x: p.x, y: p.y }));
-      pathEl.setPointerCapture(e.pointerId);
+      try { pathEl.setPointerCapture(e.pointerId); } catch (_) {}
       e.stopPropagation();
     });
 
@@ -7527,6 +7576,7 @@ INSTRUCTIONS:
       range.surroundContents(mark);
 
       const markY = mark.offsetTop || (mark.getBoundingClientRect().top + window.scrollY);
+      annotationRedoStack.length = 0;
       annotationsData.highlights.push({
         id,
         text: selectedText,
@@ -7635,23 +7685,27 @@ INSTRUCTIONS:
     }
   }
 
+  function renderSingleStrokeSVG(stroke) {
+    if (!annotationSvgCanvas) return null;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("class", "annotation-stroke");
+    path.setAttribute("data-id", stroke.id);
+    path.setAttribute("d", stroke.d);
+    path.setAttribute("stroke", stroke.color || "#FFE066");
+    path.setAttribute("stroke-width", stroke.size || 4);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    setupStrokeMoveListener(path, stroke);
+    annotationSvgCanvas.appendChild(path);
+    return path;
+  }
+
   function renderAllSavedAnnotations() {
     // 1. Strokes
     if (annotationSvgCanvas) {
       annotationSvgCanvas.innerHTML = "";
-      annotationsData.strokes.forEach((stroke) => {
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("class", "annotation-stroke");
-        path.setAttribute("data-id", stroke.id);
-        path.setAttribute("d", stroke.d);
-        path.setAttribute("stroke", stroke.color || "#FFE066");
-        path.setAttribute("stroke-width", stroke.size || 4);
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke-linecap", "round");
-        path.setAttribute("stroke-linejoin", "round");
-        setupStrokeMoveListener(path, stroke);
-        annotationSvgCanvas.appendChild(path);
-      });
+      annotationsData.strokes.forEach((stroke) => renderSingleStrokeSVG(stroke));
     }
 
     // 2. Text Boxes, Sticky Notes, and Stickers
@@ -7751,20 +7805,70 @@ INSTRUCTIONS:
     });
   }
 
-  // Undo button
+  // Undo & Redo implementations
+  function getItemTimestamp(item) {
+    if (item.createdAt) return item.createdAt;
+    if (item.id) {
+      const parts = item.id.split("_");
+      if (parts.length >= 2) {
+        const ts = parseInt(parts[1], 10);
+        if (!isNaN(ts) && ts > 0) return ts;
+      }
+    }
+    return 0;
+  }
+
+  function performAnnotationUndo() {
+    const allItems = [
+      ...annotationsData.strokes.map((s) => ({ ...s, type: "stroke" })),
+      ...annotationsData.textboxes.map((tb) => ({ ...tb, type: "textbox" })),
+      ...annotationsData.stickynotes.map((sn) => ({ ...sn, type: "stickynote" })),
+      ...(annotationsData.stickers || []).map((stk) => ({ ...stk, type: "sticker" })),
+      ...annotationsData.highlights.map((hl) => ({ ...hl, type: "highlight" }))
+    ];
+    if (allItems.length === 0) return;
+    allItems.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
+    const latest = allItems[0];
+    annotationRedoStack.push(JSON.parse(JSON.stringify(latest)));
+    deleteAnnotationItem(latest.id, latest.type);
+  }
+
+  function performAnnotationRedo() {
+    if (annotationRedoStack.length === 0) return;
+    const item = annotationRedoStack.pop();
+    if (!item || !item.type) return;
+
+    if (item.type === "stroke") {
+      annotationsData.strokes.push(item);
+      renderSingleStrokeSVG(item);
+    } else if (item.type === "textbox") {
+      annotationsData.textboxes.push(item);
+      renderTextBoxDOM(item);
+    } else if (item.type === "stickynote") {
+      annotationsData.stickynotes.push(item);
+      renderStickyNoteDOM(item);
+    } else if (item.type === "sticker") {
+      if (!annotationsData.stickers) annotationsData.stickers = [];
+      annotationsData.stickers.push(item);
+      renderStickerDOM(item);
+    } else if (item.type === "highlight") {
+      annotationsData.highlights.push(item);
+      restoreSavedHighlight(item);
+    }
+    document.body.classList.add("has-annotations");
+    saveAnnotations();
+    updateAnnotationCounter();
+  }
+
   if (annotationBtnUndo) {
     annotationBtnUndo.addEventListener("click", () => {
-      const allItems = [
-        ...annotationsData.strokes.map((s) => ({ ...s, type: "stroke" })),
-        ...annotationsData.textboxes.map((tb) => ({ ...tb, type: "textbox" })),
-        ...annotationsData.stickynotes.map((sn) => ({ ...sn, type: "stickynote" })),
-        ...(annotationsData.stickers || []).map((stk) => ({ ...stk, type: "sticker" })),
-        ...annotationsData.highlights.map((hl) => ({ ...hl, type: "highlight" }))
-      ];
-      if (allItems.length === 0) return;
-      allItems.sort((a, b) => (b.id || "").localeCompare(a.id || ""));
-      const latest = allItems[0];
-      deleteAnnotationItem(latest.id, latest.type);
+      performAnnotationUndo();
+    });
+  }
+
+  if (annotationBtnRedo) {
+    annotationBtnRedo.addEventListener("click", () => {
+      performAnnotationRedo();
     });
   }
 
@@ -7798,7 +7902,7 @@ INSTRUCTIONS:
       const rect = editAnnotationBar.getBoundingClientRect();
       paletteOffsetX = e.clientX - rect.left;
       paletteOffsetY = e.clientY - rect.top;
-      paletteDragHandle.setPointerCapture(e.pointerId);
+      try { paletteDragHandle.setPointerCapture(e.pointerId); } catch (_) {}
       editAnnotationBar.style.transform = "none";
       e.preventDefault();
     });
@@ -7942,15 +8046,32 @@ INSTRUCTIONS:
   // Keyboard shortcuts when annotation panel is open (V: select, P: sketch, H: highlight, T: textbox, S: note, K: sticker, X: eraser, G: snap)
   document.addEventListener("keydown", (e) => {
     if (!isAnnotationPanelActive()) return;
-    if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
+    const isEditingInput = ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+    if (isEditingInput) {
+      if (e.key === "Backspace" || e.key === "Delete") {
+        const currentText = (document.activeElement.value !== undefined ? document.activeElement.value : (document.activeElement.textContent || document.activeElement.innerText || "")).replace(/\n/g, "").trim();
+        if (!currentText) {
+          const parentBox = document.activeElement.closest(".user-annotation-textbox");
+          if (parentBox) {
+            e.preventDefault();
+            deleteAnnotationItem(parentBox.getAttribute("data-id"), "textbox");
+            return;
+          }
+          const parentNote = document.activeElement.closest(".user-annotation-stickynote");
+          if (parentNote) {
+            e.preventDefault();
+            deleteAnnotationItem(parentNote.getAttribute("data-id"), "stickynote");
+            return;
+          }
+        }
+      }
+      return;
+    }
     const noMod = !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
 
     if ((e.code === "KeyV" || e.key?.toLowerCase() === "v") && noMod) {
       e.preventDefault();
       setAnnotationTool("select");
-    } else if ((e.code === "KeyM" || e.key?.toLowerCase() === "m") && noMod) {
-      e.preventDefault();
-      setAnnotationTool("pan");
     } else if ((e.code === "KeyP" || e.key?.toLowerCase() === "p") && noMod) {
       e.preventDefault();
       setAnnotationTool("sketch");
@@ -7972,9 +8093,12 @@ INSTRUCTIONS:
     } else if ((e.code === "KeyG" || e.key?.toLowerCase() === "g") && noMod) {
       e.preventDefault();
       toggleSnapToGrid();
-    } else if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === "z") {
+    } else if ((e.ctrlKey || e.metaKey) && (e.key?.toLowerCase() === "y" || (e.shiftKey && e.key?.toLowerCase() === "z"))) {
       e.preventDefault();
-      if (annotationBtnUndo) annotationBtnUndo.click();
+      performAnnotationRedo();
+    } else if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === "z" && !e.shiftKey) {
+      e.preventDefault();
+      performAnnotationUndo();
     } else if (e.key === "Delete" || e.key === "Backspace") {
       // Delete selected elements
       if (annotationState.selectedElementIds && annotationState.selectedElementIds.size > 0) {
@@ -7986,10 +8110,45 @@ INSTRUCTIONS:
         });
         annotationState.selectedElementIds.clear();
       }
+      const selectedEls = document.querySelectorAll(".user-annotation-textbox.is-selected, .user-annotation-stickynote.is-selected, .user-annotation-sticker.is-selected");
+      selectedEls.forEach((selEl) => {
+        const id = selEl.getAttribute("data-id");
+        if (id) {
+          if (selEl.classList.contains("user-annotation-textbox")) deleteAnnotationItem(id, "textbox");
+          if (selEl.classList.contains("user-annotation-stickynote")) deleteAnnotationItem(id, "stickynote");
+          if (selEl.classList.contains("user-annotation-sticker")) deleteAnnotationItem(id, "sticker");
+        }
+      });
     }
   });
 
-  // Global Eraser Action (Click or Drag over any stroke, highlight, box, note, or sticker)
+  // Line segment distance helper for exact stroke hit-testing
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  }
+
+  function isPointOnStroke(px, py, stroke) {
+    if (!stroke.points || stroke.points.length === 0) return false;
+    const strokeTolerance = Math.max((Number(stroke.size) || 4) / 2 + 3.5, 4.5);
+    const pts = stroke.points;
+    if (pts.length === 1) {
+      return Math.hypot(pts[0].x - px, pts[0].y - py) <= strokeTolerance;
+    }
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (distToSegment(px, py, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y) <= strokeTolerance) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Global Eraser Action (Click or Drag over exact stroke line, highlight, box, note, or sticker)
   function handleEraserAction(e) {
     if (!annotationState.isOpen || annotationState.activeTool !== "eraser") return;
     const target = e.target;
@@ -8021,12 +8180,12 @@ INSTRUCTIONS:
       }
     }
 
-    // Proximity check on SVG strokes
+    // Precise hit-testing on SVG strokes (exact stroke line only, not surroundings)
     const x = e.pageX;
     const y = e.pageY;
     if (annotationsData.strokes && annotationsData.strokes.length > 0) {
       for (const stroke of annotationsData.strokes) {
-        if (stroke.points && stroke.points.some((p) => Math.hypot(p.x - x, p.y - y) <= 22)) {
+        if (isPointOnStroke(x, y, stroke)) {
           deleteAnnotationItem(stroke.id, "stroke");
           return;
         }
@@ -8350,4 +8509,586 @@ INSTRUCTIONS:
       }
     }
   });
+
+  // ==========================================================================
+  // 14. UNIVERSAL HOVER TAG TOOLTIP SYSTEM (100% BLACK BG, MONO [TAGS])
+  // ==========================================================================
+  function initHoverTagSystem() {
+    let hoverTagEl = document.getElementById("system-hover-tag");
+    if (!hoverTagEl) {
+      hoverTagEl = document.createElement("div");
+      hoverTagEl.id = "system-hover-tag";
+      hoverTagEl.className = "system-hover-tag";
+      hoverTagEl.setAttribute("role", "tooltip");
+      hoverTagEl.setAttribute("aria-hidden", "true");
+      document.body.appendChild(hoverTagEl);
+    }
+
+    // Default tag mappings for key top bar elements
+    const defaultTagMap = {
+      "nav-home-btn": "[HOME]",
+      "expand-nav-btn": "[EXPAND]",
+      "search-nav-btn": "[SEARCH]",
+      "nav-tree-toggle-btn": "[DIRECTORY TREE]",
+      "contact-nav-btn": "[CONTACT]",
+      "feedback-nav-btn": "[FEEDBACK]",
+      "doubt-nav-btn": "[ASK AI]",
+      "edit-nav-btn": "[EDIT]",
+      "shortcuts-btn": "[SHORTCUTS]",
+      "account-btn": "[ACCOUNT]",
+      "settings-btn": "[SETTINGS]",
+      "add-shortcut-btn": "[ADD SHORTCUT]",
+      "nav-restore-float-btn": "[EXPAND]"
+    };
+
+    function sanitizeTitles() {
+      // Map standard top buttons if attribute missing
+      for (const [id, tag] of Object.entries(defaultTagMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+          if (!el.hasAttribute("data-hover-tag")) {
+            el.setAttribute("data-hover-tag", tag);
+          }
+          el.removeAttribute("title");
+        }
+      }
+
+      // Strip browser native title from elements that use custom tags or color/size dots
+      document.querySelectorAll("[data-hover-tag], .palette-tool-btn, .palette-color-btn, .palette-size-btn, .palette-btn, .palette-close-btn, .finder-btn").forEach((el) => {
+        el.removeAttribute("title");
+      });
+    }
+
+    sanitizeTitles();
+    setInterval(sanitizeTitles, 3000);
+
+    let activeAnchor = null;
+
+    function hideTag() {
+      hoverTagEl.classList.remove("is-visible", "is-below");
+      activeAnchor = null;
+    }
+
+    document.addEventListener("pointerover", (e) => {
+      const target = e.target instanceof Element ? e.target : e.target?.parentElement;
+      if (!target) return;
+
+      // RULE: NO TAG FOR COLOR AND SIZE
+      if (
+        target.closest(".palette-color-btn") ||
+        target.closest(".palette-size-btn") ||
+        target.closest(".palette-color-group") ||
+        target.closest(".palette-size-group") ||
+        target.closest("[data-no-tag='true']")
+      ) {
+        hideTag();
+        return;
+      }
+
+      let tagText = "";
+      let anchorEl = null;
+
+      // 1. Check for data-hover-tag
+      const taggedEl = target.closest("[data-hover-tag]");
+      if (taggedEl) {
+        tagText = taggedEl.getAttribute("data-hover-tag") || "";
+        anchorEl = taggedEl;
+      }
+      // 2. Directory Tree Section / Chapter / Node Hover
+      else {
+        const treeNode = target.closest(".tree-node, .tree-chapter-node, .tree-subtopic-node");
+        if (treeNode) {
+          const titleSpan = treeNode.querySelector(".tree-name");
+          let rawTitle = (titleSpan ? titleSpan.textContent : treeNode.textContent) || "";
+          rawTitle = rawTitle.replace(/[├└│─\-\|\+]/g, "").replace(/\s+/g, " ").trim();
+          if (rawTitle) {
+            tagText = `[${rawTitle.toUpperCase()}]`;
+            anchorEl = treeNode;
+          }
+        } else if (target.closest(".tree-section-header")) {
+          const headerEl = target.closest(".tree-section-header");
+          let rawTitle = headerEl.textContent.trim();
+          if (rawTitle) {
+            tagText = `[${rawTitle.toUpperCase()}]`;
+            anchorEl = headerEl;
+          }
+        }
+      }
+
+      if (!tagText || !anchorEl) {
+        hideTag();
+        return;
+      }
+
+      // Ensure wrapped in square brackets [...]
+      tagText = tagText.trim();
+      if (!tagText.startsWith("[")) tagText = `[${tagText}`;
+      if (!tagText.endsWith("]")) tagText = `${tagText}]`;
+
+      activeAnchor = anchorEl;
+      hoverTagEl.textContent = tagText;
+
+      const rect = anchorEl.getBoundingClientRect();
+      const isTopNav = !!anchorEl.closest(".top-nav") || rect.top < 65;
+
+      let posX = rect.left + rect.width / 2;
+      // Clamp horizontally within screen
+      posX = Math.max(70, Math.min(window.innerWidth - 70, posX));
+
+      if (isTopNav) {
+        hoverTagEl.classList.add("is-below");
+        hoverTagEl.style.left = `${posX}px`;
+        hoverTagEl.style.top = `${rect.bottom + 8}px`;
+      } else {
+        if (rect.top > 40) {
+          hoverTagEl.classList.remove("is-below");
+          hoverTagEl.style.left = `${posX}px`;
+          hoverTagEl.style.top = `${rect.top - 8}px`;
+        } else {
+          hoverTagEl.classList.add("is-below");
+          hoverTagEl.style.left = `${posX}px`;
+          hoverTagEl.style.top = `${rect.bottom + 8}px`;
+        }
+      }
+
+      hoverTagEl.classList.add("is-visible");
+    }, { passive: true });
+
+    document.addEventListener("pointerout", (e) => {
+      if (!activeAnchor) return;
+      const related = e.relatedTarget;
+      if (!related || (activeAnchor !== related && !activeAnchor.contains(related))) {
+        hideTag();
+      }
+    }, { passive: true });
+
+    window.addEventListener("scroll", hideTag, { passive: true });
+  }
+
+  // ==========================================================================
+  // 15. SHORTCUT CUSTOMIZER BAR & PINNING ENGINE (+ BUTTON)
+  // ==========================================================================
+  const SHORTCUT_CATALOG = [
+    {
+      id: "sketch",
+      title: "Sketch (Pencil Markup)",
+      tag: "[SKETCH]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
+      action: () => {
+        openAnnotationPanel();
+        setAnnotationTool("sketch");
+      }
+    },
+    {
+      id: "highlight",
+      title: "Highlight (Text Marker)",
+      tag: "[HIGHLIGHT]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 7-4.5-4.5-8.5 8.5 4.5 4.5L22 7z"/></svg>`,
+      action: () => {
+        openAnnotationPanel();
+        setAnnotationTool("highlight");
+      }
+    },
+    {
+      id: "textbox",
+      title: "Text Box (Annotation)",
+      tag: "[TEXT]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`,
+      action: () => {
+        openAnnotationPanel();
+        setAnnotationTool("textbox");
+      }
+    },
+    {
+      id: "stickynote",
+      title: "Sticky Note",
+      tag: "[NOTE]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><polyline points="15 3 21 9 15 9 15 3"/></svg>`,
+      action: () => {
+        openAnnotationPanel();
+        setAnnotationTool("stickynote");
+      }
+    },
+    {
+      id: "sticker",
+      title: "Sticker Stamp",
+      tag: "[STICKER]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+      action: () => {
+        openAnnotationPanel();
+        if (stickerPopover) stickerPopover.classList.toggle("is-open");
+      }
+    },
+    {
+      id: "eraser",
+      title: "Eraser Tool",
+      tag: "[ERASER]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/></svg>`,
+      action: () => {
+        openAnnotationPanel();
+        setAnnotationTool("eraser");
+      }
+    },
+    {
+      id: "snap",
+      title: "Snap to Grid",
+      tag: "[SNAP TO GRID]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`,
+      action: () => {
+        toggleSnapToGrid();
+      }
+    },
+    {
+      id: "undo",
+      title: "Undo Action",
+      tag: "[UNDO]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`,
+      action: () => {
+        performAnnotationUndo();
+      }
+    },
+    {
+      id: "redo",
+      title: "Redo Action",
+      tag: "[REDO]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>`,
+      action: () => {
+        performAnnotationRedo();
+      }
+    },
+    {
+      id: "clear",
+      title: "Clear All Annotations",
+      tag: "[CLEAR]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+      action: () => {
+        const clearBtn = document.getElementById("annotation-btn-clear");
+        if (clearBtn) clearBtn.click();
+      }
+    },
+    {
+      id: "darkmode",
+      title: "Dark / Light Mode",
+      tag: "[DARK MODE]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`,
+      action: () => {
+        const contrastToggle = document.getElementById("contrast-toggle");
+        if (contrastToggle) {
+          contrastToggle.click();
+        } else {
+          document.body.classList.toggle("theme-dark");
+        }
+      }
+    },
+    {
+      id: "gridbg",
+      title: "Background Grid",
+      tag: "[GRID BG]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="3" x2="21" y2="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="3" x2="3" y2="21"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="21" y1="3" x2="21" y2="21"/></svg>`,
+      action: () => {
+        const gridToggle = document.getElementById("grid-toggle");
+        if (gridToggle) {
+          gridToggle.click();
+        } else {
+          document.body.classList.toggle("canvas-grid-subtle");
+        }
+      }
+    },
+    {
+      id: "centerview",
+      title: "Center Viewport",
+      tag: "[CENTER VIEW]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>`,
+      action: () => {
+        const main = document.querySelector(".guide-main") || document.querySelector("main") || document.documentElement;
+        main.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    },
+    {
+      id: "print",
+      title: "Print / Export PDF",
+      tag: "[PRINT]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`,
+      action: () => {
+        window.print();
+      }
+    }
+  ];
+
+  function initShortcutCustomizer() {
+    const addShortcutBtn = document.getElementById("add-shortcut-btn");
+    let customizerBar = document.getElementById("shortcut-customizer-bar");
+    const pinnedContainer = document.getElementById("pinned-shortcuts-container");
+
+    if (!customizerBar) {
+      customizerBar = document.createElement("div");
+      customizerBar.id = "shortcut-customizer-bar";
+      customizerBar.className = "shortcut-customizer-bar";
+      customizerBar.setAttribute("role", "dialog");
+      customizerBar.setAttribute("aria-label", "Add Shortcut to Top Bar");
+      customizerBar.innerHTML = `
+        <span class="customizer-drag-handle" title="Add Shortcut">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"></path><path d="M12 5v14"></path>
+          </svg>
+        </span>
+        <div class="customizer-input-wrap">
+          <span class="customizer-search-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+            </svg>
+          </span>
+          <input type="text" class="customizer-input font-mono" id="shortcut-customizer-input" placeholder="Search shortcuts to pin (e.g. Sketch, Snap, Dark Mode)..." autocomplete="off" spellcheck="false" />
+          <button type="button" class="customizer-clear-btn" id="shortcut-customizer-clear-btn" style="display: none;">&times;</button>
+        </div>
+        <span class="palette-sep">|</span>
+        <button type="button" class="customizer-close-btn" id="shortcut-customizer-close-btn" aria-label="Close" data-hover-tag="[CLOSE]">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <div class="customizer-dropdown font-mono" id="shortcut-customizer-dropdown"></div>
+      `;
+      document.body.appendChild(customizerBar);
+    }
+
+    const inputEl = customizerBar.querySelector("#shortcut-customizer-input");
+    const clearBtn = customizerBar.querySelector("#shortcut-customizer-clear-btn");
+    const closeBtn = customizerBar.querySelector("#shortcut-customizer-close-btn");
+    const dropdownEl = customizerBar.querySelector("#shortcut-customizer-dropdown");
+    const dragHandle = customizerBar.querySelector(".customizer-drag-handle");
+
+    // Drag support for shortcut customizer
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    if (dragHandle) {
+      dragHandle.addEventListener("pointerdown", (e) => {
+        isDragging = true;
+        const rect = customizerBar.getBoundingClientRect();
+        dragOffsetX = e.clientX - rect.left;
+        dragOffsetY = e.clientY - rect.top;
+        try { dragHandle.setPointerCapture(e.pointerId); } catch (_) {}
+        customizerBar.style.transform = "none";
+        e.preventDefault();
+      });
+
+      dragHandle.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+        let newLeft = e.clientX - dragOffsetX;
+        let newTop = e.clientY - dragOffsetY;
+        newLeft = Math.max(10, Math.min(window.innerWidth - customizerBar.offsetWidth - 10, newLeft));
+        newTop = Math.max(10, Math.min(window.innerHeight - customizerBar.offsetHeight - 10, newTop));
+        customizerBar.style.left = `${newLeft}px`;
+        customizerBar.style.top = `${newTop}px`;
+      });
+
+      const stopDrag = (e) => {
+        if (isDragging) {
+          isDragging = false;
+          try { dragHandle.releasePointerCapture(e.pointerId); } catch (_) {}
+        }
+      };
+      dragHandle.addEventListener("pointerup", stopDrag);
+      dragHandle.addEventListener("pointercancel", stopDrag);
+    }
+
+    function getPinnedIds() {
+      try {
+        const raw = localStorage.getItem("indexindia_pinned_shortcuts");
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return [];
+    }
+
+    function savePinnedIds(ids) {
+      try {
+        localStorage.setItem("indexindia_pinned_shortcuts", JSON.stringify(ids));
+      } catch (_) {}
+    }
+
+    function renderPinnedBar() {
+      if (!pinnedContainer) return;
+      const pinnedIds = getPinnedIds();
+      pinnedContainer.innerHTML = "";
+
+      pinnedIds.forEach((id) => {
+        const item = SHORTCUT_CATALOG.find((c) => c.id === id);
+        if (!item) return;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pinned-shortcut-btn icon-btn";
+        btn.id = `pinned-shortcut-${item.id}`;
+        btn.setAttribute("data-shortcut-id", item.id);
+        btn.setAttribute("data-hover-tag", item.tag);
+        btn.setAttribute("aria-label", item.title);
+        btn.innerHTML = item.icon;
+
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          item.action();
+        });
+
+        pinnedContainer.appendChild(btn);
+      });
+    }
+
+    let selectedDropdownIndex = 0;
+    let currentFilteredList = [];
+
+    function renderDropdown(filterText = "") {
+      const pinnedIds = getPinnedIds();
+      const query = (filterText || "").toLowerCase().trim();
+
+      currentFilteredList = SHORTCUT_CATALOG.filter((item) => {
+        if (!query) return true;
+        return (
+          item.title.toLowerCase().includes(query) ||
+          item.tag.toLowerCase().includes(query) ||
+          item.id.toLowerCase().includes(query)
+        );
+      });
+
+      if (currentFilteredList.length === 0) {
+        dropdownEl.innerHTML = `<div style="padding: 10px; font-size: 0.78rem; color: var(--text-tertiary); text-align: center;">No matching shortcuts found</div>`;
+        return;
+      }
+
+      if (selectedDropdownIndex >= currentFilteredList.length) {
+        selectedDropdownIndex = 0;
+      }
+
+      dropdownEl.innerHTML = currentFilteredList.map((item, idx) => {
+        const isPinned = pinnedIds.includes(item.id);
+        const isSelected = idx === selectedDropdownIndex;
+        return `
+          <div class="customizer-item${isSelected ? ' is-selected' : ''}" data-id="${item.id}" data-index="${idx}">
+            <div class="customizer-item-left">
+              <span class="customizer-item-icon">${item.icon}</span>
+              <span class="customizer-item-title">${item.title}</span>
+              <span class="customizer-item-tag">${item.tag}</span>
+            </div>
+            <span class="customizer-item-status${isPinned ? ' is-pinned' : ''}">
+              ${isPinned ? 'PINNED' : '+ PIN'}
+            </span>
+          </div>
+        `;
+      }).join("");
+
+      dropdownEl.querySelectorAll(".customizer-item").forEach((el) => {
+        el.addEventListener("click", () => {
+          const id = el.getAttribute("data-id");
+          togglePin(id);
+        });
+      });
+    }
+
+    function togglePin(id) {
+      let pinnedIds = getPinnedIds();
+      if (pinnedIds.includes(id)) {
+        pinnedIds = pinnedIds.filter((p) => p !== id);
+      } else {
+        pinnedIds.push(id);
+      }
+      savePinnedIds(pinnedIds);
+      renderPinnedBar();
+      renderDropdown(inputEl.value);
+    }
+
+    function openCustomizer() {
+      customizerBar.classList.add("is-visible");
+      customizerBar.style.transform = "translateX(-50%) translateY(0)";
+      customizerBar.style.left = "50%";
+      customizerBar.style.top = "calc(var(--nav-height) + 14px)";
+      inputEl.value = "";
+      clearBtn.style.display = "none";
+      selectedDropdownIndex = 0;
+      renderDropdown("");
+      setTimeout(() => inputEl.focus(), 60);
+    }
+
+    function closeCustomizer() {
+      customizerBar.classList.remove("is-visible");
+    }
+
+    if (addShortcutBtn) {
+      addShortcutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (customizerBar.classList.contains("is-visible")) {
+          closeCustomizer();
+        } else {
+          openCustomizer();
+        }
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        closeCustomizer();
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        inputEl.value = "";
+        clearBtn.style.display = "none";
+        selectedDropdownIndex = 0;
+        renderDropdown("");
+        inputEl.focus();
+      });
+    }
+
+    inputEl.addEventListener("input", () => {
+      clearBtn.style.display = inputEl.value ? "inline-flex" : "none";
+      selectedDropdownIndex = 0;
+      renderDropdown(inputEl.value);
+    });
+
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (currentFilteredList.length > 0) {
+          selectedDropdownIndex = (selectedDropdownIndex + 1) % currentFilteredList.length;
+          renderDropdown(inputEl.value);
+          const selEl = dropdownEl.querySelector(".customizer-item.is-selected");
+          if (selEl) selEl.scrollIntoView({ block: "nearest" });
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (currentFilteredList.length > 0) {
+          selectedDropdownIndex = (selectedDropdownIndex - 1 + currentFilteredList.length) % currentFilteredList.length;
+          renderDropdown(inputEl.value);
+          const selEl = dropdownEl.querySelector(".customizer-item.is-selected");
+          if (selEl) selEl.scrollIntoView({ block: "nearest" });
+        }
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (currentFilteredList.length > 0 && currentFilteredList[selectedDropdownIndex]) {
+          togglePin(currentFilteredList[selectedDropdownIndex].id);
+        }
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        closeCustomizer();
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener("pointerdown", (e) => {
+      if (!customizerBar.classList.contains("is-visible")) return;
+      const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
+      if (!targetEl) return;
+      if (customizerBar.contains(targetEl) || addShortcutBtn?.contains(targetEl)) return;
+      closeCustomizer();
+    });
+
+    // Initial render
+    renderPinnedBar();
+  }
+
+  // Initialize hovering tag system and shortcut customizer
+  initHoverTagSystem();
+  initShortcutCustomizer();
 });
