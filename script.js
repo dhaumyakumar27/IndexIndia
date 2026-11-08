@@ -328,7 +328,9 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (item.type === "module") {
-        treeHtml += `<div class="tree-section-header">${item.title}</div>\n`;
+        if (!item.title.toUpperCase().includes("DIRECTORY TREE HIERARCHY")) {
+          treeHtml += `<div class="tree-section-header">${item.title}</div>\n`;
+        }
       } else {
         const idx = nodeCounter++;
         let isLastInBranch = true;
@@ -424,7 +426,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     if (railTreeStatus && treeNodes.length > 0) {
       const curr = String(currentSubIndex + 1).padStart(2, "0");
       const total = String(treeNodes.length).padStart(2, "0");
-      railTreeStatus.textContent = `${curr} / ${total}`;
+      railTreeStatus.textContent = `SECTION ${curr}/${total}`;
     }
 
     if (treeScrubIndicator && treeScrubStrip && treeNodes.length > 1) {
@@ -1903,7 +1905,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
     let leftOffset = 0;
     if (typeof isTreeCurrentlyOpen === "function" && isTreeCurrentlyOpen() && railNavigator) {
-      leftOffset = railNavigator.offsetWidth || 520;
+      leftOffset = railNavigator.offsetWidth || 455;
     }
 
     const availableWidth = Math.max(300, viewportWidth - leftOffset);
@@ -4406,7 +4408,7 @@ INSTRUCTIONS:
         <span>DOUBT SOLVER</span>
       </div>
       <div class="doubt-tile-controls">
-        <button type="button" class="doubt-tile-close" id="doubt-tile-close" title="Close (Esc)">&times;</button>
+        <button type="button" class="doubt-tile-close" id="doubt-tile-close" data-hover-tag="[CLOSE]" aria-label="Close">&times;</button>
       </div>
     </div>
     <div class="doubt-tile-body">
@@ -5186,17 +5188,17 @@ INSTRUCTIONS:
       triggerRightEdgeDoubt();
     }
 
-    // If Tree was opened by edge hover and is not pinned: close when mouse leaves panel to the right (520px width)
+    // If Tree was opened by edge hover and is not pinned: close when mouse leaves panel to the right (455px width)
     if (treeOpenedByHover && !isPinned && isTreeCurrentlyOpen()) {
-      if (clientX > 530) {
+      if (clientX > 465) {
         closeRailPanel(180);
         treeOpenedByHover = false;
       }
     }
 
-    // If Doubt Solver was opened by edge hover and is not permanent: close when cursor leaves panel to the left (520px width)
+    // If Doubt Solver was opened by edge hover and is not permanent: close when cursor leaves panel to the left (455px width)
     if (doubtOpenedByHover && !geminiIsPermanent && doubtTile && doubtTile.classList.contains("is-open")) {
-      if (clientX < winWidth - 530) {
+      if (clientX < winWidth - 465) {
         closeDoubtOnCursorLeave(180);
         doubtOpenedByHover = false;
       }
@@ -8554,7 +8556,7 @@ INSTRUCTIONS:
       }
 
       // Strip browser native title from elements that use custom tags or color/size dots
-      document.querySelectorAll("[data-hover-tag], .palette-tool-btn, .palette-color-btn, .palette-size-btn, .palette-btn, .palette-close-btn, .finder-btn").forEach((el) => {
+      document.querySelectorAll("[data-hover-tag], .palette-tool-btn, .palette-color-btn, .palette-size-btn, .palette-btn, .palette-close-btn, .finder-btn, .doubt-tile-close, .rail-header-btn.close-btn, #btn-close-tree").forEach((el) => {
         el.removeAttribute("title");
       });
     }
@@ -9088,7 +9090,101 @@ INSTRUCTIONS:
     renderPinnedBar();
   }
 
-  // Initialize hovering tag system and shortcut customizer
+  /* ==========================================================================
+     TOP BAR DRAG & DROP UTILITY REORDERING (With localStorage Persistence)
+     ========================================================================== */
+  function initTopBarReorder() {
+    const navGroup = document.getElementById("nav-icons-group");
+    if (!navGroup) return;
+
+    const STORAGE_KEY = "indexindia_topbar_order";
+
+    // 1. Restore saved order on load
+    try {
+      const savedOrder = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (Array.isArray(savedOrder) && savedOrder.length > 0) {
+        savedOrder.forEach((id) => {
+          const item = document.getElementById(id);
+          if (item && item.parentElement === navGroup) {
+            navGroup.appendChild(item);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Could not restore top bar order:", err);
+    }
+
+    // 2. Enable live drag-and-drop reordering
+    let draggedWrapper = null;
+    let isDragging = false;
+    let dragEndTime = 0;
+
+    function saveOrder() {
+      const ids = Array.from(navGroup.children)
+        .filter((el) => el.classList.contains("panel-trigger-wrapper") && el.id)
+        .map((el) => el.id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    }
+
+    const items = Array.from(navGroup.querySelectorAll(".panel-trigger-wrapper"));
+    items.forEach((item) => {
+      item.setAttribute("draggable", "true");
+
+      item.addEventListener("dragstart", (e) => {
+        draggedWrapper = item;
+        isDragging = true;
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", item.id);
+        setTimeout(() => {
+          item.classList.add("is-dragging");
+        }, 0);
+
+        // Hide hover tag while dragging
+        const hoverTag = document.getElementById("system-hover-tag");
+        if (hoverTag) hoverTag.classList.remove("is-visible");
+      });
+
+      item.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (!draggedWrapper || draggedWrapper === item) return;
+
+        const rect = item.getBoundingClientRect();
+        const midpoint = rect.left + rect.width / 2;
+        if (e.clientX < midpoint) {
+          if (item.previousElementSibling !== draggedWrapper) {
+            navGroup.insertBefore(draggedWrapper, item);
+          }
+        } else {
+          if (item.nextElementSibling !== draggedWrapper) {
+            navGroup.insertBefore(draggedWrapper, item.nextSibling);
+          }
+        }
+      });
+
+      item.addEventListener("dragend", () => {
+        if (draggedWrapper) {
+          draggedWrapper.classList.remove("is-dragging");
+        }
+        draggedWrapper = null;
+        isDragging = false;
+        dragEndTime = Date.now();
+        saveOrder();
+      });
+
+      // Prevent accidental link navigation or popup trigger right after drag drop
+      item.addEventListener("click", (e) => {
+        if (Date.now() - dragEndTime < 300) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }, true);
+    });
+  }
+
+  // Initialize hovering tag system, top bar reorder, and shortcut customizer
   initHoverTagSystem();
+  initTopBarReorder();
   initShortcutCustomizer();
 });

@@ -16,18 +16,19 @@
 
   <!-- ================= TOP NAVIGATION BAR ================= -->
   <header class="top-nav" id="top-nav">
-    <div class="nav-left">
-      <a href="guide.html" class="icon-btn nav-home-btn" id="nav-home-btn" aria-label="Home" data-hover-tag="[HOME]">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-          <polyline points="9 22 9 12 15 12 15 22"></polyline>
-        </svg>
-      </a>
-    </div>
-
     <!-- Center Cluster: Nav Buttons, Pinned Shortcuts & Add Shortcut Button -->
     <div class="nav-center-cluster nav-right" id="nav-center-cluster">
       <div class="nav-icons-group" id="nav-icons-group">
+        <!-- Home Button -->
+        <div class="panel-trigger-wrapper" id="home-nav-wrapper">
+          <a href="guide.html" class="icon-btn nav-home-btn" id="nav-home-btn" aria-label="Home" data-hover-tag="[HOME]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </a>
+        </div>
+
         <!-- Expand / Hide Top Bar Button (Full Screen) -->
         <div class="panel-trigger-wrapper" id="expand-nav-wrapper">
           <button type="button" class="icon-btn" id="expand-nav-btn" aria-label="Expand Full View / Toggle Top Bar" data-hover-tag="[EXPAND]">
@@ -65,7 +66,7 @@
 
         <!-- Contact Us Round Button (Active on this page) -->
         <div class="panel-trigger-wrapper" id="contact-nav-wrapper">
-          <a href="contact.html" class="icon-btn is-active" id="contact-nav-btn" aria-label="Contact Us &amp; Issue Resolution" data-hover-tag="[CONTACT]">
+          <a href="contact.html" class="icon-btn is-active" id="contact-nav-btn" aria-label="Contact Us &amp; Issue Resolution" data-hover-tag="[CONTACT US]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
@@ -76,34 +77,11 @@
           <div class="hover-flyout-panel contact-panel" id="contact-panel" role="region"
             aria-label="Contact Us &amp; Issue Reporting">
             <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
-              Facing technical glitches, calculation anomalies, or account issues? Dispatch an incident report for rapid triage.
+              Facing technical glitches, calculation anomalies, or suggest improvements? Dispatch directly for triage.
             </div>
             <a href="contact.html" class="account-btn-action"
               style="background-color: var(--bg-inverted); color: var(--text-on-inverted) !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
-              Report an Issue &rarr;
-            </a>
-          </div>
-        </div>
-
-        <!-- Feedback Round Button -->
-        <div class="panel-trigger-wrapper" id="feedback-nav-wrapper">
-          <a href="feedback.html" class="icon-btn" id="feedback-nav-btn" aria-label="Feedback &amp; Feature Suggestions" data-hover-tag="[FEEDBACK]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
-              <path d="M9 18h6"></path>
-              <path d="M10 22h4"></path>
-            </svg>
-          </a>
-
-          <div class="hover-flyout-panel feedback-panel" id="feedback-panel" role="region"
-            aria-label="Feedback &amp; Feature Radar">
-            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); line-height: 1.45;">
-              Have suggestions for new index baskets, MCA governance modules, or platform features? Pitch directly to the team.
-            </div>
-            <a href="feedback.html" class="account-btn-action"
-              style="background-color: #000000; color: #FFFFFF !important; border: 1px solid #000000; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; display: flex;">
-              Suggest Feature / Content &rarr;
+              Contact &amp; Triage &rarr;
             </a>
           </div>
         </div>
@@ -357,21 +335,41 @@
         </div>
       </div>
 
-      <!-- Issue Reporting Form Card -->
+      <!-- Issue Reporting & Improvement Suggestion Form Card -->
       <div class="institutional-form-card">
         <form id="contact-issue-form" action="https://formsubmit.co/dhaumyakumar27@gmail.com" method="POST" autocomplete="off">
           <input type="hidden" name="_captcha" value="false">
           <input type="hidden" name="_template" value="table">
-          <input type="hidden" name="_subject" id="contact-hidden-subject" value="[INDEXINDIA CONTACT US] - Data / Formula Discrepancy">
+          <input type="hidden" name="_subject" id="contact-hidden-subject" value="[INDEXINDIA] [ISSUE] [DATA / FORMULA DISCREPANCY]">
           <input type="hidden" name="_replyto" id="contact-hidden-replyto" value="">
-          <input type="hidden" name="Stamp" value="[INDEXINDIA CONTACT US]">
+          <input type="hidden" name="Stamp" value="[INDEXINDIA OPERATIONS]">
+          <input type="hidden" name="Submission_Type_Tag" id="contact-hidden-type" value="ISSUE">
+          <input type="hidden" name="Classification_Tag" id="contact-hidden-classification" value="Data / Formula Discrepancy">
           <input type="hidden" name="Ticket_ID" id="contact-hidden-ticket" value="">
           
-          <!-- Category Selector -->
+          <!-- Submission Type Selector: Report an Issue vs Suggest an Improvement -->
+          <div class="form-field-group" style="margin-bottom: 22px;">
+            <label class="field-label">
+              <span>SUBMISSION TYPE <span class="required-mark">*</span></span>
+              <span class="field-hint" id="submission-type-hint">Choose whether you are reporting a problem or suggesting an architectural improvement</span>
+            </label>
+            <div class="submission-type-row">
+              <label class="pill-option submission-type-pill">
+                <input type="radio" name="Submission_Type" value="Report an Issue" id="type-report-issue" checked>
+                <span class="pill-label">🐞 Report an Issue</span>
+              </label>
+              <label class="pill-option submission-type-pill">
+                <input type="radio" name="Submission_Type" value="Suggest an Improvement" id="type-suggest-improvement">
+                <span class="pill-label">💡 Suggest an Improvement</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Classification Selector -->
           <div class="form-field-group">
             <label class="field-label">
-              <span>PROBLEM CLASSIFICATION <span class="required-mark">*</span></span>
-              <span class="field-hint">Select the category that matches your issue</span>
+              <span>CLASSIFICATION <span class="required-mark">*</span></span>
+              <span class="field-hint" id="classification-field-hint">Select the category that matches your issue</span>
             </label>
             <div class="pill-selector-row">
               <label class="pill-option">
@@ -387,16 +385,16 @@
                 <span class="pill-label">🔐 Auth &amp; Account Access</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="Classification" value="Billing / Payment / UPI AutoPay">
-                <span class="pill-label">💳 Billing &amp; UPI AutoPay</span>
+                <input type="radio" name="Classification" value="Billing / Payment / Pricing">
+                <span class="pill-label">💳 Billing &amp; Payment</span>
               </label>
               <label class="pill-option">
                 <input type="radio" name="Classification" value="Gemini AI Doubt Solver">
                 <span class="pill-label">✨ Gemini AI Doubt Solver</span>
               </label>
               <label class="pill-option">
-                <input type="radio" name="Classification" value="General Technical Issue">
-                <span class="pill-label">⚙️ Other / General Issue</span>
+                <input type="radio" name="Classification" value="General Technical / Other">
+                <span class="pill-label">⚙️ Other / General</span>
               </label>
             </div>
           </div>
@@ -483,12 +481,12 @@
             </div>
           </div>
 
-          <!-- Error Report Section with Organized Formatting Suggestions -->
+          <!-- Description Section with Dynamic Hints -->
           <div class="form-field-group">
             <label class="field-label" for="issue-description">
-              <span>ERROR REPORT <span class="required-mark">*</span></span>
+              <span id="description-field-title">ERROR REPORT / ISSUE DETAILS <span class="required-mark">*</span></span>
             </label>
-            <div class="error-format-hints">
+            <div class="error-format-hints" id="description-hints">
               <span class="hint-title">Tips for rapid resolution:</span>
               <span>1. Describe what went wrong</span> &bull; 
               <span>2. Paste any error message, code, or console output</span> &bull; 
@@ -506,7 +504,7 @@
             <div style="display:flex; gap:12px; align-items:center;">
               <button type="reset" class="btn-institutional-secondary" id="btn-reset-form">CLEAR</button>
               <button type="submit" class="btn-institutional-primary" id="btn-submit-issue">
-                <span>DISPATCH ERROR REPORT &rarr;</span>
+                <span id="btn-submit-label">DISPATCH ERROR REPORT &rarr;</span>
               </button>
             </div>
           </div>
@@ -595,7 +593,7 @@
       _origConsoleError.apply(console, args);
     };
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function initContactPage() {
       let currentUser = null;
       let capturedScreenshotDataUrl = null;
       let latestRawBody = "";
@@ -829,6 +827,40 @@
       const submitBtn = document.getElementById("btn-submit-issue");
 
       if (form) {
+        // Submission Type Switcher (Report an Issue vs Suggest an Improvement)
+        const typeReportIssue = document.getElementById("type-report-issue");
+        const typeSuggestImprovement = document.getElementById("type-suggest-improvement");
+        const descTitle = document.getElementById("description-field-title");
+        const descHints = document.getElementById("description-hints");
+        const descTextarea = document.getElementById("issue-description");
+        const submitBtnLabel = document.getElementById("btn-submit-label");
+        const classHint = document.getElementById("classification-field-hint");
+
+        function updateSubmissionTypeUI() {
+          const isImprovement = typeSuggestImprovement && typeSuggestImprovement.checked;
+          if (!isImprovement) {
+            if (descTitle) descTitle.innerHTML = 'ERROR REPORT / ISSUE DETAILS <span class="required-mark">*</span>';
+            if (classHint) classHint.textContent = 'Select the category that matches your issue';
+            if (descHints) descHints.innerHTML = '<span class="hint-title">Tips for rapid resolution:</span> <span>1. Describe what went wrong</span> &bull; <span>2. Paste any error message, code, or console output</span> &bull; <span>3. Specify where it happened</span>';
+            if (descTextarea) descTextarea.placeholder = '1. What went wrong:\n2. Error message or code (if any):\n3. Where / what were you doing:';
+            if (submitBtnLabel) submitBtnLabel.innerHTML = 'DISPATCH ERROR REPORT &rarr;';
+          } else {
+            if (descTitle) descTitle.innerHTML = 'IMPROVEMENT PROPOSAL / SPECIFICATION <span class="required-mark">*</span>';
+            if (classHint) classHint.textContent = 'Select the category that matches your suggested improvement';
+            if (descHints) descHints.innerHTML = '<span class="hint-title">Tips for proposal impact:</span> <span>1. Describe your suggested improvement or feature</span> &bull; <span>2. Explain how it enhances user workflow</span> &bull; <span>3. Mention any relevant benchmark references</span>';
+            if (descTextarea) descTextarea.placeholder = '1. Proposed improvement or feature:\n2. Practical workflow / utility impact:\n3. Benchmark examples or references:';
+            if (submitBtnLabel) submitBtnLabel.innerHTML = 'TRANSMIT IMPROVEMENT &rarr;';
+          }
+        }
+
+        [typeReportIssue, typeSuggestImprovement].forEach(r => {
+          if (r) {
+            r.addEventListener("change", updateSubmissionTypeUI);
+            r.addEventListener("click", updateSubmissionTypeUI);
+          }
+        });
+        updateSubmissionTypeUI();
+
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
 
@@ -850,10 +882,21 @@
           const timestampNum = Date.now().toString().slice(-4);
           const ticketId = `INC-IND-${timestampNum}-${randHex}`;
 
-          const category = form.querySelector('input[name="Classification"]:checked')?.value || "General Technical Issue";
+          const subType = form.querySelector('input[name="Submission_Type"]:checked')?.value || "Report an Issue";
+          const category = form.querySelector('input[name="Classification"]:checked')?.value || "General Technical / Other";
+          const isIssue = subType.toLowerCase().includes("issue");
+          const typeTag = isIssue ? "ISSUE" : "IMPROVEMENT";
+
           const description = document.getElementById("issue-description")?.value || "";
           const targetAdminEmail = "dhaumyakumar27@gmail.com";
-          const emailSubject = `[INDEXINDIA CONTACT US] - ${category} [${ticketId}]`;
+          const emailSubject = `[INDEXINDIA] [${typeTag}] [${category.toUpperCase()}] - ${ticketId}`;
+
+          const hiddenSubject = document.getElementById("contact-hidden-subject");
+          if (hiddenSubject) hiddenSubject.value = emailSubject;
+          const hiddenType = document.getElementById("contact-hidden-type");
+          if (hiddenType) hiddenType.value = typeTag;
+          const hiddenClass = document.getElementById("contact-hidden-classification");
+          if (hiddenClass) hiddenClass.value = category;
 
           const now = new Date();
           const displayTime = now.toLocaleDateString("en-IN", {
@@ -874,14 +917,15 @@
           const currentFont = document.body.classList.contains("font-typewriter") ? "Typewriter (Mono)" : "Reading (Sans)";
           const consoleCount = window.__indexIndiaErrors.length;
 
-          // Plain text body
-          latestRawBody = `[INDEXINDIA INCIDENT DISPATCH]
+          // Plain text body with explicit TYPE and CLASSIFICATION for rapid filtering
+          latestRawBody = `[INDEXINDIA DISPATCH]
 Ticket ID: ${ticketId}
 Date & Time (IST): ${timestampIST}
-Classification: ${category}
+SUBMISSION TYPE: ${typeTag}
+CLASSIFICATION: ${category}
 User Contact Email: ${userEmail}
 
-Error Report / Technical Symptoms:
+${isIssue ? "Error Report / Technical Symptoms:" : "Improvement Proposal / Feature Specification:"}
 --------------------------------------------------
 ${description}
 --------------------------------------------------
@@ -922,19 +966,20 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
 <body>
   <div class="email-container">
     <div class="email-header">
-      <span class="badge">INCIDENT REPORT &bull; ${escapeHTML(category)}</span>
-      <h1 class="email-title">IndexIndia Incident Triage: ${escapeHTML(ticketId)}</h1>
+      <span class="badge">${escapeHTML(typeTag)} &bull; ${escapeHTML(category)}</span>
+      <h1 class="email-title">IndexIndia ${escapeHTML(typeTag)}: ${escapeHTML(ticketId)}</h1>
     </div>
     <div class="email-body">
       <table class="meta-table">
         <tr><td class="meta-label">Ticket Reference</td><td><strong style="color: #FF3B00;">${escapeHTML(ticketId)}</strong></td></tr>
+        <tr><td class="meta-label">Submission Type</td><td><strong style="color: #000000; text-transform: uppercase;">${escapeHTML(typeTag)}</strong></td></tr>
+        <tr><td class="meta-label">Classification</td><td><strong style="color: #000000;">${escapeHTML(category)}</strong></td></tr>
         <tr><td class="meta-label">Submitter Email</td><td><a href="mailto:${escapeHTML(userEmail)}" style="color: #111827; font-weight: 600;">${escapeHTML(userEmail)}</a></td></tr>
-        <tr><td class="meta-label">Classification</td><td>${escapeHTML(category)}</td></tr>
         <tr><td class="meta-label">Timestamp (IST)</td><td>${escapeHTML(timestampIST)}</td></tr>
         <tr><td class="meta-label">Screenshot</td><td>${capturedScreenshotDataUrl ? "<strong>✓ Attached to this email (screenshot.jpg)</strong>" : "None"}</td></tr>
       </table>
 
-      <h3 style="font-size: 12px; text-transform: uppercase; color: #4B5563; margin-bottom: 6px; font-family: monospace; letter-spacing: 0.05em;">Error Symptoms &amp; Notes</h3>
+      <h3 style="font-size: 12px; text-transform: uppercase; color: #4B5563; margin-bottom: 6px; font-family: monospace; letter-spacing: 0.05em;">${isIssue ? "Error Symptoms &amp; Notes" : "Improvement Proposal &amp; Notes"}</h3>
       <div class="description-box">${escapeHTML(description)}</div>
 
       <div class="telemetry-box">
@@ -1057,11 +1102,13 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
           }
           const confHeading = document.getElementById("confirmation-card-heading");
           if (confHeading) {
-            confHeading.textContent = "INCIDENT REPORT TRANSMITTED DIRECTLY";
+            confHeading.textContent = isIssue ? "INCIDENT REPORT TRANSMITTED DIRECTLY" : "IMPROVEMENT PROPOSAL TRANSMITTED DIRECTLY";
           }
           const confStatus = document.getElementById("confirmation-status-text");
           if (confStatus) {
-            confStatus.innerHTML = `Your error report has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external app redirects required.`;
+            confStatus.innerHTML = isIssue
+              ? `Your error report has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external app redirects required.`
+              : `Your improvement suggestion has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external app redirects required.`;
           }
 
           if (confirmCard) {
@@ -1073,11 +1120,17 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
           form.reset();
           if (btnRemove) btnRemove.click(); // Reset screenshot
           if (currentUser) setAuthState(currentUser);
+          updateSubmissionTypeUI();
           submitBtn.disabled = false;
-          submitBtn.innerHTML = "<span>DISPATCH ERROR REPORT &rarr;</span>";
         });
       }
-    });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initContactPage);
+    } else {
+      initContactPage();
+    }
   </script>
 </body>
 

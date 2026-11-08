@@ -180,32 +180,33 @@ body.theme-dark .top-nav {
 }
 
 .nav-left {
-  position: absolute !important;
-  left: 20px !important;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: none !important;
 }
 
 .nav-home-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--border-primary);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  border-radius: 50% !important;
+  border: 1.4px solid var(--border-primary) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
   text-decoration: none !important;
+  flex-shrink: 0 !important;
 }
 
 .nav-home-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--text-primary);
-  transform: scale(1.06);
+  background: var(--bg-inverted) !important;
+  color: var(--text-on-inverted) !important;
+  border-color: var(--bg-inverted) !important;
+  transform: translateY(-1px);
 }
 
 .nav-center-cluster {
@@ -213,7 +214,7 @@ body.theme-dark .top-nav {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  max-width: calc(100vw - 120px);
+  max-width: calc(100vw - 40px);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -451,24 +452,50 @@ body.theme-dark .sub-nav-sep {
 
 .panel-trigger-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-
-.icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1.4px solid var(--border-primary);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  transition: all 0.15s ease;
+  padding: 0 !important;
+  margin: 0 !important;
+  user-select: none;
+}
+
+.panel-trigger-wrapper[draggable="true"] {
+  cursor: grab;
+}
+
+.panel-trigger-wrapper[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.panel-trigger-wrapper.is-dragging {
+  opacity: 0.3 !important;
+  cursor: grabbing !important;
+  transform: scale(0.92);
+}
+
+.icon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  border-radius: 50% !important;
+  border: 1.4px solid var(--border-primary) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.icon-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+  margin: auto !important;
 }
 
 .icon-btn:hover,
@@ -1337,10 +1364,10 @@ body.theme-dark .dropdown-item:hover {
 
 
 
-/* Explicitly opened or pinned expansion */
+/* Explicitly opened or pinned expansion (7/8 of 520px = 455px for larger, readable page content) */
 .rail-navigator.is-open,
 .rail-navigator.is-pinned {
-  width: 520px;
+  width: 455px;
   pointer-events: auto;
 }
 
@@ -1402,7 +1429,7 @@ body.theme-dark .tick-mark.active {
   top: var(--nav-height) !important;
   bottom: 0 !important;
   height: calc(100vh - var(--nav-height)) !important;
-  width: 520px !important;
+  width: 455px !important;
   max-width: 90vw !important;
   background: var(--bg-surface-elevated);
   border-right: 1.5px solid var(--border-primary) !important;
@@ -2263,26 +2290,26 @@ body.theme-dark .story-act-divider {
               padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Snap content to the other side when panels are permanently docked via top button */
+/* Snap content to the other side when panels are permanently docked via top button (455px panel + 20px padding) */
 @media (min-width: 1024px) {
   body.tree-permanent .main-viewport-wrapper {
-    margin-left: 540px !important;
+    margin-left: 475px !important;
     margin-right: auto !important;
-    max-width: min(1200px, calc(100vw - 580px)) !important;
+    max-width: min(1200px, calc(100vw - 505px)) !important;
   }
 
   body.gemini-permanent .main-viewport-wrapper {
-    margin-right: 540px !important;
+    margin-right: 475px !important;
     margin-left: auto !important;
-    max-width: min(1200px, calc(100vw - 580px)) !important;
+    max-width: min(1200px, calc(100vw - 505px)) !important;
   }
 }
 
 @media (min-width: 1300px) {
   body.tree-permanent.gemini-permanent .main-viewport-wrapper {
-    margin-left: 540px !important;
-    margin-right: 540px !important;
-    max-width: calc(100vw - 1080px) !important;
+    margin-left: 475px !important;
+    margin-right: 475px !important;
+    max-width: calc(100vw - 950px) !important;
   }
 }
 
@@ -3733,7 +3760,7 @@ body.doubt-solver-open .hover-flyout-panel {
   top: var(--nav-height) !important;
   bottom: 0 !important;
   height: calc(100vh - var(--nav-height)) !important;
-  width: 520px !important;
+  width: 455px !important;
   max-width: 90vw !important;
   display: flex;
   flex-direction: column;
@@ -7458,6 +7485,28 @@ body.theme-dark .field-textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Submission Type (Report an Issue vs Suggest an Improvement) */
+.submission-type-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.submission-type-pill {
+  width: 100%;
+}
+
+.submission-type-pill .pill-label {
+  width: 100%;
+  justify-content: center;
+  padding: 11px 16px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
 }
 
 .pill-option {
