@@ -312,16 +312,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     autoBuildDirectoryTree.lastSignature = signature;
 
-    // Helper for tree branch guides: ├──, │  ├──, └──
+    // Helper for tree branch guides: ├──, └── (first line | bars removed; chapters are main sections)
     function getTreeGuide(level, isLastInBranch) {
       if (level === 1) {
-        return isLastInBranch ? "└──" : "├──";
-      } else if (level === 2) {
-        return isLastInBranch ? "│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;├──";
-      } else if (level === 3) {
-        return isLastInBranch ? "│&nbsp;&nbsp;│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;│&nbsp;&nbsp;├──";
+        return "";
       } else {
-        return isLastInBranch ? "│&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├──";
+        return isLastInBranch ? "└──" : "├──";
       }
     }
 
@@ -357,12 +353,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const guide = getTreeGuide(item.level, isLastInBranch);
+        const guideHtml = guide ? `  <span class="tree-guide font-mono">${guide}</span>\n` : "";
         const badge = String(idx + 1).padStart(2, "0");
         const activeClass = idx === currentSubIndex ? " active" : "";
+        const chapterClass = item.level === 1 ? " tree-chapter-node" : " tree-subtopic-node";
 
-        treeHtml += `<a href="#${item.id}" class="tree-node${activeClass}" data-index="${idx}" data-level="${item.level}">
-  <span class="tree-guide font-mono">${guide}</span>
-  <span class="tree-name font-mono">${item.displayName}</span>
+        treeHtml += `<a href="#${item.id}" class="tree-node${chapterClass}${activeClass}" data-index="${idx}" data-level="${item.level}">
+${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
   <span class="tree-badge font-mono">${badge}</span>
 </a>\n`;
       }
@@ -460,7 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openTreeExplicitly(pin = true) {
-    if (window.innerWidth <= 1280 && typeof closeDoubtSolver === "function") {
+    if (window.innerWidth <= 1280 && typeof closeDoubtSolver === "function" && document.body.classList.contains("gemini-permanent")) {
       closeDoubtSolver();
     }
     isPinned = pin;
@@ -477,6 +474,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
     if (navTreeBtn) navTreeBtn.classList.add("is-active");
 
+    if (isPinned) {
+      document.body.classList.add("tree-permanent");
+    }
+
     if (btnPinTree) {
       btnPinTree.classList.toggle("is-active", isPinned);
       btnPinTree.setAttribute("aria-pressed", isPinned ? "true" : "false");
@@ -487,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeTreeExplicitly() {
     isPinned = false;
+    document.body.classList.remove("tree-permanent");
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
 
     if (railNavigator) {
@@ -506,7 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function toggleTree(forceState) {
-    let shouldOpen = typeof forceState === "boolean" ? forceState : !isTreeCurrentlyOpen();
+    let shouldOpen = typeof forceState === "boolean" ? forceState : !isPinned;
     if (shouldOpen) {
       openTreeExplicitly(true);
     } else {
@@ -515,9 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openRailPanel() {
-    if (window.innerWidth <= 1280 && typeof closeDoubtSolver === "function") {
-      closeDoubtSolver();
-    }
+    if (isPinned) return;
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
     if (railNavigator) {
       railNavigator.classList.remove("is-closed");
@@ -525,13 +525,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (railTrack) railTrack.classList.add("is-hidden");
     if (railTreePanel) railTreePanel.classList.add("is-open");
-    const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
-    if (navTreeBtn) navTreeBtn.classList.add("is-active");
     updateTreeTelemetryUI();
     scrollTreeToNode(treeNodes[currentSubIndex]);
   }
 
-  function closeRailPanel(delay = 300) {
+  function closeRailPanel(delay = 180) {
     if (isPinned) return;
     if (railLeaveTimer) clearTimeout(railLeaveTimer);
     railLeaveTimer = setTimeout(() => {
@@ -542,7 +540,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (railTrack) railTrack.classList.remove("is-hidden");
         if (railTreePanel) railTreePanel.classList.remove("is-open");
         const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
-        if (navTreeBtn) navTreeBtn.classList.remove("is-active");
+        if (navTreeBtn && !isPinned) navTreeBtn.classList.remove("is-active");
       }
     }, delay);
   }
@@ -678,9 +676,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Close Directory Tree when clicking outside
+  // Close Directory Tree when clicking outside (only if in hover/preview mode, NOT if permanently pinned)
   document.addEventListener("mousedown", (e) => {
-    if (!isTreeCurrentlyOpen()) return;
+    if (!isTreeCurrentlyOpen() || isPinned) return;
     const navTreeBtn = document.getElementById("nav-tree-toggle-btn");
     if (
       railNavigator &&
@@ -1218,10 +1216,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Update Chapter 2 branch styling when Chapter 3 is present
       const ch2Guide = document.getElementById("tree-guide-ch2");
+      if (ch2Guide) ch2Guide.innerHTML = "";
       const ch2Children = document.querySelectorAll(".tree-ch2-child .tree-guide");
-      if (ch2Guide) ch2Guide.innerHTML = "&#9500;&#9472;&#9472;";
       ch2Children.forEach((g, i) => {
-        g.innerHTML = (i === ch2Children.length - 1) ? "│&nbsp;&nbsp;└──" : "│&nbsp;&nbsp;├──";
+        g.innerHTML = (i === ch2Children.length - 1) ? "&#9492;&#9472;&#9472;" : "&#9500;&#9472;&#9472;";
       });
 
       // Inject Chapter 3 node into Directory Tree if not present
@@ -1234,7 +1232,6 @@ document.addEventListener("DOMContentLoaded", () => {
           treeNodeCh3.id = "tree-node-chapter-3";
           treeNodeCh3.dataset.level = "1";
           treeNodeCh3.innerHTML = `
-            <span class="tree-guide font-mono">&#9500;&#9472;&#9472;</span>
             <span class="tree-name font-mono">3 Paid Membership Confirmed</span>
             <span class="tree-badge font-mono">CH 03</span>
           `;
@@ -1246,10 +1243,10 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       // Revert Chapter 2 branch styling when Chapter 3 is absent
       const ch2Guide = document.getElementById("tree-guide-ch2");
+      if (ch2Guide) ch2Guide.innerHTML = "";
       const ch2Children = document.querySelectorAll(".tree-ch2-child .tree-guide");
-      if (ch2Guide) ch2Guide.innerHTML = "&#9492;&#9472;&#9472;";
       ch2Children.forEach((g, i) => {
-        g.innerHTML = (i === ch2Children.length - 1) ? "&nbsp;&nbsp;&nbsp;&nbsp;└──" : "&nbsp;&nbsp;&nbsp;&nbsp;├──";
+        g.innerHTML = (i === ch2Children.length - 1) ? "&#9492;&#9472;&#9472;" : "&#9500;&#9472;&#9472;";
       });
 
       // Remove Chapter 3 and Directory Tree node
@@ -4898,10 +4895,15 @@ INSTRUCTIONS:
   }
 
 
-  openDoubtSolver = function(contextOverride) {
+  openDoubtSolver = function(contextOverride, permanent = false) {
     try {
-      if (window.innerWidth <= 1280 && typeof closeTreeExplicitly === "function") {
-        closeTreeExplicitly();
+      if (permanent) {
+        geminiIsPermanent = true;
+        doubtOpenedByHover = false;
+        if (window.innerWidth <= 1280 && typeof closeTreeExplicitly === "function" && isPinned) {
+          closeTreeExplicitly();
+        }
+        document.body.classList.add("gemini-permanent");
       }
       document.body.classList.add("doubt-solver-open");
       const openFlyouts = document.querySelectorAll(".panel-trigger-wrapper.is-open");
@@ -4922,7 +4924,7 @@ INSTRUCTIONS:
       }
 
       const doubtNavBtn = document.getElementById("doubt-nav-btn");
-      if (doubtNavBtn) doubtNavBtn.classList.add("is-active");
+      if (doubtNavBtn && permanent) doubtNavBtn.classList.add("is-active");
 
       if (typeof triggerCloudDoubtsFetch === "function") {
         triggerCloudDoubtsFetch();
@@ -4947,7 +4949,10 @@ INSTRUCTIONS:
 
   closeDoubtSolver = function() {
     try {
+      geminiIsPermanent = false;
+      doubtOpenedByHover = false;
       document.body.classList.remove("doubt-solver-open");
+      document.body.classList.remove("gemini-permanent");
       if (doubtTile) doubtTile.classList.remove("is-open");
       if (doubtPill) doubtPill.classList.remove("is-visible");
       if (doubtTextInput) doubtTextInput.blur();
@@ -4960,10 +4965,10 @@ INSTRUCTIONS:
     }
   };
 
-  toggleDoubtSolver = function() {
-    if (doubtTile && doubtTile.classList.contains("is-open")) {
-      closeDoubtSolver();
-    } else {
+  toggleDoubtSolver = function(forceState) {
+    let shouldOpen = typeof forceState === "boolean" ? forceState : !geminiIsPermanent;
+    doubtOpenedByHover = false;
+    if (shouldOpen) {
       const hoveredSec = lastHoveredSection || document.querySelector(".doc-section:hover, .doc-subsection:hover, .doc-subsubsection:hover, .story-node-section:hover, .page-directory-section:hover, .forum-directory-section:hover, .institutional-forum-section:hover, .content-area > section:hover");
       if (hoveredSec) {
         setDoubtContext(getSectionContext(hoveredSec));
@@ -4971,7 +4976,9 @@ INSTRUCTIONS:
         // User pressed 'M' without hover selecting a section: send pre-given page summary context!
         setDoubtContext(getPageSummaryContext());
       }
-      openDoubtSolver(currentDoubtContext);
+      openDoubtSolver(currentDoubtContext, true);
+    } else {
+      closeDoubtSolver();
     }
   };
 
@@ -5098,7 +5105,8 @@ INSTRUCTIONS:
 
 
   document.addEventListener("mousedown", (e) => {
-    if (!doubtTile.classList.contains("is-open")) return;
+    if (!doubtTile || !doubtTile.classList.contains("is-open")) return;
+    if (geminiIsPermanent) return;
     if (!doubtTile.contains(e.target) && !e.target.closest(".section-doubt-btn, #doubt-nav-btn, .section-gemini-btn")) {
       closeDoubtSolver();
     }
@@ -5106,9 +5114,10 @@ INSTRUCTIONS:
 
 
   // ================= 10. EDGE HOVER TRIGGER SYSTEM (Left: Directory Tree, Right: Doubt AI) =================
-  // Force directory tree & duckduckgo doubt solver to appear as floating windows by moving cursor to the very end of sides
+  // Edge hovering pops out temporary floating preview panel; clicking top buttons makes them permanent and snaps page content
   let treeOpenedByHover = false;
   let doubtOpenedByHover = false;
+  let geminiIsPermanent = false;
   let doubtLeaveTimer = null;
 
   // Create invisible edge sensor zones for immediate pointer detection
@@ -5125,7 +5134,7 @@ INSTRUCTIONS:
   document.body.appendChild(edgeSensorRight);
 
   function triggerLeftEdgeTree() {
-    if (!isTreeCurrentlyOpen()) {
+    if (!isPinned && !isTreeCurrentlyOpen()) {
       treeOpenedByHover = true;
       if (railNavigator) railNavigator.classList.remove("is-closed");
       openRailPanel();
@@ -5133,17 +5142,18 @@ INSTRUCTIONS:
   }
 
   function triggerRightEdgeDoubt() {
-    if (!doubtTile.classList.contains("is-open")) {
+    if (!geminiIsPermanent && (!doubtTile || !doubtTile.classList.contains("is-open"))) {
       doubtOpenedByHover = true;
-      openDoubtSolver();
+      openDoubtSolver(null, false);
     }
   }
 
-  function closeDoubtOnCursorLeave(delay = 220) {
+  function closeDoubtOnCursorLeave(delay = 180) {
+    if (geminiIsPermanent) return;
     if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
     doubtLeaveTimer = setTimeout(() => {
       const isTileHovered = doubtTile && doubtTile.matches(":hover");
-      if (!isTileHovered && doubtTile && doubtTile.classList.contains("is-open")) {
+      if (!isTileHovered && !geminiIsPermanent && doubtTile && doubtTile.classList.contains("is-open")) {
         closeDoubtSolver();
       }
     }, delay);
@@ -5166,39 +5176,50 @@ INSTRUCTIONS:
     const clientY = e.clientY;
     const winWidth = window.innerWidth;
 
-    // Left Edge Trigger (<= 14px): open Directory Tree
+    // Left Edge Trigger (<= 14px): open Directory Tree in hover preview mode
     if (clientX <= 14 && clientY >= 50) {
       triggerLeftEdgeTree();
     }
 
-    // Right Edge Trigger (>= winWidth - 14px): open Doubt AI
+    // Right Edge Trigger (>= winWidth - 14px): open Doubt AI in hover preview mode
     if (clientX >= winWidth - 14 && clientY >= 50) {
       triggerRightEdgeDoubt();
     }
 
-    // If Tree was opened by edge hover and is not pinned: close when mouse leaves panel to the right
+    // If Tree was opened by edge hover and is not pinned: close when mouse leaves panel to the right (520px width)
     if (treeOpenedByHover && !isPinned && isTreeCurrentlyOpen()) {
-      if (clientX > 390) {
-        closeRailPanel(220);
+      if (clientX > 530) {
+        closeRailPanel(180);
         treeOpenedByHover = false;
       }
     }
 
-    // If Doubt Solver is open: close when cursor leaves panel to the left
-    if (doubtTile && doubtTile.classList.contains("is-open")) {
-      if (clientX < winWidth - 440) {
-        closeDoubtOnCursorLeave(200);
+    // If Doubt Solver was opened by edge hover and is not permanent: close when cursor leaves panel to the left (520px width)
+    if (doubtOpenedByHover && !geminiIsPermanent && doubtTile && doubtTile.classList.contains("is-open")) {
+      if (clientX < winWidth - 530) {
+        closeDoubtOnCursorLeave(180);
+        doubtOpenedByHover = false;
       }
     }
   }, { passive: true });
 
-  // When user enters doubtTile, cancel leave timer; when user cursor leaves doubtTile, close it!
+  // When user enters doubtTile, cancel leave timer; when user cursor leaves doubtTile, close it if opened by hover!
   if (doubtTile) {
     doubtTile.addEventListener("mouseenter", () => {
       if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
     });
     doubtTile.addEventListener("mouseleave", () => {
-      closeDoubtOnCursorLeave(200);
+      if (doubtOpenedByHover && !geminiIsPermanent) {
+        closeDoubtOnCursorLeave(180);
+      }
+    });
+  }
+
+  if (railTreePanel) {
+    railTreePanel.addEventListener("mouseleave", () => {
+      if (treeOpenedByHover && !isPinned) {
+        closeRailPanel(180);
+      }
     });
   }
 
@@ -5210,8 +5231,9 @@ INSTRUCTIONS:
   };
 
   const origToggleDoubt = toggleDoubtSolver;
-  toggleDoubtSolver = function() {
-    origToggleDoubt();
+  toggleDoubtSolver = function(forceState) {
+    doubtOpenedByHover = false;
+    origToggleDoubt(forceState);
   };
 
   // Top Navbar Action Buttons (Beside x|y|z and shortcuts menu)

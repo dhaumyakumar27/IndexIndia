@@ -1265,7 +1265,7 @@ body.theme-dark .dropdown-item:hover {
 /* Explicitly opened or pinned expansion */
 .rail-navigator.is-open,
 .rail-navigator.is-pinned {
-  width: 340px;
+  width: 520px;
   pointer-events: auto;
 }
 
@@ -1697,12 +1697,13 @@ body.theme-dark .tree-node.active .tree-badge {
   font-family: inherit !important;
 }
 
-/* Tree Node Indentation Levels & Traditional Hierarchy */
+/* Tree Node Indentation Levels & Clean Section Hierarchy */
 .tree-node[data-level="1"],
 .tree-node.tree-chapter-node {
-  padding-left: 10px;
+  padding-left: 12px;
   font-weight: 700;
-  margin-top: 6px;
+  margin-top: 8px;
+  margin-bottom: 3px;
 }
 
 .tree-node[data-level="1"] .tree-name,
@@ -1726,11 +1727,11 @@ body.theme-dark .tree-node.active .tree-badge {
 }
 
 .tree-node[data-level="3"] {
-  padding-left: 36px;
+  padding-left: 28px;
 }
 
 .tree-node[data-level="4"] {
-  padding-left: 48px;
+  padding-left: 38px;
 }
 
 /* Chapter Anchors for Direct Navigation */
@@ -2176,12 +2177,38 @@ body.theme-dark .story-act-divider {
 }
 
 /* ==========================================================================
-   CONTENT AREA (Clean layout — no big box border)
+   CONTENT AREA & VIEWPORT SNAPPING (Zero Overlap with Permanent Panels)
    ========================================================================== */
 .main-viewport-wrapper {
   padding: 24px 40px 60px 40px;
   max-width: 1200px;
   margin: 0 auto;
+  transition: margin 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Snap content to the other side when panels are permanently docked via top button */
+@media (min-width: 1024px) {
+  body.tree-permanent .main-viewport-wrapper {
+    margin-left: 540px !important;
+    margin-right: auto !important;
+    max-width: min(1200px, calc(100vw - 580px)) !important;
+  }
+
+  body.gemini-permanent .main-viewport-wrapper {
+    margin-right: 540px !important;
+    margin-left: auto !important;
+    max-width: min(1200px, calc(100vw - 580px)) !important;
+  }
+}
+
+@media (min-width: 1300px) {
+  body.tree-permanent.gemini-permanent .main-viewport-wrapper {
+    margin-left: 540px !important;
+    margin-right: 540px !important;
+    max-width: calc(100vw - 1080px) !important;
+  }
 }
 
 /* Content Area — Open, clean, institutional */
@@ -3631,8 +3658,8 @@ body.doubt-solver-open .hover-flyout-panel {
   top: var(--nav-height) !important;
   bottom: 0 !important;
   height: calc(100vh - var(--nav-height)) !important;
-  width: 340px !important;
-  max-width: 85vw !important;
+  width: 520px !important;
+  max-width: 90vw !important;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-card, #FFFFFF) !important;
