@@ -7937,6 +7937,150 @@ body.theme-dark .diagnostics-box {
   margin-top: 8px;
 }
 
+/* ==========================================================================
+   CONFIRMATION CARD CLIPPED SCREENSHOTS & MANUAL EMAIL HELPERS
+   ========================================================================== */
+.conf-screenshots-block {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--bg-surface-subtle);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 8px;
+}
+
+body.theme-dark .conf-screenshots-block {
+  background: #14161C;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.conf-screenshots-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+
+.conf-screenshots-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.conf-screenshots-sub {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.conf-screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.conf-screenshot-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  position: relative;
+}
+
+body.theme-dark .conf-screenshot-card {
+  background: #1B1E26;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.conf-screenshot-thumb {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border-primary);
+  flex-shrink: 0;
+  background: #000;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.conf-screenshot-thumb:hover {
+  transform: scale(1.05);
+}
+
+.conf-screenshot-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.conf-screenshot-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conf-screenshot-size {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+}
+
+.conf-screenshot-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.btn-copy-clip-img,
+.btn-dl-clip-img {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.btn-copy-clip-img:hover {
+  background: var(--accent, #FF3B00);
+  color: #FFFFFF;
+  border-color: var(--accent, #FF3B00);
+}
+
+.btn-dl-clip-img:hover {
+  background: var(--bg-hover);
+  border-color: var(--text-primary);
+}
+
+.conf-toast-notice {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: #10B981;
+  color: #FFFFFF;
+  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  margin-top: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
 /* Institutional Contact Information Cards Grid */
 .contact-info-grid {
   display: grid;

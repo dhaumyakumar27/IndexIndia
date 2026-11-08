@@ -314,20 +314,38 @@
             <span class="confirmation-reference" id="ticket-id-display">INC-2026-TICKET</span>
           </div>
 
+          <!-- Clipped Screenshots Management & 1-Click Clipboard Actions -->
+          <div id="confirmation-screenshots-block" class="conf-screenshots-block" style="display: none;">
+            <div class="conf-screenshots-header">
+              <span class="conf-screenshots-title font-mono">📎 CLIPPED SCREENSHOTS (<span id="conf-screenshots-count">0</span>)</span>
+              <span class="conf-screenshots-sub">Gmail compose links cannot auto-attach local files. Click <strong>"Copy Image"</strong> to paste (<kbd>Ctrl+V</kbd>) directly into Gmail, or download:</span>
+            </div>
+            <div class="conf-screenshots-grid" id="conf-screenshots-grid"></div>
+          </div>
+
+          <!-- Toast Notification for Image Copy -->
+          <div id="conf-copy-toast" class="conf-toast-notice font-mono" style="display: none;"></div>
+
           <!-- Direct Status & Backup Action -->
-          <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 12px 14px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="background: var(--bg-surface-subtle); border: 1.5px solid var(--border-primary); border-radius: 6px; padding: 14px 16px; margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
-              <span style="font-size: 0.76rem; font-family: var(--font-mono); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
-                Status: Delivered to Engineering Queue &bull; Target: dhaumyakumar27@gmail.com
+              <span id="confirmation-status-dot" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10B981; flex-shrink: 0;"></span>
+              <span id="confirmation-status-badge" style="font-size: 0.76rem; font-family: var(--font-mono); color: var(--text-primary); font-weight: 700; letter-spacing: 0.04em;">
+                TRANSMISSION VERIFIED &bull; TARGET: dhaumyakumar27@gmail.com
               </span>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" id="issue-copy-details-btn" class="btn-institutional-primary font-mono" style="font-size: 0.76rem; padding: 7px 12px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-primary); cursor: pointer;">
-                📋 Copy Ticket Details
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <button type="button" id="issue-copy-details-btn" class="btn-institutional-primary font-mono" style="font-size: 0.76rem; padding: 7px 12px; background: var(--bg-card); color: var(--text-primary); border: 1.5px solid var(--border-primary); cursor: pointer; border-radius: 4px;">
+                📋 Copy Ticket Text
               </button>
-              <a id="issue-direct-gmail-link" href="#" target="_blank" class="font-mono" style="font-size: 0.72rem; padding: 7px 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px;">
-                <span>✉️</span> Open in Gmail (Optional Backup)
+              <button type="button" id="issue-copy-first-img-btn" class="btn-institutional-primary font-mono" style="font-size: 0.76rem; padding: 7px 12px; background: var(--accent, #FF3B00); color: #FFFFFF; border: 1.5px solid var(--accent, #FF3B00); cursor: pointer; border-radius: 4px; display: none;">
+                🖼️ Copy Screenshot (Ctrl+V)
+              </button>
+              <a id="issue-direct-gmail-link" href="#" target="_blank" class="font-mono" style="font-size: 0.74rem; padding: 7px 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: var(--text-primary); border: 1.5px solid var(--border-primary); border-radius: 4px; background: var(--bg-card); font-weight: 700;">
+                <span>✉️</span> Open in Gmail
+              </a>
+              <a id="issue-direct-mailto-link" href="#" class="font-mono" style="font-size: 0.74rem; padding: 7px 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px;">
+                <span>📬</span> Mail App
               </a>
             </div>
           </div>
@@ -597,7 +615,62 @@
     function initContactPage() {
       let currentUser = null;
       let uploadedScreenshots = [];
+      let lastSubmittedScreenshots = [];
       let latestRawBody = "";
+      let toastTimeout = null;
+
+      function showCopyToast(msg) {
+        const toast = document.getElementById("conf-copy-toast");
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.style.display = "inline-block";
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toast.style.display = "none";
+        }, 4500);
+      }
+
+      async function copyImageToClipboard(dataUrl) {
+        try {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          await new Promise((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = () => reject(new Error("Image failed to load"));
+            img.src = dataUrl;
+          });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+          if (!blob) throw new Error("Canvas PNG conversion failed");
+
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob })
+            ]);
+            return true;
+          } else {
+            throw new Error("ClipboardItem API not supported");
+          }
+        } catch (err) {
+          console.warn("Clipboard copy notice:", err);
+          return false;
+        }
+      }
+
+      function downloadScreenshot(dataUrl, filename) {
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = filename || "indexindia-screenshot.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 
       function escapeHTML(str) {
         return (str || "").replace(/[&<>'"]/g, tag => ({
@@ -990,6 +1063,14 @@
           const currentTheme = document.body.classList.contains("theme-dark") ? "Dark Theme" : "Light Theme";
           const currentFont = document.body.classList.contains("font-typewriter") ? "Typewriter (Mono)" : "Reading (Sans)";
           const consoleCount = window.__indexIndiaErrors.length;
+          lastSubmittedScreenshots = [...uploadedScreenshots];
+
+          let screenshotDetailsText = "NONE";
+          if (lastSubmittedScreenshots.length > 0) {
+            screenshotDetailsText = lastSubmittedScreenshots.map((s, idx) => 
+              `File ${idx + 1}: ${s.filename} (${s.sizeStr})`
+            ).join("\n");
+          }
 
           // Plain text body with explicit TYPE and CLASSIFICATION for rapid filtering
           latestRawBody = `[INDEXINDIA DISPATCH]
@@ -1009,9 +1090,12 @@ Viewport: ${viewport}
 Screen Resolution: ${screenRes}
 Theme: ${currentTheme} | Font: ${currentFont}
 User Agent: ${navigator.userAgent}
-Screenshot Attached: ${uploadedScreenshots.length > 0 ? uploadedScreenshots.map(s => `${s.filename} (${s.sizeStr})`).join(", ") : "NO"}
 Recorded Console Errors: ${consoleCount}
-${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n") : ""}
+${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n") + "\n" : ""}
+Clipped Screenshots:
+${screenshotDetailsText}
+
+(Manual Email Note: Clipped images can be pasted directly into Gmail with Ctrl+V after clicking "Open in Gmail" or "Copy Screenshot" on the confirmation panel).
 `;
 
           // Format HTML email
@@ -1050,7 +1134,7 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
         <tr><td class="meta-label">Classification</td><td><strong style="color: #000000;">${escapeHTML(category)}</strong></td></tr>
         <tr><td class="meta-label">Submitter Email</td><td><a href="mailto:${escapeHTML(userEmail)}" style="color: #111827; font-weight: 600;">${escapeHTML(userEmail)}</a></td></tr>
         <tr><td class="meta-label">Timestamp (IST)</td><td>${escapeHTML(timestampIST)}</td></tr>
-        <tr><td class="meta-label">Screenshot(s)</td><td>${uploadedScreenshots.length > 0 ? uploadedScreenshots.map((s, i) => `<strong>✓ File ${i + 1}: ${escapeHTML(s.filename)} (${escapeHTML(s.sizeStr)})</strong>`).join("<br>") : "None"}</td></tr>
+        <tr><td class="meta-label">Screenshot(s)</td><td>${lastSubmittedScreenshots.length > 0 ? lastSubmittedScreenshots.map((s, i) => `<strong>✓ File ${i + 1}: ${escapeHTML(s.filename)} (${escapeHTML(s.sizeStr)})</strong>`).join("<br>") : "None"}</td></tr>
       </table>
 
       <h3 style="font-size: 12px; text-transform: uppercase; color: #4B5563; margin-bottom: 6px; font-family: monospace; letter-spacing: 0.05em;">${isIssue ? "Error Symptoms &amp; Notes" : "Improvement Proposal &amp; Notes"}</h3>
@@ -1076,53 +1160,122 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
 </html>
 `;
 
-          // Prepare direct fallback link for user's manual backup if ever desired
+          // Prepare direct Gmail & Mailto fallback URLs
           const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetAdminEmail)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(latestRawBody)}`;
+          const mailtoUrl = `mailto:${encodeURIComponent(targetAdminEmail)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(latestRawBody)}`;
+
           const gmailBtn = document.getElementById("issue-direct-gmail-link");
-          if (gmailBtn) gmailBtn.href = gmailUrl;
+          if (gmailBtn) {
+            gmailBtn.href = gmailUrl;
+            gmailBtn.onclick = async () => {
+              if (lastSubmittedScreenshots.length > 0) {
+                const ok = await copyImageToClipboard(lastSubmittedScreenshots[0].dataUrl);
+                if (ok) {
+                  showCopyToast(`📋 Screenshot copied to clipboard! Paste directly into Gmail with Ctrl+V.`);
+                } else {
+                  showCopyToast(`✉️ Opening Gmail. Use "Download" on the screenshot cards to attach if needed.`);
+                }
+              }
+            };
+          }
+
+          const mailtoBtn = document.getElementById("issue-direct-mailto-link");
+          if (mailtoBtn) {
+            mailtoBtn.href = mailtoUrl;
+          }
 
           const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
           const customResendKey = (localStorage.getItem("indexindia_resend_api_key") || "").trim();
 
           let delivered = false;
+          let needsActivation = false;
+          let activationMsg = "";
 
-          // 1. Primary Dispatch: Cloudflare Worker Relay (Uses Cloudflare RESEND_API_KEY)
+          // 1. Primary Dispatch: FormSubmit AJAX endpoint (delivers direct to dhaumyakumar27@gmail.com with attachments)
           try {
-            const workerPayload = {
-              type: "contact_issue",
-              ticketId,
-              category,
-              subject: emailSubject,
-              email: userEmail,
-              description,
-              html: htmlContent
-            };
-            if (uploadedScreenshots.length > 0) {
-              workerPayload.screenshots = uploadedScreenshots.map((s, idx) => ({
-                filename: s.filename || `screenshot-${ticketId}-${idx + 1}.png`,
-                content: s.dataUrl.split(",")[1]
-              }));
-              workerPayload.screenshot = workerPayload.screenshots[0]; // backward compatibility
+            const fsFormData = new FormData();
+            fsFormData.append("_captcha", "false");
+            fsFormData.append("_template", "table");
+            fsFormData.append("_subject", emailSubject);
+            fsFormData.append("_replyto", userEmail);
+            fsFormData.append("Submission_Type", typeTag);
+            fsFormData.append("Classification", category);
+            fsFormData.append("Ticket_ID", ticketId);
+            fsFormData.append("Email", userEmail);
+            fsFormData.append("Timestamp_IST", timestampIST);
+            fsFormData.append("Platform", platform);
+            fsFormData.append("Viewport", viewport);
+            fsFormData.append("Screen", screenRes);
+            fsFormData.append("Theme_and_Font", `${currentTheme} | ${currentFont}`);
+            fsFormData.append("Description", description);
+            if (consoleCount > 0) {
+              fsFormData.append("Console_Errors", window.__indexIndiaErrors.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"));
             }
-
-            const resp = await fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(workerPayload)
+            uploadedScreenshots.forEach((s, idx) => {
+              if (s.file) {
+                const attachKey = idx === 0 ? "attachment" : `attachment_${idx + 1}`;
+                fsFormData.append(attachKey, s.file, s.filename || `screenshot_${idx + 1}.png`);
+              }
             });
 
-            if (resp.ok) {
-              const resData = await resp.json().catch(() => ({}));
-              if (resData.success) {
+            const fsResp = await fetch("https://formsubmit.co/ajax/dhaumyakumar27@gmail.com", {
+              method: "POST",
+              headers: { "Accept": "application/json" },
+              body: fsFormData
+            });
+
+            if (fsResp.ok) {
+              const fsData = await fsResp.json().catch(() => ({}));
+              if (fsData.success === "true" || fsData.success === true) {
                 delivered = true;
+              } else if (typeof fsData.message === "string" && fsData.message.toLowerCase().includes("activation")) {
+                needsActivation = true;
+                activationMsg = fsData.message;
               }
             }
-          } catch (workerErr) {
-            console.warn("Cloudflare worker dispatch failed, engaging direct Resend fallback:", workerErr);
+          } catch (fsErr) {
+            console.warn("FormSubmit dispatch attempt notice:", fsErr);
           }
 
-          // 2. Direct Resend API Fallback (if custom key configured in storage)
-          if (!delivered && customResendKey) {
+          // 2. Cloudflare Worker Relay Fallback (Uses worker RESEND_API_KEY)
+          if (!delivered && !needsActivation) {
+            try {
+              const workerPayload = {
+                type: "contact_issue",
+                ticketId,
+                category,
+                subject: emailSubject,
+                email: userEmail,
+                description,
+                html: htmlContent
+              };
+              if (uploadedScreenshots.length > 0) {
+                workerPayload.screenshots = uploadedScreenshots.map((s, idx) => ({
+                  filename: s.filename || `screenshot-${ticketId}-${idx + 1}.png`,
+                  content: s.dataUrl.split(",")[1]
+                }));
+                workerPayload.screenshot = workerPayload.screenshots[0]; // backward compatibility
+              }
+
+              const resp = await fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(workerPayload)
+              });
+
+              if (resp.ok) {
+                const resData = await resp.json().catch(() => ({}));
+                if (resData.success) {
+                  delivered = true;
+                }
+              }
+            } catch (workerErr) {
+              console.warn("Cloudflare worker dispatch failed, engaging direct Resend fallback:", workerErr);
+            }
+          }
+
+          // 3. Direct Resend API Fallback (if custom key configured in storage)
+          if (!delivered && !needsActivation && customResendKey) {
             try {
               const resendPayload = {
                 from: "IndexIndia <onboarding@resend.dev>",
@@ -1171,19 +1324,130 @@ ${consoleCount > 0 ? "\nConsole Error Buffer:\n" + window.__indexIndiaErrors.sli
             renderHistory();
           }
 
-          // Update UI Confirmation Card
-          if (ticketDisplay) {
-            ticketDisplay.textContent = `TICKET REFERENCE: ${ticketId} [STATUS: TRANSMITTED]`;
+          // Render Clipped Screenshots Block with Click-to-View, 1-Click Clipboard Copy & Download
+          const confScreenshotsBlock = document.getElementById("confirmation-screenshots-block");
+          const confScreenshotsGrid = document.getElementById("conf-screenshots-grid");
+          const confScreenshotsCount = document.getElementById("conf-screenshots-count");
+          const copyFirstImgBtn = document.getElementById("issue-copy-first-img-btn");
+
+          if (confScreenshotsBlock && confScreenshotsGrid) {
+            if (lastSubmittedScreenshots.length > 0) {
+              confScreenshotsBlock.style.display = "block";
+              if (confScreenshotsCount) confScreenshotsCount.textContent = lastSubmittedScreenshots.length;
+              confScreenshotsGrid.innerHTML = "";
+
+              lastSubmittedScreenshots.forEach((s, idx) => {
+                const card = document.createElement("div");
+                card.className = "conf-screenshot-card";
+                card.innerHTML = `
+                  <img src="${s.dataUrl}" alt="${escapeHTML(s.filename)}" class="conf-screenshot-thumb" title="Click to inspect full image" />
+                  <div class="conf-screenshot-info">
+                    <span class="conf-screenshot-name font-mono" title="${escapeHTML(s.filename)}">${escapeHTML(s.filename)}</span>
+                    <span class="conf-screenshot-size font-mono">${escapeHTML(s.sizeStr)}</span>
+                    <div class="conf-screenshot-actions">
+                      <button type="button" class="btn-copy-clip-img" data-idx="${idx}">
+                        📋 Copy Image
+                      </button>
+                      <button type="button" class="btn-dl-clip-img" data-idx="${idx}">
+                        💾 Download
+                      </button>
+                    </div>
+                  </div>
+                `;
+
+                const thumb = card.querySelector(".conf-screenshot-thumb");
+                if (thumb) {
+                  thumb.addEventListener("click", () => {
+                    const w = window.open("");
+                    if (w) {
+                      w.document.write(`<title>${escapeHTML(s.filename)}</title><body style="margin:0;background:#0e1017;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${s.dataUrl}" style="max-width:98vw;max-height:98vh;object-fit:contain;box-shadow:0 10px 30px rgba(0,0,0,0.8);border-radius:6px;"/></body>`);
+                    }
+                  });
+                }
+
+                const copyBtn = card.querySelector(".btn-copy-clip-img");
+                if (copyBtn) {
+                  copyBtn.addEventListener("click", async () => {
+                    const ok = await copyImageToClipboard(s.dataUrl);
+                    if (ok) {
+                      copyBtn.textContent = "✅ Copied!";
+                      showCopyToast(`✓ "${s.filename}" copied to clipboard! Press Ctrl+V in Gmail to paste.`);
+                      setTimeout(() => { copyBtn.textContent = "📋 Copy Image"; }, 2500);
+                    } else {
+                      showCopyToast(`⚠️ Clipboard image copy blocked by browser. Please use Download instead.`);
+                    }
+                  });
+                }
+
+                const dlBtn = card.querySelector(".btn-dl-clip-img");
+                if (dlBtn) {
+                  dlBtn.addEventListener("click", () => {
+                    downloadScreenshot(s.dataUrl, s.filename);
+                    showCopyToast(`⬇️ Downloading "${s.filename}"... Drag & drop into your email.`);
+                  });
+                }
+
+                confScreenshotsGrid.appendChild(card);
+              });
+
+              if (copyFirstImgBtn) {
+                copyFirstImgBtn.style.display = "inline-flex";
+                copyFirstImgBtn.onclick = async () => {
+                  const ok = await copyImageToClipboard(lastSubmittedScreenshots[0].dataUrl);
+                  if (ok) {
+                    showCopyToast(`✓ Screenshot 1 copied! Press Ctrl+V in Gmail compose to paste.`);
+                    copyFirstImgBtn.textContent = "✅ Copied to Clipboard!";
+                    setTimeout(() => { copyFirstImgBtn.textContent = "🖼️ Copy Screenshot (Ctrl+V)"; }, 2500);
+                  } else {
+                    showCopyToast(`⚠️ Clipboard copy blocked. Use the Download button on the card.`);
+                  }
+                };
+              }
+            } else {
+              confScreenshotsBlock.style.display = "none";
+              if (copyFirstImgBtn) copyFirstImgBtn.style.display = "none";
+            }
           }
+
+          // Update UI Confirmation Card details and dynamic status badges
           const confHeading = document.getElementById("confirmation-card-heading");
-          if (confHeading) {
-            confHeading.textContent = isIssue ? "INCIDENT REPORT TRANSMITTED DIRECTLY" : "IMPROVEMENT PROPOSAL TRANSMITTED DIRECTLY";
-          }
           const confStatus = document.getElementById("confirmation-status-text");
-          if (confStatus) {
-            confStatus.innerHTML = isIssue
-              ? `Your error report has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external app redirects required.`
-              : `Your improvement suggestion has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external app redirects required.`;
+          const confDot = document.getElementById("confirmation-status-dot");
+          const confBadge = document.getElementById("confirmation-status-badge");
+
+          if (ticketDisplay) {
+            ticketDisplay.textContent = `TICKET REFERENCE: ${ticketId} [${delivered ? "STATUS: TRANSMITTED" : (needsActivation ? "STATUS: ACTIVATION REQUIRED" : "STATUS: MANUAL DISPATCH READY")}]`;
+          }
+
+          if (delivered) {
+            if (confHeading) {
+              confHeading.textContent = isIssue ? "INCIDENT REPORT TRANSMITTED DIRECTLY" : "IMPROVEMENT PROPOSAL TRANSMITTED DIRECTLY";
+            }
+            if (confStatus) {
+              confStatus.innerHTML = isIssue
+                ? `Your error report has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external email redirects required.`
+                : `Your improvement suggestion has been transmitted directly to <strong>${targetAdminEmail}</strong> via sovereign background relay. Zero external email redirects required.`;
+            }
+            if (confDot) confDot.style.background = "#10B981";
+            if (confBadge) confBadge.textContent = `TRANSMISSION VERIFIED • TARGET: ${targetAdminEmail}`;
+          } else if (needsActivation) {
+            if (confHeading) {
+              confHeading.textContent = "ONE-TIME RELAY ACTIVATION SENT TO GMAIL";
+            }
+            if (confStatus) {
+              confStatus.innerHTML = `<strong>One-time activation required:</strong> FormSubmit has dispatched an <strong>"Activate Form"</strong> link to <strong>${targetAdminEmail}</strong>. Please check your Gmail inbox and click the activation link once to authorize automated background delivery. In the meantime, click <strong>"Open in Gmail"</strong> below to send this report right away — your screenshot is ready to paste (<kbd>Ctrl+V</kbd>).`;
+            }
+            if (confDot) confDot.style.background = "#F59E0B";
+            if (confBadge) confBadge.textContent = `ACTIVATION LINK SENT TO ${targetAdminEmail} • CHECK GMAIL INBOX`;
+          } else {
+            if (confHeading) {
+              confHeading.textContent = isIssue ? "INCIDENT REPORT COMPILED & READY" : "IMPROVEMENT PROPOSAL COMPILED & READY";
+            }
+            if (confStatus) {
+              confStatus.innerHTML = `Your report and diagnostics have been generated. Click <strong>"Open in Gmail"</strong> below to send directly to <strong>${targetAdminEmail}</strong>. Your clipped screenshot is ready on your clipboard (<kbd>Ctrl+V</kbd>).`;
+            }
+            if (confDot) confDot.style.background = "#F59E0B";
+            if (confBadge) confBadge.textContent = `READY FOR MANUAL GMAIL DISPATCH • TARGET: ${targetAdminEmail}`;
           }
 
           if (confirmCard) {

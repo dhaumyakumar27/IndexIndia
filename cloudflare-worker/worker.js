@@ -84,7 +84,18 @@ export default {
             if (body.html) {
               resendPayload.html = body.html;
             }
-            if (body.screenshot && body.screenshot.content) {
+            if (Array.isArray(body.screenshots) && body.screenshots.length > 0) {
+              resendPayload.attachments = body.screenshots.map((s, idx) => {
+                let cleanContent = s.content || "";
+                if (typeof cleanContent === "string" && cleanContent.includes(",")) {
+                  cleanContent = cleanContent.split(",")[1];
+                }
+                return {
+                  filename: s.filename || `screenshot-${referenceId}-${idx + 1}.png`,
+                  content: cleanContent
+                };
+              });
+            } else if (body.screenshot && body.screenshot.content) {
               let cleanContent = body.screenshot.content;
               if (typeof cleanContent === "string" && cleanContent.includes(",")) {
                 cleanContent = cleanContent.split(",")[1];
@@ -151,9 +162,9 @@ export default {
           }
         }
 
-        // 3. Dispatch via Mailchannels fallback
+        let mailChannelsDelivered = false;
         try {
-          await fetch("https://api.mailchannels.net/tx/v1/send", {
+          const mcResp = await fetch("https://api.mailchannels.net/tx/v1/send", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -194,18 +205,34 @@ export default {
               }]
             })
           });
+          if (mcResp.ok) {
+            mailChannelsDelivered = true;
+          }
         } catch (mailErr) {
           console.warn("Mailchannels dispatch attempt notice:", mailErr);
         }
 
+        if (mailChannelsDelivered) {
+          return new Response(
+            JSON.stringify({
+              success: true,
+              provider: "mailchannels",
+              recipient: targetEmail,
+              referenceId,
+              status: "delivered"
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
         return new Response(
           JSON.stringify({
-            success: true,
+            success: false,
+            error: "No background email provider (RESEND_API_KEY) is configured on this Cloudflare Worker.",
             recipient: targetEmail,
-            referenceId,
-            status: "delivered"
+            referenceId
           }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch (inqErr) {
         return new Response(
