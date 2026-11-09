@@ -8866,7 +8866,7 @@ body.theme-dark .customizer-dropdown {
 
 /* --- 2. CONTACT US FLOATING BAR (Matches Wireframe 1) --- */
 .contact-floating-bar {
-  width: min(820px, 95vw);
+  width: min(820px, calc(100vw - 20px));
 }
 
 .contact-bar-body {
@@ -9145,7 +9145,7 @@ body.theme-dark .contact-action-btn--primary:hover:not(:disabled) {
 
 /* --- 3. SHORTCUTS FLOATING BAR (3 Columns, Matches Wireframe 2) --- */
 .shortcuts-floating-bar {
-  width: min(980px, 95vw);
+  width: min(980px, calc(100vw - 20px));
 }
 
 .shortcuts-bar-body {
@@ -9226,7 +9226,7 @@ body.theme-dark .shortcut-grid-cell:hover {
 
 /* --- 4. ACCOUNT FLOATING BAR (Wide 2-Col Horizontal Dossier) --- */
 .account-floating-bar {
-  width: min(820px, 95vw);
+  width: min(820px, calc(100vw - 20px));
 }
 
 .account-bar-body {
