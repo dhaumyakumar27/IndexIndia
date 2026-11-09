@@ -3,6 +3,47 @@
  * Zero-bloat, lightweight vanilla JS across all modular pages.
  */
 
+// Level 3 Forensic Telemetry & Error Buffer (global, single-bind guard)
+window.__indexIndiaErrors = window.__indexIndiaErrors || [];
+if (!window.__indexIndiaTelemetryBound) {
+  window.__indexIndiaTelemetryBound = true;
+  window.addEventListener("error", (event) => {
+    try {
+      window.__indexIndiaErrors.push({
+        type: "Uncaught Exception",
+        message: event.message || String(event),
+        source: `${event.filename || "inline"}:${event.lineno || 0}:${event.colno || 0}`,
+        time: new Date().toLocaleTimeString("en-IN", { hour12: false })
+      });
+      if (typeof window.refreshTelemetryDisplay === "function") window.refreshTelemetryDisplay();
+    } catch (_) {}
+  });
+  window.addEventListener("unhandledrejection", (event) => {
+    try {
+      window.__indexIndiaErrors.push({
+        type: "Unhandled Promise Rejection",
+        message: event.reason ? (event.reason.stack || event.reason.message || String(event.reason)) : "Unknown rejection",
+        source: "Promise",
+        time: new Date().toLocaleTimeString("en-IN", { hour12: false })
+      });
+      if (typeof window.refreshTelemetryDisplay === "function") window.refreshTelemetryDisplay();
+    } catch (_) {}
+  });
+  const _origConsoleErr = console.error;
+  console.error = function(...args) {
+    try {
+      window.__indexIndiaErrors.push({
+        type: "console.error",
+        message: args.map((a) => (typeof a === "object" ? (a?.stack || JSON.stringify(a)) : String(a))).join(" "),
+        source: "Console",
+        time: new Date().toLocaleTimeString("en-IN", { hour12: false })
+      });
+      if (typeof window.refreshTelemetryDisplay === "function") window.refreshTelemetryDisplay();
+    } catch (_) {}
+    _origConsoleErr.apply(console, args);
+  };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   // ================= 1. PAGE CONTEXT & VIEW DETECTION =================
   const pathname = window.location.pathname.toLowerCase();
@@ -10,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const isGuideSuite = true;
   const isIndexSuite = false;
 
-  // Forward declarations for Doubt Solver & Top Nav Search so global listeners can invoke them
+  // Forward declarations for Doubt Solver, Top Nav Search & Top-Center Utility Bars
   let toggleDoubtSolver = function() {};
   let openDoubtSolver = function() {};
   let closeDoubtSolver = function() {};
@@ -28,6 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let hideTopBar = function() {};
   let showTopBar = function() {};
   let isTopBarHidden = function() { return false; };
+  let registerTopFloatingBar = function() {};
+  let openTopFloatingBar = function() {};
+  let closeTopFloatingBar = function() {};
+  let toggleTopFloatingBar = function() {};
+  let closeAllTopFloatingBars = function() {};
+  let hideTopFloatingHoverPreview = function() {};
+  let pinTopFloatingBar = function() {};
 
   // Global Annotation Storage State (hoisted to prevent TDZ errors in account panel)
   const ANNOTATION_STORAGE_KEY = `indexindia_annotations_${window.location.pathname.replace(/\/$/, "") || "/"}`;
@@ -909,96 +957,1141 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
   // Initial highlight of active page
   highlightTreeNode(activeNodeIdx);
 
-  // ================= 3. TOP RIGHT SHORTCUTS, UPGRADE, ACCOUNT & SETTINGS PANELS =================
+  // ================= 3. TOP-CENTER FLOATING UTILITY BARS SYSTEM =================
+  function escFloatHtml(str) {
+    return String(str || "").replace(/[&<>'"]/g, (tag) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "'": "&#39;",
+      "\"": "&quot;"
+    }[tag] || tag));
+  }
+
+  function makeFloatingBarDraggable(barEl, handleSelector = ".palette-drag-handle") {
+    if (!barEl) return;
+    const handle = barEl.querySelector(handleSelector);
+    if (!handle || handle.dataset.dragBound === "1") return;
+    handle.dataset.dragBound = "1";
+
+    let isDraggingBar = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    handle.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      if (e.target && e.target.closest && e.target.closest("button, input, textarea, select, a, label")) return;
+      isDraggingBar = true;
+      const rect = barEl.getBoundingClientRect();
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+      try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+      barEl.classList.add("is-dragging-bar");
+      barEl.style.transform = "none";
+      barEl.style.left = `${rect.left}px`;
+      barEl.style.top = `${rect.top}px`;
+      e.preventDefault();
+    });
+
+    handle.addEventListener("pointermove", (e) => {
+      if (!isDraggingBar) return;
+      const maxX = Math.max(10, window.innerWidth - barEl.offsetWidth - 10);
+      const maxY = Math.max(10, window.innerHeight - barEl.offsetHeight - 10);
+      const nextX = Math.max(10, Math.min(maxX, e.clientX - dragOffsetX));
+      const nextY = Math.max(10, Math.min(maxY, e.clientY - dragOffsetY));
+      barEl.style.left = `${nextX}px`;
+      barEl.style.top = `${nextY}px`;
+    });
+
+    const stopBarDrag = (e) => {
+      if (isDraggingBar) {
+        isDraggingBar = false;
+        barEl.classList.remove("is-dragging-bar");
+        try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+    };
+    handle.addEventListener("pointerup", stopBarDrag);
+    handle.addEventListener("pointercancel", stopBarDrag);
+  }
+
+  const TopCenterFloatingManager = (() => {
+    const entries = new Map();
+    const leaveTimers = new Map();
+    let pinnedBarId = null;
+    let hoverBarId = null;
+    let suppressedHoverId = null;
+
+    function resetBarPosition(barEl) {
+      if (!barEl) return;
+      if (!barEl.style.left && !barEl.style.top && !barEl.style.transform) return;
+      barEl.classList.add("is-dragging-bar");
+      barEl.style.left = "";
+      barEl.style.top = "";
+      barEl.style.transform = "";
+      void barEl.offsetWidth;
+      barEl.classList.remove("is-dragging-bar");
+    }
+
+    function clearTimer(id) {
+      const t = leaveTimers.get(id);
+      if (t) {
+        clearTimeout(t);
+        leaveTimers.delete(id);
+      }
+    }
+
+    function isCursorInsideEntry(entry) {
+      if (!entry) return false;
+      if (entry.bar && entry.bar.matches(":hover")) return true;
+      if (entry.wrapper && entry.wrapper.matches(":hover")) return true;
+      if (Array.isArray(entry.extraHoverSelectors)) {
+        for (const sel of entry.extraHoverSelectors) {
+          const el = document.querySelector(sel);
+          if (el && el.matches(":hover")) return true;
+        }
+      }
+      return false;
+    }
+
+    function closeEntry(id, { suppressHover = false } = {}) {
+      clearTimer(id);
+      const entry = entries.get(id);
+      if (!entry) return;
+      const wasVisible = Boolean(
+        (entry.bar && entry.bar.classList.contains("is-visible")) ||
+        pinnedBarId === id ||
+        hoverBarId === id
+      );
+      if (pinnedBarId === id) pinnedBarId = null;
+      if (hoverBarId === id) hoverBarId = null;
+      if (suppressHover) suppressedHoverId = id;
+
+      if (entry.bar) {
+        entry.bar.classList.remove("is-visible", "is-previewing", "is-pinned");
+      }
+      if (entry.btn) {
+        entry.btn.classList.remove("is-active", "is-previewing");
+      }
+      if (entry.wrapper) {
+        entry.wrapper.classList.remove("is-open");
+      }
+      if (wasVisible && typeof entry.onClose === "function") {
+        entry.onClose();
+      }
+    }
+
+    function hideHoverPreview() {
+      if (hoverBarId && hoverBarId !== pinnedBarId) {
+        closeEntry(hoverBarId, { suppressHover: false });
+      }
+    }
+
+    function showHoverPreview(id) {
+      if (pinnedBarId !== null) return;
+      if (suppressedHoverId === id) return;
+      if (document.querySelector(".panel-trigger-wrapper.is-dragging")) return;
+
+      const entry = entries.get(id);
+      if (!entry || !entry.bar) return;
+
+      const customizerBar = document.getElementById("shortcut-customizer-bar");
+      if (customizerBar && customizerBar.classList.contains("is-visible")) {
+        customizerBar.classList.remove("is-visible");
+      }
+
+      clearTimer(id);
+      if (hoverBarId && hoverBarId !== id) {
+        closeEntry(hoverBarId, { suppressHover: false });
+      }
+
+      const wasHidden = !entry.bar.classList.contains("is-visible");
+      if (wasHidden) {
+        resetBarPosition(entry.bar);
+      }
+
+      hoverBarId = id;
+      entry.bar.classList.add("is-visible", "is-previewing");
+      entry.bar.classList.remove("is-pinned");
+      if (entry.btn) {
+        entry.btn.classList.add("is-previewing");
+        entry.btn.classList.remove("is-active");
+      }
+      if (typeof entry.onPreview === "function") {
+        entry.onPreview();
+      }
+    }
+
+    function scheduleLeave(id) {
+      clearTimer(id);
+      leaveTimers.set(id, setTimeout(() => {
+        leaveTimers.delete(id);
+        if (pinnedBarId === id) return;
+        const entry = entries.get(id);
+        if (!entry) return;
+        if (isCursorInsideEntry(entry)) return;
+        if (hoverBarId === id) {
+          closeEntry(id, { suppressHover: false });
+        }
+      }, 300));
+    }
+
+    function pin(id, fromInteraction = false) {
+      const entry = entries.get(id);
+      if (!entry || !entry.bar) return;
+
+      const customizerBar = document.getElementById("shortcut-customizer-bar");
+      if (customizerBar && customizerBar.classList.contains("is-visible")) {
+        customizerBar.classList.remove("is-visible");
+      }
+
+      clearTimer(id);
+      suppressedHoverId = null;
+
+      if (pinnedBarId && pinnedBarId !== id) {
+        closeEntry(pinnedBarId, { suppressHover: false });
+      }
+      if (hoverBarId && hoverBarId !== id) {
+        closeEntry(hoverBarId, { suppressHover: false });
+      }
+
+      const promotedFromHover = entry.bar.classList.contains("is-visible");
+      hoverBarId = null;
+      pinnedBarId = id;
+
+      if (!promotedFromHover) {
+        resetBarPosition(entry.bar);
+      }
+
+      entry.bar.classList.add("is-visible", "is-pinned");
+      entry.bar.classList.remove("is-previewing");
+      if (entry.btn) {
+        entry.btn.classList.add("is-active");
+        entry.btn.classList.remove("is-previewing");
+      }
+      if (typeof entry.onPin === "function") {
+        entry.onPin({ fromInteraction: Boolean(fromInteraction), promotedFromHover });
+      }
+    }
+
+    function togglePin(id) {
+      if (pinnedBarId === id) {
+        const entry = entries.get(id);
+        const triggerEl = entry && (entry.wrapper || entry.btn);
+        const isHoveringTrigger = Boolean(triggerEl && triggerEl.matches(":hover"));
+        closeEntry(id, { suppressHover: isHoveringTrigger });
+      } else {
+        pin(id, false);
+      }
+    }
+
+    function closeAll() {
+      const curPinned = pinnedBarId;
+      const curHover = hoverBarId;
+      if (curPinned) closeEntry(curPinned, { suppressHover: false });
+      if (curHover && curHover !== curPinned) closeEntry(curHover, { suppressHover: false });
+    }
+
+    function register(config) {
+      if (!config || !config.id) return;
+      const id = config.id;
+      const entry = {
+        id,
+        wrapper: config.wrapper || document.getElementById(config.wrapperId || ""),
+        btn: config.btn || document.getElementById(config.btnId || ""),
+        bar: config.bar || document.getElementById(config.barId || ""),
+        closeBtnSelector: config.closeBtnSelector || ".palette-close-btn",
+        extraHoverSelectors: config.extraHoverSelectors || [],
+        onPreview: config.onPreview || null,
+        onPin: config.onPin || null,
+        onClose: config.onClose || null
+      };
+      entries.set(id, entry);
+
+      const triggerEl = entry.wrapper || entry.btn;
+      if (triggerEl && triggerEl.dataset.tcBound !== "1") {
+        triggerEl.dataset.tcBound = "1";
+        triggerEl.addEventListener("mouseenter", () => {
+          showHoverPreview(id);
+        });
+        triggerEl.addEventListener("mouseleave", () => {
+          if (suppressedHoverId === id) {
+            suppressedHoverId = null;
+          }
+          if (pinnedBarId !== id && hoverBarId === id) {
+            scheduleLeave(id);
+          }
+        });
+      }
+
+      if (entry.btn && entry.btn.dataset.tcClickBound !== "1") {
+        entry.btn.dataset.tcClickBound = "1";
+        entry.btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          togglePin(id);
+        });
+      }
+
+      if (entry.bar && entry.bar.dataset.tcBarBound !== "1") {
+        entry.bar.dataset.tcBarBound = "1";
+        entry.bar.addEventListener("mouseenter", () => {
+          clearTimer(id);
+        });
+        entry.bar.addEventListener("mouseleave", () => {
+          if (pinnedBarId !== id && hoverBarId === id) {
+            scheduleLeave(id);
+          }
+        });
+
+        // Promoting hover preview to pinned immediately on inner interaction
+        entry.bar.addEventListener("pointerdown", (e) => {
+          const t = e.target instanceof Element ? e.target : e.target?.parentElement;
+          if (t && entry.closeBtnSelector && t.closest(entry.closeBtnSelector)) return;
+          if (pinnedBarId !== id) {
+            pin(id, true);
+          }
+        });
+        entry.bar.addEventListener("focusin", (e) => {
+          const t = e.target instanceof Element ? e.target : e.target?.parentElement;
+          if (t && entry.closeBtnSelector && t.closest(entry.closeBtnSelector)) return;
+          if (pinnedBarId !== id && hoverBarId === id) {
+            pin(id, true);
+          }
+        });
+        entry.bar.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (document.activeElement && typeof document.activeElement.blur === "function") {
+              document.activeElement.blur();
+            }
+            closeEntry(id, { suppressHover: false });
+          }
+        });
+
+        const closeBtn = entry.bar.querySelector(entry.closeBtnSelector);
+        if (closeBtn) {
+          closeBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeEntry(id, { suppressHover: false });
+          });
+        }
+      }
+    }
+
+    // Outside click ONLY closes an unpinned hover preview; NEVER closes a pinned bar
+    document.addEventListener("pointerdown", (e) => {
+      if (pinnedBarId !== null || !hoverBarId) return;
+      const entry = entries.get(hoverBarId);
+      if (!entry) return;
+      const t = e.target instanceof Element ? e.target : e.target?.parentElement;
+      if (!t) return;
+      if (entry.bar && entry.bar.contains(t)) return;
+      if (entry.wrapper && entry.wrapper.contains(t)) return;
+      if (entry.btn && entry.btn.contains(t)) return;
+      if (Array.isArray(entry.extraHoverSelectors)) {
+        for (const sel of entry.extraHoverSelectors) {
+          if (t.closest(sel)) return;
+        }
+      }
+      closeEntry(hoverBarId, { suppressHover: false });
+    });
+
+    return {
+      register,
+      pin,
+      close: (id) => closeEntry(id, { suppressHover: false }),
+      toggle: togglePin,
+      closeAll,
+      hideHoverPreview,
+      getPinnedId: () => pinnedBarId,
+      getHoverId: () => hoverBarId
+    };
+  })();
+
+  registerTopFloatingBar = (cfg) => TopCenterFloatingManager.register(cfg);
+  openTopFloatingBar = (id) => TopCenterFloatingManager.pin(id, false);
+  pinTopFloatingBar = (id) => TopCenterFloatingManager.pin(id, false);
+  closeTopFloatingBar = (id) => TopCenterFloatingManager.close(id);
+  toggleTopFloatingBar = (id) => TopCenterFloatingManager.toggle(id);
+  closeAllTopFloatingBars = () => TopCenterFloatingManager.closeAll();
+  hideTopFloatingHoverPreview = () => TopCenterFloatingManager.hideHoverPreview();
+
+  window.openTopFloatingBar = openTopFloatingBar;
+  window.closeTopFloatingBar = closeTopFloatingBar;
+  window.toggleTopFloatingBar = toggleTopFloatingBar;
+  window.closeAllTopFloatingBars = closeAllTopFloatingBars;
+
+  // --- Inject 4 Top-Center Utility Floating Bars (Contact, Shortcuts, Account, Settings) ---
+  function ensureUtilityFloatingBars() {
+    // 1. CONTACT US FLOATING BAR
+    if (!document.getElementById("contact-floating-bar")) {
+      const contactBar = document.createElement("div");
+      contactBar.id = "contact-floating-bar";
+      contactBar.className = "utility-floating-bar contact-floating-bar";
+      contactBar.setAttribute("role", "dialog");
+      contactBar.setAttribute("aria-label", "Contact Us & Resolution");
+      contactBar.innerHTML = `
+        <div class="utility-bar-header">
+          <div class="utility-bar-title-wrap">
+            <span class="palette-drag-handle" title="Drag Panel">
+              <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
+            </span>
+            <span class="utility-bar-title">[CONTACT US]</span>
+          </div>
+          <div class="utility-bar-meta-group">
+            <span class="contact-inline-status" id="contact-inline-status" aria-live="polite"></span>
+            <span class="contact-bar-email-pill" id="contact-auth-email-pill" style="display:none;"></span>
+            <input type="email" class="contact-bar-email-input" id="contact-guest-email" placeholder="Reply email (optional)" autocomplete="email" spellcheck="false" />
+            <button type="button" class="palette-close-btn" id="contact-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="contact-bar-body">
+          <div class="contact-float-top-grid">
+            <div class="contact-type-col" role="radiogroup" aria-label="Submission Type">
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_type" id="contact-type-issue" value="Report an Issue" checked />
+                <span class="contact-pill-btn">Report an Issue</span>
+              </label>
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_type" id="contact-type-improvement" value="Suggest an Improvement" />
+                <span class="contact-pill-btn">Suggest an Improvement</span>
+              </label>
+            </div>
+            <div class="contact-class-grid" role="radiogroup" aria-label="Classification">
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_classification" value="Data / Mathematical Anomalies" />
+                <span class="contact-pill-btn">Data / Formula</span>
+              </label>
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_classification" value="Terminal UI / Visual Bugs" />
+                <span class="contact-pill-btn">Terminal / UI</span>
+              </label>
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_classification" value="Login / Account Sync" />
+                <span class="contact-pill-btn">Auth &amp; Account</span>
+              </label>
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_classification" value="Membership & Billing" />
+                <span class="contact-pill-btn">Billing / Payment</span>
+              </label>
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_classification" value="Gemini AI Doubt Solver" />
+                <span class="contact-pill-btn">Gemini AI</span>
+              </label>
+              <label class="contact-pill-option">
+                <input type="radio" name="contact_float_classification" value="General Technical / Other" checked />
+                <span class="contact-pill-btn">Other / General</span>
+              </label>
+            </div>
+          </div>
+          <textarea id="contact-comment-input" class="contact-float-textarea" rows="4" placeholder="Comment — describe the issue, error steps, or improvement idea..."></textarea>
+          <input type="file" id="contact-float-file-input" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none;" />
+          <div class="screenshot-upload-error font-mono" id="contact-float-upload-error" style="display:none;"></div>
+          <div class="contact-float-screenshots" id="contact-float-screenshots"></div>
+          <div class="contact-float-actions-row">
+            <button type="button" class="contact-action-btn" id="contact-bar-upload-btn" data-hover-tag="[UPLOAD SCREENSHOT]">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span id="contact-upload-btn-label">Upload Screenshot</span>
+            </button>
+            <button type="button" class="contact-action-btn contact-action-btn--primary" id="contact-bar-dispatch-btn" data-hover-tag="[DISPATCH]">Dispatch</button>
+            <button type="button" class="contact-action-btn" id="contact-bar-direct-email-btn" data-hover-tag="[DIRECT EMAIL]">Send a direct email to us if this page is broken</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(contactBar);
+      makeFloatingBarDraggable(contactBar);
+    }
+
+    // 2. SHORTCUTS FLOATING BAR (3 Columns)
+    if (!document.getElementById("shortcuts-floating-bar")) {
+      const shortcutsBar = document.createElement("div");
+      shortcutsBar.id = "shortcuts-floating-bar";
+      shortcutsBar.className = "utility-floating-bar shortcuts-floating-bar";
+      shortcutsBar.setAttribute("role", "dialog");
+      shortcutsBar.setAttribute("aria-label", "Keyboard Shortcuts");
+      shortcutsBar.innerHTML = `
+        <div class="utility-bar-header">
+          <div class="utility-bar-title-wrap">
+            <span class="palette-drag-handle" title="Drag Panel">
+              <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
+            </span>
+            <span class="utility-bar-title">[KEYBOARD SHORTCUTS]</span>
+            <span class="shortcuts-header-hint">Click any badge to customize (letters require Ctrl/Alt)</span>
+          </div>
+          <div class="utility-bar-meta-group">
+            <button type="button" class="shortcut-reset-btn font-mono" id="btn-reset-shortcuts" data-hover-tag="[RESET SHORTCUTS]">Reset Defaults</button>
+            <button type="button" class="palette-close-btn" id="shortcuts-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="shortcuts-bar-body" id="shortcuts-panel"></div>
+      `;
+      document.body.appendChild(shortcutsBar);
+      makeFloatingBarDraggable(shortcutsBar);
+    }
+
+    // 3. ACCOUNT FLOATING BAR
+    if (!document.getElementById("account-floating-bar")) {
+      const accountBar = document.createElement("div");
+      accountBar.id = "account-floating-bar";
+      accountBar.className = "utility-floating-bar account-floating-bar";
+      accountBar.setAttribute("role", "dialog");
+      accountBar.setAttribute("aria-label", "Account Dossier");
+      accountBar.innerHTML = `
+        <div class="utility-bar-header">
+          <div class="utility-bar-title-wrap">
+            <span class="palette-drag-handle" title="Drag Panel">
+              <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
+            </span>
+            <span class="utility-bar-title">[ACCOUNT DOSSIER]</span>
+          </div>
+          <div class="utility-bar-meta-group">
+            <span class="active-pulse-indicator" id="account-bar-status-pill" style="font-size:0.68rem;">
+              <span class="pulse-dot"></span> Cloud Sync
+            </span>
+            <button type="button" class="palette-close-btn" id="account-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="account-bar-body" id="account-panel"></div>
+      `;
+      document.body.appendChild(accountBar);
+      makeFloatingBarDraggable(accountBar);
+    }
+
+    // 4. SETTINGS FLOATING BAR (Single horizontal row matching edit bar)
+    if (!document.getElementById("settings-floating-bar")) {
+      const settingsBar = document.createElement("div");
+      settingsBar.id = "settings-floating-bar";
+      settingsBar.className = "utility-floating-bar settings-floating-bar";
+      settingsBar.setAttribute("role", "dialog");
+      settingsBar.setAttribute("aria-label", "Display Settings");
+      settingsBar.innerHTML = `
+        <span class="palette-drag-handle" title="Drag Settings Bar">
+          <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
+        </span>
+        <div class="settings-bar-inline" id="settings-panel">
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Size</span>
+            <div class="custom-dropdown" id="dropdown-font-size">
+              <button type="button" class="dropdown-trigger" id="btn-font-size-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span id="font-size-label">Medium</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-size" role="listbox">
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="small">Small (85%)</button>
+                <button type="button" class="dropdown-item active" data-type="font-size" data-val="medium">Medium (Default)</button>
+                <button type="button" class="dropdown-item" data-type="font-size" data-val="large">Large (115%)</button>
+              </div>
+            </div>
+          </div>
+          <span class="palette-sep">|</span>
+          <div class="custom-dropdown-row">
+            <span class="custom-dropdown-label">Font Style</span>
+            <div class="custom-dropdown" id="dropdown-font-style">
+              <button type="button" class="dropdown-trigger" id="btn-font-style-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span id="font-style-label">Reading</span>
+                <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu-list" id="list-font-style" role="listbox">
+                <button type="button" class="dropdown-item active" data-type="font-style" data-val="reading">Reading (Sans)</button>
+                <button type="button" class="dropdown-item" data-type="font-style" data-val="typewriter">Typewriter (Mono)</button>
+              </div>
+            </div>
+          </div>
+          <span class="palette-sep">|</span>
+          <label class="setting-toggle-row" for="grid-toggle">
+            <span>Grid</span>
+            <input type="checkbox" id="grid-toggle" checked />
+          </label>
+          <span class="palette-sep">|</span>
+          <label class="setting-toggle-row" for="contrast-toggle">
+            <span>Dark Theme</span>
+            <input type="checkbox" id="contrast-toggle" />
+          </label>
+        </div>
+        <span class="palette-sep">|</span>
+        <button type="button" class="palette-close-btn" id="settings-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      `;
+      document.body.appendChild(settingsBar);
+      makeFloatingBarDraggable(settingsBar);
+    }
+  }
+
+  ensureUtilityFloatingBars();
+
+  // --- Contact Us Floating Bar State & Dispatch Engine ---
+  let contactUploadedScreenshots = [];
+  const CONTACT_MAX_SCREENSHOTS = 2;
+  const CONTACT_MAX_BYTES = 2.5 * 1024 * 1024;
+
+  function setContactInlineStatus(text, tone = "") {
+    const statusEl = document.getElementById("contact-inline-status");
+    if (!statusEl) return;
+    statusEl.textContent = text || "";
+    statusEl.className = "contact-inline-status" + (tone ? ` is-${tone}` : "");
+  }
+
+  function refreshContactAuthUI() {
+    const sb = window.IndexIndiaSupabase;
+    const user = sb && typeof sb.getUser === "function" ? sb.getUser() : null;
+    const authPill = document.getElementById("contact-auth-email-pill");
+    const guestInput = document.getElementById("contact-guest-email");
+
+    if (user && user.email) {
+      if (authPill) {
+        authPill.textContent = `From: ${user.email}`;
+        authPill.title = user.email;
+        authPill.style.display = "inline-flex";
+      }
+      if (guestInput) guestInput.style.display = "none";
+    } else {
+      if (authPill) authPill.style.display = "none";
+      if (guestInput) {
+        guestInput.style.display = "inline-block";
+        try {
+          const savedGuest = localStorage.getItem("indexindia_guest_contact_email");
+          if (savedGuest && !guestInput.value) guestInput.value = savedGuest;
+        } catch (_) {}
+      }
+    }
+  }
+
+  async function copyImageDataUrlToClipboard(dataUrl) {
+    try {
+      if (!navigator.clipboard || typeof ClipboardItem === "undefined") return false;
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const pngBlob = blob.type === "image/png" ? blob : await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width || 800;
+          canvas.height = img.height || 600;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((b) => resolve(b || blob), "image/png");
+        };
+        img.onerror = () => resolve(blob);
+        img.src = dataUrl;
+      });
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function renderContactFloatingScreenshots() {
+    const grid = document.getElementById("contact-float-screenshots");
+    const errEl = document.getElementById("contact-float-upload-error");
+    const uploadBtn = document.getElementById("contact-bar-upload-btn");
+    const uploadLabel = document.getElementById("contact-upload-btn-label");
+    if (!grid) return;
+
+    grid.innerHTML = "";
+    if (contactUploadedScreenshots.length === 0) {
+      grid.style.display = "none";
+      if (uploadBtn) uploadBtn.disabled = false;
+      if (uploadLabel) uploadLabel.textContent = "Upload Screenshot";
+      return;
+    }
+
+    grid.style.display = "grid";
+    contactUploadedScreenshots.forEach((s, idx) => {
+      const card = document.createElement("div");
+      card.className = "screenshot-preview-card";
+      card.innerHTML = `
+        <img src="${s.dataUrl}" alt="${escFloatHtml(s.filename)}" class="screenshot-card-thumb" />
+        <div class="screenshot-card-info">
+          <span class="screenshot-card-name" title="${escFloatHtml(s.filename)}">${escFloatHtml(s.filename)}</span>
+          <span class="screenshot-card-size font-mono">${escFloatHtml(s.sizeStr)}</span>
+        </div>
+        <button type="button" class="screenshot-card-remove contact-rm-shot-btn" data-idx="${idx}" data-hover-tag="[REMOVE]" aria-label="Remove screenshot">✕</button>
+      `;
+      grid.appendChild(card);
+    });
+
+    grid.querySelectorAll(".contact-rm-shot-btn").forEach((rmBtn) => {
+      rmBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = parseInt(rmBtn.getAttribute("data-idx"), 10);
+        if (!isNaN(idx)) {
+          contactUploadedScreenshots.splice(idx, 1);
+          if (errEl) {
+            errEl.textContent = "";
+            errEl.style.display = "none";
+          }
+          renderContactFloatingScreenshots();
+        }
+      });
+    });
+
+    if (contactUploadedScreenshots.length >= CONTACT_MAX_SCREENSHOTS) {
+      if (uploadBtn) uploadBtn.disabled = true;
+      if (uploadLabel) uploadLabel.textContent = "Screenshots (2/2)";
+    } else {
+      if (uploadBtn) uploadBtn.disabled = false;
+      if (uploadLabel) uploadLabel.textContent = `Add Another (${contactUploadedScreenshots.length}/${CONTACT_MAX_SCREENSHOTS})`;
+    }
+  }
+
+  function initContactFloatingBarEvents() {
+    const contactBar = document.getElementById("contact-floating-bar");
+    if (!contactBar || contactBar.dataset.eventsBound === "1") return;
+    contactBar.dataset.eventsBound = "1";
+
+    const uploadBtn = document.getElementById("contact-bar-upload-btn");
+    const fileInput = document.getElementById("contact-float-file-input");
+    const errEl = document.getElementById("contact-float-upload-error");
+    const commentEl = document.getElementById("contact-comment-input");
+    const guestEmailEl = document.getElementById("contact-guest-email");
+    const dispatchBtn = document.getElementById("contact-bar-dispatch-btn");
+    const directEmailBtn = document.getElementById("contact-bar-direct-email-btn");
+
+    function updateTypePlaceholder() {
+      const checkedType = contactBar.querySelector('input[name="contact_float_type"]:checked')?.value || "Report an Issue";
+      if (!commentEl) return;
+      if (checkedType.toLowerCase().includes("improvement")) {
+        commentEl.placeholder = "Comment — describe your suggested improvement, workflow benefit, or idea...";
+      } else {
+        commentEl.placeholder = "Comment — describe the issue, error steps, or bug you encountered...";
+      }
+    }
+
+    contactBar.querySelectorAll('input[name="contact_float_type"]').forEach((r) => {
+      r.addEventListener("change", updateTypePlaceholder);
+    });
+
+    if (guestEmailEl) {
+      guestEmailEl.addEventListener("change", () => {
+        try { localStorage.setItem("indexindia_guest_contact_email", guestEmailEl.value.trim()); } catch (_) {}
+      });
+    }
+
+    if (uploadBtn && fileInput) {
+      uploadBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (errEl) { errEl.style.display = "none"; errEl.textContent = ""; }
+        if (contactUploadedScreenshots.length >= CONTACT_MAX_SCREENSHOTS) {
+          if (errEl) {
+            errEl.textContent = "Maximum 2 screenshots allowed. Remove one to upload another.";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+        fileInput.value = "";
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        if (errEl) { errEl.style.display = "none"; errEl.textContent = ""; }
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+
+        const remaining = CONTACT_MAX_SCREENSHOTS - contactUploadedScreenshots.length;
+        if (files.length > remaining) {
+          if (errEl) {
+            errEl.textContent = `Maximum ${CONTACT_MAX_SCREENSHOTS} screenshots allowed (${remaining} slot remaining).`;
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        for (const f of files) {
+          if (f.size > CONTACT_MAX_BYTES) {
+            const mb = (f.size / (1024 * 1024)).toFixed(2);
+            if (errEl) {
+              errEl.textContent = `"${f.name}" exceeds 2.5 MB (${mb} MB). Choose a smaller image.`;
+              errEl.style.display = "block";
+            }
+            return;
+          }
+        }
+
+        let loadedCount = 0;
+        files.forEach((f) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const sizeKb = (f.size / 1024).toFixed(1);
+            contactUploadedScreenshots.push({
+              file: f,
+              filename: f.name,
+              dataUrl: ev.target.result,
+              sizeStr: f.size >= 1024 * 1024 ? `${(f.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeKb} KB`
+            });
+            loadedCount++;
+            if (loadedCount === files.length) {
+              renderContactFloatingScreenshots();
+            }
+          };
+          reader.readAsDataURL(f);
+        });
+      });
+    }
+
+    function buildContactDispatchPayload() {
+      const sb = window.IndexIndiaSupabase;
+      const user = sb && typeof sb.getUser === "function" ? sb.getUser() : null;
+      const typedGuest = guestEmailEl ? guestEmailEl.value.trim() : "";
+      const userEmail = (user && user.email) ? user.email : (typedGuest || "visitor@indexindia.in");
+
+      const subType = contactBar.querySelector('input[name="contact_float_type"]:checked')?.value || "Report an Issue";
+      const category = contactBar.querySelector('input[name="contact_float_classification"]:checked')?.value || "General Technical / Other";
+      const isIssue = subType.toLowerCase().includes("issue");
+      const typeTag = isIssue ? "ISSUE" : "IMPROVEMENT";
+      const description = commentEl ? commentEl.value.trim() : "";
+
+      const randHex = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const tsNum = Date.now().toString().slice(-4);
+      const ticketId = `INC-IND-${tsNum}-${randHex}`;
+      const targetAdminEmail = "dhaumyakumar27@gmail.com";
+      const emailSubject = `[INDEXINDIA] [${typeTag}] [${category.toUpperCase()}] - ${ticketId}`;
+      const timestampIST = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+      const platform = navigator.userAgentData?.platform || navigator.platform || "Web";
+      const viewport = `${window.innerWidth} × ${window.innerHeight}`;
+      const screenRes = `${window.screen.width} × ${window.screen.height} @ ${window.devicePixelRatio || 1}x`;
+      const currentTheme = document.body.classList.contains("theme-dark") ? "Dark Theme" : "Light Theme";
+      const currentFont = document.body.classList.contains("font-style-typewriter") ? "Typewriter (Mono)" : "Reading (Sans)";
+      const errorsArr = Array.isArray(window.__indexIndiaErrors) ? window.__indexIndiaErrors : [];
+      const consoleCount = errorsArr.length;
+
+      const screenshotDetailsText = contactUploadedScreenshots.length > 0
+        ? contactUploadedScreenshots.map((s, idx) => `File ${idx + 1}: ${s.filename} (${s.sizeStr})`).join("\n")
+        : "NONE";
+
+      const rawBody = `[INDEXINDIA DISPATCH]
+Ticket ID: ${ticketId}
+Date & Time (IST): ${timestampIST}
+SUBMISSION TYPE: ${typeTag}
+CLASSIFICATION: ${category}
+User Contact Email: ${userEmail}
+Page: ${window.location.href}
+
+${isIssue ? "Error Report / Technical Symptoms:" : "Improvement Proposal / Feature Specification:"}
+--------------------------------------------------
+${description || "(No comment entered — page/telemetry diagnostic)"}
+--------------------------------------------------
+Terminal Telemetry:
+Platform: ${platform}
+Viewport: ${viewport}
+Screen Resolution: ${screenRes}
+Theme: ${currentTheme} | Font: ${currentFont}
+User Agent: ${navigator.userAgent}
+Recorded Console Errors: ${consoleCount}
+${consoleCount > 0 ? "\nConsole Error Buffer:\n" + errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n") + "\n" : ""}
+Clipped Screenshots:
+${screenshotDetailsText}
+`;
+
+      const htmlContent = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F4F4F6;color:#111;margin:0;padding:20px;}
+.email-container{max-width:640px;margin:0 auto;background:#fff;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;}
+.email-header{background:#000;color:#fff;padding:24px;border-bottom:3px solid #FF3B00;}
+.badge{display:inline-block;background:#FF3B00;color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:3px;text-transform:uppercase;font-family:monospace;}
+.email-body{padding:24px;line-height:1.6;font-size:14px;}
+.meta-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;}
+.meta-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;}
+.meta-label{color:#6B7280;font-weight:600;width:140px;}
+.description-box{background:#F9FAFB;border:1px solid #E5E7EB;border-left:4px solid #FF3B00;padding:14px;border-radius:4px;white-space:pre-wrap;font-family:monospace;font-size:13px;margin-bottom:20px;color:#111827;}
+.telemetry-box{background:#18181B;color:#E4E4E7;border-radius:6px;padding:16px;font-family:monospace;font-size:12px;margin-top:16px;}
+.logs-box{max-height:160px;overflow-y:auto;background:#09090B;color:#FCA5A5;padding:10px;border-radius:4px;font-size:11px;margin-top:8px;white-space:pre-wrap;word-break:break-all;}
+</style></head><body><div class="email-container">
+<div class="email-header"><span class="badge">${escFloatHtml(typeTag)} &bull; ${escFloatHtml(category)}</span>
+<h1 style="margin:12px 0 0;font-size:19px;color:#fff;">IndexIndia ${escFloatHtml(typeTag)}: ${escFloatHtml(ticketId)}</h1></div>
+<div class="email-body"><table class="meta-table">
+<tr><td class="meta-label">Ticket Reference</td><td><strong style="color:#FF3B00;">${escFloatHtml(ticketId)}</strong></td></tr>
+<tr><td class="meta-label">Submission Type</td><td><strong>${escFloatHtml(typeTag)}</strong></td></tr>
+<tr><td class="meta-label">Classification</td><td><strong>${escFloatHtml(category)}</strong></td></tr>
+<tr><td class="meta-label">Submitter Email</td><td>${escFloatHtml(userEmail)}</td></tr>
+<tr><td class="meta-label">Timestamp (IST)</td><td>${escFloatHtml(timestampIST)}</td></tr>
+<tr><td class="meta-label">Page URL</td><td>${escFloatHtml(window.location.href)}</td></tr>
+<tr><td class="meta-label">Screenshot(s)</td><td>${contactUploadedScreenshots.length > 0 ? contactUploadedScreenshots.map((s, i) => `File ${i + 1}: ${escFloatHtml(s.filename)} (${escFloatHtml(s.sizeStr)})`).join("<br>") : "None"}</td></tr>
+</table>
+<div class="description-box">${escFloatHtml(description || "(No comment entered)")}</div>
+<div class="telemetry-box"><div>Platform: ${escFloatHtml(platform)} | Viewport: ${escFloatHtml(viewport)} | Screen: ${escFloatHtml(screenRes)}</div>
+<div>Theme: ${escFloatHtml(currentTheme)} | Font: ${escFloatHtml(currentFont)}</div>
+${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message}`).join("\n"))}</div>` : `<div style="color:#10B981;margin-top:6px;">✓ Zero console errors captured</div>`}
+</div></div></div></body></html>`;
+
+      return {
+        ticketId,
+        userEmail,
+        typeTag,
+        isIssue,
+        category,
+        description,
+        targetAdminEmail,
+        emailSubject,
+        timestampIST,
+        platform,
+        viewport,
+        screenRes,
+        currentTheme,
+        currentFont,
+        consoleCount,
+        errorsArr,
+        rawBody,
+        htmlContent
+      };
+    }
+
+    if (dispatchBtn) {
+      dispatchBtn.addEventListener("click", async () => {
+        if (guestEmailEl && guestEmailEl.style.display !== "none" && guestEmailEl.value.trim()) {
+          if (!guestEmailEl.checkValidity()) {
+            guestEmailEl.reportValidity();
+            return;
+          }
+          try { localStorage.setItem("indexindia_guest_contact_email", guestEmailEl.value.trim()); } catch (_) {}
+        }
+
+        const commentText = commentEl ? commentEl.value.trim() : "";
+        if (!commentText) {
+          setContactInlineStatus("Please enter a comment before dispatching.", "error");
+          if (commentEl) commentEl.focus();
+          return;
+        }
+
+        const p = buildContactDispatchPayload();
+        dispatchBtn.disabled = true;
+        dispatchBtn.textContent = "Dispatching...";
+        setContactInlineStatus("Transmitting report...", "info");
+
+        const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
+        const customResendKey = (localStorage.getItem("indexindia_resend_api_key") || "").trim();
+
+        let delivered = false;
+        let needsActivation = false;
+
+        // 1. Primary FormSubmit AJAX Relay
+        try {
+          const fsFormData = new FormData();
+          fsFormData.append("_captcha", "false");
+          fsFormData.append("_template", "table");
+          fsFormData.append("_subject", p.emailSubject);
+          fsFormData.append("_replyto", p.userEmail);
+          fsFormData.append("Submission_Type", p.typeTag);
+          fsFormData.append("Classification", p.category);
+          fsFormData.append("Ticket_ID", p.ticketId);
+          fsFormData.append("Email", p.userEmail);
+          fsFormData.append("Timestamp_IST", p.timestampIST);
+          fsFormData.append("Platform", p.platform);
+          fsFormData.append("Viewport", p.viewport);
+          fsFormData.append("Screen", p.screenRes);
+          fsFormData.append("Theme_and_Font", `${p.currentTheme} | ${p.currentFont}`);
+          fsFormData.append("Description", p.description);
+          if (p.consoleCount > 0) {
+            fsFormData.append("Console_Errors", p.errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"));
+          }
+          contactUploadedScreenshots.forEach((s, idx) => {
+            if (s.file) {
+              const attachKey = idx === 0 ? "attachment" : `attachment_${idx + 1}`;
+              fsFormData.append(attachKey, s.file, s.filename || `screenshot_${idx + 1}.png`);
+            }
+          });
+
+          const fsResp = await fetch("https://formsubmit.co/ajax/dhaumyakumar27@gmail.com", {
+            method: "POST",
+            headers: { "Accept": "application/json" },
+            body: fsFormData
+          });
+          if (fsResp.ok) {
+            const fsData = await fsResp.json().catch(() => ({}));
+            if (fsData.success === "true" || fsData.success === true) {
+              delivered = true;
+            } else if (typeof fsData.message === "string" && fsData.message.toLowerCase().includes("activation")) {
+              needsActivation = true;
+            }
+          }
+        } catch (_) {}
+
+        // 2. Cloudflare Worker Relay
+        if (!delivered) {
+          try {
+            const workerPayload = {
+              type: p.isIssue ? "contact_issue" : "feedback_proposal",
+              ticketId: p.ticketId,
+              category: p.category,
+              subject: p.emailSubject,
+              email: p.userEmail,
+              description: p.description,
+              html: p.htmlContent
+            };
+            if (contactUploadedScreenshots.length > 0) {
+              workerPayload.screenshots = contactUploadedScreenshots.map((s, idx) => ({
+                filename: s.filename || `screenshot-${p.ticketId}-${idx + 1}.png`,
+                content: s.dataUrl.split(",")[1]
+              }));
+              workerPayload.screenshot = workerPayload.screenshots[0];
+            }
+            const resp = await fetch(`${CLOUDFLARE_WORKER_URL}/api/contact-inquiry`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(workerPayload)
+            });
+            if (resp.ok) {
+              const resData = await resp.json().catch(() => ({}));
+              if (resData.success) delivered = true;
+            }
+          } catch (_) {}
+        }
+
+        // 3. Direct Resend API Fallback
+        if (!delivered && customResendKey) {
+          try {
+            const resendPayload = {
+              from: "IndexIndia <onboarding@resend.dev>",
+              to: [p.targetAdminEmail],
+              reply_to: p.userEmail,
+              subject: p.emailSubject,
+              text: p.rawBody,
+              html: p.htmlContent
+            };
+            if (contactUploadedScreenshots.length > 0) {
+              resendPayload.attachments = contactUploadedScreenshots.map((s, idx) => ({
+                filename: s.filename || `screenshot-${p.ticketId}-${idx + 1}.png`,
+                content: s.dataUrl.split(",")[1]
+              }));
+            }
+            const rResp = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${customResendKey}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(resendPayload)
+            });
+            if (rResp.ok) delivered = true;
+          } catch (_) {}
+        }
+
+        if (delivered) {
+          setContactInlineStatus(`✓ Dispatched [${p.ticketId}]`, "success");
+          dispatchBtn.textContent = "Dispatched ✓";
+          if (commentEl) commentEl.value = "";
+          contactUploadedScreenshots = [];
+          renderContactFloatingScreenshots();
+          setTimeout(() => {
+            dispatchBtn.textContent = "Dispatch";
+            dispatchBtn.disabled = false;
+          }, 2200);
+        } else {
+          dispatchBtn.textContent = "Dispatch";
+          dispatchBtn.disabled = false;
+          if (needsActivation) {
+            setContactInlineStatus("Check inbox to activate FormSubmit or use Direct Email", "error");
+          } else {
+            setContactInlineStatus(`Relay unavailable — use Direct Email button`, "error");
+          }
+        }
+      });
+    }
+
+    if (directEmailBtn) {
+      directEmailBtn.addEventListener("click", async () => {
+        const p = buildContactDispatchPayload();
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(p.targetAdminEmail)}&su=${encodeURIComponent(p.emailSubject)}&body=${encodeURIComponent(p.rawBody)}`;
+        // Synchronously open Gmail tab inside click gesture so popup blockers don't block it
+        try {
+          window.open(gmailUrl, "_blank", "noopener");
+        } catch (_) {}
+
+        if (contactUploadedScreenshots.length > 0) {
+          const copied = await copyImageDataUrlToClipboard(contactUploadedScreenshots[0].dataUrl);
+          if (copied) {
+            setContactInlineStatus("Gmail opened + screenshot copied (Ctrl+V)", "success");
+          } else {
+            setContactInlineStatus("Gmail opened — attach screenshot manually", "info");
+          }
+        } else {
+          setContactInlineStatus("Gmail compose opened", "success");
+        }
+      });
+    }
+  }
+
+  initContactFloatingBarEvents();
+  refreshContactAuthUI();
+
   const shortcutsWrapper = document.getElementById("shortcuts-wrapper");
   const shortcutsBtn = document.getElementById("shortcuts-btn");
   const accountWrapper = document.getElementById("account-wrapper");
   const accountBtn = document.getElementById("account-btn");
   const settingsWrapper = document.getElementById("settings-wrapper");
   const settingsBtn = document.getElementById("settings-btn");
+  const contactNavWrapper = document.getElementById("contact-nav-wrapper");
+  const contactNavBtn = document.getElementById("contact-nav-btn");
 
-  const flyoutPanels = [
-    {
-      wrapper: shortcutsWrapper,
-      btn: shortcutsBtn,
-      onOpen: null
+  TopCenterFloatingManager.register({
+    id: "contact",
+    wrapper: contactNavWrapper,
+    btn: contactNavBtn,
+    barId: "contact-floating-bar",
+    onPreview: () => {
+      refreshContactAuthUI();
     },
-    {
-      wrapper: accountWrapper,
-      btn: accountBtn,
-      onOpen: () => {
-        if (typeof renderAccountPanel === "function") {
-          renderAccountPanel();
-        }
+    onPin: ({ fromInteraction }) => {
+      refreshContactAuthUI();
+      if (!fromInteraction) {
+        setTimeout(() => {
+          document.getElementById("contact-comment-input")?.focus();
+        }, 40);
       }
-    },
-    {
-      wrapper: settingsWrapper,
-      btn: settingsBtn,
-      onOpen: null
-    }
-  ];
-
-  flyoutPanels.forEach((item) => {
-    if (!item.wrapper) return;
-    let leaveTimer = null;
-
-    // Hover bridge: entering opens the panel and refreshes live stats
-    item.wrapper.addEventListener("mouseenter", () => {
-      if (leaveTimer) {
-        clearTimeout(leaveTimer);
-        leaveTimer = null;
-      }
-      flyoutPanels.forEach((other) => {
-        if (other.wrapper && other.wrapper !== item.wrapper) {
-          other.wrapper.classList.remove("is-open");
-        }
-      });
-      const sWrap = document.getElementById("search-nav-wrapper");
-      if (sWrap) sWrap.classList.remove("is-open");
-      item.wrapper.classList.add("is-open");
-      if (typeof item.onOpen === "function") {
-        item.onOpen();
-      }
-    });
-
-    // 280ms grace timeout before closing on mouseleave so moving from button to panel never drops
-    item.wrapper.addEventListener("mouseleave", () => {
-      leaveTimer = setTimeout(() => {
-        item.wrapper.classList.remove("is-open");
-      }, 280);
-    });
-
-    // Also support click toggle
-    if (item.btn) {
-      item.btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const willOpen = !item.wrapper.classList.contains("is-open");
-        flyoutPanels.forEach((other) => {
-          if (other.wrapper && other.wrapper !== item.wrapper) {
-            other.wrapper.classList.remove("is-open");
-          }
-        });
-        const sWrap = document.getElementById("search-nav-wrapper");
-        if (sWrap) sWrap.classList.remove("is-open");
-        if (willOpen) {
-          item.wrapper.classList.add("is-open");
-          if (typeof item.onOpen === "function") {
-            item.onOpen();
-          }
-        } else {
-          item.wrapper.classList.remove("is-open");
-        }
-      });
     }
   });
 
-  document.addEventListener("click", (e) => {
-    flyoutPanels.forEach((item) => {
-      if (item.wrapper && !item.wrapper.contains(e.target)) {
-        item.wrapper.classList.remove("is-open");
+  TopCenterFloatingManager.register({
+    id: "shortcuts",
+    wrapper: shortcutsWrapper,
+    btn: shortcutsBtn,
+    barId: "shortcuts-floating-bar",
+    onClose: () => {
+      if (typeof recordingShortcutAction === "string" && typeof stopRecordingShortcut === "function") {
+        stopRecordingShortcut(false);
       }
-    });
+    }
+  });
+
+  TopCenterFloatingManager.register({
+    id: "account",
+    wrapper: accountWrapper,
+    btn: accountBtn,
+    barId: "account-floating-bar",
+    onPreview: () => {
+      const panel = document.getElementById("account-panel");
+      if (panel && !panel.hasChildNodes() && typeof renderAccountPanel === "function") {
+        renderAccountPanel();
+      }
+    },
+    onPin: ({ fromInteraction }) => {
+      if (!fromInteraction && typeof renderAccountPanel === "function") {
+        renderAccountPanel();
+      }
+    }
+  });
+
+  TopCenterFloatingManager.register({
+    id: "settings",
+    wrapper: settingsWrapper,
+    btn: settingsBtn,
+    barId: "settings-floating-bar",
+    onClose: () => {
+      document.querySelectorAll("#settings-floating-bar .custom-dropdown.is-open").forEach((d) => {
+        d.classList.remove("is-open");
+      });
+    }
   });
 
   // ================= 3b. SUPABASE ACCOUNT DOSSIER & CLOUD SYNC SYSTEM =================
@@ -1269,6 +2362,18 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
   window.syncMemberExclusiveContent = syncMemberExclusiveContent;
 
+  function updateAccountBarStatusPill(mode, labelText) {
+    const pill = document.getElementById("account-bar-status-pill");
+    if (!pill) return;
+    if (mode === "verified" || mode === "online") {
+      pill.style.color = "var(--status-optimal)";
+      pill.innerHTML = `<span class="pulse-dot" style="background: var(--status-optimal);"></span> ${escFloatHtml(labelText)}`;
+    } else {
+      pill.style.color = "var(--text-tertiary)";
+      pill.innerHTML = `<span class="pulse-dot" style="background: var(--text-tertiary);"></span> ${escFloatHtml(labelText)}`;
+    }
+  }
+
   async function renderAccountPanel() {
     if (!accountPanel) return;
     try {
@@ -1314,59 +2419,60 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
         }
       }
 
+      updateAccountBarStatusPill("verified", hasPaidPlan ? `${(membership.plan_type || "PRO").toUpperCase()} PASS` : "Cloud Synced");
+
       accountPanel.innerHTML = `
-        <div class="panel-header">
-          <div class="panel-user-meta">
-            ${hasPaidPlan ? `<span class="user-role-badge" style="background: #FF3B00; color: #fff;">${membership.plan_type.toUpperCase()} PASS</span>` : ""}
-            <span class="user-id">ACCOUNT DOSSIER</span>
-          </div>
-        </div>
+        <div class="account-horizontal-grid">
+          <div class="account-col-card">
+            <div class="account-user-card" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;">
+              <div style="min-width:0;">
+                <div class="account-field-label">Authenticated Identity</div>
+                <div class="account-user-email" title="${escFloatHtml(email)}">${escFloatHtml(email)}</div>
+              </div>
+              ${hasPaidPlan ? `<span class="user-role-badge" style="background: #FF3B00; color: #fff; flex-shrink:0;">${escFloatHtml((membership.plan_type || "PRO").toUpperCase())} PASS</span>` : `<span class="user-id" style="flex-shrink:0;">VERIFIED</span>`}
+            </div>
 
-        <div class="account-user-card">
-          <div class="account-field-label">Authenticated Identity</div>
-          <div class="account-user-email" title="${email}">${email}</div>
-        </div>
+            <div class="panel-section" style="padding-top: 8px;">
+              <div class="panel-metric-row">
+                <span class="metric-label">Access Clearance</span>
+                <span class="metric-value font-mono ${hasPaidPlan ? 'status-verified' : ''}">${escFloatHtml(planStatusText)}</span>
+              </div>
+              <div class="panel-metric-row">
+                <span class="metric-label">Annotations on Page</span>
+                <span class="metric-value font-mono" id="account-metric-annotations">${totalAnnotations} items</span>
+              </div>
+              <div class="panel-metric-row">
+                <span class="metric-label">AI Doubts History</span>
+                <span class="metric-value font-mono" id="account-metric-doubts">${totalDoubts} questions</span>
+              </div>
+              <div class="panel-metric-row">
+                <span class="metric-label">Cloud Backend</span>
+                <span class="metric-value status-verified font-mono">Supabase PG</span>
+              </div>
+            </div>
+          </div>
 
-        <div class="panel-section" style="padding-top: 0;">
-          <div class="panel-metric-row">
-            <span class="metric-label">Access Clearance</span>
-            <span class="metric-value font-mono ${hasPaidPlan ? 'status-verified' : ''}">${planStatusText}</span>
+          <div class="account-col-card" style="gap: 8px;">
+            ${!hasPaidPlan ? `
+              <a href="membership.html" class="account-btn-action" style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; margin-top: 0;">
+                Upgrade to Sovereign Pass (&#8377;99 Lifetime)
+              </a>
+            ` : `
+              <a href="membership.html" class="account-btn-secondary" style="margin-top: 0; color: var(--accent); border-color: var(--accent); text-decoration: none;">
+                Manage Membership / Clearance &rarr;
+              </a>
+            `}
+            <button type="button" class="account-btn-action" id="btn-account-sync-now" style="margin-top: 0;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+              Sync Telemetry Now
+            </button>
+            <button type="button" class="account-btn-secondary" id="btn-account-signout" style="margin-top: 0;">
+              Sign Out
+            </button>
+            <div class="panel-footer" style="margin-top: 4px;">
+              <div class="panel-sub-note">IndexIndia Cross-Device Cloud Sync</div>
+            </div>
           </div>
-          <div class="panel-metric-row">
-            <span class="metric-label">Annotations on Page</span>
-            <span class="metric-value font-mono" id="account-metric-annotations">${totalAnnotations} items</span>
-          </div>
-          <div class="panel-metric-row">
-            <span class="metric-label">AI Doubts History</span>
-            <span class="metric-value font-mono" id="account-metric-doubts">${totalDoubts} questions</span>
-          </div>
-          <div class="panel-metric-row">
-            <span class="metric-label">Cloud Backend</span>
-            <span class="metric-value status-verified font-mono">Supabase PG</span>
-          </div>
-        </div>
-
-        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
-          ${!hasPaidPlan ? `
-            <a href="membership.html" class="account-btn-action" style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700;">
-              Upgrade to Sovereign Pass
-            </a>
-          ` : `
-            <a href="membership.html" style="font-size: 0.72rem; color: var(--accent); text-align: center; text-decoration: none; font-family: var(--font-mono); padding: 4px 0;">
-              Manage Membership / Clearance &rarr;
-            </a>
-          `}
-          <button type="button" class="account-btn-action" id="btn-account-sync-now" style="margin-top: 0;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
-            Sync Telemetry Now
-          </button>
-          <button type="button" class="account-btn-secondary" id="btn-account-signout">
-            Sign Out
-          </button>
-        </div>
-
-        <div class="panel-footer" style="margin-top: 10px;">
-          <div class="panel-sub-note">IndexIndia Cross-Device Cloud Sync</div>
         </div>
       `;
 
@@ -1397,36 +2503,35 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
     // 2. If Supabase is NOT configured yet
     if (!isConfigured) {
+      updateAccountBarStatusPill("local", "Guest / Local");
       accountPanel.innerHTML = `
-        <div class="panel-header">
-          <div class="panel-user-meta">
-            <span class="user-id">GUEST / LOCAL</span>
+        <div class="account-horizontal-grid">
+          <div class="account-col-card" style="gap: 8px;">
+            <div class="panel-user-meta">
+              <span class="user-id">GUEST / LOCAL STORAGE</span>
+            </div>
+            <div style="font-size: 0.76rem; color: var(--text-secondary); line-height: 1.5;">
+              Connect your <strong>Supabase</strong> project to automatically sync annotations, notes &amp; AI doubts across devices.
+            </div>
+            <div class="account-status-msg" id="account-status-msg"></div>
+            <div class="panel-footer" style="margin-top: auto;">
+              <div class="panel-sub-note">Free at supabase.com &bull; Keys stored in browser</div>
+            </div>
           </div>
-          <div class="active-pulse-indicator" style="color: var(--text-tertiary);" title="Local storage only">
-            <span class="pulse-dot" style="background: var(--text-tertiary);"></span> Local
+
+          <div class="account-col-card">
+            <div class="account-config-box" style="margin-top: 0;">
+              <label class="account-field-label">Supabase Project URL</label>
+              <input type="text" class="account-input" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co" autocomplete="off" spellcheck="false" />
+
+              <label class="account-field-label">Supabase Anon Public Key</label>
+              <input type="password" class="account-input" id="cfg-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsIn..." autocomplete="off" spellcheck="false" />
+
+              <button type="button" class="account-btn-action" id="btn-save-supabase-cfg">
+                Connect Cloud Sync
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.45;">
-          Connect your <strong>Supabase</strong> project to automatically sync your annotations &amp; AI questions across all your devices.
-        </div>
-
-        <div class="account-status-msg" id="account-status-msg"></div>
-
-        <div class="account-config-box" style="margin-top: 0;">
-          <label class="account-field-label">Supabase Project URL</label>
-          <input type="text" class="account-input" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co" autocomplete="off" spellcheck="false" />
-
-          <label class="account-field-label">Supabase Anon Public Key</label>
-          <input type="password" class="account-input" id="cfg-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsIn..." autocomplete="off" spellcheck="false" />
-
-          <button type="button" class="account-btn-action" id="btn-save-supabase-cfg">
-            Connect Cloud Sync
-          </button>
-        </div>
-
-        <div class="panel-footer" style="margin-top: 10px;">
-          <div class="panel-sub-note">Free at supabase.com &bull; Keys stored in browser</div>
         </div>
       `;
 
@@ -1459,72 +2564,70 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     }
 
     // 3. Supabase IS configured, but User is LOGGED OUT
+    updateAccountBarStatusPill("online", "Cloud Ready");
     const config = sb.getConfig();
     accountPanel.innerHTML = `
-      <div class="panel-header">
-        <div class="panel-user-meta">
-          <span class="user-id">CLOUD READY</span>
-        </div>
-        <div class="active-pulse-indicator" style="color: var(--status-optimal);" title="Ready to sign in">
-          <span class="pulse-dot" style="background: var(--status-optimal);"></span> Online
-        </div>
-      </div>
-
-      <div class="account-auth-tabs">
-        <button type="button" class="account-auth-tab ${accountActiveTab === "signin" ? "active" : ""}" id="tab-auth-signin">Sign In</button>
-        <button type="button" class="account-auth-tab ${accountActiveTab === "signup" ? "active" : ""}" id="tab-auth-signup">Sign Up</button>
-        <button type="button" class="account-auth-tab ${accountActiveTab === "magic" ? "active" : ""}" id="tab-auth-magic">Magic Link</button>
-      </div>
-
-      <button type="button" class="account-btn-action account-google-btn" id="btn-auth-google">
-        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-        Sign in with Google
-      </button>
-
-      <div class="account-divider-row">
-        <span>OR EMAIL</span>
-      </div>
-
-      <div class="account-status-msg" id="account-status-msg"></div>
-
-      <form id="account-auth-form" autocomplete="on">
-        <label class="account-field-label">Email Address</label>
-        <input type="email" class="account-input" id="auth-email" placeholder="reader@institutional.com" required autocomplete="email" />
-
-        ${accountActiveTab !== "magic" ? `
-          <label class="account-field-label">Password</label>
-          <div class="account-password-wrapper">
-            <input type="password" class="account-input" id="auth-password" placeholder="••••••••••••" required autocomplete="current-password" />
-            <button type="button" class="account-pwd-toggle-btn" id="btn-toggle-pwd" title="Show / Hide Password" aria-label="Toggle password visibility">
-              <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="7" r="3"></circle>
-              </svg>
-            </button>
+      <div class="account-horizontal-grid">
+        <div class="account-col-card">
+          <div class="account-auth-tabs" style="margin-bottom: 10px;">
+            <button type="button" class="account-auth-tab ${accountActiveTab === "signin" ? "active" : ""}" id="tab-auth-signin">Sign In</button>
+            <button type="button" class="account-auth-tab ${accountActiveTab === "signup" ? "active" : ""}" id="tab-auth-signup">Sign Up</button>
+            <button type="button" class="account-auth-tab ${accountActiveTab === "magic" ? "active" : ""}" id="tab-auth-magic">Magic Link</button>
           </div>
-        ` : ''}
 
-        <button type="submit" class="account-btn-action" id="btn-auth-submit">
-          ${accountActiveTab === "signin" ? "Sign In" : (accountActiveTab === "signup" ? "Create Account" : "Send Magic Link")}
-        </button>
-      </form>
+          <button type="button" class="account-btn-action account-google-btn" id="btn-auth-google" style="margin-top: 0; margin-bottom: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            Sign in with Google
+          </button>
 
-      ${isConfigBoxVisible ? `
-        <div class="account-config-box">
-          <label class="account-field-label">Supabase URL</label>
-          <input type="text" class="account-input" id="cfg-supabase-url" value="${config.url || ''}" />
-          <label class="account-field-label">Anon Key</label>
-          <input type="password" class="account-input" id="cfg-supabase-key" value="${config.anonKey || ''}" />
-          <button type="button" class="account-btn-action" id="btn-save-supabase-cfg">Update Keys</button>
+          <a href="membership.html" class="account-btn-secondary" style="margin-top: 0; text-decoration: none; color: var(--accent);">
+            Lifetime Sovereign Clearance &bull; &#8377;99 &rarr;
+          </a>
+
+          ${isConfigBoxVisible ? `
+            <div class="account-config-box" style="margin-top: 8px;">
+              <label class="account-field-label">Supabase URL</label>
+              <input type="text" class="account-input" id="cfg-supabase-url" value="${escFloatHtml(config.url || '')}" />
+              <label class="account-field-label">Anon Key</label>
+              <input type="password" class="account-input" id="cfg-supabase-key" value="${escFloatHtml(config.anonKey || '')}" />
+              <button type="button" class="account-btn-action" id="btn-save-supabase-cfg">Update Keys</button>
+            </div>
+          ` : ''}
+
+          <button type="button" class="account-config-toggle" id="btn-toggle-cfg" style="margin-top: 8px;">
+            ${isConfigBoxVisible ? "Hide Supabase Settings" : "⚙ Supabase Settings"}
+          </button>
         </div>
-      ` : ''}
 
-      <button type="button" class="account-config-toggle" id="btn-toggle-cfg">
-        ${isConfigBoxVisible ? "Hide Supabase Settings" : "⚙ Supabase Settings"}
-      </button>
+        <div class="account-col-card">
+          <div class="account-status-msg" id="account-status-msg"></div>
 
-      <div class="panel-footer" style="margin-top: 10px;">
-        <div class="panel-sub-note">Local-First Storage &bull; End-to-End Encrypted</div>
+          <form id="account-auth-form" autocomplete="on">
+            <label class="account-field-label">Email Address</label>
+            <input type="email" class="account-input" id="auth-email" placeholder="reader@institutional.com" required autocomplete="email" />
+
+            ${accountActiveTab !== "magic" ? `
+              <label class="account-field-label">Password</label>
+              <div class="account-password-wrapper">
+                <input type="password" class="account-input" id="auth-password" placeholder="••••••••••••" required autocomplete="current-password" />
+                <button type="button" class="account-pwd-toggle-btn" id="btn-toggle-pwd" title="Show / Hide Password" aria-label="Toggle password visibility">
+                  <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="7" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            ` : ''}
+
+            <button type="submit" class="account-btn-action" id="btn-auth-submit">
+              ${accountActiveTab === "signin" ? "Sign In" : (accountActiveTab === "signup" ? "Create Account" : "Send Magic Link")}
+            </button>
+          </form>
+
+          <div class="panel-footer" style="margin-top: 10px;">
+            <div class="panel-sub-note">Local-First Storage &bull; End-to-End Encrypted</div>
+          </div>
+        </div>
       </div>
     `;
 
@@ -1571,7 +2674,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       } catch (err) {
         if (msg) {
           msg.className = "account-status-msg error";
-          msg.innerHTML = `<strong>Google Sign-in:</strong><br>${err.message || "Google sign-in could not be completed."}`;
+          msg.innerHTML = `<strong>Google Sign-in:</strong><br>${escFloatHtml(err.message || "Google sign-in could not be completed.")}`;
         }
       } finally {
         if (googleBtn) {
@@ -1658,6 +2761,9 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
   // Bind auth state change to re-render account panel, update badges, and sync exclusive content
   async function handleAuthChange(event, user) {
     renderAccountPanel();
+    if (typeof refreshContactAuthUI === "function") {
+      refreshContactAuthUI();
+    }
     if (user) {
       triggerCloudSyncAll();
       if (window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.getUserMembership === "function") {
@@ -2441,43 +3547,16 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     const panel = document.getElementById("shortcuts-panel");
     if (!panel) return;
 
-    const isAuthenticated = window.IndexIndiaSupabase && typeof window.IndexIndiaSupabase.isAuthenticated === "function" && window.IndexIndiaSupabase.isAuthenticated();
-    const syncStatusText = isAuthenticated ? "● Cloud Synced" : "● Local Storage";
-
-    const navItems = Object.values(activeShortcuts).filter(s => s.group === "NAVIGATION & SUITE");
-    const cmdItems = Object.values(activeShortcuts).filter(s => s.group === "COMMANDS & PREFERENCES");
+    const allItems = Object.values(activeShortcuts);
 
     panel.innerHTML = `
-      <div class="shortcuts-panel-header" style="justify-content: flex-end; margin-bottom: 6px;">
-        <button type="button" class="shortcut-reset-btn font-mono" id="btn-reset-shortcuts" title="Reset all shortcuts to defaults">Reset Defaults</button>
-      </div>
-      <div class="shortcut-hint-banner font-mono">
-        Click any shortcut badge to customize. Letters &amp; symbols require a Ctrl or Alt combination.
-      </div>
-      <div class="shortcut-recorder-box font-mono" id="shortcut-recorder-box" style="display:none;"></div>
-
-      <div class="shortcuts-group">
-        <div class="shortcuts-group-title">NAVIGATION &amp; SUITE</div>
-        ${navItems.map(s => `
-          <div class="shortcut-row" data-action-id="${s.id}">
-            <span class="shortcut-desc">${s.desc}</span>
-            <button type="button" class="shortcut-edit-btn ${recordingShortcutAction === s.id ? 'is-recording' : ''}" data-action-id="${s.id}" title="Click to customize shortcut for ${s.desc}">
-              <span class="shortcut-keys"><kbd>${recordingShortcutAction === s.id ? 'Press Keys...' : s.display}</kbd></span>
-              <span class="shortcut-pencil font-mono">✎</span>
-            </button>
-          </div>
-        `).join("")}
-      </div>
-
-      <div class="panel-divider" style="margin: 8px 0;"></div>
-
-      <div class="shortcuts-group">
-        <div class="shortcuts-group-title">COMMANDS &amp; PREFERENCES</div>
-        ${cmdItems.map(s => `
-          <div class="shortcut-row" data-action-id="${s.id}">
-            <span class="shortcut-desc">${s.desc}</span>
-            <button type="button" class="shortcut-edit-btn ${recordingShortcutAction === s.id ? 'is-recording' : ''}" data-action-id="${s.id}" title="Click to customize shortcut for ${s.desc}">
-              <span class="shortcut-keys"><kbd>${recordingShortcutAction === s.id ? 'Press Keys...' : s.display}</kbd></span>
+      <div class="shortcut-recorder-box font-mono" id="shortcut-recorder-box" style="display:none;margin-bottom:8px;"></div>
+      <div class="shortcuts-grid-3col">
+        ${allItems.map(s => `
+          <div class="shortcut-grid-cell" data-action-id="${escFloatHtml(s.id)}">
+            <span class="shortcut-desc" title="${escFloatHtml(s.desc)}">${escFloatHtml(s.desc)}</span>
+            <button type="button" class="shortcut-edit-btn ${recordingShortcutAction === s.id ? 'is-recording' : ''}" data-action-id="${escFloatHtml(s.id)}" title="Click to customize shortcut for ${escFloatHtml(s.desc)}">
+              <span class="shortcut-keys"><kbd>${recordingShortcutAction === s.id ? 'Press...' : escFloatHtml(s.display)}</kbd></span>
               <span class="shortcut-pencil font-mono">✎</span>
             </button>
           </div>
@@ -2499,7 +3578,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     if (recorderBox) {
       recorderBox.style.display = "block";
       recorderBox.className = "shortcut-recorder-box font-mono";
-      recorderBox.innerHTML = `<strong>[RECORDING]</strong> Press new shortcut for <em>${item.desc}</em>.<br><span style="opacity:0.8;">Must use Ctrl/Alt, or special keys (Tab, Arrows, Space, Enter). Press Esc to cancel.</span>`;
+      recorderBox.innerHTML = `<strong>[RECORDING]</strong> Press new shortcut for <em>${escFloatHtml(item.desc)}</em>. <span style="opacity:0.8;">Use Ctrl/Alt or special keys (Tab, Arrows, Space, Enter). Press Esc to cancel.</span>`;
     }
 
     if (recordingHandlerRef) {
@@ -2539,7 +3618,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
         }
         if (recorderBox) {
           recorderBox.className = "shortcut-recorder-box is-error font-mono";
-          recorderBox.innerHTML = `⚠️ <strong>DISALLOWED:</strong> ${res.error}`;
+          recorderBox.innerHTML = `⚠️ <strong>DISALLOWED:</strong> ${escFloatHtml(res.error)}`;
         }
         return;
       }
@@ -2603,11 +3682,13 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       });
     });
 
-    // Reset button
+    // Reset button (lives in floating bar header, bind once)
     const resetBtn = document.getElementById("btn-reset-shortcuts");
-    if (resetBtn) {
+    if (resetBtn && resetBtn.dataset.bound !== "1") {
+      resetBtn.dataset.bound = "1";
       resetBtn.addEventListener("click", (e) => {
         e.preventDefault();
+        e.stopPropagation();
         activeShortcuts = JSON.parse(JSON.stringify(DEFAULT_SHORTCUTS));
         try {
           localStorage.removeItem("indexindia_custom_shortcuts");
@@ -2748,9 +3829,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     // 2. Shortcut Panel
     if (matchesShortcut(e, activeShortcuts.shortcutsPanel) || (e.key === "?" && noModifiers)) {
       e.preventDefault();
-      if (accountWrapper) accountWrapper.classList.remove("is-open");
-      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
-      if (shortcutsWrapper) shortcutsWrapper.classList.toggle("is-open");
+      toggleTopFloatingBar("shortcuts");
       return;
     }
 
@@ -2764,7 +3843,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     // 4. Contact Us
     if (matchesShortcut(e, activeShortcuts.contactUs)) {
       e.preventDefault();
-      window.location.href = "contact.html";
+      toggleTopFloatingBar("contact");
       return;
     }
 
@@ -2950,9 +4029,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
     // 18. Close Overlays
     if (matchesShortcut(e, activeShortcuts.closeOverlays)) {
-      if (shortcutsWrapper) shortcutsWrapper.classList.remove("is-open");
-      if (accountWrapper) accountWrapper.classList.remove("is-open");
-      if (settingsWrapper) settingsWrapper.classList.remove("is-open");
+      closeAllTopFloatingBars();
       closeTreeExplicitly();
       closeDoubtSolver();
       closeNavSearchResults();
@@ -3007,8 +4084,9 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       e.stopPropagation();
       const isOpen = dropdownFontSize.classList.contains("is-open");
       if (dropdownFontStyle) dropdownFontStyle.classList.remove("is-open");
+      if (btnFontStyleTrigger) btnFontStyleTrigger.setAttribute("aria-expanded", "false");
       dropdownFontSize.classList.toggle("is-open", !isOpen);
-      btnFontSizeTrigger.setAttribute("aria-expanded", !isOpen);
+      btnFontSizeTrigger.setAttribute("aria-expanded", String(!isOpen));
     });
   }
 
@@ -3017,10 +4095,28 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       e.stopPropagation();
       const isOpen = dropdownFontStyle.classList.contains("is-open");
       if (dropdownFontSize) dropdownFontSize.classList.remove("is-open");
+      if (btnFontSizeTrigger) btnFontSizeTrigger.setAttribute("aria-expanded", "false");
       dropdownFontStyle.classList.toggle("is-open", !isOpen);
-      btnFontStyleTrigger.setAttribute("aria-expanded", !isOpen);
+      btnFontStyleTrigger.setAttribute("aria-expanded", String(!isOpen));
     });
   }
+
+  // Close settings dropdown lists when clicking anywhere outside them (without closing settings bar)
+  document.addEventListener("pointerdown", (e) => {
+    const t = e.target instanceof Element ? e.target : e.target?.parentElement;
+    if (dropdownFontSize && dropdownFontSize.classList.contains("is-open")) {
+      if (!t || !dropdownFontSize.contains(t)) {
+        dropdownFontSize.classList.remove("is-open");
+        if (btnFontSizeTrigger) btnFontSizeTrigger.setAttribute("aria-expanded", "false");
+      }
+    }
+    if (dropdownFontStyle && dropdownFontStyle.classList.contains("is-open")) {
+      if (!t || !dropdownFontStyle.contains(t)) {
+        dropdownFontStyle.classList.remove("is-open");
+        if (btnFontStyleTrigger) btnFontStyleTrigger.setAttribute("aria-expanded", "false");
+      }
+    }
+  });
 
   const dropdownItems = document.querySelectorAll(".dropdown-item");
   dropdownItems.forEach((item) => {
@@ -3059,6 +4155,12 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     document.body.classList.add("theme-dark");
     document.body.classList.remove("theme-light");
     if (contrastToggle) contrastToggle.checked = true;
+  }
+
+  const savedGrid = localStorage.getItem("indexindia_grid");
+  if (savedGrid === "off") {
+    document.body.classList.add("no-grid");
+    if (gridToggle) gridToggle.checked = false;
   }
 
   const savedFontSize = localStorage.getItem("indexindia_font_size");
@@ -3103,8 +4205,10 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     gridToggle.addEventListener("change", (e) => {
       if (e.target.checked) {
         document.body.classList.remove("no-grid");
+        try { localStorage.setItem("indexindia_grid", "on"); } catch (_) {}
       } else {
         document.body.classList.add("no-grid");
+        try { localStorage.setItem("indexindia_grid", "off"); } catch (_) {}
       }
     });
   }
@@ -5368,7 +6472,9 @@ INSTRUCTIONS:
 
   function toggleBackgroundGrid() {
     document.body.classList.toggle("no-grid");
-    if (gridToggle) gridToggle.checked = !document.body.classList.contains("no-grid");
+    const isNoGrid = document.body.classList.contains("no-grid");
+    if (gridToggle) gridToggle.checked = !isNoGrid;
+    try { localStorage.setItem("indexindia_grid", isNoGrid ? "off" : "on"); } catch (_) {}
   }
 
   function navigateToSectionAnchor(hash) {
@@ -5629,15 +6735,19 @@ INSTRUCTIONS:
       },
       {
         category: "KEYBOARD SHORTCUTS",
+        title: "Contact Us (Issue / Improvement)",
+        subtitle: "Open the top-center floating Contact Us bar",
+        badge: "Ctrl + Alt + C",
+        keywords: "contact us report issue bug improvement screenshot dispatch email shortcut binding",
+        action: () => toggleTopFloatingBar("contact")
+      },
+      {
+        category: "KEYBOARD SHORTCUTS",
         title: "Shortcuts Cheatsheet",
         subtitle: "Open the complete institutional keyboard shortcuts reference",
         badge: "Ctrl + \\",
         keywords: "shortcuts panel cheatsheet keyboard reference help backslash shortcut binding",
-        action: () => {
-          if (shortcutsWrapper) {
-            shortcutsWrapper.classList.toggle("is-open");
-          }
-        }
+        action: () => toggleTopFloatingBar("shortcuts")
       },
       {
         category: "KEYBOARD SHORTCUTS",
@@ -5646,10 +6756,12 @@ INSTRUCTIONS:
         badge: "Esc",
         keywords: "close escape dismiss overlays drawers panels highlights cancel shortcut binding",
         action: () => {
+          closeAllTopFloatingBars();
           closeTreeExplicitly();
           closeDoubtSolver();
           closeNavSearchResults();
           clearFinderHighlights();
+          closeAnnotationPanel();
         }
       }
     ];
@@ -5954,43 +7066,15 @@ INSTRUCTIONS:
   }
 
   function openSearchPanel() {
-    const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
-    const btn = document.getElementById("search-nav-btn") || searchNavBtn;
-    if (bar) bar.classList.add("is-visible");
-    if (btn) btn.classList.add("is-active");
-    if (typeof closeAnnotationPanel === "function" && isAnnotationPanelActive && isAnnotationPanelActive()) {
-      closeAnnotationPanel();
-    }
-    document.querySelectorAll(".panel-trigger-wrapper.is-open").forEach(w => w.classList.remove("is-open"));
-    const inp = document.getElementById("nav-search-input") || navSearchInput;
-    if (inp) {
-      setTimeout(() => {
-        inp.focus();
-        if (inp.value) {
-          inp.select();
-          renderSearchResults(inp.value);
-        }
-      }, 30);
-    }
+    openTopFloatingBar("search");
   }
 
   function closeSearchPanel() {
-    const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
-    const btn = document.getElementById("search-nav-btn") || searchNavBtn;
-    if (bar) bar.classList.remove("is-visible");
-    if (btn) btn.classList.remove("is-active");
-    closeNavSearchResults();
-    const inp = document.getElementById("nav-search-input") || navSearchInput;
-    if (inp) inp.blur();
+    closeTopFloatingBar("search");
   }
 
   function toggleSearchPanel() {
-    const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
-    if (bar && bar.classList.contains("is-visible")) {
-      closeSearchPanel();
-    } else {
-      openSearchPanel();
-    }
+    toggleTopFloatingBar("search");
   }
 
   focusNavSearchBar = openSearchPanel;
@@ -6011,23 +7095,40 @@ INSTRUCTIONS:
   window.closeSearchPanel = closeSearchPanel;
   window.toggleSearchPanel = toggleSearchPanel;
 
-  const sNavBtn = document.getElementById("search-nav-btn") || searchNavBtn;
-  if (sNavBtn) {
-    sNavBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleSearchPanel();
-    });
+  const sBarEl = document.getElementById("search-floating-bar") || searchFloatingBar;
+  if (sBarEl) {
+    makeFloatingBarDraggable(sBarEl);
   }
 
-  const sCloseBtn = document.getElementById("search-bar-close-btn") || searchBarCloseBtn;
-  if (sCloseBtn) {
-    sCloseBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeSearchPanel();
-    });
-  }
+  registerTopFloatingBar({
+    id: "search",
+    wrapper: document.getElementById("search-nav-wrapper"),
+    btn: document.getElementById("search-nav-btn") || searchNavBtn,
+    barId: "search-floating-bar",
+    extraHoverSelectors: ["#nav-search-results-dropdown"],
+    onPreview: () => {
+      // Preview shows bar cleanly on hover without stealing focus from page
+    },
+    onPin: ({ fromInteraction }) => {
+      if (!fromInteraction) {
+        const inp = document.getElementById("nav-search-input") || navSearchInput;
+        if (inp) {
+          setTimeout(() => {
+            inp.focus();
+            if (inp.value) {
+              inp.select();
+              renderSearchResults(inp.value);
+            }
+          }, 30);
+        }
+      }
+    },
+    onClose: () => {
+      closeNavSearchResults();
+      const inp = document.getElementById("nav-search-input") || navSearchInput;
+      if (inp) inp.blur();
+    }
+  });
 
   const sClearBtn = document.getElementById("search-panel-clear-btn") || searchClearBtn;
   if (sClearBtn) {
@@ -6104,49 +7205,19 @@ INSTRUCTIONS:
         }
       } else if (e.key === "Escape") {
         e.preventDefault();
+        e.stopPropagation();
         closeSearchPanel();
       }
     });
   }
 
-  const searchDragHandle = document.querySelector("#search-floating-bar .palette-drag-handle");
-  const sBarEl = document.getElementById("search-floating-bar") || searchFloatingBar;
-  if (searchDragHandle && sBarEl) {
-    let isDraggingSearchBar = false;
-    let searchOffsetX = 0;
-    let searchOffsetY = 0;
-
-    searchDragHandle.addEventListener("pointerdown", (e) => {
-      isDraggingSearchBar = true;
-      const rect = sBarEl.getBoundingClientRect();
-      searchOffsetX = e.clientX - rect.left;
-      searchOffsetY = e.clientY - rect.top;
-      try { searchDragHandle.setPointerCapture(e.pointerId); } catch (_) {}
-      sBarEl.style.transform = "none";
-      e.preventDefault();
-    });
-
-    searchDragHandle.addEventListener("pointermove", (e) => {
-      if (!isDraggingSearchBar) return;
-      const newX = Math.max(10, Math.min(window.innerWidth - sBarEl.offsetWidth - 10, e.clientX - searchOffsetX));
-      const newY = Math.max(10, Math.min(window.innerHeight - sBarEl.offsetHeight - 10, e.clientY - searchOffsetY));
-      sBarEl.style.left = `${newX}px`;
-      sBarEl.style.top = `${newY}px`;
-    });
-
-    const stopSearchDrag = () => {
-      isDraggingSearchBar = false;
-    };
-    searchDragHandle.addEventListener("pointerup", stopSearchDrag);
-    searchDragHandle.addEventListener("pointercancel", stopSearchDrag);
-  }
-
+  // Outside click only collapses the autocomplete suggestions dropdown, NOT the pinned search bar
   document.addEventListener("mousedown", (e) => {
     const bar = document.getElementById("search-floating-bar") || searchFloatingBar;
     const btn = document.getElementById("search-nav-btn") || searchNavBtn;
     if (bar && bar.classList.contains("is-visible")) {
       if (!bar.contains(e.target) && (!btn || !btn.contains(e.target))) {
-        closeSearchPanel();
+        closeNavSearchResults();
       }
     }
   });
@@ -6207,6 +7278,7 @@ INSTRUCTIONS:
       document.body.classList.remove("no-grid");
       const gridToggle = document.getElementById("grid-toggle");
       if (gridToggle) gridToggle.checked = true;
+      try { localStorage.setItem("indexindia_grid", "on"); } catch (_) {}
     }
   }
 
@@ -6236,6 +7308,9 @@ INSTRUCTIONS:
       targetEl.closest(".rail-navigator") ||
       targetEl.closest("#doubt-solver-tile") ||
       targetEl.closest(".edit-annotation-bar") ||
+      targetEl.closest(".utility-floating-bar") ||
+      targetEl.closest(".search-floating-bar") ||
+      targetEl.closest(".shortcut-customizer-bar") ||
       targetEl.closest(".sticker-popover") ||
       targetEl.closest(".nav-restore-float-btn")
     ) {
@@ -7905,6 +8980,9 @@ INSTRUCTIONS:
       paletteOffsetX = e.clientX - rect.left;
       paletteOffsetY = e.clientY - rect.top;
       try { paletteDragHandle.setPointerCapture(e.pointerId); } catch (_) {}
+      editAnnotationBar.classList.add("is-dragging-bar");
+      editAnnotationBar.style.left = `${rect.left}px`;
+      editAnnotationBar.style.top = `${rect.top}px`;
       editAnnotationBar.style.transform = "none";
       e.preventDefault();
     });
@@ -7923,6 +9001,7 @@ INSTRUCTIONS:
 
     const stopPaletteDrag = () => {
       isDraggingPalette = false;
+      editAnnotationBar.classList.remove("is-dragging-bar");
     };
     paletteDragHandle.addEventListener("pointerup", stopPaletteDrag);
     paletteDragHandle.addEventListener("pointercancel", stopPaletteDrag);
@@ -7980,22 +9059,22 @@ INSTRUCTIONS:
   });
 
   // --- 14. OPEN / CLOSE PALETTE CONTROLS ---
-  openAnnotationPanel = function() {
-    closeSearchPanel();
+  function activateAnnotationMode({ fromInteraction = false } = {}) {
     annotationState.isOpen = true;
     document.body.classList.add("is-annotating");
-    if (editAnnotationBar) editAnnotationBar.classList.add("is-visible");
-    if (editNavBtn) editNavBtn.classList.add("is-active");
     syncAnnotationCanvasDimensions();
-    setAnnotationTool(annotationState.activeTool || "sketch");
+    if (!fromInteraction || annotationState.activeTool !== "sticker") {
+      setAnnotationTool(annotationState.activeTool || "sketch");
+    }
     updateAnnotationCounter();
-  };
+  }
 
-  closeAnnotationPanel = function() {
+  function deactivateAnnotationMode() {
     annotationState.isOpen = false;
+    if (annotationState.activeTool === "sticker") {
+      annotationState.activeTool = "sketch";
+    }
     document.body.classList.remove("is-annotating");
-    if (editAnnotationBar) editAnnotationBar.classList.remove("is-visible");
-    if (editNavBtn) editNavBtn.classList.remove("is-active");
     if (stickerPopover) stickerPopover.classList.remove("is-open");
     document.body.classList.remove("annotation-mode-sketch", "annotation-mode-eraser", "annotation-mode-select", "annotation-mode-pan");
     if (annotationSvgCanvas) annotationSvgCanvas.classList.remove("is-drawing");
@@ -8016,34 +9095,42 @@ INSTRUCTIONS:
       window.scrollTo({ left: 0, behavior: "smooth" });
     }
     syncAnnotationCanvasDimensions();
+  }
+
+  openAnnotationPanel = function() {
+    openTopFloatingBar("edit");
+  };
+
+  closeAnnotationPanel = function() {
+    closeTopFloatingBar("edit");
   };
 
   toggleAnnotationPanel = function() {
-    if (annotationState.isOpen) {
-      closeAnnotationPanel();
-    } else {
-      openAnnotationPanel();
-    }
+    toggleTopFloatingBar("edit");
   };
 
   isAnnotationPanelActive = function() {
     return Boolean(annotationState.isOpen);
   };
 
-  if (editNavBtn) {
-    editNavBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleAnnotationPanel();
-    });
-  }
-
-  if (annotationBtnClose) {
-    annotationBtnClose.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeAnnotationPanel();
-    });
-  }
+  registerTopFloatingBar({
+    id: "edit",
+    wrapper: document.getElementById("edit-nav-wrapper"),
+    btn: editNavBtn,
+    bar: editAnnotationBar,
+    closeBtnSelector: "#annotation-btn-close",
+    extraHoverSelectors: ["#sticker-popover"],
+    onPreview: () => {
+      // Hover preview shows toolbar without activating drawing mode
+      updateAnnotationCounter();
+    },
+    onPin: ({ fromInteraction }) => {
+      activateAnnotationMode({ fromInteraction });
+    },
+    onClose: () => {
+      deactivateAnnotationMode();
+    }
+  });
 
   // Keyboard shortcuts when annotation panel is open (V: select, P: sketch, H: highlight, T: textbox, S: note, K: sticker, X: eraser, G: snap)
   document.addEventListener("keydown", (e) => {
@@ -8621,6 +9708,7 @@ INSTRUCTIONS:
   hideTopBar = function() {
     document.body.classList.add("top-bar-hidden");
     if (expandNavBtn) expandNavBtn.classList.add("is-active");
+    hideTopFloatingHoverPreview();
     try {
       localStorage.setItem("indexindia_topbar_hidden", "true");
     } catch (e) {}
@@ -8701,7 +9789,7 @@ INSTRUCTIONS:
       "expand-nav-btn": "[EXPAND]",
       "search-nav-btn": "[SEARCH]",
       "nav-tree-toggle-btn": "[DIRECTORY TREE]",
-      "contact-nav-btn": "[CONTACT]",
+      "contact-nav-btn": "[CONTACT US]",
       "feedback-nav-btn": "[FEEDBACK]",
       "doubt-nav-btn": "[ASK AI]",
       "edit-nav-btn": "[EDIT]",
@@ -8897,7 +9985,7 @@ INSTRUCTIONS:
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
       action: () => {
         openAnnotationPanel();
-        if (stickerPopover) stickerPopover.classList.toggle("is-open");
+        setAnnotationTool("sticker");
       }
     },
     {
@@ -8963,8 +10051,7 @@ INSTRUCTIONS:
       tag: "[SEARCH]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`,
       action: () => {
-        const btn = document.getElementById("search-nav-btn");
-        if (btn) btn.click();
+        toggleTopFloatingBar("search");
       }
     },
     {
@@ -8993,8 +10080,7 @@ INSTRUCTIONS:
       tag: "[EDIT]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`,
       action: () => {
-        const btn = document.getElementById("edit-nav-btn");
-        if (btn) btn.click();
+        toggleTopFloatingBar("edit");
       }
     },
     {
@@ -9003,8 +10089,7 @@ INSTRUCTIONS:
       tag: "[SHORTCUTS]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>`,
       action: () => {
-        const btn = document.getElementById("shortcuts-btn");
-        if (btn) btn.click();
+        toggleTopFloatingBar("shortcuts");
       }
     },
     {
@@ -9013,9 +10098,16 @@ INSTRUCTIONS:
       tag: "[CONTACT US]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>`,
       action: () => {
-        const btn = document.getElementById("contact-nav-btn");
-        if (btn) btn.click();
-        else window.location.href = "contact.html";
+        toggleTopFloatingBar("contact");
+      }
+    },
+    {
+      id: "account",
+      title: "Account Dossier & Cloud Sync",
+      tag: "[ACCOUNT]",
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+      action: () => {
+        toggleTopFloatingBar("account");
       }
     },
     {
@@ -9055,12 +10147,7 @@ INSTRUCTIONS:
       tag: "[DARK MODE]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`,
       action: () => {
-        const contrastToggle = document.getElementById("contrast-toggle");
-        if (contrastToggle) {
-          contrastToggle.click();
-        } else {
-          document.body.classList.toggle("theme-dark");
-        }
+        toggleThemeMode();
       }
     },
     {
@@ -9069,12 +10156,7 @@ INSTRUCTIONS:
       tag: "[GRID BG]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="3" x2="21" y2="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="3" x2="3" y2="21"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="21" y1="3" x2="21" y2="21"/></svg>`,
       action: () => {
-        const gridToggle = document.getElementById("grid-toggle");
-        if (gridToggle) {
-          gridToggle.click();
-        } else {
-          document.body.classList.toggle("canvas-grid-subtle");
-        }
+        toggleBackgroundGrid();
       }
     },
     {
@@ -9102,11 +10184,10 @@ INSTRUCTIONS:
       tag: "[FONT +]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5h3v14M11 19V5h3v14M18 12h5M20.5 9.5v5"/></svg>`,
       action: () => {
-        const sel = document.getElementById("font-size-select");
-        if (sel && sel.selectedIndex < sel.options.length - 1) {
-          sel.selectedIndex += 1;
-          sel.dispatchEvent(new Event("change"));
-        }
+        const sizes = ["small", "medium", "large"];
+        const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
+        const idx = cur === -1 ? 1 : cur;
+        if (idx < sizes.length - 1) applyFontSize(sizes[idx + 1]);
       }
     },
     {
@@ -9115,11 +10196,10 @@ INSTRUCTIONS:
       tag: "[FONT -]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5h3v14M11 19V5h3v14M18 12h5"/></svg>`,
       action: () => {
-        const sel = document.getElementById("font-size-select");
-        if (sel && sel.selectedIndex > 0) {
-          sel.selectedIndex -= 1;
-          sel.dispatchEvent(new Event("change"));
-        }
+        const sizes = ["small", "medium", "large"];
+        const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
+        const idx = cur === -1 ? 1 : cur;
+        if (idx > 0) applyFontSize(sizes[idx - 1]);
       }
     },
     {
@@ -9128,9 +10208,8 @@ INSTRUCTIONS:
       tag: "[FONT STYLE]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>`,
       action: () => {
-        const toggle = document.getElementById("font-toggle");
-        if (toggle) toggle.click();
-        else document.body.classList.toggle("font-typewriter");
+        const isType = document.body.classList.contains("font-style-typewriter");
+        applyFontStyle(isType ? "reading" : "typewriter");
       }
     },
     {
@@ -9199,8 +10278,7 @@ INSTRUCTIONS:
       tag: "[SETTINGS]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`,
       action: () => {
-        const btn = document.getElementById("settings-toggle-btn");
-        if (btn) btn.click();
+        toggleTopFloatingBar("settings");
       }
     }
   ];
@@ -9260,6 +10338,9 @@ INSTRUCTIONS:
         dragOffsetX = e.clientX - rect.left;
         dragOffsetY = e.clientY - rect.top;
         try { dragHandle.setPointerCapture(e.pointerId); } catch (_) {}
+        customizerBar.classList.add("is-dragging-bar");
+        customizerBar.style.left = `${rect.left}px`;
+        customizerBar.style.top = `${rect.top}px`;
         customizerBar.style.transform = "none";
         e.preventDefault();
       });
@@ -9277,6 +10358,7 @@ INSTRUCTIONS:
       const stopDrag = (e) => {
         if (isDragging) {
           isDragging = false;
+          customizerBar.classList.remove("is-dragging-bar");
           try { dragHandle.releasePointerCapture(e.pointerId); } catch (_) {}
         }
       };
@@ -9388,6 +10470,7 @@ INSTRUCTIONS:
     }
 
     function openCustomizer() {
+      closeAllTopFloatingBars();
       customizerBar.classList.add("is-visible");
       customizerBar.style.transform = "translateX(-50%) translateY(0)";
       customizerBar.style.left = "50%";
