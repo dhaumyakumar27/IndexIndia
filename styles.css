@@ -9215,6 +9215,10 @@ body.theme-dark .shortcut-grid-cell:hover {
 }
 
 @media (max-width: 580px) {
+  .utility-floating-bar {
+    max-width: calc(100vw - 16px) !important;
+    padding: 8px 10px 10px;
+  }
   .shortcuts-grid-3col {
     grid-template-columns: 1fr;
   }
