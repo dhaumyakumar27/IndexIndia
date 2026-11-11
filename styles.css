@@ -1143,8 +1143,8 @@ body.theme-dark .shortcut-keys kbd {
 }
 
 /* Show on hover or is-open */
-.custom-dropdown-row:hover .dropdown-menu-list,
-.custom-dropdown:hover .dropdown-menu-list,
+.custom-dropdown-row:not(.suppress-hover-menu):hover .dropdown-menu-list,
+.custom-dropdown:not(.suppress-hover-menu):hover .dropdown-menu-list,
 .custom-dropdown.is-open .dropdown-menu-list {
   display: flex;
   animation: fadeInDown 0.12s ease-out;
@@ -6429,7 +6429,7 @@ body.annotation-mode-eraser * {
 }
 
 body.annotation-mode-eraser #annotation-svg-canvas {
-  pointer-events: auto !important;
+  pointer-events: none !important;
 }
 
 body.annotation-mode-eraser .annotation-stroke {
@@ -8861,6 +8861,221 @@ body.theme-dark .customizer-dropdown {
   .settings-bar-inline {
     flex-wrap: wrap;
     justify-content: center;
+  }
+}
+
+/* --- 1b. ADDED SHORTCUT TOOL FLOATING BARS (Sketch, Highlight, Text Box, Sticky Note, Sticker, Select, Eraser, Snap) --- */
+.shortcut-tool-floating-bar {
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 14px;
+  width: max-content;
+  max-width: 95vw;
+  overflow: visible !important;
+  flex-wrap: nowrap;
+}
+
+.shortcut-tool-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.shortcut-tool-floating-bar .custom-dropdown-row {
+  margin-bottom: 0;
+  gap: 6px;
+  z-index: auto;
+}
+
+.shortcut-tool-floating-bar .custom-dropdown-row:hover,
+.shortcut-tool-floating-bar .custom-dropdown-row:focus-within,
+.shortcut-tool-floating-bar .custom-dropdown-row:has(.custom-dropdown.is-open) {
+  z-index: 60;
+}
+
+.shortcut-tool-floating-bar .custom-dropdown-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.shortcut-tool-floating-bar .custom-dropdown {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 108px;
+  max-width: 196px;
+}
+
+.shortcut-tool-floating-bar .dropdown-trigger {
+  height: 28px;
+  padding: 0 8px;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.shortcut-tool-trigger-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortcut-tool-floating-bar .dropdown-menu-list {
+  min-width: 176px;
+  width: max-content;
+  max-width: 260px;
+  left: 0;
+  right: auto;
+  z-index: 100010;
+}
+
+.shortcut-tool-floating-bar .dropdown-item {
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  padding: 6px 9px;
+}
+
+.shortcut-color-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid rgba(128, 128, 128, 0.45);
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.shortcut-size-dot-wrap {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shortcut-size-dot {
+  border-radius: 50%;
+  background: currentColor;
+  display: block;
+}
+
+.shortcut-custom-color-label {
+  cursor: pointer;
+  margin: 0;
+  justify-content: space-between;
+}
+
+.shortcut-custom-color-input {
+  width: 22px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.shortcut-tool-floating-bar .dropdown-menu-list.is-sticker-menu {
+  min-width: 256px;
+  max-width: 280px;
+  max-height: 310px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.shortcut-menu-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  padding: 4px 6px 3px;
+  user-select: none;
+}
+
+.shortcut-emoji-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 2px 4px 4px;
+}
+
+.shortcut-emoji-menu-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg-surface-subtle);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.shortcut-emoji-menu-item:hover {
+  border-color: var(--accent, #FF3B00);
+  background: var(--bg-card);
+}
+
+.shortcut-emoji-menu-item.active {
+  background: var(--bg-inverted);
+  border-color: var(--bg-inverted);
+}
+
+.shortcut-tool-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.shortcut-tool-actions .palette-btn {
+  height: 28px;
+  min-width: 28px;
+  padding: 0 7px;
+  font-size: 0.72rem;
+}
+
+.shortcut-tool-floating-bar .setting-toggle-row {
+  padding: 0 2px;
+  gap: 6px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.shortcut-tool-floating-bar .setting-toggle-row span {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@media (max-width: 900px) {
+  .shortcut-tool-floating-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 8px;
+    max-width: calc(100vw - 16px);
   }
 }
 

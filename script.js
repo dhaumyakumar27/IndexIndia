@@ -76,6 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let closeAllTopFloatingBars = function() {};
   let hideTopFloatingHoverPreview = function() {};
   let pinTopFloatingBar = function() {};
+  let syncAllShortcutToolBarsUI = function() {};
+  let setGridSizePx = function() {};
 
   // Global Annotation Storage State (hoisted to prevent TDZ errors in account panel)
   const ANNOTATION_STORAGE_KEY = `indexindia_annotations_${window.location.pathname.replace(/\/$/, "") || "/"}`;
@@ -1040,10 +1042,24 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       }
     }
 
+    function getAliasShortcutBtn(id) {
+      return document.getElementById(`pinned-shortcut-${id}`);
+    }
+
+    function syncAliasShortcutBtn(id, { active = false, previewing = false } = {}) {
+      const aliasBtn = getAliasShortcutBtn(id);
+      if (!aliasBtn) return;
+      aliasBtn.classList.toggle("is-active", Boolean(active));
+      aliasBtn.classList.toggle("is-previewing", Boolean(previewing));
+    }
+
     function isCursorInsideEntry(entry) {
       if (!entry) return false;
       if (entry.bar && entry.bar.matches(":hover")) return true;
       if (entry.wrapper && entry.wrapper.matches(":hover")) return true;
+      if (entry.btn && entry.btn.matches(":hover")) return true;
+      const aliasBtn = getAliasShortcutBtn(entry.id);
+      if (aliasBtn && aliasBtn.matches(":hover")) return true;
       if (Array.isArray(entry.extraHoverSelectors)) {
         for (const sel of entry.extraHoverSelectors) {
           const el = document.querySelector(sel);
@@ -1072,6 +1088,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       if (entry.btn) {
         entry.btn.classList.remove("is-active", "is-previewing");
       }
+      syncAliasShortcutBtn(id, { active: false, previewing: false });
       if (entry.wrapper) {
         entry.wrapper.classList.remove("is-open");
       }
@@ -1116,6 +1133,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
         entry.btn.classList.add("is-previewing");
         entry.btn.classList.remove("is-active");
       }
+      syncAliasShortcutBtn(id, { active: false, previewing: true });
       if (typeof entry.onPreview === "function") {
         entry.onPreview();
       }
@@ -1168,6 +1186,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
         entry.btn.classList.add("is-active");
         entry.btn.classList.remove("is-previewing");
       }
+      syncAliasShortcutBtn(id, { active: true, previewing: false });
       if (typeof entry.onPin === "function") {
         entry.onPin({ fromInteraction: Boolean(fromInteraction), promotedFromHover });
       }
@@ -1177,7 +1196,11 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       if (pinnedBarId === id) {
         const entry = entries.get(id);
         const triggerEl = entry && (entry.wrapper || entry.btn);
-        const isHoveringTrigger = Boolean(triggerEl && triggerEl.matches(":hover"));
+        const aliasBtn = getAliasShortcutBtn(id);
+        const isHoveringTrigger = Boolean(
+          (triggerEl && triggerEl.matches(":hover")) ||
+          (aliasBtn && aliasBtn.matches(":hover"))
+        );
         closeEntry(id, { suppressHover: isHoveringTrigger });
       } else {
         pin(id, false);
@@ -1189,6 +1212,14 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       const curHover = hoverBarId;
       if (curPinned) closeEntry(curPinned, { suppressHover: false });
       if (curHover && curHover !== curPinned) closeEntry(curHover, { suppressHover: false });
+    }
+
+    function unregister(id) {
+      clearTimer(id);
+      if (pinnedBarId === id || hoverBarId === id) {
+        closeEntry(id, { suppressHover: false });
+      }
+      entries.delete(id);
     }
 
     function register(config) {
@@ -1223,7 +1254,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
         });
       }
 
-      if (entry.btn && entry.btn.dataset.tcClickBound !== "1") {
+      if (config.bindClick !== false && entry.btn && entry.btn.dataset.tcClickBound !== "1") {
         entry.btn.dataset.tcClickBound = "1";
         entry.btn.addEventListener("click", (e) => {
           e.preventDefault();
@@ -1290,6 +1321,8 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       if (entry.bar && entry.bar.contains(t)) return;
       if (entry.wrapper && entry.wrapper.contains(t)) return;
       if (entry.btn && entry.btn.contains(t)) return;
+      const aliasBtn = getAliasShortcutBtn(hoverBarId);
+      if (aliasBtn && aliasBtn.contains(t)) return;
       if (Array.isArray(entry.extraHoverSelectors)) {
         for (const sel of entry.extraHoverSelectors) {
           if (t.closest(sel)) return;
@@ -1300,11 +1333,17 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
     return {
       register,
+      unregister,
       pin,
       close: (id) => closeEntry(id, { suppressHover: false }),
       toggle: togglePin,
       closeAll,
       hideHoverPreview,
+      showHoverPreview,
+      scheduleLeave,
+      clearSuppressedHover: (id) => {
+        if (suppressedHoverId === id) suppressedHoverId = null;
+      },
       getPinnedId: () => pinnedBarId,
       getHoverId: () => hoverBarId
     };
@@ -2236,7 +2275,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     );
 
     // 1. Section 1 (Unincorporated Entities): "sole proprietorship is best for start up"
-    const unincorporatedSec = document.getElementById("sec-unincorporated");
+    const unincorporatedSec = document.getElementById("sec-module-13") || document.getElementById("sec-unincorporated");
     if (unincorporatedSec) {
       const entityItems = unincorporatedSec.querySelectorAll(".entity-item");
       let solePropCard = null;
@@ -3778,7 +3817,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
       return;
     }
 
-    const mainSections = Array.from(document.querySelectorAll(".chapter-anchor, #sec-chapter-1, #sec-chapter-2, #forum-section, #sec-footer, .institutional-forum-section"));
+    const mainSections = Array.from(document.querySelectorAll('.chapter-anchor, [id^="sec-track-"], #sec-curriculum-overview, #forum-section, #sec-footer, .institutional-forum-section'));
     if (mainSections.length > 0) {
       const scrollPos = window.scrollY + 120;
       let currentIdx = 0;
@@ -3847,10 +3886,10 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
       return;
     }
 
-    // 5. Feedback Radar
+    // 5. Feedback Radar / Contact Floating Bar
     if (matchesShortcut(e, activeShortcuts.feedbackRadar)) {
       e.preventDefault();
-      window.location.href = "feedback.html";
+      toggleTopFloatingBar("contact");
       return;
     }
 
@@ -4101,7 +4140,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     });
   }
 
-  // Close settings dropdown lists when clicking anywhere outside them (without closing settings bar)
+  // Close settings & tool floating bar dropdown lists when clicking anywhere outside them (without closing the floating bar)
   document.addEventListener("pointerdown", (e) => {
     const t = e.target instanceof Element ? e.target : e.target?.parentElement;
     if (dropdownFontSize && dropdownFontSize.classList.contains("is-open")) {
@@ -4116,9 +4155,16 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         if (btnFontStyleTrigger) btnFontStyleTrigger.setAttribute("aria-expanded", "false");
       }
     }
+    document.querySelectorAll(".shortcut-tool-floating-bar .custom-dropdown.is-open").forEach((dd) => {
+      if (!t || !dd.contains(t)) {
+        dd.classList.remove("is-open");
+        const trig = dd.querySelector(".dropdown-trigger");
+        if (trig) trig.setAttribute("aria-expanded", "false");
+      }
+    });
   });
 
-  const dropdownItems = document.querySelectorAll(".dropdown-item");
+  const dropdownItems = document.querySelectorAll("#settings-floating-bar .dropdown-item");
   dropdownItems.forEach((item) => {
     item.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -4143,6 +4189,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         localStorage.setItem("indexindia_font_style", val);
         if (dropdownFontStyle) dropdownFontStyle.classList.remove("is-open");
         if (btnFontStyleTrigger) btnFontStyleTrigger.setAttribute("aria-expanded", "false");
+        syncAllShortcutToolBarsUI();
       }
     });
   });
@@ -4198,6 +4245,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         document.body.classList.add("theme-light");
         localStorage.setItem("indexindia_theme", "light");
       }
+      syncAllShortcutToolBarsUI();
     });
   }
 
@@ -4210,6 +4258,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         document.body.classList.add("no-grid");
         try { localStorage.setItem("indexindia_grid", "off"); } catch (_) {}
       }
+      syncAllShortcutToolBarsUI();
     });
   }
 
@@ -6439,6 +6488,7 @@ INSTRUCTIONS:
       localStorage.setItem("indexindia_theme", "light");
       if (contrastToggle) contrastToggle.checked = false;
     }
+    syncAllShortcutToolBarsUI();
   }
 
   function toggleThemeMode() {
@@ -6456,6 +6506,7 @@ INSTRUCTIONS:
       document.querySelectorAll("#list-font-size .dropdown-item").forEach((el) => el.classList.remove("active"));
       activeItem.classList.add("active");
     }
+    syncAllShortcutToolBarsUI();
   }
 
   function applyFontStyle(style) {
@@ -6468,6 +6519,7 @@ INSTRUCTIONS:
       document.querySelectorAll("#list-font-style .dropdown-item").forEach((el) => el.classList.remove("active"));
       activeItem.classList.add("active");
     }
+    syncAllShortcutToolBarsUI();
   }
 
   function toggleBackgroundGrid() {
@@ -6475,6 +6527,7 @@ INSTRUCTIONS:
     const isNoGrid = document.body.classList.contains("no-grid");
     if (gridToggle) gridToggle.checked = !isNoGrid;
     try { localStorage.setItem("indexindia_grid", isNoGrid ? "off" : "on"); } catch (_) {}
+    syncAllShortcutToolBarsUI();
   }
 
   function navigateToSectionAnchor(hash) {
@@ -7234,11 +7287,23 @@ INSTRUCTIONS:
   let selectionTooltip = document.getElementById("selection-highlight-tooltip");
   let stickerPopover = document.getElementById("sticker-popover");
 
+  const savedGridSizePref = parseInt(localStorage.getItem("indexindia_grid_size") || "24", 10);
+  const initialGridSize = (!isNaN(savedGridSizePref) && savedGridSizePref >= 12 && savedGridSizePref <= 64) ? savedGridSizePref : 24;
+  document.documentElement.style.setProperty("--grid-size", `${initialGridSize}px`);
+
+  const savedTextboxFontPref = parseInt(localStorage.getItem("indexindia_textbox_font_size") || "14", 10);
+  const initialTextboxFontSize = (!isNaN(savedTextboxFontPref) && savedTextboxFontPref >= 10 && savedTextboxFontPref <= 32) ? savedTextboxFontPref : 14;
+
   let annotationState = {
     isOpen: false,
     activeTool: "sketch", // select | sketch | highlight | textbox | stickynote | sticker | eraser
     activeColor: "#FFE066",
     activeSize: 4,
+    strokeStyle: "solid", // solid | dashed | marker
+    highlightStyle: "soft", // soft | vivid | underline
+    textBoxFontSize: initialTextboxFontSize,
+    eraserFilter: "all", // all | stroke | highlight | note | sticker
+    gridSize: initialGridSize,
     currentFocusIdx: -1,
     activeSticker: { type: "tag", variant: "danger", label: "⚠️ HIGH RISK" },
     selectedElementIds: new Set(),
@@ -7251,6 +7316,16 @@ INSTRUCTIONS:
     const parsed = parseInt(sizeStr, 10);
     return isNaN(parsed) || parsed <= 0 ? 24 : parsed;
   }
+
+  setGridSizePx = function(px) {
+    const val = Math.max(12, Math.min(64, parseInt(px, 10) || 24));
+    annotationState.gridSize = val;
+    document.documentElement.style.setProperty("--grid-size", `${val}px`);
+    try {
+      localStorage.setItem("indexindia_grid_size", String(val));
+    } catch (_) {}
+    syncAllShortcutToolBarsUI();
+  };
 
   function snapVal(val, size) {
     if (!annotationState.snapToGrid) return val;
@@ -7280,6 +7355,7 @@ INSTRUCTIONS:
       if (gridToggle) gridToggle.checked = true;
       try { localStorage.setItem("indexindia_grid", "on"); } catch (_) {}
     }
+    syncAllShortcutToolBarsUI();
   }
 
   function toggleSnapToGrid() {
@@ -7294,6 +7370,32 @@ INSTRUCTIONS:
     const g = (num >> 8) & 255;
     const b = num & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function canEraseType(type) {
+    const f = annotationState.eraserFilter || "all";
+    if (f === "all") return true;
+    if (f === "stroke") return type === "stroke";
+    if (f === "highlight") return type === "highlight";
+    if (f === "note") return type === "textbox" || type === "stickynote";
+    if (f === "sticker") return type === "sticker";
+    return true;
+  }
+
+  function applyHighlightVisualStyle(markEl, color, style) {
+    if (!markEl) return;
+    const col = color || "#FFE066";
+    const st = style || "soft";
+    if (st === "vivid") {
+      markEl.style.backgroundColor = hexToRgba(col, 0.62);
+      markEl.style.borderBottom = `2px solid ${col}`;
+    } else if (st === "underline") {
+      markEl.style.backgroundColor = "transparent";
+      markEl.style.borderBottom = `2.5px solid ${col}`;
+    } else {
+      markEl.style.backgroundColor = hexToRgba(col, 0.35);
+      markEl.style.borderBottom = `2px solid ${col}`;
+    }
   }
 
   // Check if click/pointer event is within top-nav or side navigation drawers
@@ -7692,7 +7794,7 @@ INSTRUCTIONS:
   }
 
   function handleItemClick(id, type) {
-    if (annotationState.activeTool === "eraser") {
+    if (annotationState.activeTool === "eraser" && canEraseType(type)) {
       deleteAnnotationItem(id, type);
     }
   }
@@ -7715,6 +7817,9 @@ INSTRUCTIONS:
     `;
 
     const content = el.querySelector(".textbox-content");
+    if (content) {
+      content.style.fontSize = `${tb.fontSize || annotationState.textBoxFontSize || 14}px`;
+    }
     const resizeHandle = el.querySelector(".textbox-resize-handle");
 
     let isMoving = false;
@@ -7744,7 +7849,7 @@ INSTRUCTIONS:
     }
 
     el.addEventListener("pointerdown", (e) => {
-      if (annotationState.activeTool === "eraser") {
+      if (annotationState.activeTool === "eraser" && canEraseType("textbox")) {
         e.stopPropagation();
         deleteAnnotationItem(tb.id, "textbox");
         return;
@@ -7890,7 +7995,7 @@ INSTRUCTIONS:
     });
 
     el.addEventListener("click", (e) => {
-      if (annotationState.activeTool === "eraser") {
+      if (annotationState.activeTool === "eraser" && canEraseType("textbox")) {
         e.stopPropagation();
         deleteAnnotationItem(tb.id, "textbox");
       }
@@ -7954,7 +8059,7 @@ INSTRUCTIONS:
     }
 
     card.addEventListener("pointerdown", (e) => {
-      if (annotationState.activeTool === "eraser") {
+      if (annotationState.activeTool === "eraser" && canEraseType("stickynote")) {
         e.stopPropagation();
         deleteAnnotationItem(sn.id, "stickynote");
         return;
@@ -8106,7 +8211,7 @@ INSTRUCTIONS:
     }
 
     el.addEventListener("click", (e) => {
-      if (annotationState.activeTool === "eraser") {
+      if (annotationState.activeTool === "eraser" && canEraseType("stickynote")) {
         e.stopPropagation();
         deleteAnnotationItem(sn.id, "stickynote");
       }
@@ -8119,13 +8224,22 @@ INSTRUCTIONS:
   // Close open sticky notes and textboxes editing mode when clicking outside
   document.addEventListener("pointerdown", (e) => {
     const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
-    if (!targetEl || typeof targetEl.closest !== "function" || (!targetEl.closest(".user-annotation-stickynote") && !targetEl.closest(".user-annotation-textbox"))) {
-      document.querySelectorAll(".user-annotation-stickynote.is-selected, .user-annotation-textbox.is-selected").forEach((n) => {
-        n.classList.remove("is-selected");
-        const c = n.querySelector(".textbox-content");
-        if (c) c.contentEditable = "false";
-      });
+    if (!targetEl || typeof targetEl.closest !== "function") return;
+    if (
+      targetEl.closest(".user-annotation-stickynote") ||
+      targetEl.closest(".user-annotation-textbox") ||
+      targetEl.closest(".utility-floating-bar") ||
+      targetEl.closest(".edit-annotation-bar") ||
+      targetEl.closest(".custom-dropdown") ||
+      targetEl.closest(".sticker-popover")
+    ) {
+      return;
     }
+    document.querySelectorAll(".user-annotation-stickynote.is-selected, .user-annotation-textbox.is-selected").forEach((n) => {
+      n.classList.remove("is-selected");
+      const c = n.querySelector(".textbox-content");
+      if (c) c.contentEditable = "false";
+    });
   });
 
   // --- 3. RENDER & DRAG STICKER ---
@@ -8158,6 +8272,11 @@ INSTRUCTIONS:
 
     el.addEventListener("pointerdown", (e) => {
       if (e.target === delBtn) return;
+      if (annotationState.activeTool === "eraser" && canEraseType("sticker")) {
+        e.stopPropagation();
+        deleteAnnotationItem(stk.id, "sticker");
+        return;
+      }
       isDragging = true;
       hasMoved = false;
       startX = e.pageX;
@@ -8212,7 +8331,7 @@ INSTRUCTIONS:
     });
 
     el.addEventListener("click", (e) => {
-      if (annotationState.activeTool === "eraser") {
+      if (annotationState.activeTool === "eraser" && canEraseType("sticker")) {
         e.stopPropagation();
         deleteAnnotationItem(stk.id, "sticker");
       }
@@ -8387,7 +8506,8 @@ INSTRUCTIONS:
       width: Math.round(w),
       height: Math.round(h),
       text: initialText,
-      color: annotationState.activeColor
+      color: annotationState.activeColor,
+      fontSize: annotationState.textBoxFontSize || 14
     };
     annotationRedoStack.length = 0;
     annotationsData.textboxes.push(newTb);
@@ -8518,6 +8638,23 @@ INSTRUCTIONS:
     return d;
   }
 
+  function applyStrokeVisualStyle(pathEl, size, strokeStyle) {
+    if (!pathEl) return;
+    const st = strokeStyle || "solid";
+    const sz = Number(size) || 4;
+    if (st === "dashed") {
+      pathEl.setAttribute("stroke-dasharray", `${Math.max(6, sz * 2)} ${Math.max(5, Math.round(sz * 1.5))}`);
+      pathEl.setAttribute("stroke-opacity", "1");
+    } else if (st === "marker") {
+      pathEl.removeAttribute("stroke-dasharray");
+      pathEl.setAttribute("stroke-opacity", "0.45");
+    } else {
+      pathEl.removeAttribute("stroke-dasharray");
+      pathEl.setAttribute("stroke-opacity", "1");
+    }
+    pathEl.setAttribute("data-stroke-style", st);
+  }
+
   if (annotationSvgCanvas) {
     annotationSvgCanvas.addEventListener("pointerdown", (e) => {
       if (!annotationState.isOpen || annotationState.activeTool !== "sketch") return;
@@ -8537,6 +8674,7 @@ INSTRUCTIONS:
       currentPathEl.setAttribute("fill", "none");
       currentPathEl.setAttribute("stroke-linecap", "round");
       currentPathEl.setAttribute("stroke-linejoin", "round");
+      applyStrokeVisualStyle(currentPathEl, annotationState.activeSize, annotationState.strokeStyle);
       currentPathEl.setAttribute("d", pointsToSvgPath(currentStrokePoints, annotationState.snapToGrid));
       annotationSvgCanvas.appendChild(currentPathEl);
       e.preventDefault();
@@ -8565,6 +8703,7 @@ INSTRUCTIONS:
           id,
           color: annotationState.activeColor,
           size: annotationState.activeSize,
+          style: annotationState.strokeStyle || "solid",
           d: currentPathEl.getAttribute("d"),
           y: currentStrokePoints[0].y,
           points: currentStrokePoints.map((p) => ({ x: p.x, y: p.y })),
@@ -8592,7 +8731,9 @@ INSTRUCTIONS:
 
     pathEl.addEventListener("pointerdown", (e) => {
       if (annotationState.activeTool === "eraser") {
-        deleteAnnotationItem(strokeObj.id, "stroke");
+        if (canEraseType("stroke")) {
+          deleteAnnotationItem(strokeObj.id, "stroke");
+        }
         return;
       }
       if (annotationState.activeTool !== "select") return;
@@ -8638,18 +8779,27 @@ INSTRUCTIONS:
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
     const range = sel.getRangeAt(0);
+    const common = range.commonAncestorContainer;
+    const commonEl = common && (common.nodeType === 1 ? common : common.parentElement);
+    if (
+      commonEl &&
+      typeof commonEl.closest === "function" &&
+      commonEl.closest("#annotation-layer-container, .edit-annotation-bar, .utility-floating-bar, .search-floating-bar, .shortcut-customizer-bar, .top-nav, .rail-navigator, #doubt-solver-tile")
+    ) {
+      return;
+    }
     const selectedText = sel.toString().trim();
     if (!selectedText || selectedText.length < 2) return;
 
     const id = `hl_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const color = annotationState.activeColor;
+    const hlStyle = annotationState.highlightStyle || "soft";
 
     try {
       const mark = document.createElement("mark");
       mark.className = "user-annotation-highlight";
       mark.setAttribute("data-id", id);
-      mark.style.backgroundColor = hexToRgba(color, 0.35);
-      mark.style.borderBottom = `2px solid ${color}`;
+      applyHighlightVisualStyle(mark, color, hlStyle);
       range.surroundContents(mark);
 
       const markY = mark.offsetTop || (mark.getBoundingClientRect().top + window.scrollY);
@@ -8658,10 +8808,11 @@ INSTRUCTIONS:
         id,
         text: selectedText,
         color,
+        style: hlStyle,
         y: Math.round(markY)
       });
       mark.addEventListener("click", (e) => {
-        if (annotationState.activeTool === "eraser") {
+        if (annotationState.activeTool === "eraser" && canEraseType("highlight")) {
           e.stopPropagation();
           deleteAnnotationItem(id, "highlight");
         }
@@ -8704,7 +8855,9 @@ INSTRUCTIONS:
   document.addEventListener("mouseup", (e) => {
     if (!annotationState.isOpen) return;
     if (annotationState.activeTool === "highlight") {
-      if (e.target.closest(".edit-annotation-bar") || e.target.closest("#selection-highlight-tooltip")) return;
+      if (isInsideNavigationPanels(e)) return;
+      const targetEl = e.target instanceof Element ? e.target : e.target?.parentElement;
+      if (targetEl && typeof targetEl.closest === "function" && targetEl.closest("#selection-highlight-tooltip")) return;
       applySelectionHighlight();
     }
   });
@@ -8728,6 +8881,10 @@ INSTRUCTIONS:
           if (
             parent.closest("#annotation-layer-container") ||
             parent.closest(".edit-annotation-bar") ||
+            parent.closest(".utility-floating-bar") ||
+            parent.closest(".search-floating-bar") ||
+            parent.closest(".shortcut-customizer-bar") ||
+            parent.closest("#doubt-solver-tile") ||
             parent.closest(".top-nav") ||
             parent.closest(".rail-navigator")
           ) {
@@ -8749,8 +8906,7 @@ INSTRUCTIONS:
         mark.className = "user-annotation-highlight";
         mark.setAttribute("data-id", hlData.id);
         const color = hlData.color || "#FFE066";
-        mark.style.backgroundColor = hexToRgba(color, 0.35);
-        mark.style.borderBottom = `2px solid ${color}`;
+        applyHighlightVisualStyle(mark, color, hlData.style || "soft");
         mark.addEventListener("click", () => handleItemClick(hlData.id, "highlight"));
         try {
           range.surroundContents(mark);
@@ -8773,6 +8929,7 @@ INSTRUCTIONS:
     path.setAttribute("fill", "none");
     path.setAttribute("stroke-linecap", "round");
     path.setAttribute("stroke-linejoin", "round");
+    applyStrokeVisualStyle(path, stroke.size || 4, stroke.style || "solid");
     setupStrokeMoveListener(path, stroke);
     annotationSvgCanvas.appendChild(path);
     return path;
@@ -9008,7 +9165,7 @@ INSTRUCTIONS:
   }
 
   // --- 13. TOOL / COLOR / SIZE BUTTON EVENT BINDINGS ---
-  function setAnnotationTool(tool) {
+  function setAnnotationTool(tool, { suppressPopover = false } = {}) {
     annotationState.activeTool = tool;
     editAnnotationBar.querySelectorAll(".palette-tool-btn").forEach((b) => {
       b.classList.toggle("active", b.getAttribute("data-tool") === tool);
@@ -9021,14 +9178,15 @@ INSTRUCTIONS:
       annotationSvgCanvas.classList.toggle("is-drawing", tool === "sketch");
     }
 
-    if (tool === "sticker") {
+    if (tool === "sticker" && !suppressPopover) {
       const rect = editAnnotationBar.getBoundingClientRect();
       stickerPopover.style.left = `${rect.left + rect.width / 2}px`;
       stickerPopover.style.top = `${rect.bottom + 8}px`;
       stickerPopover.classList.toggle("is-open");
-    } else {
+    } else if (stickerPopover) {
       stickerPopover.classList.remove("is-open");
     }
+    syncAllShortcutToolBarsUI();
   }
 
   editAnnotationBar.querySelectorAll(".palette-tool-btn").forEach((btn) => {
@@ -9045,6 +9203,7 @@ INSTRUCTIONS:
       editAnnotationBar.querySelectorAll(".palette-color-btn").forEach((b) => {
         b.classList.toggle("active", b.getAttribute("data-color") === color);
       });
+      syncAllShortcutToolBarsUI();
     });
   });
 
@@ -9055,18 +9214,22 @@ INSTRUCTIONS:
       editAnnotationBar.querySelectorAll(".palette-size-btn").forEach((b) => {
         b.classList.toggle("active", parseInt(b.getAttribute("data-size"), 10) === size);
       });
+      syncAllShortcutToolBarsUI();
     });
   });
 
   // --- 14. OPEN / CLOSE PALETTE CONTROLS ---
-  function activateAnnotationMode({ fromInteraction = false } = {}) {
+  function activateAnnotationMode({ fromInteraction = false, tool = null, suppressPopover = false } = {}) {
     annotationState.isOpen = true;
     document.body.classList.add("is-annotating");
     syncAnnotationCanvasDimensions();
-    if (!fromInteraction || annotationState.activeTool !== "sticker") {
-      setAnnotationTool(annotationState.activeTool || "sketch");
+    if (tool) {
+      setAnnotationTool(tool, { suppressPopover });
+    } else if (!fromInteraction || annotationState.activeTool !== "sticker") {
+      setAnnotationTool(annotationState.activeTool || "sketch", { suppressPopover });
     }
     updateAnnotationCounter();
+    syncAllShortcutToolBarsUI();
   }
 
   function deactivateAnnotationMode() {
@@ -9095,6 +9258,7 @@ INSTRUCTIONS:
       window.scrollTo({ left: 0, behavior: "smooth" });
     }
     syncAnnotationCanvasDimensions();
+    syncAllShortcutToolBarsUI();
   }
 
   openAnnotationPanel = function() {
@@ -9241,42 +9405,71 @@ INSTRUCTIONS:
   function handleEraserAction(e) {
     if (!annotationState.isOpen || annotationState.activeTool !== "eraser") return;
     const target = e.target;
-    if (target) {
+    if (target && typeof target.closest === "function") {
       const stroke = target.closest(".annotation-stroke");
-      if (stroke) {
+      if (stroke && canEraseType("stroke")) {
         deleteAnnotationItem(stroke.getAttribute("data-id"), "stroke");
         return;
       }
       const tb = target.closest(".user-annotation-textbox");
-      if (tb) {
+      if (tb && canEraseType("textbox")) {
         deleteAnnotationItem(tb.getAttribute("data-id"), "textbox");
         return;
       }
       const sn = target.closest(".user-annotation-stickynote");
-      if (sn) {
+      if (sn && canEraseType("stickynote")) {
         deleteAnnotationItem(sn.getAttribute("data-id"), "stickynote");
         return;
       }
       const stk = target.closest(".user-annotation-sticker");
-      if (stk) {
+      if (stk && canEraseType("sticker")) {
         deleteAnnotationItem(stk.getAttribute("data-id"), "sticker");
         return;
       }
       const hl = target.closest("mark.user-annotation-highlight");
-      if (hl) {
+      if (hl && canEraseType("highlight")) {
         deleteAnnotationItem(hl.getAttribute("data-id"), "highlight");
         return;
       }
     }
 
-    // Precise hit-testing on SVG strokes (exact stroke line only, not surroundings)
-    const x = e.pageX;
-    const y = e.pageY;
-    if (annotationsData.strokes && annotationsData.strokes.length > 0) {
-      for (const stroke of annotationsData.strokes) {
-        if (isPointOnStroke(x, y, stroke)) {
-          deleteAnnotationItem(stroke.id, "stroke");
+    if (typeof document.elementsFromPoint === "function") {
+      const els = document.elementsFromPoint(e.clientX, e.clientY) || [];
+      for (const el of els) {
+        if (!el || typeof el.closest !== "function") continue;
+        const hl = el.closest("mark.user-annotation-highlight");
+        if (hl && canEraseType("highlight")) {
+          deleteAnnotationItem(hl.getAttribute("data-id"), "highlight");
           return;
+        }
+        const tb = el.closest(".user-annotation-textbox");
+        if (tb && canEraseType("textbox")) {
+          deleteAnnotationItem(tb.getAttribute("data-id"), "textbox");
+          return;
+        }
+        const sn = el.closest(".user-annotation-stickynote");
+        if (sn && canEraseType("stickynote")) {
+          deleteAnnotationItem(sn.getAttribute("data-id"), "stickynote");
+          return;
+        }
+        const stk = el.closest(".user-annotation-sticker");
+        if (stk && canEraseType("sticker")) {
+          deleteAnnotationItem(stk.getAttribute("data-id"), "sticker");
+          return;
+        }
+      }
+    }
+
+    // Precise hit-testing on SVG strokes (exact stroke line only, not surroundings)
+    if (canEraseType("stroke")) {
+      const x = e.pageX;
+      const y = e.pageY;
+      if (annotationsData.strokes && annotationsData.strokes.length > 0) {
+        for (const stroke of annotationsData.strokes) {
+          if (isPointOnStroke(x, y, stroke)) {
+            deleteAnnotationItem(stroke.id, "stroke");
+            return;
+          }
         }
       }
     }
@@ -9925,8 +10118,1513 @@ INSTRUCTIONS:
   }
 
   // ==========================================================================
-  // 15. SHORTCUT CUSTOMIZER BAR & PINNING ENGINE (+ BUTTON)
+  // 15. SHORTCUT CUSTOMIZER BAR, PINNING ENGINE & SHORTCUT TOOL FLOATING BARS
   // ==========================================================================
+  const SHORTCUT_TOOL_COLOR_PRESETS = [
+    { label: "Yellow", hex: "#FFE066" },
+    { label: "Orange", hex: "#FF6B35" },
+    { label: "Sky Blue", hex: "#38BDF8" },
+    { label: "Mint Green", hex: "#34D399" },
+    { label: "Rose Red", hex: "#F43F5E" },
+    { label: "Violet", hex: "#A855F7" },
+    { label: "Ink Black", hex: "#18181B" }
+  ];
+
+  const SHORTCUT_STROKE_SIZES = [
+    { val: 2, label: "Fine (2px)", short: "Fine 2px", dot: 4 },
+    { val: 4, label: "Medium (4px)", short: "Med 4px", dot: 7 },
+    { val: 8, label: "Thick (8px)", short: "Thick 8px", dot: 10 },
+    { val: 14, label: "Bold (14px)", short: "Bold 14px", dot: 13 }
+  ];
+
+  const SHORTCUT_STROKE_STYLES = [
+    { val: "solid", label: "Solid Ink" },
+    { val: "dashed", label: "Dashed" },
+    { val: "marker", label: "Translucent" }
+  ];
+
+  const SHORTCUT_HIGHLIGHT_STYLES = [
+    { val: "soft", label: "Marker Soft" },
+    { val: "vivid", label: "Vivid Strong" },
+    { val: "underline", label: "Underline" }
+  ];
+
+  const SHORTCUT_TEXT_SIZES = [
+    { val: 12, label: "12px Small" },
+    { val: 14, label: "14px Medium" },
+    { val: 16, label: "16px Large" },
+    { val: 20, label: "20px X-Large" }
+  ];
+
+  const SHORTCUT_NOTE_SIZES = [
+    { val: "180x100", w: 180, h: 100, label: "Compact 180x100", short: "Compact" },
+    { val: "240x130", w: 240, h: 130, label: "Standard 240x130", short: "Standard" },
+    { val: "320x180", w: 320, h: 180, label: "Large 320x180", short: "Large" }
+  ];
+
+  const SHORTCUT_ERASER_TARGETS = [
+    { val: "all", label: "All Items" },
+    { val: "stroke", label: "Sketches Only" },
+    { val: "highlight", label: "Highlights Only" },
+    { val: "note", label: "Boxes & Notes" },
+    { val: "sticker", label: "Stickers Only" }
+  ];
+
+  const SHORTCUT_GRID_SIZES = [
+    { val: 16, label: "16px Fine" },
+    { val: 24, label: "24px Standard" },
+    { val: 36, label: "36px Wide" }
+  ];
+
+  const SHORTCUT_STICKER_BADGES = [
+    { type: "tag", variant: "danger", label: "⚠️ HIGH RISK" },
+    { type: "tag", variant: "success", label: "✅ VERIFIED" },
+    { type: "tag", variant: "danger", label: "🚨 RED FLAG" },
+    { type: "tag", variant: "info", label: "🔍 AUDIT REQ" },
+    { type: "tag", variant: "warning", label: "📌 KEY FINDING" },
+    { type: "tag", variant: "purple", label: "⚖️ COMPLIANT" },
+    { type: "tag", variant: "teal", label: "💡 INSIGHT" },
+    { type: "tag", variant: "warning", label: "🛡️ MOAT" }
+  ];
+
+  const SHORTCUT_STICKER_EMOJIS = ["🎯", "📈", "📉", "🚩", "⭐", "🔥", "🏛️", "💰"];
+
+  // Dropdown options for all 21 additional shortcuts
+  const SHORTCUT_UNDO_SCOPES = [
+    { val: "last", label: "Last Action (Default)" },
+    { val: "strokes", label: "All Freehand Sketches" },
+    { val: "highlights", label: "All Highlights" },
+    { val: "notes", label: "All Notes & Boxes" },
+    { val: "stickers", label: "All Stickers" }
+  ];
+
+  const SHORTCUT_REDO_SCOPES = [
+    { val: "next", label: "Next Action (Default)" },
+    { val: "all", label: "Redo All History" }
+  ];
+
+  const SHORTCUT_CLEAR_SCOPES = [
+    { val: "all", label: "All Annotations" },
+    { val: "strokes", label: "Sketches Only" },
+    { val: "highlights", label: "Highlights Only" },
+    { val: "notes", label: "Notes & Boxes Only" },
+    { val: "stickers", label: "Stickers Only" }
+  ];
+
+  const SHORTCUT_EXPAND_MODES = [
+    { val: "standard", label: "Standard View" },
+    { val: "zen", label: "Hide Top Bar (Zen Mode)" },
+    { val: "fullscreen", label: "Fullscreen Window (F11)" }
+  ];
+
+  const SHORTCUT_TREE_FILTERS = [
+    { val: "all", label: "All 18 Chapters" },
+    { val: "active", label: "Current Chapter Only" },
+    { val: "unread", label: "Unread Sections" },
+    { val: "marked", label: "Important Sections" }
+  ];
+
+  const SHORTCUT_DOUBT_MODES = [
+    { val: "general", label: "Universal AI Assistant" },
+    { val: "section", label: "Active Section Doubt" },
+    { val: "audit", label: "Compliance & Risk Audit" },
+    { val: "penalty", label: "Statutory Penalty Check" }
+  ];
+
+  const SHORTCUT_HOME_DESTINATIONS = [
+    { val: "top", label: "Document Top (Cover)" },
+    { val: "chapter1", label: "Chapter 1 (Overview)" },
+    { val: "glossary", label: "Statutory Glossary" },
+    { val: "framework", label: "Analytical Framework" }
+  ];
+
+  const SHORTCUT_NOTEPAD_TYPES = [
+    { val: "general", label: "General Section Note" },
+    { val: "risk", label: "⚠️ High Risk Finding" },
+    { val: "statutory", label: "⚖️ Statutory Citation" },
+    { val: "action", label: "📌 Action Item" }
+  ];
+
+  const SHORTCUT_THEME_MODES = [
+    { val: "toggle", label: "Toggle Dark / Light" },
+    { val: "dark", label: "Dark Terminal Theme" },
+    { val: "light", label: "Light Blueprint Theme" }
+  ];
+
+  const SHORTCUT_GRID_STYLES = [
+    { val: "toggle", label: "Toggle Grid On / Off" },
+    { val: "fine", label: "Fine Grid (16px)" },
+    { val: "standard", label: "Standard Grid (24px)" },
+    { val: "wide", label: "Wide Grid (36px)" }
+  ];
+
+  const SHORTCUT_CENTER_ALIGNMENTS = [
+    { val: "center", label: "Center Content Column" },
+    { val: "active-section", label: "Align Active Section" },
+    { val: "top", label: "Align Page Top" }
+  ];
+
+  const SHORTCUT_PRINT_LAYOUTS = [
+    { val: "clean", label: "Clean Reading View" },
+    { val: "annotated", label: "Include My Annotations" },
+    { val: "summary", label: "Executive Summary Only" }
+  ];
+
+  const SHORTCUT_FONT_SIZES = [
+    { val: "small", label: "Small (13px)" },
+    { val: "medium", label: "Medium (15px Default)" },
+    { val: "large", label: "Large (17.5px)" }
+  ];
+
+  const SHORTCUT_FONT_STYLES = [
+    { val: "reading", label: "Sans-Serif Standard" },
+    { val: "typewriter", label: "Monospace Terminal" }
+  ];
+
+  const SHORTCUT_SCROLL_TOP_TARGETS = [
+    { val: "top", label: "Absolute Page Top" },
+    { val: "title", label: "Chapter Title Heading" },
+    { val: "first-section", label: "First Content Section" }
+  ];
+
+  const SHORTCUT_SCROLL_BOTTOM_TARGETS = [
+    { val: "bottom", label: "Absolute Page Bottom" },
+    { val: "forum", label: "Institutional Forum" },
+    { val: "terminal-footer", label: "Terminal Colophon" }
+  ];
+
+  const SHORTCUT_NEXT_SECTION_MODES = [
+    { val: "next", label: "Next Section (Down)" },
+    { val: "next-marked", label: "Next Marked / Important" },
+    { val: "next-chapter", label: "Next Chapter Title" }
+  ];
+
+  const SHORTCUT_PREV_SECTION_MODES = [
+    { val: "prev", label: "Previous Section (Up)" },
+    { val: "prev-marked", label: "Previous Marked Section" },
+    { val: "prev-chapter", label: "Previous Chapter Title" }
+  ];
+
+  const SHORTCUT_FORUM_VIEWS = [
+    { val: "all", label: "All Institutional Threads" },
+    { val: "chapter", label: "Current Chapter Queries" },
+    { val: "unresolved", label: "Unresolved Discussions" }
+  ];
+
+  const SHORTCUT_COPY_LINK_FORMATS = [
+    { val: "section", label: "Direct Section Anchor URL" },
+    { val: "page", label: "Standard Page URL" },
+    { val: "markdown", label: "Markdown Link Citation" }
+  ];
+
+  // All 29 non-native shortcuts have a floating bar with dropdown(s).
+  // The 6 native shortcuts (search, edit, shortcuts, contact, account, settings) have their native rich floating panels.
+  const SHORTCUT_TOOL_BAR_IDS = new Set([
+    "sketch",
+    "highlight",
+    "textbox",
+    "stickynote",
+    "sticker",
+    "select",
+    "eraser",
+    "snap",
+    "undo",
+    "redo",
+    "clear",
+    "expand",
+    "tree",
+    "doubt",
+    "home",
+    "notepad",
+    "darkmode",
+    "gridbg",
+    "centerview",
+    "print",
+    "font_size_up",
+    "font_size_down",
+    "font_typewriter",
+    "scroll_top",
+    "scroll_bottom",
+    "next_section",
+    "prev_section",
+    "forum",
+    "copy_link"
+  ]);
+
+  const SHORTCUT_NATIVE_PANEL_IDS = new Set([
+    "search",
+    "edit",
+    "shortcuts",
+    "contact",
+    "account",
+    "settings"
+  ]);
+
+  function getColorLabel(hex) {
+    const norm = String(hex || "#FFE066").toUpperCase();
+    const match = SHORTCUT_TOOL_COLOR_PRESETS.find((c) => c.hex.toUpperCase() === norm);
+    return match ? match.label : norm;
+  }
+
+  function getStoredNoteSizeKey() {
+    const w = parseInt(localStorage.getItem("indexindia_stickynote_width") || "240", 10) || 240;
+    const h = parseInt(localStorage.getItem("indexindia_stickynote_height") || "130", 10) || 130;
+    const match = SHORTCUT_NOTE_SIZES.find((n) => Math.abs(n.w - w) <= 15 && Math.abs(n.h - h) <= 15);
+    return match ? match.val : "240x130";
+  }
+
+  function recolorSelectedAnnotations(newColor) {
+    let changed = false;
+    const ids = new Set(annotationState.selectedElementIds ? Array.from(annotationState.selectedElementIds) : []);
+    document.querySelectorAll(".user-annotation-textbox.is-selected, .user-annotation-textbox.annotation-selected, .user-annotation-stickynote.is-selected, .user-annotation-stickynote.annotation-selected, .annotation-stroke.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) ids.add(id);
+    });
+    if (ids.size === 0) return false;
+
+    ids.forEach((id) => {
+      const tbObj = (annotationsData.textboxes || []).find((t) => t.id === id);
+      if (tbObj) {
+        tbObj.color = newColor;
+        const el = annotationHtmlElements?.querySelector(`.user-annotation-textbox[data-id="${id}"]`);
+        if (el) el.style.setProperty("--box-border-color", newColor);
+        changed = true;
+      }
+      const snObj = (annotationsData.stickynotes || []).find((n) => n.id === id);
+      if (snObj) {
+        snObj.color = newColor;
+        const el = annotationHtmlElements?.querySelector(`.user-annotation-stickynote[data-id="${id}"]`);
+        if (el) el.style.setProperty("--note-color", newColor);
+        changed = true;
+      }
+      const stObj = (annotationsData.strokes || []).find((s) => s.id === id);
+      if (stObj) {
+        stObj.color = newColor;
+        const el = annotationSvgCanvas?.querySelector(`.annotation-stroke[data-id="${id}"]`);
+        if (el) el.setAttribute("stroke", newColor);
+        changed = true;
+      }
+    });
+
+    if (changed) saveAnnotations();
+    return changed;
+  }
+
+  function restyleSelectedStrokes(style) {
+    let changed = false;
+    const ids = new Set(annotationState.selectedElementIds ? Array.from(annotationState.selectedElementIds) : []);
+    document.querySelectorAll(".annotation-stroke.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) ids.add(id);
+    });
+    if (ids.size === 0) return false;
+
+    ids.forEach((id) => {
+      const stObj = (annotationsData.strokes || []).find((s) => s.id === id);
+      if (stObj) {
+        stObj.style = style;
+        const el = annotationSvgCanvas?.querySelector(`.annotation-stroke[data-id="${id}"]`);
+        if (el) {
+          if (style === "dashed") {
+            el.setAttribute("stroke-dasharray", "6,6");
+            el.setAttribute("opacity", "1");
+          } else if (style === "marker") {
+            el.removeAttribute("stroke-dasharray");
+            el.setAttribute("opacity", "0.45");
+          } else {
+            el.removeAttribute("stroke-dasharray");
+            el.setAttribute("opacity", "1");
+          }
+        }
+        changed = true;
+      }
+    });
+
+    if (changed) saveAnnotations();
+    return changed;
+  }
+
+  function resizeSelectedTextBoxes(fontSizePx) {
+    let changed = false;
+    const ids = new Set(annotationState.selectedElementIds ? Array.from(annotationState.selectedElementIds) : []);
+    document.querySelectorAll(".user-annotation-textbox.is-selected, .user-annotation-textbox.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) ids.add(id);
+    });
+    if (ids.size === 0) return false;
+
+    ids.forEach((id) => {
+      const tbObj = (annotationsData.textboxes || []).find((t) => t.id === id);
+      if (tbObj) {
+        tbObj.fontSize = fontSizePx;
+        const el = annotationHtmlElements?.querySelector(`.user-annotation-textbox[data-id="${id}"]`);
+        if (el) {
+          el.style.fontSize = `${fontSizePx}px`;
+          const content = el.querySelector(".textbox-content");
+          if (content) content.style.fontSize = `${fontSizePx}px`;
+          const ta = el.querySelector(".user-annotation-textbox-input");
+          if (ta) ta.style.fontSize = `${fontSizePx}px`;
+        }
+        changed = true;
+      }
+    });
+
+    if (changed) saveAnnotations();
+    return changed;
+  }
+
+  function resizeSelectedStickyNotes(w, h) {
+    let changed = false;
+    const ids = new Set(annotationState.selectedElementIds ? Array.from(annotationState.selectedElementIds) : []);
+    document.querySelectorAll(".user-annotation-stickynote.is-selected, .user-annotation-stickynote.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) ids.add(id);
+    });
+    if (ids.size === 0) return false;
+
+    ids.forEach((id) => {
+      const snObj = (annotationsData.stickynotes || []).find((n) => n.id === id);
+      if (snObj) {
+        snObj.width = w;
+        snObj.height = h;
+        const el = annotationHtmlElements?.querySelector(`.user-annotation-stickynote[data-id="${id}"]`);
+        if (el) {
+          el.style.width = `${w}px`;
+          el.style.height = `${h}px`;
+        }
+        changed = true;
+      }
+    });
+
+    if (changed) saveAnnotations();
+    return changed;
+  }
+
+  function deleteCurrentlySelectedAnnotations() {
+    const toDelete = [];
+    document.querySelectorAll(".user-annotation-textbox.is-selected, .user-annotation-textbox.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) toDelete.push([id, "textbox"]);
+    });
+    document.querySelectorAll(".user-annotation-stickynote.is-selected, .user-annotation-stickynote.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) toDelete.push([id, "stickynote"]);
+    });
+    document.querySelectorAll(".user-annotation-sticker.is-selected, .user-annotation-sticker.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) toDelete.push([id, "sticker"]);
+    });
+    document.querySelectorAll(".annotation-stroke.annotation-selected").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (id) toDelete.push([id, "stroke"]);
+    });
+    (annotationState.selectedElementIds || []).forEach((id) => {
+      const el = document.querySelector(`[data-id="${id}"]`);
+      if (!el) return;
+      if (el.classList.contains("user-annotation-textbox")) toDelete.push([id, "textbox"]);
+      else if (el.classList.contains("user-annotation-stickynote")) toDelete.push([id, "stickynote"]);
+      else if (el.classList.contains("user-annotation-sticker")) toDelete.push([id, "sticker"]);
+      else if (el.classList.contains("annotation-stroke")) toDelete.push([id, "stroke"]);
+    });
+    const seen = new Set();
+    toDelete.forEach(([id, type]) => {
+      const key = `${type}:${id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deleteAnnotationItem(id, type);
+      }
+    });
+  }
+
+  function clearAllPageAnnotations() {
+    const clearBtn = document.getElementById("annotation-btn-clear");
+    if (clearBtn) {
+      clearBtn.click();
+    } else if (confirm("Clear all annotations, sketches, stickers, and notes on this page?")) {
+      annotationsData = { version: 1, strokes: [], textboxes: [], stickynotes: [], highlights: [], stickers: [] };
+      if (annotationSvgCanvas) annotationSvgCanvas.innerHTML = "";
+      if (annotationHtmlElements) annotationHtmlElements.innerHTML = "";
+      document.querySelectorAll("mark.user-annotation-highlight").forEach((m) => {
+        if (m.parentNode) m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+      });
+      document.body.classList.remove("has-annotations");
+      saveAnnotations();
+      updateAnnotationCounter();
+    }
+  }
+
+  function clearAnnotationsByScope(scope = "all") {
+    if (scope === "all") {
+      clearAllPageAnnotations();
+      return;
+    }
+    if (scope === "strokes") {
+      annotationsData.strokes = [];
+      if (annotationSvgCanvas) annotationSvgCanvas.innerHTML = "";
+    } else if (scope === "highlights") {
+      annotationsData.highlights = [];
+      document.querySelectorAll("mark.user-annotation-highlight").forEach((m) => {
+        if (m.parentNode) m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+      });
+    } else if (scope === "notes") {
+      annotationsData.textboxes = [];
+      annotationsData.stickynotes = [];
+      if (annotationHtmlElements) {
+        annotationHtmlElements.querySelectorAll(".user-annotation-textbox, .user-annotation-stickynote").forEach((el) => el.remove());
+      }
+    } else if (scope === "stickers") {
+      annotationsData.stickers = [];
+      if (annotationHtmlElements) {
+        annotationHtmlElements.querySelectorAll(".user-annotation-sticker").forEach((el) => el.remove());
+      }
+    }
+    const hasAny = (
+      (annotationsData.strokes?.length || 0) +
+      (annotationsData.highlights?.length || 0) +
+      (annotationsData.textboxes?.length || 0) +
+      (annotationsData.stickynotes?.length || 0) +
+      (annotationsData.stickers?.length || 0)
+    ) > 0;
+    if (!hasAny) document.body.classList.remove("has-annotations");
+    saveAnnotations();
+    updateAnnotationCounter();
+  }
+
+  function renderShortcutColorDropdownHtml(idPrefix, labelText = "Color") {
+    const curHex = annotationState.activeColor || "#FFE066";
+    const curLabel = getColorLabel(curHex);
+    const itemsHtml = SHORTCUT_TOOL_COLOR_PRESETS.map((c) => `
+      <button type="button" class="dropdown-item${c.hex.toUpperCase() === curHex.toUpperCase() ? " active" : ""}" data-sc-type="color" data-val="${c.hex}">
+        <span class="shortcut-color-dot" style="background:${c.hex};"></span>
+        <span>${c.label}</span>
+      </button>
+    `).join("");
+    return `
+      <div class="custom-dropdown-row" data-no-tag="true">
+        <span class="custom-dropdown-label">${labelText}</span>
+        <div class="custom-dropdown" data-dropdown-kind="color" id="${idPrefix}-dd-color">
+          <button type="button" class="dropdown-trigger" aria-expanded="false">
+            <span class="shortcut-tool-trigger-value">
+              <span class="shortcut-color-dot" data-role="color-dot" style="background:${curHex};"></span>
+              <span data-role="color-label">${curLabel}</span>
+            </span>
+            <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dropdown-menu-list">
+            ${itemsHtml}
+            <label class="dropdown-item shortcut-custom-color-label" data-no-tag="true">
+              <span>Custom</span>
+              <input type="color" class="shortcut-custom-color-input" data-sc-type="custom-color" value="${curHex}" aria-label="Custom color" />
+            </label>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderShortcutGenericDropdownHtml(idPrefix, kind, labelText, items, curVal) {
+    const activeItem = items.find((it) => String(it.val) === String(curVal)) || items[0];
+    const itemsHtml = items.map((it) => {
+      const isAct = String(it.val) === String(activeItem.val);
+      const dotHtml = it.dot
+        ? `<span class="shortcut-size-dot-wrap"><span class="shortcut-size-dot" style="width:${it.dot}px;height:${it.dot}px;"></span></span>`
+        : "";
+      return `
+        <button type="button" class="dropdown-item${isAct ? " active" : ""}" data-sc-type="${kind}" data-val="${it.val}">
+          ${dotHtml}<span>${it.label}</span>
+        </button>
+      `;
+    }).join("");
+    const activeDotHtml = activeItem.dot
+      ? `<span class="shortcut-size-dot-wrap"><span class="shortcut-size-dot" data-role="${kind}-dot" style="width:${activeItem.dot}px;height:${activeItem.dot}px;"></span></span>`
+      : "";
+    return `
+      <div class="custom-dropdown-row" data-no-tag="true">
+        <span class="custom-dropdown-label">${labelText}</span>
+        <div class="custom-dropdown" data-dropdown-kind="${kind}" id="${idPrefix}-dd-${kind}">
+          <button type="button" class="dropdown-trigger" aria-expanded="false">
+            <span class="shortcut-tool-trigger-value">
+              ${activeDotHtml}<span data-role="${kind}-label">${activeItem.short || activeItem.label}</span>
+            </span>
+            <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dropdown-menu-list">
+            ${itemsHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderShortcutStickerDropdownHtml(idPrefix) {
+    const cur = annotationState.activeSticker || SHORTCUT_STICKER_BADGES[0];
+    const curText = cur.type === "emoji" ? `${cur.icon} Stamp` : cur.label;
+    const badgesHtml = SHORTCUT_STICKER_BADGES.map((b) => {
+      const isAct = cur.type !== "emoji" && cur.label === b.label;
+      return `
+        <button type="button" class="dropdown-item sticker-dropdown-option${isAct ? " active" : ""}" data-sc-type="sticker-tag" data-variant="${b.variant}" data-label="${b.label}">
+          <span class="sticker-badge-btn variant-${b.variant}">${b.label}</span>
+        </button>
+      `;
+    }).join("");
+    const emojisHtml = SHORTCUT_STICKER_EMOJIS.map((em) => {
+      const isAct = cur.type === "emoji" && cur.icon === em;
+      return `<button type="button" class="shortcut-emoji-menu-item${isAct ? " active" : ""}" data-sc-type="sticker-emoji" data-icon="${em}">${em}</button>`;
+    }).join("");
+    return `
+      <div class="custom-dropdown-row" data-no-tag="true">
+        <span class="custom-dropdown-label">Stamp</span>
+        <div class="custom-dropdown" data-dropdown-kind="sticker" id="${idPrefix}-dd-sticker" style="min-width:136px;">
+          <button type="button" class="dropdown-trigger" aria-expanded="false">
+            <span class="shortcut-tool-trigger-value">
+              <span data-role="sticker-label">${curText}</span>
+            </span>
+            <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dropdown-menu-list is-sticker-menu">
+            <div class="shortcut-menu-section-title">AUDIT BADGES</div>
+            ${badgesHtml}
+            <div class="shortcut-menu-section-title">RESEARCH STAMPS</div>
+            <div class="shortcut-emoji-menu-grid">${emojisHtml}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderShortcutCommonActionsHtml(opts = {}) {
+    const snapPressed = annotationState.snapToGrid;
+    return `
+      <div class="shortcut-tool-actions">
+        ${opts.applyHighlight ? `<button type="button" class="palette-btn" data-action="apply-highlight" data-hover-tag="[APPLY HIGHLIGHT]">Apply</button>` : ""}
+        ${opts.deleteSelected ? `<button type="button" class="palette-btn" data-action="delete-selected" data-hover-tag="[DELETE SELECTED]">Del</button>` : ""}
+        ${opts.snapBtn ? `
+          <button type="button" class="palette-btn ${snapPressed ? "active" : ""}" data-action="toggle-snap" data-hover-tag="[SNAP TO GRID]" aria-pressed="${snapPressed}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+          </button>` : ""}
+        ${opts.undoRedo !== false ? `
+          <button type="button" class="palette-btn" data-action="undo" data-hover-tag="[UNDO]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          </button>
+          <button type="button" class="palette-btn" data-action="redo" data-hover-tag="[REDO]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+          </button>` : ""}
+        ${opts.clear !== false ? `
+          <button type="button" class="palette-btn" data-action="clear" data-hover-tag="[CLEAR]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </button>` : ""}
+        <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    `;
+  }
+
+  function wireShortcutToolDropdownInteractions(bar, toolId) {
+    const closeHoverSuppressed = (dd, row) => {
+      dd.classList.remove("is-open");
+      const trig = dd.querySelector(".dropdown-trigger");
+      if (trig) trig.setAttribute("aria-expanded", "false");
+      dd.classList.add("suppress-hover-menu");
+      if (row) row.classList.add("suppress-hover-menu");
+    };
+
+    bar.querySelectorAll(".custom-dropdown-row").forEach((row) => {
+      const dd = row.querySelector(".custom-dropdown");
+      if (!dd) return;
+      const trig = dd.querySelector(".dropdown-trigger");
+      row.addEventListener("mouseleave", () => {
+        dd.classList.remove("suppress-hover-menu");
+        row.classList.remove("suppress-hover-menu");
+      });
+      if (trig) {
+        trig.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const wasOpen = dd.classList.contains("is-open");
+          bar.querySelectorAll(".custom-dropdown.is-open").forEach((other) => {
+            if (other !== dd) {
+              other.classList.remove("is-open");
+              const t = other.querySelector(".dropdown-trigger");
+              if (t) t.setAttribute("aria-expanded", "false");
+            }
+          });
+          if (wasOpen) {
+            closeHoverSuppressed(dd, row);
+          } else {
+            dd.classList.remove("suppress-hover-menu");
+            row.classList.remove("suppress-hover-menu");
+            dd.classList.add("is-open");
+            trig.setAttribute("aria-expanded", "true");
+          }
+        });
+      }
+    });
+
+    bar.querySelectorAll("[data-sc-type]").forEach((optEl) => {
+      const scType = optEl.getAttribute("data-sc-type");
+      const row = optEl.closest(".custom-dropdown-row");
+      const dd = optEl.closest(".custom-dropdown");
+
+      if (scType === "custom-color") {
+        optEl.addEventListener("input", () => {
+          annotationState.activeColor = optEl.value;
+          if (toolId === "textbox" || toolId === "stickynote" || toolId === "select") {
+            recolorSelectedAnnotations(optEl.value);
+          }
+          syncAllShortcutToolBarsUI();
+        });
+        optEl.addEventListener("change", () => {
+          annotationState.activeColor = optEl.value;
+          if (toolId === "textbox" || toolId === "stickynote" || toolId === "select") {
+            recolorSelectedAnnotations(optEl.value);
+          }
+          if (dd) closeHoverSuppressed(dd, row);
+          syncAllShortcutToolBarsUI();
+        });
+        return;
+      }
+
+      optEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const val = optEl.getAttribute("data-val");
+
+        if (scType === "color") {
+          annotationState.activeColor = val;
+          if (toolId === "textbox" || toolId === "stickynote" || toolId === "select") {
+            recolorSelectedAnnotations(val);
+          }
+        } else if (scType === "size") {
+          annotationState.activeSize = parseInt(val, 10) || 4;
+        } else if (scType === "stroke-style") {
+          annotationState.strokeStyle = val || "solid";
+          restyleSelectedStrokes(annotationState.strokeStyle);
+        } else if (scType === "highlight-style") {
+          annotationState.highlightStyle = val || "soft";
+        } else if (scType === "textbox-size") {
+          const px = parseInt(val, 10) || 14;
+          annotationState.textBoxFontSize = px;
+          try { localStorage.setItem("indexindia_textbox_font_size", String(px)); } catch (_) {}
+          resizeSelectedTextBoxes(px);
+        } else if (scType === "note-size") {
+          const matched = SHORTCUT_NOTE_SIZES.find((n) => n.val === val) || SHORTCUT_NOTE_SIZES[1];
+          try {
+            localStorage.setItem("indexindia_stickynote_width", String(matched.w));
+            localStorage.setItem("indexindia_stickynote_height", String(matched.h));
+          } catch (_) {}
+          resizeSelectedStickyNotes(matched.w, matched.h);
+        } else if (scType === "eraser-target") {
+          annotationState.eraserFilter = val || "all";
+        } else if (scType === "grid-size") {
+          setGridSizePx(parseInt(val, 10) || 24);
+        } else if (scType === "sticker-tag") {
+          annotationState.activeSticker = {
+            type: "tag",
+            variant: optEl.getAttribute("data-variant"),
+            label: optEl.getAttribute("data-label")
+          };
+          if (annotationState.isOpen) setAnnotationTool("sticker", { suppressPopover: true });
+        } else if (scType === "sticker-emoji") {
+          annotationState.activeSticker = {
+            type: "emoji",
+            icon: optEl.getAttribute("data-icon")
+          };
+          if (annotationState.isOpen) setAnnotationTool("sticker", { suppressPopover: true });
+        } else if (scType === "undo-scope") {
+          bar.setAttribute("data-active-undo-scope", val);
+          performAnnotationUndo();
+        } else if (scType === "redo-scope") {
+          bar.setAttribute("data-active-redo-scope", val);
+          if (val === "all") {
+            while (annotationRedoStack && annotationRedoStack.length > 0) {
+              performAnnotationRedo();
+            }
+          } else {
+            performAnnotationRedo();
+          }
+        } else if (scType === "clear-scope") {
+          bar.setAttribute("data-active-clear-scope", val);
+          clearAnnotationsByScope(val);
+        } else if (scType === "expand-mode") {
+          bar.setAttribute("data-active-expand-mode", val);
+          if (val === "zen") {
+            toggleTopBar();
+          } else if (val === "fullscreen") {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+              document.exitFullscreen?.().catch(() => {});
+            }
+          } else {
+            if (document.body.classList.contains("top-bar-hidden")) toggleTopBar();
+          }
+        } else if (scType === "tree-filter") {
+          bar.setAttribute("data-active-tree-filter", val);
+          if (typeof toggleTree === "function") toggleTree(true);
+        } else if (scType === "doubt-mode") {
+          bar.setAttribute("data-active-doubt-mode", val);
+          if (typeof openDoubtSolver === "function") openDoubtSolver(null, true);
+        } else if (scType === "home-dest") {
+          bar.setAttribute("data-active-home-dest", val);
+          if (val === "chapter1") {
+            const ch1 = document.querySelector("#chapter-1, .chapter-1-section, .doc-chapter");
+            if (ch1) ch1.scrollIntoView({ behavior: "smooth", block: "start" });
+            else window.location.href = "guide.html";
+          } else if (val === "glossary") {
+            const gl = document.querySelector("#statutory-glossary, .glossary-section, [data-section*='glossary']");
+            if (gl) gl.scrollIntoView({ behavior: "smooth", block: "start" });
+            else window.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        } else if (scType === "notepad-type") {
+          bar.setAttribute("data-active-notepad-type", val);
+          const sections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .content-area > section"));
+          const target = sections.find((s) => {
+            const r = s.getBoundingClientRect();
+            return r.top >= 0 && r.top <= window.innerHeight * 0.6;
+          }) || sections[0];
+          if (target && typeof addSectionUserNote === "function") {
+            addSectionUserNote(target.id || "sec-active", target);
+          }
+        } else if (scType === "theme-mode") {
+          bar.setAttribute("data-active-theme-mode", val);
+          if (val === "dark") {
+            if (!document.body.classList.contains("theme-dark")) toggleThemeMode();
+          } else if (val === "light") {
+            if (document.body.classList.contains("theme-dark")) toggleThemeMode();
+          } else {
+            toggleThemeMode();
+          }
+        } else if (scType === "grid-style") {
+          bar.setAttribute("data-active-grid-style", val);
+          if (val === "fine") {
+            setGridSizePx(16);
+            if (document.body.classList.contains("no-grid")) toggleBackgroundGrid();
+          } else if (val === "standard") {
+            setGridSizePx(24);
+            if (document.body.classList.contains("no-grid")) toggleBackgroundGrid();
+          } else if (val === "wide") {
+            setGridSizePx(36);
+            if (document.body.classList.contains("no-grid")) toggleBackgroundGrid();
+          } else {
+            toggleBackgroundGrid();
+          }
+        } else if (scType === "center-align") {
+          bar.setAttribute("data-active-center-align", val);
+          if (val === "top") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } else if (val === "active-section") {
+            const sec = document.querySelector(".page-directory-section.is-active-section, .doc-section.is-active, .tree-node.is-active");
+            if (sec) sec.scrollIntoView({ behavior: "smooth", block: "center" });
+            else window.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            const main = document.querySelector(".guide-main") || document.querySelector("main") || document.documentElement;
+            main.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        } else if (scType === "print-layout") {
+          bar.setAttribute("data-active-print-layout", val);
+          window.print();
+        } else if (scType === "font-size") {
+          applyFontSize(val);
+        } else if (scType === "font-style") {
+          applyFontStyle(val);
+        } else if (scType === "scroll-top-dest") {
+          bar.setAttribute("data-active-scroll-top", val);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else if (scType === "scroll-bottom-dest") {
+          bar.setAttribute("data-active-scroll-bottom", val);
+          if (val === "forum") {
+            const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
+            if (forum) forum.scrollIntoView({ behavior: "smooth", block: "start" });
+            else window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+          } else {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+          }
+        } else if (scType === "next-section-mode") {
+          bar.setAttribute("data-active-next-mode", val);
+          const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+          const next = headings.find((h) => h.getBoundingClientRect().top > 80);
+          if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (scType === "prev-section-mode") {
+          bar.setAttribute("data-active-prev-mode", val);
+          const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+          const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
+          if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
+          else window.scrollTo({ top: 0, behavior: "smooth" });
+        } else if (scType === "forum-view") {
+          bar.setAttribute("data-active-forum-view", val);
+          const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
+          if (forum) forum.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (scType === "copy-link-format") {
+          bar.setAttribute("data-active-link-format", val);
+          let textToCopy = window.location.href;
+          if (val === "markdown") {
+            textToCopy = `[${document.title || "IndexIndia"}](${window.location.href})`;
+          } else if (val === "page") {
+            textToCopy = window.location.origin + window.location.pathname;
+          }
+          try {
+            navigator.clipboard.writeText(textToCopy);
+            if (typeof showSystemNotification === "function") {
+              showSystemNotification(`Copied link (${val}) to clipboard`);
+            }
+          } catch (_) {}
+        }
+
+        if (dd) closeHoverSuppressed(dd, row);
+        syncAllShortcutToolBarsUI();
+      });
+    });
+
+    const applyHlBtn = bar.querySelector('[data-action="apply-highlight"]');
+    if (applyHlBtn) {
+      applyHlBtn.addEventListener("mousedown", (e) => e.preventDefault());
+      applyHlBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        applySelectionHighlight();
+      });
+    }
+
+    const delSelBtn = bar.querySelector('[data-action="delete-selected"]');
+    if (delSelBtn) {
+      delSelBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteCurrentlySelectedAnnotations();
+      });
+    }
+
+    const snapBtn = bar.querySelector('[data-action="toggle-snap"]');
+    if (snapBtn) {
+      snapBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSnapToGrid();
+      });
+    }
+
+    const snapChk = bar.querySelector(".shortcut-bar-snap-toggle");
+    if (snapChk) {
+      snapChk.addEventListener("change", (e) => {
+        setSnapToGrid(e.target.checked);
+      });
+    }
+
+    const gridChk = bar.querySelector(".shortcut-grid-vis-toggle");
+    if (gridChk) {
+      gridChk.addEventListener("change", (e) => {
+        const wantOn = e.target.checked;
+        document.body.classList.toggle("no-grid", !wantOn);
+        try { localStorage.setItem("indexindia_grid", wantOn ? "on" : "off"); } catch (_) {}
+        const mainGridToggle = document.getElementById("grid-toggle");
+        if (mainGridToggle) mainGridToggle.checked = wantOn;
+        syncAllShortcutToolBarsUI();
+      });
+    }
+
+    const undoBtn = bar.querySelector('[data-action="undo"]');
+    if (undoBtn) {
+      undoBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        performAnnotationUndo();
+      });
+    }
+
+    const redoBtn = bar.querySelector('[data-action="redo"]');
+    if (redoBtn) {
+      redoBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        performAnnotationRedo();
+      });
+    }
+
+    const clearBtn = bar.querySelector('[data-action="clear"]');
+    if (clearBtn) {
+      clearBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const activeScope = bar.getAttribute("data-active-clear-scope") || "all";
+        clearAnnotationsByScope(activeScope);
+      });
+    }
+
+    // Direct Action Buttons on specific toolbars
+    const execCustomAction = (selector, fn) => {
+      const btn = bar.querySelector(selector);
+      if (btn) {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          fn();
+          syncAllShortcutToolBarsUI();
+        });
+      }
+    };
+
+    execCustomAction('[data-action="exec-expand"]', () => toggleTopBar());
+    execCustomAction('[data-action="exec-tree"]', () => { if (typeof toggleTree === "function") toggleTree(true); });
+    execCustomAction('[data-action="exec-doubt"]', () => { if (typeof openDoubtSolver === "function") openDoubtSolver(null, true); });
+    execCustomAction('[data-action="exec-home"]', () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
+    execCustomAction('[data-action="exec-notepad"]', () => {
+      const sections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .content-area > section"));
+      const target = sections.find((s) => {
+        const r = s.getBoundingClientRect();
+        return r.top >= 0 && r.top <= window.innerHeight * 0.6;
+      }) || sections[0];
+      if (target && typeof addSectionUserNote === "function") {
+        addSectionUserNote(target.id || "sec-active", target);
+      }
+    });
+    execCustomAction('[data-action="exec-darkmode"]', () => toggleThemeMode());
+    execCustomAction('[data-action="exec-gridbg"]', () => toggleBackgroundGrid());
+    execCustomAction('[data-action="exec-centerview"]', () => {
+      const main = document.querySelector(".guide-main") || document.querySelector("main") || document.documentElement;
+      main.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    execCustomAction('[data-action="exec-print"]', () => window.print());
+    execCustomAction('[data-action="exec-font-up"]', () => {
+      const sizes = ["small", "medium", "large"];
+      const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
+      const idx = cur === -1 ? 1 : cur;
+      if (idx < sizes.length - 1) applyFontSize(sizes[idx + 1]);
+    });
+    execCustomAction('[data-action="exec-font-down"]', () => {
+      const sizes = ["small", "medium", "large"];
+      const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
+      const idx = cur === -1 ? 1 : cur;
+      if (idx > 0) applyFontSize(sizes[idx - 1]);
+    });
+    execCustomAction('[data-action="exec-font-typewriter"]', () => {
+      const isType = document.body.classList.contains("font-style-typewriter");
+      applyFontStyle(isType ? "reading" : "typewriter");
+    });
+    execCustomAction('[data-action="exec-scroll-top"]', () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    execCustomAction('[data-action="exec-scroll-bottom"]', () => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
+    execCustomAction('[data-action="exec-next-section"]', () => {
+      const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+      const next = headings.find((h) => h.getBoundingClientRect().top > 80);
+      if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    execCustomAction('[data-action="exec-prev-section"]', () => {
+      const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+      const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
+      if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    execCustomAction('[data-action="exec-forum"]', () => {
+      const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
+      if (forum) forum.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    execCustomAction('[data-action="exec-copy-link"]', () => {
+      try {
+        navigator.clipboard.writeText(window.location.href);
+        if (typeof showSystemNotification === "function") showSystemNotification("Copied link to clipboard");
+      } catch (_) {}
+    });
+  }
+
+  function getActiveFontSizeKey() {
+    if (document.documentElement.classList.contains("font-size-small")) return "small";
+    if (document.documentElement.classList.contains("font-size-large")) return "large";
+    return "medium";
+  }
+
+  function getActiveFontStyleKey() {
+    return document.body.classList.contains("font-style-typewriter") ? "typewriter" : "reading";
+  }
+
+  function buildShortcutToolFloatingBar(item) {
+    const id = item.id;
+    const barId = `shortcut-bar-${id}`;
+    const existing = document.getElementById(barId);
+    if (existing) existing.remove();
+
+    const bar = document.createElement("div");
+    bar.id = barId;
+    bar.className = "utility-floating-bar settings-floating-bar shortcut-tool-floating-bar";
+    bar.setAttribute("role", "toolbar");
+    bar.setAttribute("aria-label", `${item.title} Controls`);
+    bar.setAttribute("data-shortcut-tool", id);
+
+    const dragHtml = `
+      <span class="palette-drag-handle" data-no-tag="true">
+        <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
+      </span>
+    `;
+    let bodyHtml = "";
+
+    if (id === "sketch") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>SKETCH</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutColorDropdownHtml(barId, "Color")}
+        ${renderShortcutGenericDropdownHtml(barId, "size", "Size", SHORTCUT_STROKE_SIZES, annotationState.activeSize)}
+        ${renderShortcutGenericDropdownHtml(barId, "stroke-style", "Style", SHORTCUT_STROKE_STYLES, annotationState.strokeStyle)}
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({ snapBtn: true })}
+      `;
+    } else if (id === "highlight") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>HIGHLIGHT</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutColorDropdownHtml(barId, "Color")}
+        ${renderShortcutGenericDropdownHtml(barId, "highlight-style", "Style", SHORTCUT_HIGHLIGHT_STYLES, annotationState.highlightStyle)}
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({ applyHighlight: true })}
+      `;
+    } else if (id === "textbox") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>TEXT BOX</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutColorDropdownHtml(barId, "Color")}
+        ${renderShortcutGenericDropdownHtml(barId, "textbox-size", "Font", SHORTCUT_TEXT_SIZES, annotationState.textBoxFontSize)}
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({ snapBtn: true })}
+      `;
+    } else if (id === "stickynote") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>STICKY NOTE</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutColorDropdownHtml(barId, "Color")}
+        ${renderShortcutGenericDropdownHtml(barId, "note-size", "Size", SHORTCUT_NOTE_SIZES, getStoredNoteSizeKey())}
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({ snapBtn: true })}
+      `;
+    } else if (id === "sticker") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>STICKER</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutStickerDropdownHtml(barId)}
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({ snapBtn: true })}
+      `;
+    } else if (id === "select") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>SELECT</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutColorDropdownHtml(barId, "Color")}
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({ snapBtn: true, deleteSelected: true })}
+      `;
+    } else if (id === "eraser") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>ERASER</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "eraser-target", "Target", SHORTCUT_ERASER_TARGETS, annotationState.eraserFilter)}
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({})}
+      `;
+    } else if (id === "snap") {
+      const gridOn = !document.body.classList.contains("no-grid");
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>GRID SNAP</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "grid-size", "Grid Size", SHORTCUT_GRID_SIZES, getGridSize())}
+        <label class="setting-toggle-row" data-no-tag="true">
+          <span>Snap</span>
+          <input type="checkbox" class="edit-flyout-snap-toggle shortcut-bar-snap-toggle" ${annotationState.snapToGrid ? "checked" : ""} />
+          <span class="toggle-switch"></span>
+        </label>
+        <label class="setting-toggle-row" data-no-tag="true">
+          <span>Grid</span>
+          <input type="checkbox" class="shortcut-grid-vis-toggle" ${gridOn ? "checked" : ""} />
+          <span class="toggle-switch"></span>
+        </label>
+        <span class="palette-sep">|</span>
+        ${renderShortcutCommonActionsHtml({ undoRedo: false, clear: false })}
+      `;
+    } else if (id === "undo") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>UNDO</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "undo-scope", "Scope", SHORTCUT_UNDO_SCOPES, "last")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="undo" data-hover-tag="[UNDO]">Undo</button>
+          <button type="button" class="palette-btn" data-action="redo" data-hover-tag="[REDO]">Redo</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "redo") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>REDO</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "redo-scope", "Scope", SHORTCUT_REDO_SCOPES, "next")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="redo" data-hover-tag="[REDO]">Redo</button>
+          <button type="button" class="palette-btn" data-action="undo" data-hover-tag="[UNDO]">Undo</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "clear") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>CLEAR</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "clear-scope", "Scope", SHORTCUT_CLEAR_SCOPES, "all")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="clear" data-hover-tag="[CLEAR]">Clear</button>
+          <button type="button" class="palette-btn" data-action="undo" data-hover-tag="[UNDO]">Undo</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "expand") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>EXPAND</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "expand-mode", "View Mode", SHORTCUT_EXPAND_MODES, "standard")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-expand" data-hover-tag="[EXPAND]">Toggle (F)</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "tree") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>DIRECTORY TREE</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "tree-filter", "Filter", SHORTCUT_TREE_FILTERS, "all")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-tree" data-hover-tag="[DIRECTORY TREE]">Open Tree</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "doubt") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>ASK GEMINI AI</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "doubt-mode", "AI Mode", SHORTCUT_DOUBT_MODES, "general")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-doubt" data-hover-tag="[ASK AI]">Ask AI</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "home") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>HOME</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "home-dest", "Destination", SHORTCUT_HOME_DESTINATIONS, "top")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-home" data-hover-tag="[HOME]">Go Home</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "notepad") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>NOTEPAD</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "notepad-type", "Note Type", SHORTCUT_NOTEPAD_TYPES, "general")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-notepad" data-hover-tag="[NOTEPAD]">+ Add Note</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "darkmode") {
+      const isDark = document.body.classList.contains("theme-dark");
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>THEME</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "theme-mode", "Theme", SHORTCUT_THEME_MODES, isDark ? "dark" : "light")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-darkmode" data-hover-tag="[DARK MODE]">Toggle Theme</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "gridbg") {
+      const gridOn = !document.body.classList.contains("no-grid");
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>GRID BG</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "grid-style", "Grid Density", SHORTCUT_GRID_STYLES, "standard")}
+        <label class="setting-toggle-row" data-no-tag="true">
+          <span>Grid</span>
+          <input type="checkbox" class="shortcut-grid-vis-toggle" ${gridOn ? "checked" : ""} />
+          <span class="toggle-switch"></span>
+        </label>
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-gridbg" data-hover-tag="[GRID BG]">Toggle Grid</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "centerview") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>CENTER VIEW</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "center-align", "Align", SHORTCUT_CENTER_ALIGNMENTS, "center")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-centerview" data-hover-tag="[CENTER VIEW]">Center Area</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "print") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>PRINT / PDF</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "print-layout", "Layout", SHORTCUT_PRINT_LAYOUTS, "clean")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-print" data-hover-tag="[PRINT]">Print / PDF</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "font_size_up") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>TEXT SIZE</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "font-size", "Text Size", SHORTCUT_FONT_SIZES, getActiveFontSizeKey())}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-font-up" data-hover-tag="[FONT +]">+ Increase</button>
+          <button type="button" class="palette-btn" data-action="exec-font-down" data-hover-tag="[FONT -]">- Decrease</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "font_size_down") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>TEXT SIZE</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "font-size", "Text Size", SHORTCUT_FONT_SIZES, getActiveFontSizeKey())}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-font-down" data-hover-tag="[FONT -]">- Decrease</button>
+          <button type="button" class="palette-btn" data-action="exec-font-up" data-hover-tag="[FONT +]">+ Increase</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "font_typewriter") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>TYPOGRAPHY</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "font-style", "Typeface", SHORTCUT_FONT_STYLES, getActiveFontStyleKey())}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-font-typewriter" data-hover-tag="[FONT STYLE]">Toggle Font</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "scroll_top") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>SCROLL TOP</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "scroll-top-dest", "Target", SHORTCUT_SCROLL_TOP_TARGETS, "top")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-scroll-top" data-hover-tag="[TOP]">Scroll Top</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "scroll_bottom") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>SCROLL BOTTOM</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "scroll-bottom-dest", "Target", SHORTCUT_SCROLL_BOTTOM_TARGETS, "bottom")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-scroll-bottom" data-hover-tag="[BOTTOM]">Scroll Bottom</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "next_section") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>NEXT SECTION</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "next-section-mode", "Jump Mode", SHORTCUT_NEXT_SECTION_MODES, "next")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-next-section" data-hover-tag="[NEXT]">Jump Next (J)</button>
+          <button type="button" class="palette-btn" data-action="exec-prev-section" data-hover-tag="[PREVIOUS]">Prev (K)</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "prev_section") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>PREV SECTION</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "prev-section-mode", "Jump Mode", SHORTCUT_PREV_SECTION_MODES, "prev")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-prev-section" data-hover-tag="[PREVIOUS]">Jump Prev (K)</button>
+          <button type="button" class="palette-btn" data-action="exec-next-section" data-hover-tag="[NEXT]">Next (J)</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "forum") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>FORUM</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "forum-view", "Filter", SHORTCUT_FORUM_VIEWS, "all")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-forum" data-hover-tag="[FORUM]">Jump to Forum</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    } else if (id === "copy_link") {
+      bodyHtml = `
+        <span class="shortcut-tool-badge">${item.icon}<span>COPY LINK</span></span>
+        <span class="palette-sep">|</span>
+        ${renderShortcutGenericDropdownHtml(barId, "copy-link-format", "Format", SHORTCUT_COPY_LINK_FORMATS, "section")}
+        <span class="palette-sep">|</span>
+        <div class="shortcut-tool-actions">
+          <button type="button" class="palette-btn" data-action="exec-copy-link" data-hover-tag="[COPY LINK]">Copy Link</button>
+          <button type="button" class="palette-close-btn" data-action="close" data-hover-tag="[CLOSE]" aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    }
+
+    bar.innerHTML = dragHtml + bodyHtml;
+    document.body.appendChild(bar);
+    makeFloatingBarDraggable(bar, ".palette-drag-handle");
+    wireShortcutToolDropdownInteractions(bar, id);
+    return bar;
+  }
+
+  syncAllShortcutToolBarsUI = function() {
+    const curColor = annotationState.activeColor || "#FFE066";
+    const curSize = annotationState.activeSize || 4;
+    const curStrokeStyle = annotationState.strokeStyle || "solid";
+    const curHlStyle = annotationState.highlightStyle || "soft";
+    const curTbFontSize = annotationState.textBoxFontSize || 14;
+    const curNoteKey = getStoredNoteSizeKey();
+    const curEraserTarget = annotationState.eraserFilter || "all";
+    const curGridSize = annotationState.gridSize || getGridSize();
+    const curSticker = annotationState.activeSticker || SHORTCUT_STICKER_BADGES[0];
+    const curFontKey = getActiveFontSizeKey();
+    const curTypeKey = getActiveFontStyleKey();
+
+    if (editAnnotationBar) {
+      editAnnotationBar.querySelectorAll(".palette-color-btn").forEach((b) => {
+        b.classList.toggle("active", (b.getAttribute("data-color") || "").toUpperCase() === curColor.toUpperCase());
+      });
+      editAnnotationBar.querySelectorAll(".palette-size-btn").forEach((b) => {
+        b.classList.toggle("active", parseInt(b.getAttribute("data-size"), 10) === curSize);
+      });
+    }
+
+    document.querySelectorAll(".shortcut-tool-floating-bar").forEach((bar) => {
+      const colorDot = bar.querySelector('[data-role="color-dot"]');
+      const colorLbl = bar.querySelector('[data-role="color-label"]');
+      const customInp = bar.querySelector('[data-sc-type="custom-color"]');
+      if (colorDot) colorDot.style.background = curColor;
+      if (colorLbl) colorLbl.textContent = getColorLabel(curColor);
+      if (customInp && /^#[0-9a-f]{6}$/i.test(curColor)) customInp.value = curColor;
+      bar.querySelectorAll('[data-sc-type="color"]').forEach((btn) => {
+        btn.classList.toggle("active", (btn.getAttribute("data-val") || "").toUpperCase() === curColor.toUpperCase());
+      });
+
+      const syncKind = (kind, val, items) => {
+        const matched = items.find((it) => String(it.val) === String(val)) || items[0];
+        const lbl = bar.querySelector(`[data-role="${kind}-label"]`);
+        if (lbl) lbl.textContent = matched.short || matched.label;
+        const dotEl = bar.querySelector(`[data-role="${kind}-dot"]`);
+        if (dotEl && matched.dot) {
+          dotEl.style.width = `${matched.dot}px`;
+          dotEl.style.height = `${matched.dot}px`;
+        }
+        bar.querySelectorAll(`[data-sc-type="${kind}"]`).forEach((btn) => {
+          btn.classList.toggle("active", String(btn.getAttribute("data-val")) === String(matched.val));
+        });
+      };
+
+      if (bar.querySelector('[data-dropdown-kind="size"]')) syncKind("size", curSize, SHORTCUT_STROKE_SIZES);
+      if (bar.querySelector('[data-dropdown-kind="stroke-style"]')) syncKind("stroke-style", curStrokeStyle, SHORTCUT_STROKE_STYLES);
+      if (bar.querySelector('[data-dropdown-kind="highlight-style"]')) syncKind("highlight-style", curHlStyle, SHORTCUT_HIGHLIGHT_STYLES);
+      if (bar.querySelector('[data-dropdown-kind="textbox-size"]')) syncKind("textbox-size", curTbFontSize, SHORTCUT_TEXT_SIZES);
+      if (bar.querySelector('[data-dropdown-kind="note-size"]')) syncKind("note-size", curNoteKey, SHORTCUT_NOTE_SIZES);
+      if (bar.querySelector('[data-dropdown-kind="eraser-target"]')) syncKind("eraser-target", curEraserTarget, SHORTCUT_ERASER_TARGETS);
+      if (bar.querySelector('[data-dropdown-kind="grid-size"]')) syncKind("grid-size", curGridSize, SHORTCUT_GRID_SIZES);
+      if (bar.querySelector('[data-dropdown-kind="font-size"]')) syncKind("font-size", curFontKey, SHORTCUT_FONT_SIZES);
+      if (bar.querySelector('[data-dropdown-kind="font-style"]')) syncKind("font-style", curTypeKey, SHORTCUT_FONT_STYLES);
+
+      const stickerLbl = bar.querySelector('[data-role="sticker-label"]');
+      if (stickerLbl) {
+        stickerLbl.textContent = curSticker.type === "emoji" ? `${curSticker.icon} Stamp` : curSticker.label;
+      }
+      bar.querySelectorAll('[data-sc-type="sticker-tag"]').forEach((btn) => {
+        btn.classList.toggle("active", curSticker.type !== "emoji" && btn.getAttribute("data-label") === curSticker.label);
+      });
+      bar.querySelectorAll('[data-sc-type="sticker-emoji"]').forEach((btn) => {
+        btn.classList.toggle("active", curSticker.type === "emoji" && btn.getAttribute("data-icon") === curSticker.icon);
+      });
+
+      const snapBtn = bar.querySelector('[data-action="toggle-snap"]');
+      if (snapBtn) {
+        snapBtn.classList.toggle("active", annotationState.snapToGrid);
+        snapBtn.setAttribute("aria-pressed", annotationState.snapToGrid ? "true" : "false");
+      }
+      const snapChk = bar.querySelector(".shortcut-bar-snap-toggle");
+      if (snapChk) snapChk.checked = annotationState.snapToGrid;
+      const gridChk = bar.querySelector(".shortcut-grid-vis-toggle");
+      if (gridChk) gridChk.checked = !document.body.classList.contains("no-grid");
+    });
+
+    const snapPinnedBtn = document.getElementById("pinned-shortcut-snap");
+    if (snapPinnedBtn) {
+      snapPinnedBtn.classList.toggle("is-active", annotationState.snapToGrid || TopCenterFloatingManager.getPinnedId() === "shortcut-snap");
+    }
+    const darkPinnedBtn = document.getElementById("pinned-shortcut-darkmode");
+    if (darkPinnedBtn) darkPinnedBtn.classList.toggle("is-active", document.body.classList.contains("theme-dark"));
+    const gridPinnedBtn = document.getElementById("pinned-shortcut-gridbg");
+    if (gridPinnedBtn) gridPinnedBtn.classList.toggle("is-active", !document.body.classList.contains("no-grid"));
+    const typePinnedBtn = document.getElementById("pinned-shortcut-font_typewriter");
+    if (typePinnedBtn) typePinnedBtn.classList.toggle("is-active", document.body.classList.contains("font-style-typewriter"));
+  };
+
   const SHORTCUT_CATALOG = [
     {
       id: "select",
@@ -9934,8 +11632,12 @@ INSTRUCTIONS:
       tag: "[SELECT]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>`,
       action: () => {
-        openAnnotationPanel();
-        setAnnotationTool("select");
+        if (document.getElementById("shortcut-bar-select")) {
+          toggleTopFloatingBar("shortcut-select");
+        } else {
+          openAnnotationPanel();
+          setAnnotationTool("select");
+        }
       }
     },
     {
@@ -9944,8 +11646,12 @@ INSTRUCTIONS:
       tag: "[SKETCH]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
       action: () => {
-        openAnnotationPanel();
-        setAnnotationTool("sketch");
+        if (document.getElementById("shortcut-bar-sketch")) {
+          toggleTopFloatingBar("shortcut-sketch");
+        } else {
+          openAnnotationPanel();
+          setAnnotationTool("sketch");
+        }
       }
     },
     {
@@ -9954,8 +11660,12 @@ INSTRUCTIONS:
       tag: "[HIGHLIGHT]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 7-4.5-4.5-8.5 8.5 4.5 4.5L22 7z"/></svg>`,
       action: () => {
-        openAnnotationPanel();
-        setAnnotationTool("highlight");
+        if (document.getElementById("shortcut-bar-highlight")) {
+          toggleTopFloatingBar("shortcut-highlight");
+        } else {
+          openAnnotationPanel();
+          setAnnotationTool("highlight");
+        }
       }
     },
     {
@@ -9964,8 +11674,12 @@ INSTRUCTIONS:
       tag: "[TEXT]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`,
       action: () => {
-        openAnnotationPanel();
-        setAnnotationTool("textbox");
+        if (document.getElementById("shortcut-bar-textbox")) {
+          toggleTopFloatingBar("shortcut-textbox");
+        } else {
+          openAnnotationPanel();
+          setAnnotationTool("textbox");
+        }
       }
     },
     {
@@ -9974,8 +11688,12 @@ INSTRUCTIONS:
       tag: "[NOTE]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><polyline points="15 3 21 9 15 9 15 3"/></svg>`,
       action: () => {
-        openAnnotationPanel();
-        setAnnotationTool("stickynote");
+        if (document.getElementById("shortcut-bar-stickynote")) {
+          toggleTopFloatingBar("shortcut-stickynote");
+        } else {
+          openAnnotationPanel();
+          setAnnotationTool("stickynote");
+        }
       }
     },
     {
@@ -9984,8 +11702,12 @@ INSTRUCTIONS:
       tag: "[STICKER]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
       action: () => {
-        openAnnotationPanel();
-        setAnnotationTool("sticker");
+        if (document.getElementById("shortcut-bar-sticker")) {
+          toggleTopFloatingBar("shortcut-sticker");
+        } else {
+          openAnnotationPanel();
+          setAnnotationTool("sticker");
+        }
       }
     },
     {
@@ -9994,8 +11716,12 @@ INSTRUCTIONS:
       tag: "[ERASER]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/></svg>`,
       action: () => {
-        openAnnotationPanel();
-        setAnnotationTool("eraser");
+        if (document.getElementById("shortcut-bar-eraser")) {
+          toggleTopFloatingBar("shortcut-eraser");
+        } else {
+          openAnnotationPanel();
+          setAnnotationTool("eraser");
+        }
       }
     },
     {
@@ -10004,7 +11730,11 @@ INSTRUCTIONS:
       tag: "[SNAP TO GRID]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`,
       action: () => {
-        toggleSnapToGrid();
+        if (document.getElementById("shortcut-bar-snap")) {
+          toggleTopFloatingBar("shortcut-snap");
+        } else {
+          toggleSnapToGrid();
+        }
       }
     },
     {
@@ -10013,7 +11743,11 @@ INSTRUCTIONS:
       tag: "[UNDO]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`,
       action: () => {
-        performAnnotationUndo();
+        if (document.getElementById("shortcut-bar-undo")) {
+          toggleTopFloatingBar("shortcut-undo");
+        } else {
+          performAnnotationUndo();
+        }
       }
     },
     {
@@ -10022,7 +11756,11 @@ INSTRUCTIONS:
       tag: "[REDO]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>`,
       action: () => {
-        performAnnotationRedo();
+        if (document.getElementById("shortcut-bar-redo")) {
+          toggleTopFloatingBar("shortcut-redo");
+        } else {
+          performAnnotationRedo();
+        }
       }
     },
     {
@@ -10031,8 +11769,11 @@ INSTRUCTIONS:
       tag: "[CLEAR]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
       action: () => {
-        const clearBtn = document.getElementById("annotation-btn-clear");
-        if (clearBtn) clearBtn.click();
+        if (document.getElementById("shortcut-bar-clear")) {
+          toggleTopFloatingBar("shortcut-clear");
+        } else {
+          clearAllPageAnnotations();
+        }
       }
     },
     {
@@ -10041,8 +11782,13 @@ INSTRUCTIONS:
       tag: "[EXPAND]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>`,
       action: () => {
-        const btn = document.getElementById("expand-nav-btn");
-        if (btn) btn.click();
+        if (document.getElementById("shortcut-bar-expand")) {
+          toggleTopFloatingBar("shortcut-expand");
+        } else {
+          const btn = document.getElementById("expand-nav-btn");
+          if (btn) btn.click();
+          else toggleTopBar();
+        }
       }
     },
     {
@@ -10060,8 +11806,13 @@ INSTRUCTIONS:
       tag: "[DIRECTORY TREE]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12h-8"/><path d="M21 6H8"/><path d="M21 18h-8"/><path d="M3 6v12h4"/></svg>`,
       action: () => {
-        const btn = document.getElementById("nav-tree-toggle-btn");
-        if (btn) btn.click();
+        if (document.getElementById("shortcut-bar-tree")) {
+          toggleTopFloatingBar("shortcut-tree");
+        } else {
+          const btn = document.getElementById("nav-tree-toggle-btn");
+          if (btn) btn.click();
+          else if (typeof toggleTree === "function") toggleTree(true);
+        }
       }
     },
     {
@@ -10070,8 +11821,13 @@ INSTRUCTIONS:
       tag: "[ASK AI]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>`,
       action: () => {
-        const btn = document.getElementById("doubt-nav-btn");
-        if (btn) btn.click();
+        if (document.getElementById("shortcut-bar-doubt")) {
+          toggleTopFloatingBar("shortcut-doubt");
+        } else {
+          const btn = document.getElementById("doubt-nav-btn");
+          if (btn) btn.click();
+          else if (typeof openDoubtSolver === "function") openDoubtSolver(null, true);
+        }
       }
     },
     {
@@ -10116,9 +11872,13 @@ INSTRUCTIONS:
       tag: "[HOME]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
       action: () => {
-        const btn = document.getElementById("nav-home-btn");
-        if (btn) btn.click();
-        else window.location.href = "guide.html";
+        if (document.getElementById("shortcut-bar-home")) {
+          toggleTopFloatingBar("shortcut-home");
+        } else {
+          const btn = document.getElementById("nav-home-btn");
+          if (btn) btn.click();
+          else window.location.href = "guide.html";
+        }
       }
     },
     {
@@ -10127,16 +11887,20 @@ INSTRUCTIONS:
       tag: "[NOTEPAD]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
       action: () => {
-        const sections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .content-area > section"));
-        let target = sections.find((s) => {
-          const r = s.getBoundingClientRect();
-          return r.top >= 0 && r.top <= window.innerHeight * 0.6;
-        }) || sections[0];
-        if (target) {
-          const btn = target.querySelector(".section-notepad-btn");
-          if (btn) btn.click();
-          else if (typeof addSectionUserNote === "function") {
-            addSectionUserNote(target.id || "sec-active", target);
+        if (document.getElementById("shortcut-bar-notepad")) {
+          toggleTopFloatingBar("shortcut-notepad");
+        } else {
+          const sections = Array.from(document.querySelectorAll(".page-directory-section, .doc-section, .content-area > section"));
+          const target = sections.find((s) => {
+            const r = s.getBoundingClientRect();
+            return r.top >= 0 && r.top <= window.innerHeight * 0.6;
+          }) || sections[0];
+          if (target) {
+            const btn = target.querySelector(".section-notepad-btn");
+            if (btn) btn.click();
+            else if (typeof addSectionUserNote === "function") {
+              addSectionUserNote(target.id || "sec-active", target);
+            }
           }
         }
       }
@@ -10147,7 +11911,11 @@ INSTRUCTIONS:
       tag: "[DARK MODE]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`,
       action: () => {
-        toggleThemeMode();
+        if (document.getElementById("shortcut-bar-darkmode")) {
+          toggleTopFloatingBar("shortcut-darkmode");
+        } else {
+          toggleThemeMode();
+        }
       }
     },
     {
@@ -10156,7 +11924,11 @@ INSTRUCTIONS:
       tag: "[GRID BG]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="3" x2="21" y2="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="3" x2="3" y2="21"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="21" y1="3" x2="21" y2="21"/></svg>`,
       action: () => {
-        toggleBackgroundGrid();
+        if (document.getElementById("shortcut-bar-gridbg")) {
+          toggleTopFloatingBar("shortcut-gridbg");
+        } else {
+          toggleBackgroundGrid();
+        }
       }
     },
     {
@@ -10165,8 +11937,12 @@ INSTRUCTIONS:
       tag: "[CENTER VIEW]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>`,
       action: () => {
-        const main = document.querySelector(".guide-main") || document.querySelector("main") || document.documentElement;
-        main.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (document.getElementById("shortcut-bar-centerview")) {
+          toggleTopFloatingBar("shortcut-centerview");
+        } else {
+          const main = document.querySelector(".guide-main") || document.querySelector("main") || document.documentElement;
+          main.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
       }
     },
     {
@@ -10175,7 +11951,11 @@ INSTRUCTIONS:
       tag: "[PRINT]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`,
       action: () => {
-        window.print();
+        if (document.getElementById("shortcut-bar-print")) {
+          toggleTopFloatingBar("shortcut-print");
+        } else {
+          window.print();
+        }
       }
     },
     {
@@ -10184,10 +11964,14 @@ INSTRUCTIONS:
       tag: "[FONT +]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5h3v14M11 19V5h3v14M18 12h5M20.5 9.5v5"/></svg>`,
       action: () => {
-        const sizes = ["small", "medium", "large"];
-        const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
-        const idx = cur === -1 ? 1 : cur;
-        if (idx < sizes.length - 1) applyFontSize(sizes[idx + 1]);
+        if (document.getElementById("shortcut-bar-font_size_up")) {
+          toggleTopFloatingBar("shortcut-font_size_up");
+        } else {
+          const sizes = ["small", "medium", "large"];
+          const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
+          const idx = cur === -1 ? 1 : cur;
+          if (idx < sizes.length - 1) applyFontSize(sizes[idx + 1]);
+        }
       }
     },
     {
@@ -10196,10 +11980,14 @@ INSTRUCTIONS:
       tag: "[FONT -]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5h3v14M11 19V5h3v14M18 12h5"/></svg>`,
       action: () => {
-        const sizes = ["small", "medium", "large"];
-        const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
-        const idx = cur === -1 ? 1 : cur;
-        if (idx > 0) applyFontSize(sizes[idx - 1]);
+        if (document.getElementById("shortcut-bar-font_size_down")) {
+          toggleTopFloatingBar("shortcut-font_size_down");
+        } else {
+          const sizes = ["small", "medium", "large"];
+          const cur = sizes.findIndex((s) => document.documentElement.classList.contains(`font-size-${s}`));
+          const idx = cur === -1 ? 1 : cur;
+          if (idx > 0) applyFontSize(sizes[idx - 1]);
+        }
       }
     },
     {
@@ -10208,8 +11996,12 @@ INSTRUCTIONS:
       tag: "[FONT STYLE]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>`,
       action: () => {
-        const isType = document.body.classList.contains("font-style-typewriter");
-        applyFontStyle(isType ? "reading" : "typewriter");
+        if (document.getElementById("shortcut-bar-font_typewriter")) {
+          toggleTopFloatingBar("shortcut-font_typewriter");
+        } else {
+          const isType = document.body.classList.contains("font-style-typewriter");
+          applyFontStyle(isType ? "reading" : "typewriter");
+        }
       }
     },
     {
@@ -10218,7 +12010,11 @@ INSTRUCTIONS:
       tag: "[TOP]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
       action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (document.getElementById("shortcut-bar-scroll_top")) {
+          toggleTopFloatingBar("shortcut-scroll_top");
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
       }
     },
     {
@@ -10227,7 +12023,11 @@ INSTRUCTIONS:
       tag: "[BOTTOM]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>`,
       action: () => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+        if (document.getElementById("shortcut-bar-scroll_bottom")) {
+          toggleTopFloatingBar("shortcut-scroll_bottom");
+        } else {
+          window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+        }
       }
     },
     {
@@ -10236,9 +12036,13 @@ INSTRUCTIONS:
       tag: "[NEXT]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
       action: () => {
-        const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
-        const next = headings.find((h) => h.getBoundingClientRect().top > 80);
-        if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (document.getElementById("shortcut-bar-next_section")) {
+          toggleTopFloatingBar("shortcut-next_section");
+        } else {
+          const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+          const next = headings.find((h) => h.getBoundingClientRect().top > 80);
+          if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
     },
     {
@@ -10247,10 +12051,14 @@ INSTRUCTIONS:
       tag: "[PREVIOUS]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
       action: () => {
-        const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
-        const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
-        if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
-        else window.scrollTo({ top: 0, behavior: "smooth" });
+        if (document.getElementById("shortcut-bar-prev_section")) {
+          toggleTopFloatingBar("shortcut-prev_section");
+        } else {
+          const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
+          const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
+          if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
+          else window.scrollTo({ top: 0, behavior: "smooth" });
+        }
       }
     },
     {
@@ -10259,8 +12067,12 @@ INSTRUCTIONS:
       tag: "[FORUM]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
       action: () => {
-        const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
-        if (forum) forum.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (document.getElementById("shortcut-bar-forum")) {
+          toggleTopFloatingBar("shortcut-forum");
+        } else {
+          const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
+          if (forum) forum.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
     },
     {
@@ -10269,7 +12081,11 @@ INSTRUCTIONS:
       tag: "[COPY LINK]",
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
       action: () => {
-        navigator.clipboard.writeText(window.location.href);
+        if (document.getElementById("shortcut-bar-copy_link")) {
+          toggleTopFloatingBar("shortcut-copy_link");
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+        }
       }
     },
     {
@@ -10382,6 +12198,12 @@ INSTRUCTIONS:
 
     function renderPinnedBar() {
       if (!pinnedContainer) return;
+
+      SHORTCUT_TOOL_BAR_IDS.forEach((toolId) => {
+        TopCenterFloatingManager.unregister(`shortcut-${toolId}`);
+      });
+      document.querySelectorAll(".shortcut-tool-floating-bar").forEach((el) => el.remove());
+
       const pinnedIds = getPinnedIds();
       pinnedContainer.innerHTML = "";
 
@@ -10398,13 +12220,77 @@ INSTRUCTIONS:
         btn.setAttribute("aria-label", item.title);
         btn.innerHTML = item.icon;
 
-        btn.addEventListener("click", (e) => {
-          e.preventDefault();
-          item.action();
-        });
-
         pinnedContainer.appendChild(btn);
+
+        if (SHORTCUT_TOOL_BAR_IDS.has(item.id)) {
+          const toolBar = buildShortcutToolFloatingBar(item);
+          const isAnnotationCanvasTool = new Set(["sketch", "highlight", "textbox", "stickynote", "sticker", "select", "eraser"]).has(item.id);
+          const isDirectToggleShortcut = new Set(["snap", "darkmode", "gridbg", "font_typewriter"]).has(item.id);
+          registerTopFloatingBar({
+            id: `shortcut-${item.id}`,
+            wrapper: btn,
+            btn: btn,
+            bar: toolBar,
+            closeBtnSelector: ".palette-close-btn",
+            bindClick: !isDirectToggleShortcut,
+            onPreview: () => {
+              syncAllShortcutToolBarsUI();
+            },
+            onPin: isAnnotationCanvasTool ? ({ fromInteraction }) => {
+              activateAnnotationMode({
+                fromInteraction,
+                tool: item.id,
+                suppressPopover: true
+              });
+            } : () => {
+              syncAllShortcutToolBarsUI();
+            },
+            onClose: isAnnotationCanvasTool ? () => {
+              deactivateAnnotationMode();
+            } : () => {
+              syncAllShortcutToolBarsUI();
+            }
+          });
+          if (isDirectToggleShortcut) {
+            btn.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (item.id === "snap") toggleSnapToGrid();
+              else if (item.id === "darkmode") toggleThemeMode();
+              else if (item.id === "gridbg") toggleBackgroundGrid();
+              else if (item.id === "font_typewriter") {
+                const isType = document.body.classList.contains("font-style-typewriter");
+                applyFontStyle(isType ? "reading" : "typewriter");
+              }
+              syncAllShortcutToolBarsUI();
+            });
+          }
+        } else if (SHORTCUT_NATIVE_PANEL_IDS.has(item.id)) {
+          btn.addEventListener("mouseenter", () => {
+            TopCenterFloatingManager.showHoverPreview(item.id);
+          });
+          btn.addEventListener("mouseleave", () => {
+            TopCenterFloatingManager.clearSuppressedHover(item.id);
+            if (TopCenterFloatingManager.getPinnedId() !== item.id && TopCenterFloatingManager.getHoverId() === item.id) {
+              TopCenterFloatingManager.scheduleLeave(item.id);
+            }
+          });
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            TopCenterFloatingManager.clearSuppressedHover(item.id);
+            toggleTopFloatingBar(item.id);
+          });
+        } else {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            item.action();
+            syncAllShortcutToolBarsUI();
+          });
+        }
       });
+
+      syncAllShortcutToolBarsUI();
     }
 
     let selectedDropdownIndex = 0;
