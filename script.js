@@ -2413,6 +2413,166 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     }
   }
 
+  
+  // ================= RAZORPAY SOVEREIGN CLEARANCE CHECKOUT ENGINE =================
+  const DEFAULT_RAZORPAY_KEY_ID = "rzp_live_TwBGCSnpYdT9r5";
+
+  async function ensureRazorpayLoaded() {
+    if (window.Razorpay) return true;
+    return new Promise((resolve) => {
+      const existing = document.querySelector("script[src*='checkout.razorpay.com']");
+      if (existing) {
+        existing.addEventListener("load", () => resolve(true), { once: true });
+        existing.addEventListener("error", () => resolve(false), { once: true });
+        setTimeout(() => resolve(!!window.Razorpay), 2500);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.head.appendChild(script);
+      setTimeout(() => resolve(!!window.Razorpay), 4000);
+    });
+  }
+
+  async function triggerDirectRazorpayCheckout(plan = "lifetime", amount = 99) {
+    const sb = window.IndexIndiaSupabase;
+    if (!sb || !sb.isAuthenticated()) {
+      if (typeof window.openTopFloatingBar === "function") {
+        window.openTopFloatingBar("account");
+      }
+      alert("Please sign in or create an account in the Account panel first so your Sovereign Clearance is linked to your email identity.");
+      return;
+    }
+
+    const user = sb.getUser();
+    const btn = document.getElementById("btn-account-razorpay-upgrade") || document.getElementById("btn-guest-razorpay-upgrade");
+    const originalText = btn ? btn.innerHTML : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span>Connecting to Razorpay...</span>`;
+    }
+
+    try {
+      const loaded = await ensureRazorpayLoaded();
+      if (!loaded || !window.Razorpay) {
+        alert("Could not load Razorpay checkout script. Please check your internet connection.");
+        if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+        return;
+      }
+
+      const CLOUDFLARE_WORKER_URL = (localStorage.getItem("indexindia_cf_worker_url") || "https://indexindia.dhaumyakumar27-235.workers.dev").trim();
+      let orderData = null;
+
+      if (CLOUDFLARE_WORKER_URL) {
+        try {
+          const orderRes = await fetch(`${CLOUDFLARE_WORKER_URL}/api/create-order`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plan: plan,
+              userId: user.id,
+              email: user.email
+            })
+          });
+          if (orderRes.ok) {
+            orderData = await orderRes.json();
+          }
+        } catch (cfErr) {
+          console.warn("[Razorpay] Worker order creation fallback:", cfErr);
+        }
+      }
+
+      let rzpKeyId = (orderData && orderData.keyId) || localStorage.getItem("indexindia_razorpay_key") || DEFAULT_RAZORPAY_KEY_ID;
+
+      if (!rzpKeyId) {
+        const enteredKey = prompt("Enter your Razorpay Key ID (e.g. rzp_live_...):", "");
+        if (enteredKey && enteredKey.trim()) {
+          rzpKeyId = enteredKey.trim();
+          localStorage.setItem("indexindia_razorpay_key", rzpKeyId);
+        } else {
+          if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+          return;
+        }
+      }
+
+      const options = {
+        key: rzpKeyId,
+        amount: (orderData && orderData.amount) || (amount * 100),
+        currency: "INR",
+        name: "IndexIndia Sovereign Research",
+        description: "Lifetime Sovereign Research Clearance (\u20B999 One-Time)",
+        order_id: orderData ? orderData.orderId : undefined,
+        prefill: {
+          email: user.email || "",
+          name: user.email ? user.email.split("@")[0] : "Institutional Reader"
+        },
+        theme: {
+          color: "#FF3B00"
+        },
+        notes: {
+          user_id: user.id,
+          plan: plan
+        },
+        handler: async function (response) {
+          if (btn) btn.innerHTML = `<span>Verifying Clearance...</span>`;
+          if (CLOUDFLARE_WORKER_URL && orderData) {
+            try {
+              await fetch(`${CLOUDFLARE_WORKER_URL}/api/verify-payment`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  userId: user.id,
+                  plan: plan
+                })
+              });
+            } catch (vErr) {
+              console.warn("[Razorpay] Worker verification warning:", vErr);
+            }
+          }
+
+          if (sb && typeof sb.recordMembership === "function") {
+            await sb.recordMembership({
+              planType: plan,
+              paymentId: response.razorpay_payment_id,
+              orderId: response.razorpay_order_id,
+              amountPaid: amount,
+              validUntil: null
+            });
+          }
+
+          alert(`\u2713 Payment of \u20B9${amount} Succeeded!\nPayment Ref: ${response.razorpay_payment_id}\n\nYour Lifetime Sovereign Clearance is permanently unlocked.`);
+          if (typeof renderAccountPanel === "function") renderAccountPanel();
+          if (typeof syncMemberExclusiveContent === "function") {
+            syncMemberExclusiveContent({ status: "active", plan_type: plan, valid_until: null });
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (resp) {
+        alert("Payment failed: " + (resp.error?.description || "Gateway transaction declined."));
+        if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+      });
+      rzp.open();
+    } catch (err) {
+      console.error("[Razorpay] Portal checkout exception:", err);
+      alert("Could not initialize Razorpay checkout portal: " + (err.message || "Please check connection."));
+      if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+    }
+  }
+  window.triggerDirectRazorpayCheckout = triggerDirectRazorpayCheckout;
+
   async function renderAccountPanel() {
     if (!accountPanel) return;
     try {
@@ -2493,13 +2653,14 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
 
           <div class="account-col-card" style="gap: 8px;">
             ${!hasPaidPlan ? `
-              <a href="membership.html" class="account-btn-action" style="background-color: var(--accent); color: #FFFFFF !important; text-decoration: none; text-align: center; justify-content: center; font-weight: 700; margin-top: 0;">
-                Upgrade to Sovereign Pass (&#8377;99 Lifetime)
-              </a>
+              <button type="button" class="account-btn-action" id="btn-account-razorpay-upgrade" style="background-color: var(--accent); color: #FFFFFF !important; text-align: center; justify-content: center; font-weight: 700; margin-top: 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Upgrade to Sovereign Pass (&#8377;99 Lifetime) &rarr;
+              </button>
             ` : `
-              <a href="membership.html" class="account-btn-secondary" style="margin-top: 0; color: var(--accent); border-color: var(--accent); text-decoration: none;">
-                Manage Membership / Clearance &rarr;
-              </a>
+              <div class="account-badge-verified-notice font-mono" style="font-size: 0.78rem; color: #00E599; padding: 6px 10px; background: rgba(0, 229, 153, 0.08); border: 1px solid rgba(0, 229, 153, 0.25); border-radius: 4px; text-align: center;">
+                &#10003; Lifetime Sovereign Pass Active
+              </div>
             `}
             <button type="button" class="account-btn-action" id="btn-account-sync-now" style="margin-top: 0;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
@@ -2514,6 +2675,11 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           </div>
         </div>
       `;
+
+      const razorpayUpgradeBtn = document.getElementById("btn-account-razorpay-upgrade");
+      if (razorpayUpgradeBtn) {
+        razorpayUpgradeBtn.addEventListener("click", () => triggerDirectRazorpayCheckout("lifetime", 99));
+      }
 
       const syncNowBtn = document.getElementById("btn-account-sync-now");
       if (syncNowBtn) {
@@ -2619,9 +2785,9 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
             Sign in with Google
           </button>
 
-          <a href="membership.html" class="account-btn-secondary" style="margin-top: 0; text-decoration: none; color: var(--accent);">
+          <button type="button" class="account-btn-action" id="btn-guest-razorpay-upgrade" style="margin-top: 0; background-color: var(--accent); color: #FFFFFF !important; font-weight: 700;">
             Lifetime Sovereign Clearance &bull; &#8377;99 &rarr;
-          </a>
+          </button>
 
           ${isConfigBoxVisible ? `
             <div class="account-config-box" style="margin-top: 8px;">
@@ -2725,6 +2891,11 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         }
       }
     });
+
+    const guestUpgradeBtn = document.getElementById("btn-guest-razorpay-upgrade");
+    if (guestUpgradeBtn) {
+      guestUpgradeBtn.addEventListener("click", () => triggerDirectRazorpayCheckout("lifetime", 99));
+    }
 
     const authForm = document.getElementById("account-auth-form");
     if (authForm) {
@@ -6954,8 +7125,8 @@ INSTRUCTIONS:
     // Core Hubs & Modular Directories
     const HUB_PAGES = [
       { title: "Guide Landing — Chapter 1: Entities & Chapter 2: Payment Gateways", file: "guide.html", sub: "Definitive statutory index of all business structures & payment gateway directory", kw: "guide entities registration matrix payment gateways razorpay cosmofeed stripe aggregator neobanking" },
-      { title: "Statutory & Privacy Dossier — Legal Disclosures & AI Telemetry", file: "statutory-privacy.html", sub: "SEBI non-advisory mandate, Gemini AI telemetry, privacy policy", kw: "statutory privacy legal sebi disclaimer gemini terms compliance refund cosmofeed razorpay" },
-      { title: "Sovereign Clearance & Memberships", file: "membership.html", sub: "Institutional access tiers & forensic models", kw: "membership pricing upgrade clearance access plan" }
+      { title: "Statutory & Privacy Dossier — Legal Disclosures & AI Telemetry", file: "guide.html#sec-ai-telemetry", sub: "SEBI non-advisory mandate, Gemini AI telemetry, privacy policy", kw: "statutory privacy legal sebi disclaimer gemini terms compliance refund cosmofeed razorpay" },
+      { title: "Sovereign Clearance & Memberships", file: "guide.html#account-floating-bar", sub: "Direct Razorpay checkout & lifetime pass", kw: "membership pricing upgrade clearance access plan razorpay" }
     ];
 
     HUB_PAGES.forEach((hub) => {
@@ -9989,6 +10160,7 @@ INSTRUCTIONS:
       "shortcuts-btn": "[SHORTCUTS]",
       "account-btn": "[ACCOUNT]",
       "settings-btn": "[SETTINGS]",
+      "nav-statutory-btn": "[STATUTORY & PRIVACY \u2192]",
       "add-shortcut-btn": "[ADD SHORTCUT]",
       "nav-restore-float-btn": "[EXPAND]"
     };
