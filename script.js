@@ -2373,7 +2373,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     );
 
     // 1. Section 1 (Unincorporated Entities): "sole proprietorship is best for start up"
-    const unincorporatedSec = document.getElementById("sec-module-13") || document.getElementById("sec-unincorporated");
+    const unincorporatedSec = document.getElementById("sec-module-2") || document.getElementById("sec-module-11") || document.getElementById("sec-unincorporated");
     if (unincorporatedSec) {
       const entityItems = unincorporatedSec.querySelectorAll(".entity-item");
       let solePropCard = null;
@@ -4086,7 +4086,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
       return;
     }
 
-    const mainSections = Array.from(document.querySelectorAll('.chapter-anchor, [id^="sec-track-"], #sec-curriculum-overview, #forum-section, #sec-footer, .institutional-forum-section'));
+    const mainSections = Array.from(document.querySelectorAll('.chapter-anchor, [id^="sec-stage-"], [id^="sec-track-"], #sec-curriculum-overview, #forum-section, #sec-footer, .institutional-forum-section'));
     if (mainSections.length > 0) {
       const scrollPos = window.scrollY + 120;
       let currentIdx = 0;
