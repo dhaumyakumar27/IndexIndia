@@ -9492,3 +9492,78 @@ body.theme-dark .shortcut-grid-cell:hover {
 
 
 
+
+
+/* --- 5. STATUTORY & PRIVACY FLOATING BAR --- */
+.statutory-floating-bar {
+  width: min(840px, calc(100vw - 20px));
+}
+
+.statutory-bar-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - var(--nav-height) - 100px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.statutory-pill-badge {
+  font-size: 0.70rem;
+  letter-spacing: 0.05em;
+  color: #00E599;
+  background: rgba(0, 229, 153, 0.1);
+  border: 1px solid rgba(0, 229, 153, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.statutory-card-item {
+  background: var(--bg-card, rgba(0, 0, 0, 0.03));
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.15s ease;
+}
+
+body.theme-dark .statutory-card-item {
+  background: #14161C;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.statutory-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.statutory-card-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+.statutory-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.statutory-card-text {
+  font-size: 0.80rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.statutory-card-text strong {
+  color: var(--text-primary);
+}

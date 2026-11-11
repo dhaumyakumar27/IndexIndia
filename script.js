@@ -1563,6 +1563,84 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       document.body.appendChild(settingsBar);
       makeFloatingBarDraggable(settingsBar);
     }
+
+    // 5. STATUTORY & PRIVACY FLOATING BAR (Top-center floating panel matching other utility bars)
+    if (!document.getElementById("statutory-floating-bar")) {
+      const statutoryBar = document.createElement("div");
+      statutoryBar.id = "statutory-floating-bar";
+      statutoryBar.className = "utility-floating-bar statutory-floating-bar";
+      statutoryBar.setAttribute("role", "dialog");
+      statutoryBar.setAttribute("aria-label", "Statutory Intelligence & Privacy Dossier");
+      statutoryBar.innerHTML = `
+        <div class="utility-bar-header">
+          <div class="utility-bar-title-wrap">
+            <span class="palette-drag-handle" title="Drag Panel">
+              <svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2.5"/><circle cx="8" cy="12" r="2.5"/><circle cx="8" cy="20" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="16" cy="20" r="2.5"/></svg>
+            </span>
+            <span class="utility-bar-title">[STATUTORY &amp; PRIVACY DOSSIER]</span>
+          </div>
+          <div class="utility-bar-meta-group">
+            <span class="statutory-pill-badge font-mono">REGULATORY COMPLIANT</span>
+            <button type="button" class="palette-close-btn" id="statutory-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="statutory-bar-body">
+          <div class="statutory-card-item">
+            <div class="statutory-card-header">
+              <span class="statutory-card-tag font-mono">01 &bull; AI TELEMETRY</span>
+              <h4 class="statutory-card-title">Gemini AI Model Boundaries &amp; Accuracy Limits</h4>
+            </div>
+            <p class="statutory-card-text">
+              The Gemini AI companion utilizes Google foundation language models via edge telemetry. Responses are computed probabilistically from statutory contexts (Companies Act 2013, SEBI LODR, LLP Act 2008). AI responses are auxiliary reference guides and do not constitute formal legal opinions from an Advocate on Record or audit rulings from the Ministry of Corporate Affairs.
+            </p>
+          </div>
+
+          <div class="statutory-card-item">
+            <div class="statutory-card-header">
+              <span class="statutory-card-tag font-mono">02 &bull; SOVEREIGN CLEARANCE</span>
+              <h4 class="statutory-card-title">Terms &amp; Conditions of Institutional Access</h4>
+            </div>
+            <p class="statutory-card-text">
+              Purchasers of the Sovereign Pass receive a revocable, non-exclusive, single-analyst license for internal research. Deploying automated scrapers, botnets, or brute-force extraction routines against IndexIndia CDN endpoints or Supabase instances is strictly prohibited and terminates clearance immediately.
+            </p>
+          </div>
+
+          <div class="statutory-card-item">
+            <div class="statutory-card-header">
+              <span class="statutory-card-tag font-mono">03 &bull; DATA PRIVACY</span>
+              <h4 class="statutory-card-title">Zero Third-Party Data Selling Guarantee</h4>
+            </div>
+            <p class="statutory-card-text">
+              IndexIndia does <strong>NOT</strong> sell, rent, monetize, or broker user identities, email addresses, payment records, or research behaviors to third parties, data aggregators, or hedge funds. Diligence annotations and reading progress remain strictly local-first and encrypted in your personal cloud profile.
+            </p>
+          </div>
+
+          <div class="statutory-card-item">
+            <div class="statutory-card-header">
+              <span class="statutory-card-tag font-mono">04 &bull; FAIR DEALING</span>
+              <h4 class="statutory-card-title">Public Domain Diligence &amp; Copyright Compliance</h4>
+            </div>
+            <p class="statutory-card-text">
+              Statutory citations and corporate balance sheet taxonomies are published under <strong>Section 52(1)(a)(i) of the Copyright Act, 1957 (India)</strong>, governing fair dealing for research, private study, and review. Primary sources derive from publicly published gazette notifications of MCA, SEBI, and RBI.
+            </p>
+          </div>
+
+          <div class="statutory-card-item">
+            <div class="statutory-card-header">
+              <span class="statutory-card-tag font-mono">05 &bull; SETTLEMENT</span>
+              <h4 class="statutory-card-title">Razorpay &amp; Sovereign Merchant Terms</h4>
+            </div>
+            <p class="statutory-card-text">
+              All transactions are settled securely in Indian Rupees (INR) via Razorpay Software Pvt. Ltd. adhering to RBI tokenization and PCI-DSS Level 1 directives. Instant cryptographic provisioning activates pass clearance across the browser session upon payment confirmation.
+            </p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(statutoryBar);
+      makeFloatingBarDraggable(statutoryBar);
+    }
   }
 
   ensureUtilityFloatingBars();
@@ -2132,6 +2210,26 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
       });
     }
   });
+
+  const statutoryNavWrapper = document.getElementById("statutory-nav-wrapper");
+  const statutoryNavBtn = document.getElementById("nav-statutory-btn");
+
+  TopCenterFloatingManager.register({
+    id: "statutory",
+    wrapper: statutoryNavWrapper,
+    btn: statutoryNavBtn,
+    barId: "statutory-floating-bar"
+  });
+
+  // Footer Statutory link opens the floating bar
+  const footerStatutoryBtn = document.getElementById("footer-statutory-btn");
+  if (footerStatutoryBtn) {
+    footerStatutoryBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleTopFloatingBar("statutory");
+    });
+  }
+
 
   // ================= 3b. SUPABASE ACCOUNT DOSSIER & CLOUD SYNC SYSTEM =================
   const accountPanel = document.getElementById("account-panel");
@@ -10160,7 +10258,7 @@ INSTRUCTIONS:
       "shortcuts-btn": "[SHORTCUTS]",
       "account-btn": "[ACCOUNT]",
       "settings-btn": "[SETTINGS]",
-      "nav-statutory-btn": "[STATUTORY & PRIVACY \u2192]",
+      "nav-statutory-btn": "[STATUTORY & PRIVACY]",
       "add-shortcut-btn": "[ADD SHORTCUT]",
       "nav-restore-float-btn": "[EXPAND]"
     };
