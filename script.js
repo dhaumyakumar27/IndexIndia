@@ -4549,6 +4549,19 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     return (SUPABASE_CONFIG.url || "").replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
   }
 
+  function getIndianStandardDateNow(dateObj = new Date()) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }).formatToParts(dateObj);
+    const day = parts.find((p) => p.type === "day")?.value || "01";
+    const month = parts.find((p) => p.type === "month")?.value || "Jan";
+    const year = parts.find((p) => p.type === "year")?.value || "2026";
+    return `${day}-${month}-${year}`;
+  }
+
   function getIndianStandardTimeNow() {
     return new Date().toLocaleTimeString("en-GB", {
       timeZone: "Asia/Kolkata",
@@ -4579,7 +4592,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
   }
 
   function getISTUsername() {
-    return `ANON_${getIndianStandardTimeNow()}_IST`;
+    return `ANON_${getIndianStandardDateNow()}_${getIndianStandardTimeNow()}_IST`;
   }
 
   function getForumPageId() {
@@ -4663,11 +4676,20 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         }
       }
 
+      let displayUsername = m.username || "ANON_IST";
+      if (/^ANON_\d{2}:\d{2}:\d{2}_IST$/.test(displayUsername) && m.created_at) {
+        const d = new Date(m.created_at);
+        if (!isNaN(d.getTime())) {
+          displayUsername = displayUsername.replace(/^ANON_/, `ANON_${getIndianStandardDateNow(d)}_`);
+        }
+      }
+
       const node = {
         id: m.id,
-        username: m.username || "ANON_IST",
+        username: displayUsername,
         text: cleanText,
         parentId: parentId,
+        created_at: m.created_at || null,
         children: [],
         depth: 0
       };
@@ -4872,12 +4894,13 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
 
   // Real-time IST username clock ticker
   function tickForumClock() {
+    const istDate = getIndianStandardDateNow();
     const istTime = getIndianStandardTimeNow();
     if (currentIstUsernameEl) {
-      currentIstUsernameEl.textContent = `ANON_${istTime}_IST`;
+      currentIstUsernameEl.textContent = `ANON_${istDate}_${istTime}_IST`;
     }
     if (btnIstTimeEl) {
-      btnIstTimeEl.textContent = `${istTime} IST`;
+      btnIstTimeEl.textContent = `${istDate} ${istTime} IST`;
     }
   }
   tickForumClock();
@@ -10680,12 +10703,13 @@ INSTRUCTIONS:
       const target = e.target instanceof Element ? e.target : e.target?.parentElement;
       if (!target) return;
 
-      // RULE: NO TAG FOR COLOR AND SIZE
+      // RULE: NO TAG FOR COLOR, SIZE, OR SECTION ACTION CLUSTER (left bracket tips handle these)
       if (
         target.closest(".palette-color-btn") ||
         target.closest(".palette-size-btn") ||
         target.closest(".palette-color-group") ||
         target.closest(".palette-size-group") ||
+        target.closest(".section-action-cluster") ||
         target.closest("[data-no-tag='true']")
       ) {
         hideTag();
