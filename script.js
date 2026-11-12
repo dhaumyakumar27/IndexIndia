@@ -47,7 +47,7 @@ if (!window.__indexIndiaTelemetryBound) {
 document.addEventListener("DOMContentLoaded", () => {
   // ================= 1. PAGE CONTEXT & VIEW DETECTION =================
   const pathname = window.location.pathname.toLowerCase();
-  const currentFile = pathname.split("/").pop() || "guide.html";
+  const currentFile = pathname.split("/").pop() || "index.html";
   const isGuideSuite = true;
   const isIndexSuite = false;
 
@@ -7365,9 +7365,10 @@ INSTRUCTIONS:
 
     // Core Hubs & Modular Directories
     const HUB_PAGES = [
-      { title: "Guide Landing — Chapter 1: Entities & Chapter 2: Payment Gateways", file: "guide.html", sub: "Definitive statutory index of all business structures & payment gateway directory", kw: "guide entities registration matrix payment gateways razorpay cosmofeed stripe aggregator neobanking" },
-      { title: "Statutory & Privacy Dossier — Legal Disclosures & AI Telemetry", file: "guide.html#sec-ai-telemetry", sub: "SEBI non-advisory mandate, Gemini AI telemetry, privacy policy", kw: "statutory privacy legal sebi disclaimer gemini terms compliance refund cosmofeed razorpay" },
-      { title: "Sovereign Clearance & Memberships", file: "guide.html#account-floating-bar", sub: "Direct Razorpay checkout & lifetime pass", kw: "membership pricing upgrade clearance access plan razorpay" }
+      { title: "Master Entity & Statutory Registration Matrix (9 Clusters)", file: "index.html#sec-entity-matrix", sub: "Definitive statutory index of all business structures, comparison table & regulatory overlays", kw: "matrix entity sole proprietorship partnership llp pvt ltd opc aif reit nbfc gift city trust waqf fllp fpi fvci startup" },
+      { title: "Guide Landing — 6 Stages & 30 Deep-Tech Modules", file: "index.html", sub: "Definitive operational playbook from Day 0 to Year 3+ institutional readiness", kw: "guide curriculum stages modules deeptech playbook index" },
+      { title: "Statutory & Privacy Dossier — Legal Disclosures & AI Telemetry", file: "index.html#sec-ai-telemetry", sub: "SEBI non-advisory mandate, Gemini AI telemetry, privacy policy", kw: "statutory privacy legal sebi disclaimer gemini terms compliance refund cosmofeed razorpay" },
+      { title: "Sovereign Clearance & Memberships", file: "index.html#account-floating-bar", sub: "Direct Razorpay checkout & lifetime pass", kw: "membership pricing upgrade clearance access plan razorpay" }
     ];
 
     HUB_PAGES.forEach((hub) => {
@@ -10277,12 +10278,16 @@ INSTRUCTIONS:
       const cutoffISO = new Date(cutoffMs).toISOString();
       const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}?page_id=eq.${encodeURIComponent(pageId)}&section_id=eq.${encodeURIComponent(sectionId)}&created_at=gte.${cutoffISO}&order=created_at.asc&limit=150`;
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       const res = await fetch(endpoint, {
         headers: {
           "apikey": SUPABASE_CONFIG.anonKey,
           "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`
-        }
+        },
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const cloudMessages = await res.json();
@@ -10326,6 +10331,8 @@ INSTRUCTIONS:
       try {
         const base = getSupabaseBaseUrl();
         const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
         await fetch(endpoint, {
           method: "POST",
           headers: {
@@ -10340,8 +10347,10 @@ INSTRUCTIONS:
             username: username,
             message: finalMessage,
             created_at: nowISO
-          })
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
       } catch (err) {
         console.warn("[SectionForum] Supabase broadcast network warning:", err);
       }
@@ -11752,7 +11761,7 @@ INSTRUCTIONS:
           if (val === "chapter1") {
             const ch1 = document.querySelector("#chapter-1, .chapter-1-section, .doc-chapter");
             if (ch1) ch1.scrollIntoView({ behavior: "smooth", block: "start" });
-            else window.location.href = "guide.html";
+            else window.location.href = "index.html";
           } else if (val === "glossary") {
             const gl = document.querySelector("#statutory-glossary, .glossary-section, [data-section*='glossary']");
             if (gl) gl.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -12759,7 +12768,7 @@ INSTRUCTIONS:
         } else {
           const btn = document.getElementById("nav-home-btn");
           if (btn) btn.click();
-          else window.location.href = "guide.html";
+          else window.location.href = "index.html";
         }
       }
     },
