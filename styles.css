@@ -9618,37 +9618,28 @@ body.theme-dark .statutory-card-item {
   transform: translateY(-50%) translateX(-8px);
 }
 
-/* Collapsible Under-Section Discussion Drawer */
+/* Collapsible Under-Section Discussion Drawer - Minimal Ultra-Clean */
 .section-forum-drawer {
-  margin-top: 18px;
-  margin-bottom: 8px;
-  background: rgba(0, 0, 0, 0.02);
-  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
-  border-left: 3px solid var(--accent);
-  border-radius: 6px;
-  padding: 14px 16px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  background: transparent;
+  border: none;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
+  gap: 6px;
+  box-shadow: none;
+  transition: all 0.15s ease;
 }
 
 body.theme-dark .section-forum-drawer {
-  background: #12141A;
-  border-color: rgba(255, 255, 255, 0.12);
-  border-left-color: var(--accent);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .section-forum-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
-  flex-wrap: wrap;
-  gap: 8px;
+  display: none !important;
 }
 
 body.theme-dark .section-forum-header {
@@ -9796,15 +9787,15 @@ body.theme-dark .sec-tree-children {
   border-left-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Quick Section Forum Composer */
+/* Ultra-Compact Section Forum Composer */
 .section-forum-composer {
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  margin-top: 4px;
+  padding-top: 0;
+  border-top: none;
 }
 
 body.theme-dark .section-forum-composer {
-  border-top-color: rgba(255, 255, 255, 0.08);
+  border-top: none;
 }
 
 .section-forum-composer-row {

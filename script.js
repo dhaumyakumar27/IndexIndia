@@ -10252,26 +10252,18 @@ INSTRUCTIONS:
 
   async function renderSectionForumDrawer(sectionId, drawer) {
     const feed = drawer.querySelector(".section-forum-feed");
-    const countEl = drawer.querySelector(".section-forum-thread-count");
     if (!feed) return;
-
-    feed.innerHTML = `<div class="sec-forum-loading font-mono">Synchronizing section discussions...</div>`;
 
     const messages = await fetchSectionForumMessages(sectionId);
 
-    if (countEl) {
-      countEl.textContent = `${messages.length} ${messages.length === 1 ? "comment" : "comments"}`;
-    }
-
+    // If no comments, keep feed clean & empty (zero bloat, only composer visible)
     if (!messages || messages.length === 0) {
-      feed.innerHTML = `
-        <div class="sec-forum-empty font-mono">
-          └── [SECTION DISCUSSION EMPTY] Ask a question, share insights, or network regarding this module below.
-        </div>
-      `;
+      feed.innerHTML = "";
+      feed.style.display = "none";
       return;
     }
 
+    feed.style.display = "flex";
     const roots = buildCommentTree(messages);
     const totalRoots = roots.length;
     const html = `
@@ -10290,7 +10282,8 @@ INSTRUCTIONS:
         drawer.style.display = "block";
         forumBtn.classList.add("active");
         renderSectionForumDrawer(sectionId, drawer);
-        drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const input = drawer.querySelector(".section-forum-input");
+        if (input) input.focus();
       } else {
         drawer.style.display = "none";
         forumBtn.classList.remove("active");
@@ -10298,36 +10291,19 @@ INSTRUCTIONS:
       return;
     }
 
-    // Create drawer if not yet created
+    // Create minimal, zero-bloat drawer if not yet created
     drawer = document.createElement("div");
     drawer.className = "section-forum-drawer font-mono";
     drawer.setAttribute("data-section-id", sectionId);
-    
-    // Resolve section display title
-    const titleEl = section.querySelector(".story-section-title, .section-heading, h2, h3");
-    const secTitle = titleEl ? titleEl.textContent.trim().replace(/^\d+\.\s*/, "") : sectionId;
 
     drawer.innerHTML = `
-      <div class="section-forum-header">
-        <div class="section-forum-title-meta">
-          <span class="section-forum-badge font-mono">[FORUM &bull; ${escapeForumHtml(secTitle)}]</span>
-          <span class="section-forum-thread-count font-mono">0 comments</span>
-        </div>
-        <div class="section-forum-meta-right">
-          <span class="section-forum-ist font-mono">ANON_${getIndianStandardTimeNow()}_IST</span>
-          <button type="button" class="section-forum-close-btn" data-hover-tag="[CLOSE]" aria-label="Close Discussion">&times;</button>
-        </div>
-      </div>
+      <div class="section-forum-feed" id="sec-feed-${sectionId}" style="display:none;"></div>
 
-      <div class="section-forum-feed" id="sec-feed-${sectionId}"></div>
-
-      <!-- Quick Section Forum Composer -->
+      <!-- Ultra-Clean Minimal Section Forum Composer -->
       <form class="section-forum-composer" autocomplete="off">
         <div class="section-forum-composer-row">
-          <span class="sec-composer-branch font-mono">└──</span>
-          <input type="text" class="section-forum-input font-mono" maxlength="300" placeholder="Type discussion, query, or insight... (Enter to send as ANON_IST)" />
+          <input type="text" class="section-forum-input font-mono" maxlength="300" placeholder="Type comment... (Enter to send)" />
           <button type="submit" class="section-forum-send-btn font-mono">SEND</button>
-          <button type="button" class="section-forum-refresh-btn font-mono" title="Refresh comments">&#x21bb;</button>
         </div>
       </form>
     `;
