@@ -9828,7 +9828,6 @@ INSTRUCTIONS:
         notepadBtn.type = "button";
         notepadBtn.className = "section-notepad-btn";
         notepadBtn.setAttribute("aria-label", "Add Section Note");
-        notepadBtn.setAttribute("data-hover-tag", "[NOTEPAD]");
         notepadBtn.innerHTML = `
           <span class="notepad-glyph-a font-mono">A</span>
           <span class="section-bracket-tip font-mono">[NOTEPAD]</span>
@@ -9839,7 +9838,6 @@ INSTRUCTIONS:
         forumBtn.type = "button";
         forumBtn.className = "section-forum-btn";
         forumBtn.setAttribute("aria-label", "Open Section Discussion Forum");
-        forumBtn.setAttribute("data-hover-tag", "[DISCUSS]");
         forumBtn.innerHTML = `
           <svg class="forum-bubble-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -9996,7 +9994,6 @@ INSTRUCTIONS:
           <input type="text" class="entity-name user-note-title-input font-mono" value="${(note.title || "").replace(/"/g, '&quot;')}" placeholder="Section Note Title..." spellcheck="false" />
         </div>
         <div class="user-note-actions">
-          <span class="user-note-tag font-mono">[NOTE]</span>
           <button type="button" class="user-note-delete-btn" aria-label="Delete note" data-hover-tag="[DELETE NOTE]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>

@@ -2480,8 +2480,43 @@ body.theme-dark .entity-item:hover {
 }
 
 .user-section-note-tab {
-  border-left: 3.5px solid var(--accent) !important;
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-left: 3.5px solid #000000 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
   animation: noteSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.theme-dark .user-section-note-tab {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-left: 3.5px solid #FFFFFF !important;
+}
+
+.user-section-note-tab .user-note-title-input {
+  color: #FFFFFF !important;
+}
+
+.user-section-note-tab .user-note-textarea {
+  color: #F3F4F6 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.user-section-note-tab .user-note-textarea:focus {
+  border-color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.user-section-note-tab .user-note-delete-btn {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.user-section-note-tab .user-note-delete-btn:hover {
+  color: #EF4444 !important;
+  background: rgba(239, 68, 68, 0.2) !important;
 }
 
 @keyframes noteSlideIn {
