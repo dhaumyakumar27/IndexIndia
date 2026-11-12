@@ -2364,13 +2364,85 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     }
   }
 
+  // Global active membership state cache for instant synchronous access
+  let currentActiveMembership = null;
+
+  function isUserPaidMember() {
+    if (currentActiveMembership && currentActiveMembership.status === "active") {
+      const plan = currentActiveMembership.plan_type;
+      if (["lifetime", "annual", "monthly", "daily_autopay", "3min_test"].includes(plan)) {
+        return true;
+      }
+    }
+    // Also check cached local membership if available
+    try {
+      const sb = window.IndexIndiaSupabase;
+      if (sb && typeof sb.isAuthenticated === "function" && sb.isAuthenticated()) {
+        const user = typeof sb.getCurrentUser === "function" ? sb.getCurrentUser() : null;
+        if (user && user.id) {
+          const raw = localStorage.getItem(`indexindia_membership_${user.id}`);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.status === "active" && ["lifetime", "annual", "monthly", "daily_autopay", "3min_test"].includes(parsed.plan_type)) {
+              return true;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+  window.isUserPaidMember = isUserPaidMember;
+  window.setCurrentActiveMembership = (m) => {
+    currentActiveMembership = m;
+    syncMemberExclusiveContent(m);
+  };
+
+  function syncMainForumEncryptUI() {
+    const mainForumEncryptToggle = document.getElementById("main-forum-encrypt-toggle");
+    if (mainForumEncryptToggle) {
+      mainForumEncryptToggle.style.display = isUserPaidMember() ? "inline-flex" : "none";
+    }
+  }
+
   // ================= DYNAMIC PAID MEMBER CONTENT ENGINE (OPTION B SUPABASE) =================
   async function syncMemberExclusiveContent(membership) {
-    const isMember = Boolean(
-      membership &&
-      membership.status === "active" &&
-      ["lifetime", "annual", "monthly", "daily_autopay", "3min_test"].includes(membership.plan_type)
-    );
+    currentActiveMembership = membership;
+    const isMember = isUserPaidMember();
+    if (typeof syncMainForumEncryptUI === "function") {
+      syncMainForumEncryptUI();
+    }
+
+    // Dynamic sync of section forum drawers if open
+    document.querySelectorAll(".section-forum-drawer").forEach((drawer) => {
+      const sectionId = drawer.getAttribute("data-section-id");
+      if (drawer.style.display !== "none" && sectionId) {
+        const wrap = drawer.querySelector(".section-forum-input-wrap");
+        let toggle = wrap ? wrap.querySelector(".forum-encrypt-toggle") : null;
+        if (isMember && !toggle && wrap) {
+          const toggleEl = document.createElement("label");
+          toggleEl.className = "forum-encrypt-toggle font-mono";
+          toggleEl.setAttribute("data-hover-tag", "[ENCRYPT]");
+          toggleEl.setAttribute("aria-label", "Encrypt Message for Paid Members");
+          toggleEl.innerHTML = `
+            <input type="checkbox" class="forum-encrypt-checkbox" />
+            <svg class="forum-encrypt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          `;
+          const chk = toggleEl.querySelector(".forum-encrypt-checkbox");
+          chk.addEventListener("change", () => {
+            toggleEl.classList.toggle("is-active", chk.checked);
+          });
+          wrap.appendChild(toggleEl);
+        } else if (!isMember && toggle) {
+          toggle.remove();
+        }
+        if (typeof renderSectionForumDrawer === "function") {
+          renderSectionForumDrawer(sectionId, drawer);
+        }
+      }
+    });
 
     // 1. Section 1 (Unincorporated Entities): "sole proprietorship is best for start up"
     const unincorporatedSec = document.getElementById("sec-module-2") || document.getElementById("sec-module-11") || document.getElementById("sec-unincorporated");
@@ -3106,6 +3178,10 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
       updateNavUpgradePanel(m);
       syncMemberExclusiveContent(m);
     }).catch(() => {});
+  }
+
+  if (typeof syncMainForumEncryptUI === "function") {
+    syncMainForumEncryptUI();
   }
 
   // Background 5-second telemetry heartbeat for auto-renewal and live access control
@@ -4661,10 +4737,17 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     const map = new Map();
     const roots = [];
 
-    // Pass 1: Parse parent IDs and clean comment text
+    // Pass 1: Parse parent IDs, encryption tags, and clean comment text
     messages.forEach((m) => {
       let parentId = null;
       let cleanText = (m.message || "").trim();
+
+      let isEncrypted = Boolean(m.is_encrypted);
+      const encPrefix = "[ENCRYPTED]";
+      if (cleanText.startsWith(encPrefix)) {
+        isEncrypted = true;
+        cleanText = cleanText.slice(encPrefix.length).trim();
+      }
 
       if (m.parent_id !== undefined && m.parent_id !== null) {
         parentId = String(m.parent_id);
@@ -4674,6 +4757,12 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           parentId = match[1].trim();
           cleanText = cleanText.slice(match[0].length).trim();
         }
+      }
+
+      // Check once more in case [re:...] preceded [ENCRYPTED]
+      if (cleanText.startsWith(encPrefix)) {
+        isEncrypted = true;
+        cleanText = cleanText.slice(encPrefix.length).trim();
       }
 
       let displayUsername = m.username || "ANON_IST";
@@ -4688,6 +4777,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         id: m.id,
         username: displayUsername,
         text: cleanText,
+        isEncrypted: isEncrypted,
         parentId: parentId,
         created_at: m.created_at || null,
         children: [],
@@ -4731,13 +4821,23 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
 
   // Render individual tree node (compact, username + comment only)
   function renderTreeNodeHtml(node, isLastChild) {
+    const isPaid = isUserPaidMember();
+    const isEncrypted = Boolean(node.isEncrypted);
+    const canView = !isEncrypted || isPaid;
+
     const safeAuthor = escapeForumHtml(node.username);
-    const safeContent = escapeForumHtml(node.text);
+    const safeContent = canView
+      ? escapeForumHtml(node.text)
+      : `<span class="tree-node-text-encrypted font-mono">[LOCKED ENCRYPTED THREAD • PAID MEMBERS ONLY]</span>`;
     const branchSymbol = isLastChild ? "└──" : "├──";
-    const canReply = node.depth < 2; // Up to 2 sub-directory sections
+    const canReply = node.depth < 2 && canView;
+
+    const badgeHtml = isEncrypted
+      ? `<span class="forum-encrypt-badge font-mono" title="Encrypted Member Thread">🔒 ENCRYPTED</span>`
+      : "";
 
     const replyButtonHtml = canReply
-      ? `<button type="button" class="tree-reply-trigger font-mono" data-id="${node.id}" data-author="${safeAuthor}" title="Reply to ${safeAuthor}">[reply]</button>`
+      ? `<button type="button" class="tree-reply-trigger font-mono" data-id="${node.id}" data-author="${safeAuthor}" data-encrypted="${isEncrypted}" title="Reply to ${safeAuthor}">[reply]</button>`
       : "";
 
     let childrenHtml = "";
@@ -4753,9 +4853,10 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     }
 
     return `
-      <div class="tree-node-item" data-id="${node.id}" data-depth="${node.depth}">
+      <div class="tree-node-item ${isEncrypted ? 'tree-node-encrypted' : ''}" data-id="${node.id}" data-depth="${node.depth}">
         <div class="tree-node-row">
           <span class="tree-branch-symbol font-mono">${branchSymbol}</span>
+          ${badgeHtml}
           <span class="tree-node-author font-mono">${safeAuthor}<span class="tree-node-colon">:</span></span>
           <span class="tree-node-text">${safeContent}</span>
           ${replyButtonHtml}
@@ -4832,14 +4933,17 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     renderForumMessages(messages, listEl);
   }
 
-  async function broadcastForumMessage(rawText, parentId = null) {
+  async function broadcastForumMessage(rawText, parentId = null, isEncrypted = false) {
     const text = rawText.trim();
     if (!text) return false;
 
     const pageId = getForumPageId();
     const username = getISTUsername();
     const nowISO = new Date().toISOString();
-    const finalMessage = parentId ? `[re:${parentId}] ${text}` : text;
+    let finalMessage = parentId ? `[re:${parentId}] ${text}` : text;
+    if (isEncrypted) {
+      finalMessage = `[ENCRYPTED] ${finalMessage}`;
+    }
 
     const isSupabaseLive = Boolean(
       SUPABASE_CONFIG.url &&
@@ -4914,11 +5018,23 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     });
   }
 
+  const mainForumEncryptToggle = document.getElementById("main-forum-encrypt-toggle");
+  const mainForumEncryptCheckbox = document.getElementById("main-forum-encrypt-checkbox");
+
+  if (mainForumEncryptCheckbox) {
+    mainForumEncryptCheckbox.addEventListener("change", () => {
+      if (mainForumEncryptToggle) {
+        mainForumEncryptToggle.classList.toggle("is-active", mainForumEncryptCheckbox.checked);
+      }
+    });
+  }
+
   // Submit handler for main composer (root thread)
   async function handleForumSubmit() {
     if (!forumInput) return;
     const text = forumInput.value.trim();
     if (!text) return;
+    const isEncrypted = Boolean(mainForumEncryptCheckbox && mainForumEncryptCheckbox.checked);
 
     if (forumSendBtn) {
       forumSendBtn.disabled = true;
@@ -4926,8 +5042,12 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     }
 
     try {
-      await broadcastForumMessage(text);
+      await broadcastForumMessage(text, null, isEncrypted);
       forumInput.value = "";
+      if (mainForumEncryptCheckbox) {
+        mainForumEncryptCheckbox.checked = false;
+        if (mainForumEncryptToggle) mainForumEncryptToggle.classList.remove("is-active");
+      }
       if (composerCharCounter) composerCharCounter.textContent = "0 / 300";
     } finally {
       if (forumSendBtn) {
@@ -10170,6 +10290,9 @@ INSTRUCTIONS:
         const seenIds = new Set(cloudMessages.map(m => String(m.id)));
         const pendingLocal = localMessages.filter(m => !seenIds.has(String(m.id)));
         return [...cloudMessages, ...pendingLocal];
+      } else {
+        // Fallback to local messages if column not yet added to remote database
+        return localMessages;
       }
     } catch (e) {
       console.warn("[SectionForum] Supabase fetch error, fallback to local:", e);
@@ -10177,14 +10300,17 @@ INSTRUCTIONS:
     return localMessages;
   }
 
-  async function broadcastSectionForumMessage(sectionId, rawText, parentId = null) {
+  async function broadcastSectionForumMessage(sectionId, rawText, parentId = null, isEncrypted = false) {
     const text = (rawText || "").trim();
     if (!text) return false;
 
     const pageId = getForumPageId();
     const username = getISTUsername();
     const nowISO = new Date().toISOString();
-    const finalMessage = parentId ? `[re:${parentId}] ${text}` : text;
+    let finalMessage = parentId ? `[re:${parentId}] ${text}` : text;
+    if (isEncrypted) {
+      finalMessage = `[ENCRYPTED] ${finalMessage}`;
+    }
 
     // Always cache locally first for instantaneous rendering
     saveLocalSectionForumMessage(sectionId, username, finalMessage, nowISO, parentId);
@@ -10238,13 +10364,23 @@ INSTRUCTIONS:
   }
 
   function renderSectionCommentTreeHtml(node, sectionId, isLastChild) {
+    const isPaid = isUserPaidMember();
+    const isEncrypted = Boolean(node.isEncrypted);
+    const canView = !isEncrypted || isPaid;
+
     const safeAuthor = escapeForumHtml(node.username || "ANON_IST");
-    const safeContent = escapeForumHtml(node.text || "");
+    const safeContent = canView
+      ? escapeForumHtml(node.text || "")
+      : `<span class="sec-tree-text-encrypted font-mono">[LOCKED ENCRYPTED THREAD • PAID MEMBERS ONLY]</span>`;
     const branchSymbol = isLastChild ? "└──" : "├──";
-    const canReply = node.depth < 2;
+    const canReply = node.depth < 2 && canView;
+
+    const badgeHtml = isEncrypted
+      ? `<span class="forum-encrypt-badge font-mono" title="Encrypted Member Thread">🔒 ENCRYPTED</span>`
+      : "";
 
     const replyButtonHtml = canReply
-      ? `<button type="button" class="sec-tree-reply-trigger font-mono" data-id="${node.id}" data-author="${safeAuthor}" data-section="${sectionId}">[reply]</button>`
+      ? `<button type="button" class="sec-tree-reply-trigger font-mono" data-id="${node.id}" data-author="${safeAuthor}" data-section="${sectionId}" data-encrypted="${isEncrypted}">[reply]</button>`
       : "";
 
     let childrenHtml = "";
@@ -10257,9 +10393,10 @@ INSTRUCTIONS:
     }
 
     return `
-      <div class="sec-tree-node-item" data-id="${node.id}" data-depth="${node.depth}">
+      <div class="sec-tree-node-item ${isEncrypted ? 'sec-tree-encrypted-row' : ''}" data-id="${node.id}" data-depth="${node.depth}">
         <div class="sec-tree-node-row">
           <span class="sec-tree-branch font-mono">${branchSymbol}</span>
+          ${badgeHtml}
           <span class="sec-tree-author font-mono">${safeAuthor}<span class="sec-tree-colon">:</span></span>
           <span class="sec-tree-text">${safeContent}</span>
           ${replyButtonHtml}
@@ -10297,10 +10434,38 @@ INSTRUCTIONS:
   function toggleSectionForum(sectionId, section, forumBtn) {
     let drawer = section.querySelector(".section-forum-drawer");
 
+    // Dynamic sync of encrypt toggle based on current paid membership
+    function syncDrawerEncryptToggle(d) {
+      const wrap = d.querySelector(".section-forum-input-wrap");
+      if (!wrap) return;
+      let toggle = wrap.querySelector(".forum-encrypt-toggle");
+      const isPaid = isUserPaidMember();
+      if (isPaid && !toggle) {
+        const toggleEl = document.createElement("label");
+        toggleEl.className = "forum-encrypt-toggle font-mono";
+        toggleEl.setAttribute("data-hover-tag", "[ENCRYPT]");
+        toggleEl.setAttribute("aria-label", "Encrypt Message for Paid Members");
+        toggleEl.innerHTML = `
+          <input type="checkbox" class="forum-encrypt-checkbox" />
+          <svg class="forum-encrypt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+        const chk = toggleEl.querySelector(".forum-encrypt-checkbox");
+        chk.addEventListener("change", () => {
+          toggleEl.classList.toggle("is-active", chk.checked);
+        });
+        wrap.appendChild(toggleEl);
+      } else if (!isPaid && toggle) {
+        toggle.remove();
+      }
+    }
+
     if (drawer) {
       if (drawer.style.display === "none") {
         drawer.style.display = "block";
         forumBtn.classList.add("active");
+        syncDrawerEncryptToggle(drawer);
         renderSectionForumDrawer(sectionId, drawer);
         const input = drawer.querySelector(".section-forum-input");
         if (input) input.focus();
@@ -10322,11 +10487,15 @@ INSTRUCTIONS:
       <!-- Ultra-Clean Minimal Section Forum Composer -->
       <form class="section-forum-composer" autocomplete="off">
         <div class="section-forum-composer-row">
-          <input type="text" class="section-forum-input font-mono" maxlength="300" placeholder="Type comment... (Enter to send)" />
+          <div class="section-forum-input-wrap">
+            <input type="text" class="section-forum-input font-mono" maxlength="300" placeholder="Type comment... (Enter to send)" />
+          </div>
           <button type="submit" class="section-forum-send-btn font-mono">SEND</button>
         </div>
       </form>
     `;
+
+    syncDrawerEncryptToggle(drawer);
 
     // Insert drawer right after cards grid or as last element of section
     const grid = section.querySelector(".entity-cards-grid, .user-notes-grid") || section.lastElementChild;
@@ -10367,13 +10536,21 @@ INSTRUCTIONS:
       if (!input) return;
       const text = input.value.trim();
       if (!text) return;
+      const encryptBox = drawer.querySelector(".forum-encrypt-checkbox");
+      const isEncrypted = Boolean(encryptBox && encryptBox.checked);
+
       if (sendBtn) {
         sendBtn.disabled = true;
         sendBtn.textContent = "SENDING...";
       }
       try {
-        await broadcastSectionForumMessage(sectionId, text);
+        await broadcastSectionForumMessage(sectionId, text, null, isEncrypted);
         input.value = "";
+        if (encryptBox) {
+          encryptBox.checked = false;
+          const toggle = encryptBox.closest(".forum-encrypt-toggle");
+          if (toggle) toggle.classList.remove("is-active");
+        }
         await renderSectionForumDrawer(sectionId, drawer);
         updateSectionForumCountBadge(sectionId, forumBtn);
       } finally {
@@ -10415,10 +10592,26 @@ INSTRUCTIONS:
         return;
       }
 
+      const parentIsEncrypted = replyBtn.getAttribute("data-encrypted") === "true";
+      const isPaidReply = isUserPaidMember();
+      const replyEncryptHtml = isPaidReply
+        ? `
+          <label class="forum-encrypt-toggle font-mono" data-hover-tag="[ENCRYPT]" aria-label="Encrypt Reply for Paid Members">
+            <input type="checkbox" class="forum-encrypt-checkbox" ${parentIsEncrypted ? 'checked' : ''} />
+            <svg class="forum-encrypt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </label>
+        `
+        : "";
+
       replySlot.innerHTML = `
         <div class="sec-inline-reply-box font-mono">
           <span class="sec-tree-branch">└──</span>
-          <input type="text" class="sec-inline-reply-input font-mono" maxlength="300" placeholder="Reply to comment... (Enter to submit)" />
+          <div class="section-forum-input-wrap">
+            <input type="text" class="sec-inline-reply-input font-mono" maxlength="300" placeholder="Reply to comment... (Enter to submit)" />
+            ${replyEncryptHtml}
+          </div>
           <button type="button" class="sec-inline-reply-send font-mono">REPLY</button>
           <button type="button" class="sec-inline-reply-cancel font-mono">✕</button>
         </div>
@@ -10427,14 +10620,24 @@ INSTRUCTIONS:
       const rInput = replySlot.querySelector(".sec-inline-reply-input");
       const rSend = replySlot.querySelector(".sec-inline-reply-send");
       const rCancel = replySlot.querySelector(".sec-inline-reply-cancel");
+      const rEncryptBox = replySlot.querySelector(".forum-encrypt-checkbox");
+
+      if (rEncryptBox) {
+        const toggle = rEncryptBox.closest(".forum-encrypt-toggle");
+        if (toggle && rEncryptBox.checked) toggle.classList.add("is-active");
+        rEncryptBox.addEventListener("change", () => {
+          if (toggle) toggle.classList.toggle("is-active", rEncryptBox.checked);
+        });
+      }
 
       async function submitReply() {
         const rText = rInput.value.trim();
         if (!rText) return;
+        const isEncrypted = Boolean(rEncryptBox && rEncryptBox.checked);
         rSend.disabled = true;
         rSend.textContent = "...";
         try {
-          await broadcastSectionForumMessage(sectionId, rText, parentId);
+          await broadcastSectionForumMessage(sectionId, rText, parentId, isEncrypted);
           replySlot.innerHTML = "";
           await renderSectionForumDrawer(sectionId, drawer);
           updateSectionForumCountBadge(sectionId, forumBtn);

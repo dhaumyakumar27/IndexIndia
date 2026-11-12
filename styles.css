@@ -9817,16 +9817,31 @@ body.theme-dark .section-forum-composer {
   flex-shrink: 0;
 }
 
-.section-forum-input {
+/* Encrypt Input Container with rightmost tickmark */
+.section-forum-input-wrap,
+.compact-forum-input-wrap {
+  position: relative;
   flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.section-forum-input {
+  width: 100%;
   background: var(--bg-card, #FFFFFF);
   border: 1px solid var(--border-color, rgba(0, 0, 0, 0.15));
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 6px 34px 6px 10px;
   font-size: 0.78rem;
   color: var(--text-primary);
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.15s ease;
+}
+
+.compact-forum-input-wrap .compact-composer-input {
+  padding-right: 36px;
 }
 
 .section-forum-input:focus {
@@ -9837,6 +9852,92 @@ body.theme-dark .section-forum-input {
   background: #161A22;
   border-color: rgba(255, 255, 255, 0.16);
   color: #FFFFFF;
+}
+
+/* Encrypt Tick Option inside right side of text box */
+.forum-encrypt-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  transition: all 0.15s ease;
+  user-select: none;
+  z-index: 2;
+}
+
+.forum-encrypt-toggle:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.theme-dark .forum-encrypt-toggle:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.forum-encrypt-toggle input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  margin: 0;
+}
+
+.forum-encrypt-icon {
+  width: 15px;
+  height: 15px;
+  display: block;
+  stroke-width: 2.2;
+}
+
+.forum-encrypt-toggle.is-active,
+.forum-encrypt-toggle:has(input:checked) {
+  color: #10B981 !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+.forum-encrypt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 4px;
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  user-select: none;
+}
+
+body.theme-dark .forum-encrypt-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.sec-tree-text-encrypted,
+.tree-node-text-encrypted {
+  font-style: italic;
+  color: var(--text-tertiary);
+}
+
+.sec-tree-encrypted-row {
+  opacity: 0.92;
 }
 
 .section-forum-send-btn {

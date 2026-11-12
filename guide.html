@@ -1408,8 +1408,16 @@
         <form class="compact-forum-composer" id="forum-composer" autocomplete="off">
           <div class="compact-composer-row">
             <span class="tree-branch-symbol font-mono">└──</span>
-            <input type="text" class="compact-composer-input font-mono" id="forum-input" maxlength="300"
-              placeholder="Type new thread comment... (Enter to send as ANON_IST)" />
+            <div class="compact-forum-input-wrap">
+              <input type="text" class="compact-composer-input font-mono" id="forum-input" maxlength="300"
+                placeholder="Type new thread comment... (Enter to send as ANON_IST)" />
+              <label class="forum-encrypt-toggle font-mono" id="main-forum-encrypt-toggle" data-hover-tag="[ENCRYPT]" aria-label="Encrypt Message for Paid Members" style="display:none;">
+                <input type="checkbox" id="main-forum-encrypt-checkbox" />
+                <svg class="forum-encrypt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </label>
+            </div>
             <button type="submit" class="compact-composer-send font-mono" id="forum-send-btn">SEND</button>
             <button type="button" class="compact-composer-refresh font-mono" id="forum-refresh-btn"
               title="Sync live comments">&#x21bb;</button>
