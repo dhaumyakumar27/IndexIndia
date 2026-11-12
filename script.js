@@ -9770,11 +9770,11 @@ INSTRUCTIONS:
       if (raw) auditData = JSON.parse(raw);
     } catch (e) {}
 
-    // Find all sections on the page, excluding comment box & forum containers
+    // Find all sections on the page, excluding comment box & forum containers and overview header
     const sections = Array.from(document.querySelectorAll(
       ".doc-section, .doc-subsection, .doc-subsubsection, .story-node-section, .page-directory-section, .content-area > section"
     )).filter((sec) => {
-      if (sec.id === "forum-section" || sec.closest("#forum-section, .institutional-forum-section, .forum-directory-section, .compact-forum-composer, .forum-messages-container")) {
+      if (sec.id === "forum-section" || sec.id === "sec-curriculum-overview" || sec.closest("#forum-section, .institutional-forum-section, .forum-directory-section, .compact-forum-composer, .forum-messages-container")) {
         return false;
       }
       return true;
