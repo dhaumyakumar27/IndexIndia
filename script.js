@@ -9823,7 +9823,7 @@ INSTRUCTIONS:
           <span class="section-bracket-tip font-mono">[Ask Doubt]</span>
         `;
 
-        // 3. Permanent Notepad Button ("A" glyph) in farthest right corner
+        // 3. Permanent Notepad Button ("A" glyph)
         const notepadBtn = document.createElement("button");
         notepadBtn.type = "button";
         notepadBtn.className = "section-notepad-btn";
@@ -9834,9 +9834,24 @@ INSTRUCTIONS:
           <span class="section-bracket-tip font-mono">[NOTEPAD]</span>
         `;
 
+        // 4. Permanent Section Forum Discussion Button (Reddit-style comments)
+        const forumBtn = document.createElement("button");
+        forumBtn.type = "button";
+        forumBtn.className = "section-forum-btn";
+        forumBtn.setAttribute("aria-label", "Open Section Discussion Forum");
+        forumBtn.setAttribute("data-hover-tag", "[DISCUSS]");
+        forumBtn.innerHTML = `
+          <svg class="forum-bubble-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="section-forum-count-badge font-mono" style="display:none;"></span>
+          <span class="section-bracket-tip font-mono">[DISCUSS]</span>
+        `;
+
         cluster.appendChild(dotBtn);
         cluster.appendChild(geminiBtn);
         cluster.appendChild(notepadBtn);
+        cluster.appendChild(forumBtn);
         section.appendChild(cluster);
 
         // Dot Click: Cycles Unmarked (Black) -> Read (Green) -> Important (Orange) -> Both (Read-Important) -> Unmarked
@@ -9879,6 +9894,16 @@ INSTRUCTIONS:
           e.stopPropagation();
           addSectionUserNote(sectionId, section);
         });
+
+        // Forum Click: Toggles the section discussion forum area
+        forumBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleSectionForum(sectionId, section, forumBtn);
+        });
+
+        // Initialize forum count badge
+        updateSectionForumCountBadge(sectionId, forumBtn);
       }
 
       function updateClusterView() {
@@ -10049,6 +10074,393 @@ INSTRUCTIONS:
     saveStoredSectionNotes(allNotes);
 
     renderSingleNoteCard(sectionId, section, newNote, true);
+  }
+
+  
+  // ==========================================================================
+  // SECTION FORUM & DISCUSSION ENGINE (Reddit-style threads per module)
+  // ==========================================================================
+  function getSectionForumStorageKey(sectionId) {
+    const pageId = getForumPageId();
+    return `indexindia_section_forum_${pageId}_${sectionId}`;
+  }
+
+  function getLocalSectionForumMessages(sectionId) {
+    try {
+      const key = getSectionForumStorageKey(sectionId);
+      const raw = localStorage.getItem(key);
+      if (!raw) return [];
+      return JSON.parse(raw);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveLocalSectionForumMessage(sectionId, username, message, createdAtISO, parentId = null) {
+    try {
+      const key = getSectionForumStorageKey(sectionId);
+      const list = getLocalSectionForumMessages(sectionId);
+      const newEntry = {
+        id: `sec_local_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        section_id: sectionId,
+        username: username,
+        message: message,
+        parent_id: parentId,
+        created_at: createdAtISO
+      };
+      list.push(newEntry);
+      localStorage.setItem(key, JSON.stringify(list.slice(-150)));
+      return newEntry;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function fetchSectionForumMessages(sectionId) {
+    const isSupabaseLive = Boolean(
+      SUPABASE_CONFIG.url &&
+      SUPABASE_CONFIG.anonKey &&
+      !SUPABASE_CONFIG.url.includes("YOUR_") &&
+      SUPABASE_CONFIG.url.startsWith("https://")
+    );
+
+    const localMessages = getLocalSectionForumMessages(sectionId);
+
+    if (!isSupabaseLive) {
+      return localMessages;
+    }
+
+    try {
+      const pageId = getForumPageId();
+      const base = getSupabaseBaseUrl();
+      const cutoffMs = Date.now() - (SUPABASE_CONFIG.retentionDays * 86400 * 1000);
+      const cutoffISO = new Date(cutoffMs).toISOString();
+      const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}?page_id=eq.${encodeURIComponent(pageId)}&section_id=eq.${encodeURIComponent(sectionId)}&created_at=gte.${cutoffISO}&order=created_at.asc&limit=150`;
+      
+      const res = await fetch(endpoint, {
+        headers: {
+          "apikey": SUPABASE_CONFIG.anonKey,
+          "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`
+        }
+      });
+
+      if (res.ok) {
+        const cloudMessages = await res.json();
+        // Merge cloud messages with any local pending entries
+        const seenIds = new Set(cloudMessages.map(m => String(m.id)));
+        const pendingLocal = localMessages.filter(m => !seenIds.has(String(m.id)));
+        return [...cloudMessages, ...pendingLocal];
+      }
+    } catch (e) {
+      console.warn("[SectionForum] Supabase fetch error, fallback to local:", e);
+    }
+    return localMessages;
+  }
+
+  async function broadcastSectionForumMessage(sectionId, rawText, parentId = null) {
+    const text = (rawText || "").trim();
+    if (!text) return false;
+
+    const pageId = getForumPageId();
+    const username = getISTUsername();
+    const nowISO = new Date().toISOString();
+    const finalMessage = parentId ? `[re:${parentId}] ${text}` : text;
+
+    // Always cache locally first for instantaneous rendering
+    saveLocalSectionForumMessage(sectionId, username, finalMessage, nowISO, parentId);
+
+    const isSupabaseLive = Boolean(
+      SUPABASE_CONFIG.url &&
+      SUPABASE_CONFIG.anonKey &&
+      !SUPABASE_CONFIG.url.includes("YOUR_") &&
+      SUPABASE_CONFIG.url.startsWith("https://")
+    );
+
+    if (isSupabaseLive) {
+      try {
+        const base = getSupabaseBaseUrl();
+        const endpoint = `${base}/rest/v1/${SUPABASE_CONFIG.tableName}`;
+        await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_CONFIG.anonKey,
+            "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+          },
+          body: JSON.stringify({
+            page_id: pageId,
+            section_id: sectionId,
+            username: username,
+            message: finalMessage,
+            created_at: nowISO
+          })
+        });
+      } catch (err) {
+        console.warn("[SectionForum] Supabase broadcast network warning:", err);
+      }
+    }
+
+    return true;
+  }
+
+  function updateSectionForumCountBadge(sectionId, forumBtn) {
+    if (!forumBtn) return;
+    const badge = forumBtn.querySelector(".section-forum-count-badge");
+    if (!badge) return;
+    const msgs = getLocalSectionForumMessages(sectionId);
+    if (msgs && msgs.length > 0) {
+      badge.textContent = msgs.length > 99 ? "99+" : msgs.length;
+      badge.style.display = "inline-flex";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  function renderSectionCommentTreeHtml(node, sectionId, isLastChild) {
+    const safeAuthor = escapeForumHtml(node.username || "ANON_IST");
+    const safeContent = escapeForumHtml(node.text || "");
+    const branchSymbol = isLastChild ? "└──" : "├──";
+    const canReply = node.depth < 2;
+
+    const replyButtonHtml = canReply
+      ? `<button type="button" class="sec-tree-reply-trigger font-mono" data-id="${node.id}" data-author="${safeAuthor}" data-section="${sectionId}">[reply]</button>`
+      : "";
+
+    let childrenHtml = "";
+    if (node.children && node.children.length > 0) {
+      const childCount = node.children.length;
+      const childItemsHtml = node.children.map((child, idx) => {
+        return renderSectionCommentTreeHtml(child, sectionId, idx === childCount - 1);
+      }).join("");
+      childrenHtml = `<div class="sec-tree-children">${childItemsHtml}</div>`;
+    }
+
+    return `
+      <div class="sec-tree-node-item" data-id="${node.id}" data-depth="${node.depth}">
+        <div class="sec-tree-node-row">
+          <span class="sec-tree-branch font-mono">${branchSymbol}</span>
+          <span class="sec-tree-author font-mono">${safeAuthor}<span class="sec-tree-colon">:</span></span>
+          <span class="sec-tree-text">${safeContent}</span>
+          ${replyButtonHtml}
+        </div>
+        <div class="sec-tree-reply-slot" id="sec-reply-slot-${sectionId}-${node.id}"></div>
+        ${childrenHtml}
+      </div>
+    `;
+  }
+
+  async function renderSectionForumDrawer(sectionId, drawer) {
+    const feed = drawer.querySelector(".section-forum-feed");
+    const countEl = drawer.querySelector(".section-forum-thread-count");
+    if (!feed) return;
+
+    feed.innerHTML = `<div class="sec-forum-loading font-mono">Synchronizing section discussions...</div>`;
+
+    const messages = await fetchSectionForumMessages(sectionId);
+
+    if (countEl) {
+      countEl.textContent = `${messages.length} ${messages.length === 1 ? "comment" : "comments"}`;
+    }
+
+    if (!messages || messages.length === 0) {
+      feed.innerHTML = `
+        <div class="sec-forum-empty font-mono">
+          └── [SECTION DISCUSSION EMPTY] Ask a question, share insights, or network regarding this module below.
+        </div>
+      `;
+      return;
+    }
+
+    const roots = buildCommentTree(messages);
+    const totalRoots = roots.length;
+    const html = `
+      <div class="sec-tree-forum-feed">
+        ${roots.map((rootNode, idx) => renderSectionCommentTreeHtml(rootNode, sectionId, idx === totalRoots - 1)).join("")}
+      </div>
+    `;
+    feed.innerHTML = html;
+  }
+
+  function toggleSectionForum(sectionId, section, forumBtn) {
+    let drawer = section.querySelector(".section-forum-drawer");
+
+    if (drawer) {
+      if (drawer.style.display === "none") {
+        drawer.style.display = "block";
+        forumBtn.classList.add("active");
+        renderSectionForumDrawer(sectionId, drawer);
+        drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } else {
+        drawer.style.display = "none";
+        forumBtn.classList.remove("active");
+      }
+      return;
+    }
+
+    // Create drawer if not yet created
+    drawer = document.createElement("div");
+    drawer.className = "section-forum-drawer font-mono";
+    drawer.setAttribute("data-section-id", sectionId);
+    
+    // Resolve section display title
+    const titleEl = section.querySelector(".story-section-title, .section-heading, h2, h3");
+    const secTitle = titleEl ? titleEl.textContent.trim().replace(/^\d+\.\s*/, "") : sectionId;
+
+    drawer.innerHTML = `
+      <div class="section-forum-header">
+        <div class="section-forum-title-meta">
+          <span class="section-forum-badge font-mono">[FORUM &bull; ${escapeForumHtml(secTitle)}]</span>
+          <span class="section-forum-thread-count font-mono">0 comments</span>
+        </div>
+        <div class="section-forum-meta-right">
+          <span class="section-forum-ist font-mono">ANON_${getIndianStandardTimeNow()}_IST</span>
+          <button type="button" class="section-forum-close-btn" data-hover-tag="[CLOSE]" aria-label="Close Discussion">&times;</button>
+        </div>
+      </div>
+
+      <div class="section-forum-feed" id="sec-feed-${sectionId}"></div>
+
+      <!-- Quick Section Forum Composer -->
+      <form class="section-forum-composer" autocomplete="off">
+        <div class="section-forum-composer-row">
+          <span class="sec-composer-branch font-mono">└──</span>
+          <input type="text" class="section-forum-input font-mono" maxlength="300" placeholder="Type discussion, query, or insight... (Enter to send as ANON_IST)" />
+          <button type="submit" class="section-forum-send-btn font-mono">SEND</button>
+          <button type="button" class="section-forum-refresh-btn font-mono" title="Refresh comments">&#x21bb;</button>
+        </div>
+      </form>
+    `;
+
+    // Insert drawer right after cards grid or as last element of section
+    const grid = section.querySelector(".entity-cards-grid, .user-notes-grid") || section.lastElementChild;
+    if (grid && grid.parentElement === section) {
+      grid.insertAdjacentElement("afterend", drawer);
+    } else {
+      section.appendChild(drawer);
+    }
+
+    forumBtn.classList.add("active");
+    renderSectionForumDrawer(sectionId, drawer);
+
+    // Close button
+    const closeBtn = drawer.querySelector(".section-forum-close-btn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        drawer.style.display = "none";
+        forumBtn.classList.remove("active");
+      });
+    }
+
+    // Refresh button
+    const refreshBtn = drawer.querySelector(".section-forum-refresh-btn");
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        renderSectionForumDrawer(sectionId, drawer);
+      });
+    }
+
+    // Form submit
+    const form = drawer.querySelector(".section-forum-composer");
+    const input = drawer.querySelector(".section-forum-input");
+    const sendBtn = drawer.querySelector(".section-forum-send-btn");
+
+    async function handleSecSubmit() {
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.textContent = "SENDING...";
+      }
+      try {
+        await broadcastSectionForumMessage(sectionId, text);
+        input.value = "";
+        await renderSectionForumDrawer(sectionId, drawer);
+        updateSectionForumCountBadge(sectionId, forumBtn);
+      } finally {
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.textContent = "SEND";
+        }
+      }
+    }
+
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        handleSecSubmit();
+      });
+    }
+
+    if (input) {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleSecSubmit();
+        }
+      });
+      setTimeout(() => input.focus(), 80);
+    }
+
+    // Inline replies within this section drawer
+    drawer.addEventListener("click", (e) => {
+      const replyBtn = e.target.closest(".sec-tree-reply-trigger");
+      if (!replyBtn) return;
+      e.preventDefault();
+      const parentId = replyBtn.getAttribute("data-id");
+      const replySlot = drawer.querySelector(`#sec-reply-slot-${sectionId}-${parentId}`);
+      if (!replySlot) return;
+
+      if (replySlot.hasChildNodes()) {
+        replySlot.innerHTML = "";
+        return;
+      }
+
+      replySlot.innerHTML = `
+        <div class="sec-inline-reply-box font-mono">
+          <span class="sec-tree-branch">└──</span>
+          <input type="text" class="sec-inline-reply-input font-mono" maxlength="300" placeholder="Reply to comment... (Enter to submit)" />
+          <button type="button" class="sec-inline-reply-send font-mono">REPLY</button>
+          <button type="button" class="sec-inline-reply-cancel font-mono">✕</button>
+        </div>
+      `;
+
+      const rInput = replySlot.querySelector(".sec-inline-reply-input");
+      const rSend = replySlot.querySelector(".sec-inline-reply-send");
+      const rCancel = replySlot.querySelector(".sec-inline-reply-cancel");
+
+      async function submitReply() {
+        const rText = rInput.value.trim();
+        if (!rText) return;
+        rSend.disabled = true;
+        rSend.textContent = "...";
+        try {
+          await broadcastSectionForumMessage(sectionId, rText, parentId);
+          replySlot.innerHTML = "";
+          await renderSectionForumDrawer(sectionId, drawer);
+          updateSectionForumCountBadge(sectionId, forumBtn);
+        } finally {
+          rSend.disabled = false;
+        }
+      }
+
+      rSend.addEventListener("click", submitReply);
+      rCancel.addEventListener("click", () => { replySlot.innerHTML = ""; });
+      rInput.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          submitReply();
+        } else if (ev.key === "Escape") {
+          replySlot.innerHTML = "";
+        }
+      });
+      setTimeout(() => rInput.focus(), 40);
+    });
+
+    drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function loadAllSectionUserNotes() {

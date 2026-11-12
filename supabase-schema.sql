@@ -126,3 +126,32 @@ USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
 
+
+
+-- 3. Forum Messages Table (Unified Page & Per-Section Discussion Threads)
+CREATE TABLE IF NOT EXISTS public.forum_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    page_id TEXT NOT NULL DEFAULT 'guide',
+    section_id TEXT, -- NULL for root page-level forum, or specific section ID (e.g. sec-module-1)
+    username TEXT NOT NULL,
+    message TEXT NOT NULL,
+    parent_id TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- Index for per-section fast queries
+CREATE INDEX IF NOT EXISTS idx_forum_messages_page_section 
+ON public.forum_messages (page_id, section_id, created_at ASC);
+
+-- Enable public read and insert for anonymous research forum
+ALTER TABLE public.forum_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read on forum_messages"
+ON public.forum_messages FOR SELECT
+TO anon, authenticated
+USING (true);
+
+CREATE POLICY "Allow public insert on forum_messages"
+ON public.forum_messages FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
