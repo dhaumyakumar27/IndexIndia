@@ -6105,6 +6105,18 @@ INSTRUCTIONS:
       }
     });
 
+    // Sort root threads so the latest asked / active question is at the top (reverse chronological)
+    const getThreadLatestTimestamp = (node) => {
+      let t = node.timestamp || 0;
+      if (node.children && node.children.length > 0) {
+        for (const child of node.children) {
+          t = Math.max(t, getThreadLatestTimestamp(child));
+        }
+      }
+      return t;
+    };
+    roots.sort((a, b) => getThreadLatestTimestamp(b) - getThreadLatestTimestamp(a));
+
     return { roots, sorted };
   }
 
@@ -6228,7 +6240,7 @@ INSTRUCTIONS:
             </div>
             <div class="doubt-tree-meta-right">
               ${followUpBtnHtml}
-              <button type="button" class="doubt-tree-del-btn" title="Delete this question and branch" data-id="${node.id}">&times;</button>
+              <button type="button" class="doubt-tree-del-btn" data-hover-tag="[DELETE]" aria-label="Delete this question and branch" data-id="${node.id}">&times;</button>
             </div>
           </div>
           <div class="doubt-tree-q-row">
@@ -11306,7 +11318,7 @@ INSTRUCTIONS:
       }
 
       // Strip browser native title from elements that use custom tags or color/size dots
-      document.querySelectorAll("[data-hover-tag], .palette-tool-btn, .palette-color-btn, .palette-size-btn, .palette-btn, .palette-close-btn, .finder-btn, .doubt-tile-close, .rail-header-btn.close-btn, #btn-close-tree").forEach((el) => {
+      document.querySelectorAll("[data-hover-tag], .palette-tool-btn, .palette-color-btn, .palette-size-btn, .palette-btn, .palette-close-btn, .finder-btn, .doubt-tile-close, .doubt-tree-del-btn, .rail-header-btn.close-btn, #btn-close-tree").forEach((el) => {
         el.removeAttribute("title");
       });
     }
