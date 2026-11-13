@@ -252,63 +252,279 @@
       </div>
 
       <div class="rail-tree-body">
-                <div class="tree-content-scroll" id="tree-content-scroll">
-          <!-- Master Statutory Overview & Comparison Table -->
-          <a href="#sec-curriculum-overview" class="tree-node tree-chapter-node active" data-level="1" data-index="0">
-            <span class="tree-name font-mono">The Complete Indian Entity Matrix</span>
-            <span class="tree-badge font-mono">INIT</span>
-          </a>
-          <!-- 01 Unincorporated Entities -->
-          <a href="#sec-unincorporated" class="tree-node tree-chapter-node" data-level="1" data-index="1">
-            <span class="tree-name font-mono">01 Unincorporated &amp; Direct-Tax Entities</span>
-            <span class="tree-badge font-mono">01</span>
-          </a>
-          <!-- 02 Trusts & Endowments -->
-          <a href="#sec-trusts" class="tree-node tree-chapter-node" data-level="1" data-index="2">
-            <span class="tree-name font-mono">02 Trusts, Waqf &amp; Capital Pooling (AIF/REIT)</span>
-            <span class="tree-badge font-mono">02</span>
-          </a>
-          <!-- 03 Companies Limited by Shares -->
-          <a href="#sec-companies" class="tree-node tree-chapter-node" data-level="1" data-index="3">
-            <span class="tree-name font-mono">03 Companies Limited by Shares (Pvt Ltd, OPC)</span>
-            <span class="tree-badge font-mono">03</span>
-          </a>
-          <!-- 04 LLP -->
-          <a href="#sec-llp" class="tree-node tree-chapter-node" data-level="1" data-index="4">
-            <span class="tree-name font-mono">04 Limited Liability Partnerships (LLP)</span>
-            <span class="tree-badge font-mono">04</span>
-          </a>
-          <!-- 05 Specialized Structures -->
-          <a href="#sec-specialized" class="tree-node tree-chapter-node" data-level="1" data-index="5">
-            <span class="tree-name font-mono">05 Specialized &amp; Sector-Specific (Sec 8, NBFC)</span>
-            <span class="tree-badge font-mono">05</span>
-          </a>
-          <!-- 06 Corporate Group Classifications -->
-          <a href="#sec-groups" class="tree-node tree-chapter-node" data-level="1" data-index="6">
-            <span class="tree-name font-mono">06 Holding, Subsidiary, JV &amp; DPIIT Startup</span>
-            <span class="tree-badge font-mono">06</span>
-          </a>
-          <!-- 07 Sovereign & Statutory Entities -->
-          <a href="#sec-sovereign" class="tree-node tree-chapter-node" data-level="1" data-index="7">
-            <span class="tree-name font-mono">07 Sovereign PSUs &amp; Statutory Corporations</span>
-            <span class="tree-badge font-mono">07</span>
-          </a>
-          <!-- 08 Societies & Co-operatives -->
-          <a href="#sec-societies" class="tree-node tree-chapter-node" data-level="1" data-index="8">
-            <span class="tree-name font-mono">08 Societies &amp; Co-operatives</span>
-            <span class="tree-badge font-mono">08</span>
-          </a>
-          <!-- 09 Foreign Entry Vehicles -->
-          <a href="#sec-foreign" class="tree-node tree-chapter-node" data-level="1" data-index="9">
-            <span class="tree-name font-mono">09 Foreign Entry &amp; Offshore (GIFT City/FEMA)</span>
-            <span class="tree-badge font-mono">09</span>
-          </a>
+                        <div class="tree-content-scroll" id="tree-content-scroll">
+          <!-- Main Headline for Directory Tree -->
+          <div class="tree-root-headline-wrap">
+            <a href="#sec-curriculum-overview" class="tree-node tree-root-node active" data-level="0" data-index="0">
+              <span class="font-mono tree-headline-tag">[DIRECTORY TREE]</span>
+              <span class="tree-name font-mono tree-headline-title">The Complete Indian Entity &amp; Statutory Registration Matrix</span>
+            </a>
+          </div>
+          <!-- 01. Unincorporated & Direct-Tax Entities -->
+          <div class="tree-branch-group" data-branch="sec-unincorporated">
+            <div class="tree-branch-header">
+              <a href="#sec-unincorporated" class="tree-node tree-chapter-node" data-level="1" data-index="1" data-target="sec-unincorporated">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">01. Unincorporated & Direct-Tax Entities</span>
+                <span class="tree-badge font-mono">01</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-unincorporated">
+              <a href="#ent-sole-proprietorship" class="tree-node tree-subtopic-node" data-level="2" data-index="2">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Sole Proprietorship</span>
+              </a>
+              <a href="#ent-partnership-firm" class="tree-node tree-subtopic-node" data-level="2" data-index="3">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Partnership Firm</span>
+              </a>
+              <a href="#ent-huf" class="tree-node tree-subtopic-node" data-level="2" data-index="4">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Hindu Undivided Family (HUF)</span>
+              </a>
+              <a href="#ent-aop-boi" class="tree-node tree-subtopic-node" data-level="2" data-index="5">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Association of Persons (AOP) & BOI</span>
+              </a>
+              <a href="#ent-shg-jlg" class="tree-node tree-subtopic-node" data-level="2" data-index="6">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Self-Help Group (SHG) & JLG</span>
+              </a>
+              <a href="#ent-local-authority-ajp" class="tree-node tree-subtopic-node" data-level="2" data-index="7">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">Local Authority & AJP</span>
+              </a>
+            </div>
+          </div>
+          <!-- 02. Trusts, Waqf & Capital Pooling -->
+          <div class="tree-branch-group" data-branch="sec-trusts">
+            <div class="tree-branch-header">
+              <a href="#sec-trusts" class="tree-node tree-chapter-node" data-level="1" data-index="8" data-target="sec-trusts">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">02. Trusts, Waqf & Capital Pooling</span>
+                <span class="tree-badge font-mono">02</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-trusts">
+              <a href="#ent-public-charitable-trust" class="tree-node tree-subtopic-node" data-level="2" data-index="9">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Public Charitable Trust (NGO)</span>
+              </a>
+              <a href="#ent-waqf" class="tree-node tree-subtopic-node" data-level="2" data-index="10">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Waqf (Charitable Endowment)</span>
+              </a>
+              <a href="#ent-private-family-trust" class="tree-node tree-subtopic-node" data-level="2" data-index="11">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Private Family Trust</span>
+              </a>
+              <a href="#ent-aif-trust" class="tree-node tree-subtopic-node" data-level="2" data-index="12">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Alternative Investment Fund (AIF)</span>
+              </a>
+              <a href="#ent-business-trusts" class="tree-node tree-subtopic-node" data-level="2" data-index="13">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">Business Trusts (REITs & InvITs)</span>
+              </a>
+            </div>
+          </div>
+          <!-- 03. Companies Limited by Shares -->
+          <div class="tree-branch-group" data-branch="sec-companies">
+            <div class="tree-branch-header">
+              <a href="#sec-companies" class="tree-node tree-chapter-node" data-level="1" data-index="14" data-target="sec-companies">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">03. Companies Limited by Shares</span>
+                <span class="tree-badge font-mono">03</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-companies">
+              <a href="#ent-opc" class="tree-node tree-subtopic-node" data-level="2" data-index="15">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">One Person Company (OPC)</span>
+              </a>
+              <a href="#ent-pvt-ltd" class="tree-node tree-subtopic-node" data-level="2" data-index="16">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Private Limited Company (Pvt Ltd)</span>
+              </a>
+              <a href="#ent-small-company" class="tree-node tree-subtopic-node" data-level="2" data-index="17">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Small Company</span>
+              </a>
+              <a href="#ent-public-ltd" class="tree-node tree-subtopic-node" data-level="2" data-index="18">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">Public Limited Company (Ltd)</span>
+              </a>
+            </div>
+          </div>
+          <!-- 04. Limited Liability Partnerships -->
+          <div class="tree-branch-group" data-branch="sec-llp">
+            <div class="tree-branch-header">
+              <a href="#sec-llp" class="tree-node tree-chapter-node" data-level="1" data-index="19" data-target="sec-llp">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">04. Limited Liability Partnerships</span>
+                <span class="tree-badge font-mono">04</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-llp">
+              <a href="#ent-llp" class="tree-node tree-subtopic-node" data-level="2" data-index="20">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">Limited Liability Partnership (LLP)</span>
+              </a>
+            </div>
+          </div>
+          <!-- 05. Specialized & Sector-Specific -->
+          <div class="tree-branch-group" data-branch="sec-specialized">
+            <div class="tree-branch-header">
+              <a href="#sec-specialized" class="tree-node tree-chapter-node" data-level="1" data-index="21" data-target="sec-specialized">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">05. Specialized & Sector-Specific</span>
+                <span class="tree-badge font-mono">05</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-specialized">
+              <a href="#ent-section-8" class="tree-node tree-subtopic-node" data-level="2" data-index="22">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Section 8 Company</span>
+              </a>
+              <a href="#ent-producer-company" class="tree-node tree-subtopic-node" data-level="2" data-index="23">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Producer Company (FPO)</span>
+              </a>
+              <a href="#ent-nidhi-company" class="tree-node tree-subtopic-node" data-level="2" data-index="24">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Nidhi Company</span>
+              </a>
+              <a href="#ent-dormant-company" class="tree-node tree-subtopic-node" data-level="2" data-index="25">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Dormant Company (IP Vault)</span>
+              </a>
+              <a href="#ent-guarantee-company" class="tree-node tree-subtopic-node" data-level="2" data-index="26">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Company Limited by Guarantee</span>
+              </a>
+              <a href="#ent-unlimited-company" class="tree-node tree-subtopic-node" data-level="2" data-index="27">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Unlimited Company</span>
+              </a>
+              <a href="#ent-nbfc-cic" class="tree-node tree-subtopic-node" data-level="2" data-index="28">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">NBFC & Core Investment Co. (CIC)</span>
+              </a>
+            </div>
+          </div>
+          <!-- 06. Group Overlays & DPIIT Startup -->
+          <div class="tree-branch-group" data-branch="sec-groups">
+            <div class="tree-branch-header">
+              <a href="#sec-groups" class="tree-node tree-chapter-node" data-level="1" data-index="29" data-target="sec-groups">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">06. Group Overlays & DPIIT Startup</span>
+                <span class="tree-badge font-mono">06</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-groups">
+              <a href="#ent-holding-subsidiary" class="tree-node tree-subtopic-node" data-level="2" data-index="30">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Holding & Subsidiary Companies</span>
+              </a>
+              <a href="#ent-associate-jv" class="tree-node tree-subtopic-node" data-level="2" data-index="31">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Associate Company / Statutory JV</span>
+              </a>
+              <a href="#ent-dpiit-startup" class="tree-node tree-subtopic-node" data-level="2" data-index="32">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">DPIIT-Recognized Startup</span>
+              </a>
+            </div>
+          </div>
+          <!-- 07. Sovereign PSUs & Corporations -->
+          <div class="tree-branch-group" data-branch="sec-sovereign">
+            <div class="tree-branch-header">
+              <a href="#sec-sovereign" class="tree-node tree-chapter-node" data-level="1" data-index="33" data-target="sec-sovereign">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">07. Sovereign PSUs & Corporations</span>
+                <span class="tree-badge font-mono">07</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-sovereign">
+              <a href="#ent-government-company" class="tree-node tree-subtopic-node" data-level="2" data-index="34">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Government Company (PSU)</span>
+              </a>
+              <a href="#ent-statutory-corporation" class="tree-node tree-subtopic-node" data-level="2" data-index="35">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">Statutory Corporation</span>
+              </a>
+            </div>
+          </div>
+          <!-- 08. Societies & Co-operatives -->
+          <div class="tree-branch-group" data-branch="sec-societies">
+            <div class="tree-branch-header">
+              <a href="#sec-societies" class="tree-node tree-chapter-node" data-level="1" data-index="36" data-target="sec-societies">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">├── </span>
+                <span class="tree-name font-mono">08. Societies & Co-operatives</span>
+                <span class="tree-badge font-mono">08</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-societies">
+              <a href="#ent-registered-society" class="tree-node tree-subtopic-node" data-level="2" data-index="37">
+                <span class="tree-guide font-mono">│   ├── </span>
+                <span class="tree-name font-mono">Registered Society</span>
+              </a>
+              <a href="#ent-cooperative-society" class="tree-node tree-subtopic-node" data-level="2" data-index="38">
+                <span class="tree-guide font-mono">│   └── </span>
+                <span class="tree-name font-mono">Co-operative Society (State & CRCS)</span>
+              </a>
+            </div>
+          </div>
+          <!-- 09. Foreign Entry & GIFT City IFSC -->
+          <div class="tree-branch-group" data-branch="sec-foreign">
+            <div class="tree-branch-header">
+              <a href="#sec-foreign" class="tree-node tree-chapter-node" data-level="1" data-index="39" data-target="sec-foreign">
+                <span class="tree-toggle-btn font-mono" title="Toggle collapse / expand">▼</span>
+                <span class="tree-guide font-mono">└── </span>
+                <span class="tree-name font-mono">09. Foreign Entry & GIFT City IFSC</span>
+                <span class="tree-badge font-mono">09</span>
+              </a>
+            </div>
+            <div class="tree-sub-branches" id="sub-sec-foreign">
+              <a href="#ent-wos" class="tree-node tree-subtopic-node" data-level="2" data-index="40">
+                <span class="tree-guide font-mono">    ├── </span>
+                <span class="tree-name font-mono">Wholly Owned Subsidiary (WOS)</span>
+              </a>
+              <a href="#ent-fllp" class="tree-node tree-subtopic-node" data-level="2" data-index="41">
+                <span class="tree-guide font-mono">    ├── </span>
+                <span class="tree-name font-mono">Foreign LLP (FLLP)</span>
+              </a>
+              <a href="#ent-branch-liaison-project" class="tree-node tree-subtopic-node" data-level="2" data-index="42">
+                <span class="tree-guide font-mono">    ├── </span>
+                <span class="tree-name font-mono">Branch, Liaison & Project Office</span>
+              </a>
+              <a href="#ent-fpi-fvci" class="tree-node tree-subtopic-node" data-level="2" data-index="43">
+                <span class="tree-guide font-mono">    ├── </span>
+                <span class="tree-name font-mono">Foreign Portfolio Investor (FPI / FVCI)</span>
+              </a>
+              <a href="#ent-gift-city-ifsc" class="tree-node tree-subtopic-node" data-level="2" data-index="44">
+                <span class="tree-guide font-mono">    └── </span>
+                <span class="tree-name font-mono">GIFT City / IFSC Entity</span>
+              </a>
+            </div>
+          </div>
           <!-- Comments & Legal Main Sections -->
-          <a href="#forum-section" class="tree-node tree-chapter-node" data-level="1" data-index="10">
+          <a href="#forum-section" class="tree-node tree-chapter-node" data-level="1" data-index="45" style="margin-top: 10px;">
+            <span class="tree-guide font-mono">├── </span>
             <span class="tree-name font-mono">Institutional Comments Stream</span>
             <span class="tree-badge font-mono">FORUM</span>
           </a>
-          <a href="#sec-footer" class="tree-node tree-chapter-node" data-level="1" data-index="11">
+          <a href="#sec-footer" class="tree-node tree-chapter-node" data-level="1" data-index="46">
+            <span class="tree-guide font-mono">└── </span>
             <span class="tree-name font-mono">Statutory Disclaimer</span>
             <span class="tree-badge font-mono">LEGAL</span>
           </a>
@@ -420,8 +636,7 @@
         <p class="story-narrative-lead">These structures do not possess a separate corporate identity from their creators or are recognized primarily as distinct taxable units ("Persons") under the <strong>Income-tax Act, 2025</strong> (erstwhile Section 2(31) of the Income-tax Act, 1961).</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-sole-proprietorship">
             <h4 class="entity-name">
               Sole Proprietorship
             </h4>
@@ -483,8 +698,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-partnership-firm">
             <h4 class="entity-name">
               Partnership Firm (Unregistered & Registered)
             </h4>
@@ -548,8 +762,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-huf">
             <h4 class="entity-name">
               Hindu Undivided Family (HUF)
             </h4>
@@ -607,8 +820,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-aop-boi">
             <h4 class="entity-name">
               Association of Persons (AOP) & Body of Individuals (BOI)
             </h4>
@@ -656,8 +868,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-shg-jlg">
             <h4 class="entity-name">
               Self-Help Group (SHG) & Joint Liability Group (JLG)
             </h4>
@@ -700,8 +911,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-local-authority-ajp">
             <h4 class="entity-name">
               Local Authority & Artificial Juridical Person (AJP)
             </h4>
@@ -747,8 +957,7 @@
         <p class="story-narrative-lead">Trusts are fiduciary legal arrangements where a <strong>Settlor</strong> transfers property/capital to a <strong>Trustee</strong> to manage for <strong>Beneficiaries</strong> under a registered Trust Deed.</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-public-charitable-trust">
             <h4 class="entity-name">
               Public Charitable / Religious Trust (NGO)
             </h4>
@@ -817,8 +1026,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-waqf">
             <h4 class="entity-name">
               Waqf (Islamic Charitable / Religious Endowment)
             </h4>
@@ -873,8 +1081,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-private-family-trust">
             <h4 class="entity-name">
               Private Trust (Family Office & Estate Engine)
             </h4>
@@ -935,8 +1142,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-aif-trust">
             <h4 class="entity-name">
               SEBI-Registered Alternative Investment Fund (AIF) Trust (Cat I, II & III)
             </h4>
@@ -1002,8 +1208,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-business-trusts">
             <h4 class="entity-name">
               Business Trusts (REITs, SM-REITs & InvITs)
             </h4>
@@ -1068,8 +1273,7 @@
         <p class="story-narrative-lead">Governed by <strong>The Companies Act, 2013 [Section 2(22)]</strong>, where shareholder liability is strictly limited to any unpaid amount on their subscribed shares.</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-opc">
             <h4 class="entity-name">
               One Person Company (OPC)
             </h4>
@@ -1123,8 +1327,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-pvt-ltd">
             <h4 class="entity-name">
               Private Limited Company (Pvt Ltd)
             </h4>
@@ -1199,8 +1402,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-small-company">
             <h4 class="entity-name">
               Small Company (Exempt Pvt Ltd Classification)
             </h4>
@@ -1250,8 +1452,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-public-ltd">
             <h4 class="entity-name">
               Public Limited Company (Unlisted & Listed Ltd)
             </h4>
@@ -1319,8 +1520,7 @@
         <p class="story-narrative-lead">The statutory hybrid combining corporate limited liability with partnership operational and pass-through tax flexibility.</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-llp">
             <h4 class="entity-name">
               Limited Liability Partnership (LLP)
             </h4>
@@ -1392,8 +1592,7 @@
         <p class="story-narrative-lead">Statutory vehicles engineered for philanthropic, agricultural, mutual benefit, IP asset shielding, or NBFC financial operations.</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-section-8">
             <h4 class="entity-name">
               Section 8 Company (Corporate NGO / Research Foundation)
             </h4>
@@ -1450,8 +1649,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-producer-company">
             <h4 class="entity-name">
               Producer Company (Farmer Producer Organization / FPO)
             </h4>
@@ -1505,8 +1703,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-nidhi-company">
             <h4 class="entity-name">
               Nidhi Company (Mutual Benefit Financial Society)
             </h4>
@@ -1559,8 +1756,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-dormant-company">
             <h4 class="entity-name">
               Dormant Company (The IP / Asset Vault)
             </h4>
@@ -1617,8 +1813,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-guarantee-company">
             <h4 class="entity-name">
               Company Limited by Guarantee (With or Without Share Capital)
             </h4>
@@ -1666,8 +1861,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-unlimited-company">
             <h4 class="entity-name">
               Unlimited Company
             </h4>
@@ -1716,8 +1910,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-nbfc-cic">
             <h4 class="entity-name">
               Non-Banking Financial Company (NBFC) & Core Investment Company (CIC)
             </h4>
@@ -1778,8 +1971,7 @@
         <p class="story-narrative-lead">These are statutory statuses applied on top of standard companies or LLPs that drastically alter tax, audit, and investment privileges:</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-holding-subsidiary">
             <h4 class="entity-name">
               Holding Company [Sec 2(46)] & Subsidiary Company [Sec 2(87)]
             </h4>
@@ -1826,8 +2018,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-associate-jv">
             <h4 class="entity-name">
               Associate Company / Statutory Joint Venture [Sec 2(6)]
             </h4>
@@ -1858,8 +2049,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-dpiit-startup">
             <h4 class="entity-name">
               DPIIT-Recognized "Startup" Entity
             </h4>
@@ -1921,8 +2111,7 @@
         <p class="story-narrative-lead">Sovereign-backed corporations and legislative bodies executing industrial policy, tenders, and state asset development.</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-government-company">
             <h4 class="entity-name">
               Government Company (Public Sector Undertaking / PSU)
             </h4>
@@ -1969,8 +2158,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-statutory-corporation">
             <h4 class="entity-name">
               Statutory Corporation
             </h4>
@@ -2026,8 +2214,7 @@
         <p class="story-narrative-lead">Democratic and membership-governed vehicles for academic associations, scientific research bodies, and mass producer collectives.</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-registered-society">
             <h4 class="entity-name">
               Registered Society
             </h4>
@@ -2077,8 +2264,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-cooperative-society">
             <h4 class="entity-name">
               Co-operative Society (State & Multi-State)
             </h4>
@@ -2141,8 +2327,7 @@
         <p class="story-narrative-lead">For foreign corporations and global funds establishing a presence or deploying capital in India:</p>
 
         <div class="entity-cards-grid" style="margin-top: 20px;">
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-wos">
             <h4 class="entity-name">
               Wholly Owned Subsidiary (WOS) / Foreign Subsidiary
             </h4>
@@ -2200,8 +2385,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-fllp">
             <h4 class="entity-name">
               Foreign Limited Liability Partnership (FLLP)
             </h4>
@@ -2249,8 +2433,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-branch-liaison-project">
             <h4 class="entity-name">
               Branch Office (BO), Liaison Office (LO) & Project Office (PO)
             </h4>
@@ -2303,8 +2486,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-fpi-fvci">
             <h4 class="entity-name">
               Foreign Portfolio Investor (FPI) & Foreign Venture Capital Investor (FVCI)
             </h4>
@@ -2346,8 +2528,7 @@
             </div>
 
           </div>
-          <div class="entity-item">
-
+          <div class="entity-item" id="ent-gift-city-ifsc">
             <h4 class="entity-name">
               GIFT City / IFSC Entity (IFSC Company, IFSC LLP, FME & IFSC AIF)
             </h4>

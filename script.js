@@ -844,6 +844,30 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
     treeNodes.forEach((node, idx) => {
       node.onclick = (e) => {
+        const toggleBtn = e.target.closest(".tree-toggle-btn");
+        const branchGroup = node.closest(".tree-branch-group");
+        
+        // If clicking toggle button specifically: toggle collapse without scrolling
+        if (toggleBtn && branchGroup) {
+          e.preventDefault();
+          e.stopPropagation();
+          branchGroup.classList.toggle("is-collapsed");
+          const isCollapsed = branchGroup.classList.contains("is-collapsed");
+          const btn = branchGroup.querySelector(".tree-toggle-btn");
+          if (btn) btn.textContent = isCollapsed ? "▶" : "▼";
+          if (typeof updateSectionOffsets === "function") updateSectionOffsets();
+          return;
+        }
+
+        // If clicking main branch node: toggle collapse/expand of its sub-branch!
+        if (node.classList.contains("tree-chapter-node") && branchGroup) {
+          branchGroup.classList.toggle("is-collapsed");
+          const isCollapsed = branchGroup.classList.contains("is-collapsed");
+          const btn = branchGroup.querySelector(".tree-toggle-btn");
+          if (btn) btn.textContent = isCollapsed ? "▶" : "▼";
+          if (typeof updateSectionOffsets === "function") updateSectionOffsets();
+        }
+
         const href = node.getAttribute("href") || "";
         if (href.startsWith("#")) {
           e.preventDefault();

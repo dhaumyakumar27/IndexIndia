@@ -10021,3 +10021,102 @@ body.theme-dark .sec-inline-reply-input {
   padding: 2px 5px;
   font-size: 0.75rem;
 }
+
+
+/* ================= COLLAPSIBLE DIRECTORY TREE SYSTEM ================= */
+.tree-root-headline-wrap {
+  padding: 6px 4px 8px 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 8px;
+}
+
+.tree-root-headline-wrap .tree-root-node {
+  padding: 6px 8px;
+  border-radius: 4px;
+  display: block;
+  border-left: 3.5px solid var(--accent-primary) !important;
+  text-decoration: none !important;
+  background: rgba(255, 107, 0, 0.04);
+}
+
+.tree-root-headline-wrap .tree-root-node:hover {
+  background: rgba(255, 107, 0, 0.08);
+}
+
+.tree-headline-tag {
+  color: var(--accent-primary);
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.tree-headline-title {
+  font-weight: 800;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  white-space: normal !important;
+  color: var(--text-primary);
+  display: block;
+}
+
+.tree-branch-group {
+  margin-bottom: 2px;
+}
+
+.tree-branch-header {
+  display: flex;
+  align-items: center;
+}
+
+.tree-branch-header .tree-chapter-node {
+  flex: 1 1 auto;
+}
+
+.tree-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-right: 3px;
+  font-size: 0.62rem;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.18s ease, color 0.15s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tree-toggle-btn:hover {
+  color: var(--accent-primary);
+}
+
+.tree-branch-group.is-collapsed .tree-toggle-btn {
+  transform: rotate(-90deg);
+}
+
+.tree-branch-group.is-collapsed .tree-sub-branches {
+  display: none !important;
+}
+
+.tree-sub-branches {
+  display: block;
+}
+
+.tree-node[data-level="2"] {
+  padding-left: 8px;
+  font-size: 0.80rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.tree-node[data-level="2"]:hover {
+  color: var(--text-primary);
+}
+
+.entity-item {
+  scroll-margin-top: 84px;
+}
