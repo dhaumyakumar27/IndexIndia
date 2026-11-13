@@ -1494,7 +1494,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
           </div>
           <div class="utility-bar-meta-group">
             <span class="active-pulse-indicator" id="account-bar-status-pill" style="font-size:0.68rem;">
-              <span class="pulse-dot"></span> Cloud Sync
+              <span class="pulse-dot"></span> Local Storage
             </span>
             <button type="button" class="palette-close-btn" id="account-bar-close-btn" data-hover-tag="[CLOSE]" aria-label="Close">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -2462,6 +2462,9 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     ]);
   }
 
+  // Global active membership state cache for instant synchronous access
+  let currentActiveMembership = null;
+
   function updateNavUpgradePanel(membership) {
     const badge = document.getElementById("nav-upgrade-badge");
     const status = document.getElementById("nav-upgrade-status");
@@ -2471,6 +2474,25 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     const desc = document.getElementById("nav-upgrade-desc");
 
     const hasPaid = membership && membership.status === "active";
+    currentActiveMembership = membership;
+
+    // Update top-right account button hover tag and dossier status pill
+    const accountBtn = document.getElementById("account-btn");
+    const sb = window.IndexIndiaSupabase;
+    const isAuth = sb && typeof sb.isAuthenticated === "function" && sb.isAuthenticated();
+    if (isAuth) {
+      if (hasPaid) {
+        if (accountBtn) accountBtn.setAttribute("data-hover-tag", "[LIFETIME PASS]");
+        updateAccountBarStatusPill("verified", "Lifetime Pass");
+      } else {
+        if (accountBtn) accountBtn.setAttribute("data-hover-tag", "[CLOUD SYNCED]");
+        updateAccountBarStatusPill("verified", "Cloud Synced");
+      }
+    } else {
+      if (accountBtn) accountBtn.setAttribute("data-hover-tag", "[ACCOUNT]");
+      updateAccountBarStatusPill("local", "Local Storage");
+    }
+
     if (hasPaid) {
       let displayName = "Premium Pass";
       if (membership.plan_type === "lifetime") displayName = "Lifetime Sovereign";
@@ -2525,9 +2547,6 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
       if (desc) desc.textContent = "";
     }
   }
-
-  // Global active membership state cache for instant synchronous access
-  let currentActiveMembership = null;
 
   function isUserPaidMember() {
     if (currentActiveMembership && currentActiveMembership.status === "active") {
@@ -2966,7 +2985,9 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         }
       }
 
-      updateAccountBarStatusPill("verified", hasPaidPlan ? `${(membership.plan_type || "PRO").toUpperCase()} PASS` : "Cloud Synced");
+      updateAccountBarStatusPill("verified", hasPaidPlan ? "Lifetime Pass" : "Cloud Synced");
+      const accountBtn = document.getElementById("account-btn");
+      if (accountBtn) accountBtn.setAttribute("data-hover-tag", hasPaidPlan ? "[LIFETIME PASS]" : "[CLOUD SYNCED]");
 
       accountPanel.innerHTML = `
         <div class="account-horizontal-grid">
@@ -2976,7 +2997,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
                 <div class="account-field-label">Authenticated Identity</div>
                 <div class="account-user-email" title="${escFloatHtml(email)}">${escFloatHtml(email)}</div>
               </div>
-              ${hasPaidPlan ? `<span class="user-role-badge" style="background: #FF3B00; color: #fff; flex-shrink:0;">${escFloatHtml((membership.plan_type || "PRO").toUpperCase())} PASS</span>` : `<span class="user-id" style="flex-shrink:0;">VERIFIED</span>`}
+              <span class="user-id" style="flex-shrink:0;">VERIFIED</span>
             </div>
 
             <div class="panel-section" style="padding-top: 8px;">
@@ -2992,10 +3013,6 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
                 <span class="metric-label">AI Doubts History</span>
                 <span class="metric-value font-mono" id="account-metric-doubts">${totalDoubts} questions</span>
               </div>
-              <div class="panel-metric-row">
-                <span class="metric-label">Cloud Backend</span>
-                <span class="metric-value status-verified font-mono">Supabase PG</span>
-              </div>
             </div>
           </div>
 
@@ -3005,11 +3022,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 Upgrade to Sovereign Pass (&#8377;99 Lifetime) &rarr;
               </button>
-            ` : `
-              <div class="account-badge-verified-notice font-mono" style="font-size: 0.78rem; color: #00E599; padding: 6px 10px; background: rgba(0, 229, 153, 0.08); border: 1px solid rgba(0, 229, 153, 0.25); border-radius: 4px; text-align: center;">
-                &#10003; Lifetime Sovereign Pass Active
-              </div>
-            `}
+            ` : ''}
             <button type="button" class="account-btn-action" id="btn-account-sync-now" style="margin-top: 0;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
               Sync Telemetry Now
@@ -3017,9 +3030,6 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
             <button type="button" class="account-btn-secondary" id="btn-account-signout" style="margin-top: 0;">
               Sign Out
             </button>
-            <div class="panel-footer" style="margin-top: 4px;">
-              <div class="panel-sub-note">IndexIndia Cross-Device Cloud Sync</div>
-            </div>
           </div>
         </div>
       `;
@@ -3056,7 +3066,9 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
 
     // 2. If Supabase is NOT configured yet
     if (!isConfigured) {
-      updateAccountBarStatusPill("local", "Guest / Local");
+      updateAccountBarStatusPill("local", "Local Storage");
+      const accountBtn = document.getElementById("account-btn");
+      if (accountBtn) accountBtn.setAttribute("data-hover-tag", "[ACCOUNT]");
       accountPanel.innerHTML = `
         <div class="account-horizontal-grid">
           <div class="account-col-card" style="gap: 8px;">
@@ -3117,15 +3129,17 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     }
 
     // 3. Supabase IS configured, but User is LOGGED OUT
-    updateAccountBarStatusPill("online", "Cloud Ready");
-    const config = sb.getConfig();
+    if (accountActiveTab === "magic") accountActiveTab = "signin";
+    updateAccountBarStatusPill("local", "Local Storage");
+    const accountBtn = document.getElementById("account-btn");
+    if (accountBtn) accountBtn.setAttribute("data-hover-tag", "[ACCOUNT]");
+
     accountPanel.innerHTML = `
       <div class="account-horizontal-grid">
         <div class="account-col-card">
           <div class="account-auth-tabs" style="margin-bottom: 10px;">
             <button type="button" class="account-auth-tab ${accountActiveTab === "signin" ? "active" : ""}" id="tab-auth-signin">Sign In</button>
             <button type="button" class="account-auth-tab ${accountActiveTab === "signup" ? "active" : ""}" id="tab-auth-signup">Sign Up</button>
-            <button type="button" class="account-auth-tab ${accountActiveTab === "magic" ? "active" : ""}" id="tab-auth-magic">Magic Link</button>
           </div>
 
           <button type="button" class="account-btn-action account-google-btn" id="btn-auth-google" style="margin-top: 0; margin-bottom: 8px;">
@@ -3136,20 +3150,6 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           <button type="button" class="account-btn-action" id="btn-guest-razorpay-upgrade" style="margin-top: 0; background-color: var(--accent); color: #FFFFFF !important; font-weight: 700;">
             Lifetime Sovereign Clearance &bull; &#8377;99 &rarr;
           </button>
-
-          ${isConfigBoxVisible ? `
-            <div class="account-config-box" style="margin-top: 8px;">
-              <label class="account-field-label">Supabase URL</label>
-              <input type="text" class="account-input" id="cfg-supabase-url" value="${escFloatHtml(config.url || '')}" />
-              <label class="account-field-label">Anon Key</label>
-              <input type="password" class="account-input" id="cfg-supabase-key" value="${escFloatHtml(config.anonKey || '')}" />
-              <button type="button" class="account-btn-action" id="btn-save-supabase-cfg">Update Keys</button>
-            </div>
-          ` : ''}
-
-          <button type="button" class="account-config-toggle" id="btn-toggle-cfg" style="margin-top: 8px;">
-            ${isConfigBoxVisible ? "Hide Supabase Settings" : "⚙ Supabase Settings"}
-          </button>
         </div>
 
         <div class="account-col-card">
@@ -3159,34 +3159,27 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
             <label class="account-field-label">Email Address</label>
             <input type="email" class="account-input" id="auth-email" placeholder="reader@institutional.com" required autocomplete="email" />
 
-            ${accountActiveTab !== "magic" ? `
-              <label class="account-field-label">Password</label>
-              <div class="account-password-wrapper">
-                <input type="password" class="account-input" id="auth-password" placeholder="••••••••••••" required autocomplete="current-password" />
-                <button type="button" class="account-pwd-toggle-btn" id="btn-toggle-pwd" title="Show / Hide Password" aria-label="Toggle password visibility">
-                  <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="7" r="3"></circle>
-                  </svg>
-                </button>
-              </div>
-            ` : ''}
+            <label class="account-field-label">Password</label>
+            <div class="account-password-wrapper">
+              <input type="password" class="account-input" id="auth-password" placeholder="••••••••••••" required autocomplete="current-password" />
+              <button type="button" class="account-pwd-toggle-btn" id="btn-toggle-pwd" title="Show / Hide Password" aria-label="Toggle password visibility">
+                <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="7" r="3"></circle>
+                </svg>
+              </button>
+            </div>
 
             <button type="submit" class="account-btn-action" id="btn-auth-submit">
-              ${accountActiveTab === "signin" ? "Sign In" : (accountActiveTab === "signup" ? "Create Account" : "Send Magic Link")}
+              ${accountActiveTab === "signin" ? "Sign In" : "Create Account"}
             </button>
           </form>
-
-          <div class="panel-footer" style="margin-top: 10px;">
-            <div class="panel-sub-note">Local-First Storage &bull; End-to-End Encrypted</div>
-          </div>
         </div>
       </div>
     `;
 
     document.getElementById("tab-auth-signin")?.addEventListener("click", () => { accountActiveTab = "signin"; renderAccountPanel(); });
     document.getElementById("tab-auth-signup")?.addEventListener("click", () => { accountActiveTab = "signup"; renderAccountPanel(); });
-    document.getElementById("tab-auth-magic")?.addEventListener("click", () => { accountActiveTab = "magic"; renderAccountPanel(); });
 
     // Show / Hide password toggle button listener
     const pwdToggleBtn = document.getElementById("btn-toggle-pwd");
@@ -3209,11 +3202,6 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         `;
       });
     }
-
-    document.getElementById("btn-toggle-cfg")?.addEventListener("click", () => {
-      isConfigBoxVisible = !isConfigBoxVisible;
-      renderAccountPanel();
-    });
 
     document.getElementById("btn-auth-google")?.addEventListener("click", async () => {
       const msg = document.getElementById("account-status-msg");
@@ -3273,12 +3261,6 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
                 msg.innerHTML = "<strong>✓ Account Created!</strong><br>Check your email inbox and click the verification link before signing in.<br><span style='font-size:0.67rem;opacity:0.9;'>Note: If you don't receive an email or want instant access, uncheck 'Confirm email' in Supabase Dashboard -> Authentication -> Providers -> Email.</span>";
               }
             }
-          } else if (accountActiveTab === "magic") {
-            await sb.loginWithMagicLink(email);
-            if (msg) {
-              msg.className = "account-status-msg success";
-              msg.innerHTML = "<strong>✓ Magic Link Dispatched!</strong><br>Check your email inbox and click the sign-in link.";
-            }
           }
         } catch (err) {
           if (msg) {
@@ -3287,28 +3269,15 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
             if (errStr.includes("invalid login credentials")) {
               msg.innerHTML = "<strong>Invalid login credentials.</strong><br><span style='font-size:0.68rem;line-height:1.35;display:inline-block;margin-top:2px;'>1. If you just registered, check your email inbox to click the verification link first.<br>2. If you don't have an account yet, switch to <strong>Sign Up</strong>.<br>3. Check your password for typos using the eye icon.</span>";
             } else if (errStr.includes("user already registered")) {
-              msg.innerHTML = "<strong>User already exists.</strong><br>Please switch to <strong>Sign In</strong> to log in with your password, or use Magic Link.";
+              msg.innerHTML = "<strong>User already exists.</strong><br>Please switch to <strong>Sign In</strong> to log in with your password.";
             } else {
               msg.textContent = err.message || "Authentication error.";
             }
           }
         } finally {
           submitBtn.disabled = false;
-          submitBtn.textContent = accountActiveTab === "signin" ? "Sign In" : (accountActiveTab === "signup" ? "Create Account" : "Send Magic Link");
+          submitBtn.textContent = accountActiveTab === "signin" ? "Sign In" : "Create Account";
         }
-      });
-    }
-
-    const saveCfgBtn = document.getElementById("btn-save-supabase-cfg");
-    if (saveCfgBtn) {
-      saveCfgBtn.addEventListener("click", async () => {
-        const urlInput = document.getElementById("cfg-supabase-url");
-        const keyInput = document.getElementById("cfg-supabase-key");
-        const url = (urlInput ? urlInput.value : "").trim();
-        const key = (keyInput ? keyInput.value : "").trim();
-        if (sb) await sb.setCredentials(url, key);
-        isConfigBoxVisible = false;
-        renderAccountPanel();
       });
     }
     } catch (err) {
