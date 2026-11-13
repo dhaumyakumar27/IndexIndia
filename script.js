@@ -2411,8 +2411,9 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     if (typeof syncMainForumEncryptUI === "function") {
       syncMainForumEncryptUI();
     }
-    if (typeof updateDoubtThreadUI === "function") {
-      updateDoubtThreadUI();
+    const tileEl = document.getElementById("doubt-solver-tile");
+    if (typeof renderDoubtsView === "function" && tileEl && tileEl.classList.contains("is-open")) {
+      renderDoubtsView();
     }
 
     // Dynamic sync of section forum drawers if open
@@ -6025,8 +6026,6 @@ INSTRUCTIONS:
     }
   }
 
-  let activeThreadResetTime = 0;
-
   function extractPlainTextFromAnswer(html) {
     if (!html) return "";
     try {
@@ -6038,40 +6037,96 @@ INSTRUCTIONS:
     }
   }
 
-  function getActiveConversationThread() {
-    // Only paid members maintain conversational memory
-    if (typeof isUserPaidMember === "function" && !isUserPaidMember()) {
-      return [];
+  function findRootNode(nodeId, allItems) {
+    if (!nodeId || !allItems) return null;
+    const map = new Map(allItems.map(x => [String(x.id), x]));
+    let curr = map.get(String(nodeId));
+    while (curr && curr.parentId) {
+      const parent = map.get(String(curr.parentId));
+      if (!parent) break;
+      curr = parent;
     }
-
-    const history = getLocalDoubtsHistory();
-    if (!history || history.length === 0) return [];
-
-    const threadItems = [];
-    const limit = 5;
-
-    for (const item of history) {
-      if (activeThreadResetTime && item.timestamp && item.timestamp < activeThreadResetTime) {
-        break;
-      }
-      const q = (item.question || "").trim();
-      const aText = (item.answerText || extractPlainTextFromAnswer(item.answerHtml || "")).trim();
-      if (q && aText) {
-        threadItems.push({
-          question: q,
-          answerText: aText.slice(0, 500)
-        });
-      }
-      if (threadItems.length >= limit) break;
-    }
-
-    // Return in chronological order [Turn 1 (oldest), Turn 2, ..., Turn N (newest)]
-    return threadItems.reverse();
+    return curr || null;
   }
 
-  function resetConversationThread() {
-    activeThreadResetTime = Date.now();
-    updateDoubtThreadUI();
+  function getAncestryChain(nodeId, allItems) {
+    if (!nodeId || !allItems) return [];
+    const map = new Map(allItems.map(x => [String(x.id), x]));
+    const chain = [];
+    let curr = map.get(String(nodeId));
+    while (curr) {
+      const q = (curr.question || "").trim();
+      const aText = (curr.answerText || extractPlainTextFromAnswer(curr.answerHtml || "")).trim();
+      chain.unshift({
+        id: curr.id,
+        question: q,
+        answerText: aText.slice(0, 600),
+        sectionTitle: curr.sectionTitle,
+        sectionId: curr.sectionId
+      });
+      curr = curr.parentId ? map.get(String(curr.parentId)) : null;
+    }
+    return chain;
+  }
+
+  function countFollowUpsForRoot(rootId, allItems) {
+    if (!rootId || !allItems) return 0;
+    const strRootId = String(rootId);
+    return allItems.filter(item => {
+      if (String(item.id) === strRootId) return false;
+      const rNode = findRootNode(item.id, allItems);
+      return rNode && String(rNode.id) === strRootId;
+    }).length;
+  }
+
+  function buildDoubtsTree(items) {
+    if (!items || items.length === 0) return { roots: [], sorted: [] };
+    const sorted = [...items].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const map = new Map();
+    const roots = [];
+
+    sorted.forEach(item => {
+      map.set(String(item.id), {
+        ...item,
+        children: [],
+        depth: 0
+      });
+    });
+
+    sorted.forEach(item => {
+      const node = map.get(String(item.id));
+      if (item.parentId && map.has(String(item.parentId))) {
+        const parent = map.get(String(item.parentId));
+        node.depth = (parent.depth || 0) + 1;
+        parent.children.push(node);
+      } else {
+        node.depth = 0;
+        roots.push(node);
+      }
+    });
+
+    return { roots, sorted };
+  }
+
+  function deleteDoubtNode(id) {
+    const all = getLocalDoubtsHistory();
+    const toDelete = new Set([String(id)]);
+    let added = true;
+    while (added) {
+      added = false;
+      for (const item of all) {
+        if (item.parentId && toDelete.has(String(item.parentId)) && !toDelete.has(String(item.id))) {
+          toDelete.add(String(item.id));
+          added = true;
+        }
+      }
+    }
+    const remaining = all.filter(x => !toDelete.has(String(x.id)));
+    saveLocalDoubtsHistory(remaining);
+    if (window.IndexIndiaSupabase) {
+      toDelete.forEach(delId => window.IndexIndiaSupabase.deleteDoubt(delId));
+    }
+    renderDoubtsView();
   }
 
   function getExactTimestamp() {
@@ -6120,7 +6175,6 @@ INSTRUCTIONS:
         </div>
         <button type="button" class="doubt-context-reset-btn font-mono" id="doubt-context-reset-btn" title="Reset to Page Summary" style="display: none;">Page ↺</button>
       </div>
-      <div class="doubt-thread-status-bar" id="doubt-thread-status-bar"></div>
       <div class="doubt-input-row">
         <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask any doubt or question..." autocomplete="off">
         <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask ↵</button>
@@ -6141,61 +6195,159 @@ INSTRUCTIONS:
   const doubtContextBadge = doubtTile.querySelector("#doubt-context-badge");
   const doubtContextTitle = doubtTile.querySelector("#doubt-context-title");
   const doubtContextResetBtn = doubtTile.querySelector("#doubt-context-reset-btn");
-  const doubtThreadStatusBar = doubtTile.querySelector("#doubt-thread-status-bar");
 
-  function updateDoubtThreadUI() {
-    const threadBar = doubtTile ? doubtTile.querySelector("#doubt-thread-status-bar") : document.getElementById("doubt-thread-status-bar");
-    if (!threadBar) return;
+  function renderDoubtTreeNodeHtml(node, isLastChild, rootNode, totalFollowUps) {
     const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
-    const activeTurns = isPaid ? getActiveConversationThread() : [];
-    const ctx = currentDoubtContext || getPageSummaryContext();
+    const branchSymbol = node.depth === 0 ? "●" : (isLastChild ? "└──" : "├──");
+    const isRoot = node.depth === 0;
+    const canFollowUp = totalFollowUps < 10;
 
-    if (isPaid) {
-      const turnCount = activeTurns.length;
-      threadBar.innerHTML = `
-        <div class="doubt-thread-status-inner paid">
-          <span class="doubt-thread-pill paid font-mono" title="Follow-up questions retain active section grounding and previous Q&A turns">
-            <span class="thread-dot paid">●</span> THREAD MEMORY ACTIVE ${turnCount > 0 ? `(${turnCount} PREV TURN${turnCount > 1 ? "S" : ""})` : "(PAID)"}
-          </span>
-          ${turnCount > 0 ? `
-            <button type="button" class="doubt-thread-reset-btn font-mono" id="doubt-thread-reset-btn" title="Start a fresh conversational topic with this section context" data-hover-tag="[NEW TOPIC]">
-              New Topic ↺
-            </button>
-          ` : ""}
+    const followUpBtnHtml = canFollowUp
+      ? `<button type="button" class="doubt-tree-reply-btn font-mono" data-id="${node.id}" title="${isPaid ? 'Ask a specific follow-up under this question' : 'Upgrade to ask follow-up questions'}">[follow-up ↳]</button>`
+      : `<span class="doubt-tree-limit-tag font-mono">[10/10 LIMIT REACHED]</span>`;
+
+    let childrenHtml = "";
+    if (node.children && node.children.length > 0) {
+      const cCount = node.children.length;
+      childrenHtml = `
+        <div class="doubt-tree-children">
+          ${node.children.map((c, idx) => renderDoubtTreeNodeHtml(c, idx === cCount - 1, rootNode, totalFollowUps)).join("")}
         </div>
       `;
-      if (doubtTextInput) {
-        doubtTextInput.placeholder = turnCount > 0
-          ? "Ask follow-up question (thread memory active)..."
-          : (ctx.type === "section" ? `Ask doubt about "${(ctx.title || "this section").slice(0, 24)}"...` : "Ask any doubt or question...");
-      }
-      const resetBtn = threadBar.querySelector("#doubt-thread-reset-btn");
-      if (resetBtn) {
-        resetBtn.addEventListener("click", resetConversationThread);
-      }
-    } else {
-      threadBar.innerHTML = `
-        <div class="doubt-thread-status-inner free">
-          <span class="doubt-thread-pill free font-mono" title="Free tier queries are single-turn. Upgrade to retain multi-turn conversational context.">
-            <span class="thread-dot free">○</span> SINGLE-QUERY CONTEXT (FREE)
-          </span>
-          <button type="button" class="doubt-thread-upgrade-btn font-mono" id="doubt-thread-upgrade-btn" title="Unlock multi-turn follow-up conversational thread memory" data-hover-tag="[UPGRADE]">
-            Upgrade for Thread Memory ↗
-          </button>
+    }
+
+    return `
+      <div class="doubt-tree-node-item depth-${node.depth}" data-id="${node.id}" data-depth="${node.depth}">
+        <div class="doubt-tree-node-card" data-id="${node.id}">
+          <div class="doubt-tree-meta-row font-mono">
+            <div class="doubt-tree-meta-left">
+              <span class="doubt-tree-branch font-mono">${branchSymbol}</span>
+              <span class="doubt-tree-sec-tag">${escapeHtml(node.sectionTitle || "SECTION")}</span>
+              <span class="doubt-tree-time">🕒 ${escapeHtml(node.exactTimestamp || "")}</span>
+              ${isRoot && totalFollowUps > 0 ? `<span class="doubt-tree-count-badge font-mono">${totalFollowUps}/10</span>` : ""}
+            </div>
+            <div class="doubt-tree-meta-right">
+              ${followUpBtnHtml}
+              <button type="button" class="doubt-tree-del-btn" title="Delete this question and branch" data-id="${node.id}">&times;</button>
+            </div>
+          </div>
+          <div class="doubt-tree-q-row">
+            <span class="doubt-tree-q-label font-mono">Q:</span>
+            <span class="doubt-tree-q-text">${escapeHtml(node.question)}</span>
+          </div>
+          <div class="doubt-tree-a-row">
+            ${node.answerHtml}
+          </div>
         </div>
-      `;
-      if (doubtTextInput) {
-        doubtTextInput.placeholder = ctx.type === "section"
-          ? `Ask doubt about "${(ctx.title || "this section").slice(0, 24)}"...`
-          : "Ask any doubt or question...";
+        <div class="doubt-tree-reply-slot" id="doubt-reply-slot-${node.id}"></div>
+        ${childrenHtml}
+      </div>
+    `;
+  }
+
+  function handleOpenFollowUpComposer(nodeId) {
+    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
+    if (!isPaid) {
+      const accBtn = document.getElementById("account-btn");
+      if (accBtn) accBtn.click();
+      alert("Follow-up questions are exclusive to Institutional Paid Members. Upgrade to enable conversational directory tree branching.");
+      return;
+    }
+
+    const all = getLocalDoubtsHistory();
+    const node = all.find(x => String(x.id) === String(nodeId));
+    if (!node) return;
+
+    const rootNode = findRootNode(nodeId, all) || node;
+    const rootId = rootNode.id;
+    const currentFollowUps = countFollowUpsForRoot(rootId, all);
+
+    if (currentFollowUps >= 10) {
+      alert("Maximum 10 follow-up questions reached under this main question. You can ask a new main question in the top box.");
+      return;
+    }
+
+    // If the question was asked under a specific section, highlight/sync context
+    if (node.sectionId) {
+      const secEl = document.getElementById(node.sectionId);
+      if (secEl && typeof setDoubtContext === "function") {
+        setDoubtContext(getSectionContext(secEl));
       }
-      const upgradeBtn = threadBar.querySelector("#doubt-thread-upgrade-btn");
-      if (upgradeBtn) {
-        upgradeBtn.addEventListener("click", () => {
-          const accBtn = document.getElementById("account-btn");
-          if (accBtn) accBtn.click();
-        });
+    }
+
+    const slot = document.getElementById(`doubt-reply-slot-${nodeId}`);
+    if (!slot) return;
+
+    // Toggle: if slot already has content, close it
+    if (slot.hasChildNodes()) {
+      slot.innerHTML = "";
+      return;
+    }
+
+    // Close any other open reply slots across the tree
+    document.querySelectorAll(".doubt-tree-reply-slot").forEach(s => s.innerHTML = "");
+    document.querySelectorAll(".doubt-tree-node-card").forEach(c => c.classList.remove("active-branch"));
+
+    const card = document.querySelector(`.doubt-tree-node-card[data-id="${nodeId}"]`);
+    if (card) card.classList.add("active-branch");
+
+    const shortQ = (node.question || "").slice(0, 32) + ((node.question || "").length > 32 ? "..." : "");
+    slot.innerHTML = `
+      <div class="doubt-inline-composer font-mono">
+        <div class="doubt-inline-composer-header">
+          <span class="doubt-inline-branch-label">↳ FOLLOW-UP TO: "${escapeHtml(shortQ)}" (${currentFollowUps}/10 follow-ups)</span>
+          <button type="button" class="doubt-inline-close-btn" data-id="${nodeId}">&times;</button>
+        </div>
+        <div class="doubt-inline-composer-row">
+          <input type="text" class="doubt-inline-input" placeholder="Ask specific follow-up under this branch..." autocomplete="off">
+          <button type="button" class="doubt-inline-ask-btn">Ask ↵</button>
+        </div>
+      </div>
+    `;
+
+    const input = slot.querySelector(".doubt-inline-input");
+    const askBtn = slot.querySelector(".doubt-inline-ask-btn");
+    const closeBtn = slot.querySelector(".doubt-inline-close-btn");
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        slot.innerHTML = "";
+        if (card) card.classList.remove("active-branch");
+      });
+    }
+
+    const submitFollowUp = async () => {
+      const val = input ? input.value.trim() : "";
+      if (!val) return;
+      if (askBtn) {
+        askBtn.disabled = true;
+        askBtn.textContent = ".....";
       }
+      try {
+        await askDoubt(val, nodeId);
+      } finally {
+        if (askBtn) {
+          askBtn.disabled = false;
+          askBtn.textContent = "Ask ↵";
+        }
+      }
+    };
+
+    if (askBtn) {
+      askBtn.addEventListener("click", submitFollowUp);
+    }
+    if (input) {
+      input.focus();
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitFollowUp();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          slot.innerHTML = "";
+          if (card) card.classList.remove("active-branch");
+        }
+      });
     }
   }
 
@@ -6378,9 +6530,6 @@ INSTRUCTIONS:
       doubtContextTitle.textContent = ctx.title || "Page Summary";
       if (doubtContextResetBtn) doubtContextResetBtn.style.display = "none";
     }
-    if (typeof updateDoubtThreadUI === "function") {
-      updateDoubtThreadUI();
-    }
   }
 
   function setDoubtContext(ctx) {
@@ -6429,7 +6578,6 @@ INSTRUCTIONS:
     const history = getLocalDoubtsHistory();
     const workerUrl = getActiveWorkerUrl();
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
-    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
 
     let bannerHtml = "";
     if (!workerUrl && !hasKey) {
@@ -6463,93 +6611,63 @@ INSTRUCTIONS:
       return;
     }
 
+    const { roots } = buildDoubtsTree(history);
+    const totalRoots = roots.length;
+
     let html = `
       ${bannerHtml}
       <div class="doubt-history-actions-bar">
-        <span class="doubt-history-count font-mono">${history.length} DOUBT${history.length > 1 ? "S" : ""} RECORDED ON THIS DEVICE</span>
-        <div class="doubt-history-actions-right">
-          ${isPaid ? `
-            <button type="button" class="doubt-thread-reset-btn-mini font-mono" id="doubt-reset-thread-btn-mini" title="Start a fresh conversational topic">New Topic ↺</button>
-          ` : `
-            <button type="button" class="doubt-thread-upgrade-btn-mini font-mono" id="doubt-thread-upgrade-btn-mini" title="Upgrade for multi-turn thread memory">Upgrade (Thread Memory) ↗</button>
-          `}
-          <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
-        </div>
+        <span class="doubt-history-count font-mono">${totalRoots} MAIN THREAD${totalRoots > 1 ? "S" : ""} &bull; ${history.length} QUESTION${history.length > 1 ? "S" : ""}</span>
+        <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
       </div>
-      ${!isPaid && history.length > 1 ? `
-        <div class="doubt-free-thread-notice font-mono">
-          <span>💡 Free Tier: Queries are single-turn with section context. Upgrade for multi-turn thread memory.</span>
-        </div>
-      ` : ""}
-      <div class="doubt-history-list">
+      <div class="doubt-tree-feed" id="doubt-tree-feed">
     `;
 
-    for (const item of history) {
-      html += `
-        <div class="doubt-history-card" data-id="${item.id}">
-          <div class="doubt-history-meta">
-            <div class="doubt-history-time font-mono">
-              <span class="doubt-time-clock">🕒</span>
-              <span>${escapeHtml(item.exactTimestamp)}</span>
-              ${item.isFollowUp ? `<span class="doubt-thread-badge font-mono">[FOLLOW-UP THREAD]</span>` : ""}
-            </div>
-            <button type="button" class="doubt-item-del-btn" title="Delete this entry" data-id="${item.id}">&times;</button>
-          </div>
-          <div class="doubt-history-q">
-            <span class="doubt-q-badge font-mono">DOUBT:</span>
-            <span class="doubt-q-text">${escapeHtml(item.question)}</span>
-          </div>
-          <div class="doubt-history-a">
-            ${item.answerHtml}
-          </div>
-        </div>
-      `;
+    for (let i = 0; i < totalRoots; i++) {
+      const rootNode = roots[i];
+      const totalFollowUps = countFollowUpsForRoot(rootNode.id, history);
+      html += renderDoubtTreeNodeHtml(rootNode, i === totalRoots - 1, rootNode, totalFollowUps);
     }
 
     html += `</div>`;
     doubtOutput.innerHTML = html;
     attachBannerListeners();
 
+    // Clear all button
     const clearBtn = doubtOutput.querySelector("#doubt-clear-all-btn");
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
         if (confirm("Clear all doubts history stored on this device?")) {
           clearLocalDoubtsHistory();
           renderDoubtsView();
-          if (typeof updateDoubtThreadUI === "function") {
-            updateDoubtThreadUI();
-          }
         }
       });
     }
 
-    const resetMini = doubtOutput.querySelector("#doubt-reset-thread-btn-mini");
-    if (resetMini) {
-      resetMini.addEventListener("click", resetConversationThread);
-    }
-
-    const upgradeMini = doubtOutput.querySelector("#doubt-thread-upgrade-btn-mini");
-    if (upgradeMini) {
-      upgradeMini.addEventListener("click", () => {
-        const accBtn = document.getElementById("account-btn");
-        if (accBtn) accBtn.click();
-      });
-    }
-
-    doubtOutput.querySelectorAll(".doubt-item-del-btn").forEach(btn => {
+    // Delete buttons
+    doubtOutput.querySelectorAll(".doubt-tree-del-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const id = btn.getAttribute("data-id");
-        const curr = getLocalDoubtsHistory();
-        const filtered = curr.filter(x => x.id !== id);
-        saveLocalDoubtsHistory(filtered);
-        if (window.IndexIndiaSupabase) {
-          window.IndexIndiaSupabase.deleteDoubt(id);
-        }
-        renderDoubtsView();
-        if (typeof updateDoubtThreadUI === "function") {
-          updateDoubtThreadUI();
-        }
+        if (id) deleteDoubtNode(id);
+      });
+    });
+
+    // Follow-up / Reply triggers
+    doubtOutput.querySelectorAll(".doubt-tree-reply-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute("data-id");
+        if (id) handleOpenFollowUpComposer(id);
+      });
+    });
+
+    // Also clicking on a question card opens follow-up composer
+    doubtOutput.querySelectorAll(".doubt-tree-node-card").forEach(card => {
+      card.addEventListener("click", (e) => {
+        if (e.target.closest("button") || e.target.closest("a") || e.target.closest(".doubt-tree-reply-btn")) return;
+        const id = card.getAttribute("data-id");
+        if (id) handleOpenFollowUpComposer(id);
       });
     });
   }
@@ -6724,10 +6842,6 @@ INSTRUCTIONS:
         triggerCloudDoubtsFetch();
       }
 
-      if (typeof updateDoubtThreadUI === "function") {
-        updateDoubtThreadUI();
-      }
-
       if (activeDoubtMode === "doubts") {
         renderDoubtsView();
       } else {
@@ -6786,19 +6900,20 @@ INSTRUCTIONS:
   window.closeDoubtSolver = closeDoubtSolver;
   window.openDoubtSolverForSection = openDoubtSolverForSection;
   window.getLocalDoubtsHistory = getLocalDoubtsHistory;
-  window.getActiveConversationThread = getActiveConversationThread;
-  window.resetConversationThread = resetConversationThread;
-  window.updateDoubtThreadUI = updateDoubtThreadUI;
   window.askDoubt = askDoubt;
+  window.findRootNode = findRootNode;
+  window.getAncestryChain = getAncestryChain;
+  window.countFollowUpsForRoot = countFollowUpsForRoot;
+  window.buildDoubtsTree = buildDoubtsTree;
 
   function synthesizeDoubtAnswer(query, context) {
     return synthesizeConceptAnswer(query, context, null);
   }
 
-  async function askDoubt(query) {
+  async function askDoubt(query, parentId = null) {
     const trimmed = (query || "").trim();
     if (!trimmed) {
-      if (doubtTextInput) doubtTextInput.focus();
+      if (!parentId && doubtTextInput) doubtTextInput.focus();
       return;
     }
 
@@ -6813,39 +6928,71 @@ INSTRUCTIONS:
     }
 
     const currentId = ++activeQueryId;
-    const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
-    if (doubtAskBtn) {
+    const allItems = getLocalDoubtsHistory();
+    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
+
+    let targetContext = currentDoubtContext || getPageSummaryContext();
+    let ancestryChain = [];
+    let rootId = null;
+
+    if (parentId) {
+      if (!isPaid) {
+        const accBtn = document.getElementById("account-btn");
+        if (accBtn) accBtn.click();
+        alert("Follow-up questions are exclusive to Institutional Paid Members. Upgrade to enable conversational directory tree branching.");
+        return;
+      }
+
+      const parentNode = allItems.find(x => String(x.id) === String(parentId));
+      if (!parentNode) return;
+
+      const rootNode = findRootNode(parentId, allItems) || parentNode;
+      rootId = rootNode.id;
+
+      const currentFollowUps = countFollowUpsForRoot(rootId, allItems);
+      if (currentFollowUps >= 10) {
+        alert("Maximum of 10 follow-up questions reached under this main question. You can ask a new main question in the box above.");
+        return;
+      }
+
+      ancestryChain = getAncestryChain(parentId, allItems);
+
+      // User requested: "such as if he clicks and question from his history, we send that section again to gemini with that selected questions and answers."
+      if (parentNode.sectionId) {
+        const secEl = document.getElementById(parentNode.sectionId);
+        if (secEl) {
+          targetContext = getSectionContext(secEl);
+        }
+      }
+    }
+
+    if (!parentId && doubtAskBtn) {
       doubtAskBtn.textContent = ".....";
       doubtAskBtn.disabled = true;
     }
 
-    // Ensure active context is present (Section Context or Page Summary)
-    if (!currentDoubtContext) {
-      currentDoubtContext = getActiveDoubtContext();
-    }
-    const context = currentDoubtContext;
     const timeInfo = getExactTimestamp();
 
-    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
-    const conversationThread = isPaid ? getActiveConversationThread() : [];
-
     try {
-      const resolved = await resolveDoubtAnswer(trimmed, context, conversationThread);
+      const resolved = await resolveDoubtAnswer(trimmed, targetContext, ancestryChain);
       const resolvedAnswerHtml = (typeof resolved === "object" && resolved && resolved.html) ? resolved.html : String(resolved || "");
       const resolvedAnswerText = (typeof resolved === "object" && resolved && resolved.text) ? resolved.text : extractPlainTextFromAnswer(resolvedAnswerHtml);
 
       if (currentId === activeQueryId) {
+        const newId = "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
         const newRecord = {
-          id: "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+          id: newId,
+          parentId: parentId || null,
+          rootId: parentId ? rootId : newId,
           timestamp: Date.now(),
           exactTimestamp: timeInfo.full,
           question: trimmed,
           answerHtml: resolvedAnswerHtml,
           answerText: resolvedAnswerText,
-          isFollowUp: conversationThread.length > 0,
+          isFollowUp: Boolean(parentId),
           isPaidMemberThread: isPaid,
-          sectionTitle: context.title,
-          sectionId: context.sectionId || ""
+          sectionTitle: targetContext.title,
+          sectionId: targetContext.sectionId || ""
         };
 
         const currentHistory = getLocalDoubtsHistory();
@@ -6855,39 +7002,36 @@ INSTRUCTIONS:
           window.IndexIndiaSupabase.uploadDoubt(newRecord);
         }
 
-        if (doubtTextInput) doubtTextInput.value = "";
+        if (!parentId && doubtTextInput) doubtTextInput.value = "";
         renderDoubtsView();
-        if (typeof updateDoubtThreadUI === "function") {
-          updateDoubtThreadUI();
-        }
       }
     } catch (err) {
       console.error("[DoubtSolver] askDoubt error:", err);
-      const fallbackAns = synthesizeConceptAnswer(trimmed, context, null);
+      const fallbackAns = synthesizeConceptAnswer(trimmed, targetContext, null);
       const fallbackHtml = (typeof fallbackAns === "object" && fallbackAns && fallbackAns.html) ? fallbackAns.html : String(fallbackAns || "");
       const fallbackText = (typeof fallbackAns === "object" && fallbackAns && fallbackAns.text) ? fallbackAns.text : extractPlainTextFromAnswer(fallbackHtml);
+      const newId = "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
       const newRecord = {
-        id: "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+        id: newId,
+        parentId: parentId || null,
+        rootId: parentId ? rootId : newId,
         timestamp: Date.now(),
         exactTimestamp: timeInfo.full,
         question: trimmed,
         answerHtml: fallbackHtml,
         answerText: fallbackText,
-        isFollowUp: conversationThread.length > 0,
+        isFollowUp: Boolean(parentId),
         isPaidMemberThread: isPaid,
-        sectionTitle: context.title,
-        sectionId: context.sectionId || ""
+        sectionTitle: targetContext.title,
+        sectionId: targetContext.sectionId || ""
       };
       saveLocalDoubtsHistory([newRecord, ...getLocalDoubtsHistory()]);
       if (window.IndexIndiaSupabase) {
         window.IndexIndiaSupabase.uploadDoubt(newRecord);
       }
       renderDoubtsView();
-      if (typeof updateDoubtThreadUI === "function") {
-        updateDoubtThreadUI();
-      }
     } finally {
-      if (doubtAskBtn) {
+      if (!parentId && doubtAskBtn) {
         doubtAskBtn.textContent = "Ask ↵";
         doubtAskBtn.disabled = false;
       }

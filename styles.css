@@ -4255,221 +4255,306 @@ body.theme-dark .doubt-context-reset-btn:hover {
   color: #ffffff;
 }
 
-/* Thread Memory Status Bar in Doubt Solver */
-.doubt-thread-status-bar {
+/* ================= DOUBT SOLVER DIRECTORY TREE FEED ================= */
+.doubt-tree-feed {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.doubt-tree-node-item {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.doubt-tree-node-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  padding: 4px 10px;
-  margin-bottom: 6px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 4px;
-  border: 1px dashed var(--border-subtle);
-  font-size: 0.68rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  position: relative;
+}
+
+.doubt-tree-node-card:hover {
+  border-color: var(--border-strong);
+}
+
+.doubt-tree-node-card.active-branch {
+  border-color: #000000;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+body.theme-dark .doubt-tree-node-card.active-branch {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 1px #ffffff;
+}
+
+.doubt-tree-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
   user-select: none;
 }
 
-body.theme-dark .doubt-thread-status-bar {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-.doubt-thread-status-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 8px;
-}
-
-.doubt-thread-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-secondary);
-}
-
-.doubt-thread-pill.paid {
-  color: #000000;
-}
-
-body.theme-dark .doubt-thread-pill.paid {
-  color: #ffffff;
-}
-
-.thread-dot {
-  font-size: 0.65rem;
-  line-height: 1;
-}
-
-.thread-dot.paid {
-  color: #000000;
-}
-
-body.theme-dark .thread-dot.paid {
-  color: #ffffff;
-}
-
-.thread-dot.free {
-  color: var(--text-tertiary, #888888);
-}
-
-.doubt-thread-reset-btn,
-.doubt-thread-upgrade-btn {
-  font-size: 0.64rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 3px;
-  cursor: pointer;
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.doubt-thread-reset-btn:hover {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-}
-
-body.theme-dark .doubt-thread-reset-btn:hover {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
-}
-
-.doubt-thread-upgrade-btn {
-  color: #000000;
-  font-weight: 800;
-  border-color: #000000;
-}
-
-body.theme-dark .doubt-thread-upgrade-btn {
-  color: #ffffff;
-  border-color: #ffffff;
-}
-
-.doubt-thread-upgrade-btn:hover {
-  background: #000000;
-  color: #ffffff;
-}
-
-body.theme-dark .doubt-thread-upgrade-btn:hover {
-  background: #ffffff;
-  color: #000000;
-}
-
-.doubt-thread-notice-temp {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  animation: fadeInOut 2.5s forwards;
-}
-
-.doubt-thread-badge {
-  font-size: 0.60rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  margin-left: 6px;
-}
-
-body.theme-dark .doubt-thread-badge {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #cccccc;
-}
-
-.doubt-free-thread-notice {
-  font-size: 0.68rem;
-  color: var(--text-secondary);
-  background: rgba(0, 0, 0, 0.02);
-  border: 1px dashed var(--border-subtle);
-  padding: 6px 10px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-body.theme-dark .doubt-free-thread-notice {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.doubt-history-actions-right {
+.doubt-tree-meta-left {
   display: flex;
   align-items: center;
   gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.doubt-thread-reset-btn-mini,
-.doubt-thread-upgrade-btn-mini {
-  font-size: 0.63rem;
+.doubt-tree-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.doubt-tree-branch {
   font-weight: 700;
-  background: transparent;
+  color: var(--text-secondary);
+  letter-spacing: -0.05em;
+  font-size: 0.72rem;
+}
+
+.doubt-tree-sec-tag {
+  background: rgba(0, 0, 0, 0.05);
   border: 1px solid var(--border-subtle);
   border-radius: 3px;
-  padding: 2px 6px;
+  padding: 1px 5px;
+  font-weight: 700;
   color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.doubt-thread-reset-btn-mini:hover {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-}
-
-body.theme-dark .doubt-thread-reset-btn-mini:hover {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
-}
-
-.doubt-thread-upgrade-btn-mini {
-  color: #000000;
-  font-weight: 800;
-}
-
-body.theme-dark .doubt-thread-upgrade-btn-mini {
-  color: #ffffff;
-}
-
-.doubt-thread-upgrade-btn-mini:hover {
-  background: #000000;
-  color: #ffffff;
-}
-
-body.theme-dark .doubt-thread-upgrade-btn-mini:hover {
-  background: #ffffff;
-  color: #000000;
-}
-
-.thread-followup-tag {
-  display: inline-block;
   font-size: 0.62rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.theme-dark .doubt-tree-sec-tag {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.doubt-tree-time {
+  font-size: 0.62rem;
+}
+
+.doubt-tree-count-badge {
+  font-size: 0.60rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  margin-left: 6px;
   padding: 1px 4px;
   border-radius: 2px;
   background: #000000;
   color: #ffffff;
 }
 
-body.theme-dark .thread-followup-tag {
+body.theme-dark .doubt-tree-count-badge {
   background: #ffffff;
   color: #000000;
+}
+
+.doubt-tree-reply-btn {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.63rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.doubt-tree-reply-btn:hover {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+body.theme-dark .doubt-tree-reply-btn:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.doubt-tree-limit-tag {
+  font-size: 0.60rem;
+  font-weight: 800;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.doubt-tree-del-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  transition: color 0.12s ease;
+}
+
+.doubt-tree-del-btn:hover {
+  color: #ef4444;
+}
+
+.doubt-tree-q-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.doubt-tree-q-label {
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: #000000;
+  flex-shrink: 0;
+}
+
+body.theme-dark .doubt-tree-q-label {
+  color: #ffffff;
+}
+
+.doubt-tree-q-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.doubt-tree-a-row {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+/* Directory Tree Branching Lines (Children) */
+.doubt-tree-children {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: 14px;
+  padding-left: 12px;
+  margin-top: 8px;
+  border-left: 1.5px solid var(--border-subtle);
+  position: relative;
+}
+
+/* Inline Reply Composer Slot */
+.doubt-tree-reply-slot {
+  width: 100%;
+}
+
+.doubt-inline-composer {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  margin-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.doubt-inline-composer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.doubt-inline-branch-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doubt-inline-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.doubt-inline-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.doubt-inline-composer-row {
+  display: flex;
+  gap: 6px;
+}
+
+.doubt-inline-input {
+  flex: 1;
+  height: 30px;
+  padding: 0 8px;
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  outline: none;
+}
+
+.doubt-inline-input:focus {
+  border-color: #000000;
+}
+
+body.theme-dark .doubt-inline-input:focus {
+  border-color: #ffffff;
+}
+
+.doubt-inline-ask-btn {
+  height: 30px;
+  padding: 0 10px;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+body.theme-dark .doubt-inline-ask-btn {
+  background: #ffffff;
+  color: #000000;
+}
+
+.doubt-inline-ask-btn:hover {
+  opacity: 0.85;
+}
+
+.doubt-inline-ask-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 
