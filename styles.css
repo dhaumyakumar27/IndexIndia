@@ -21,8 +21,10 @@
   --text-on-inverted: #FFFFFF;
   
   --border-primary: #121212;
-  --border-subtle: #E2E2E5;
-  --border-faint: #ECECEF;
+  --border-divider: #8F93A0;
+  --border-subtle: #B8BAC2;
+  --border-faint: #D2D4DC;
+  --border-color: #B8BAC2;
 
   /* Stark High-Contrast Action Accent (Safety Orange / Forensic Marker) */
   --accent: #FF3B00;
@@ -66,9 +68,11 @@ body.theme-dark {
   --bg-inverted: #F8F9FA;
   --text-on-inverted: #0C0D10;
   
-  --border-primary: #444958;
-  --border-subtle: #2B2F3B;
-  --border-faint: #1E212A;
+  --border-primary: #52586B;
+  --border-divider: #52586B;
+  --border-subtle: #3E4352;
+  --border-faint: #2C303D;
+  --border-color: #3E4352;
 
   --accent: #FF5522;
   --accent-hover: #FF6A3D;
@@ -1897,8 +1901,8 @@ body.theme-dark .tree-node.active .tree-badge {
   margin-top: 20px;
   margin-bottom: 24px;
   padding: 22px 24px;
-  border: 1px solid var(--border-subtle);
-  border-left: 3.5px solid #000000;
+  border: 1.5px solid var(--border-subtle);
+  border-left: 4px solid #000000;
   border-radius: 6px;
   background: var(--bg-card);
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
@@ -1912,7 +1916,8 @@ body.theme-dark .tree-node.active .tree-badge {
   margin-top: 18px;
   margin-bottom: 18px;
   padding: 18px 20px;
-  border-left: 2.5px solid rgba(0, 0, 0, 0.6);
+  border: 1.5px solid var(--border-subtle);
+  border-left: 3.5px solid rgba(0, 0, 0, 0.85);
   background: rgba(0, 0, 0, 0.012);
   border-radius: 5px;
 }
@@ -1921,7 +1926,8 @@ body.theme-dark .tree-node.active .tree-badge {
   margin-top: 14px;
   margin-bottom: 14px;
   padding: 14px 16px;
-  border-left: 2px solid rgba(0, 0, 0, 0.35);
+  border: 1.5px solid var(--border-subtle);
+  border-left: 3px solid rgba(0, 0, 0, 0.6);
   background: rgba(0, 0, 0, 0.02);
   border-radius: 4px;
 }
@@ -1934,18 +1940,18 @@ body.theme-dark .page-directory-section,
 body.theme-dark .forum-directory-section,
 body.theme-dark .institutional-forum-section,
 body.theme-dark .content-area > section {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
   border-left-color: #FFFFFF;
   background: rgba(255, 255, 255, 0.015);
 }
 
 body.theme-dark .doc-subsection {
-  border-left-color: rgba(255, 255, 255, 0.65);
+  border-left-color: rgba(255, 255, 255, 0.85);
   background: rgba(255, 255, 255, 0.02);
 }
 
 body.theme-dark .doc-subsubsection {
-  border-left-color: rgba(255, 255, 255, 0.4);
+  border-left-color: rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -2550,7 +2556,12 @@ body.theme-dark .entity-field-value {
 .entity-source-block {
   margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1.5px solid var(--border-divider);
+}
+
+body.theme-dark .entity-procedure-block,
+body.theme-dark .entity-source-block {
+  border-top-color: var(--border-divider);
 }
 
 .entity-procedure-heading,
@@ -2642,13 +2653,21 @@ body.theme-dark .entity-source-list a {
 }
 
 .user-section-note-tab {
-  border-left: 3.5px solid var(--accent) !important;
+  border: 1.5px solid var(--border-divider) !important;
+  border-left: 4.5px solid var(--accent) !important;
+  background: var(--bg-surface-elevated, #FAFAFC);
   animation: noteSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.2s ease,
               border-color 0.15s ease,
               background-color 0.15s ease;
   position: relative;
+}
+
+body.theme-dark .user-section-note-tab {
+  border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+  border-left: 4.5px solid var(--accent) !important;
+  background: #14161F;
 }
 
 .user-section-note-tab:hover {
@@ -3710,12 +3729,12 @@ body.theme-dark .membership-card:hover {
    DIRECTORY TREE FORUM (ZERO BIG BOXES, ZERO BLOAT PADDING)
    ========================================================================== */
 .institutional-forum-section {
-  margin-top: 32px;
+  margin-top: 36px;
   margin-bottom: 32px;
-  padding: 16px 0 0 0;
+  padding: 20px 0 0 0;
   background: transparent !important;
   border: none !important;
-  border-top: 1px solid var(--border-subtle) !important;
+  border-top: 2px solid var(--border-divider) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
@@ -10189,14 +10208,15 @@ body.theme-dark .statutory-card-item {
 
 /* Collapsible Under-Section Discussion Drawer - Minimal Ultra-Clean */
 .section-forum-drawer {
-  margin-top: 10px;
-  margin-bottom: 6px;
+  margin-top: 18px;
+  margin-bottom: 8px;
   background: transparent;
   border: none;
-  padding: 0;
+  border-top: 1.5px solid var(--border-divider);
+  padding: 14px 0 0 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   box-shadow: none;
   transition: all 0.15s ease;
 }
@@ -10204,6 +10224,7 @@ body.theme-dark .statutory-card-item {
 body.theme-dark .section-forum-drawer {
   background: transparent;
   border: none;
+  border-top: 1.5px solid var(--border-divider);
   box-shadow: none;
 }
 
