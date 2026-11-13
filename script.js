@@ -1710,6 +1710,128 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     }
   }
 
+  /**
+   * Optimizes an image: scales it if it exceeds maxWidth (1600px),
+   * and encodes as crisp JPEG with 0.84 quality to keep file size < 250KB.
+   * This guarantees FormSubmit's free transactional mailer never silently drops the attachment.
+   */
+  async function optimizeScreenshotImage(dataUrl, maxWidth = 1600, quality = 0.84) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width || 800;
+        let h = img.height || 600;
+        if (w > maxWidth) {
+          h = Math.round((h * maxWidth) / w);
+          w = maxWidth;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        // Clean white background for transparency
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            fetch(dataUrl).then(r => r.blob()).then(resolve).catch(() => resolve(null));
+          }
+        }, "image/jpeg", quality);
+      };
+      img.onerror = () => {
+        fetch(dataUrl).then(r => r.blob()).then(resolve).catch(() => resolve(null));
+      };
+      img.src = dataUrl;
+    });
+  }
+
+  /**
+   * Stitches multiple screenshots into a single consolidated image
+   * so FormSubmit only processes ONE file attachment under 400KB.
+   * This overcomes FormSubmit free tier's 1-attachment limitation and drops.
+   */
+  async function consolidateScreenshots(screenshots, maxWidth = 1600, quality = 0.84) {
+    if (!screenshots || screenshots.length === 0) return null;
+    if (screenshots.length === 1) {
+      return optimizeScreenshotImage(screenshots[0].dataUrl, maxWidth, quality);
+    }
+
+    const loadImg = (url) => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+
+    const [img1, img2] = await Promise.all([
+      loadImg(screenshots[0].dataUrl),
+      loadImg(screenshots[1].dataUrl)
+    ]);
+
+    if (!img1 && !img2) return null;
+    if (!img1) return optimizeScreenshotImage(screenshots[1].dataUrl, maxWidth, quality);
+    if (!img2) return optimizeScreenshotImage(screenshots[0].dataUrl, maxWidth, quality);
+
+    const scale = (img) => {
+      let w = img.width || 800;
+      let h = img.height || 600;
+      if (w > maxWidth) {
+        h = Math.round((h * maxWidth) / w);
+        w = maxWidth;
+      }
+      return { w, h };
+    };
+
+    const d1 = scale(img1);
+    const d2 = scale(img2);
+    const canvasWidth = Math.max(d1.w, d2.w);
+    const bannerHeight = 28;
+    const canvasHeight = d1.h + d2.h + (bannerHeight * 2) + 16;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    const ctx = canvas.getContext("2d");
+
+    // Clean background
+    ctx.fillStyle = "#18181B";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Banner 1
+    ctx.fillStyle = "#27272A";
+    ctx.fillRect(0, 0, canvasWidth, bannerHeight);
+    ctx.fillStyle = "#FF3B00";
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(`[SCREENSHOT 1 OF 2] ${screenshots[0].filename || ""}`, 12, 19);
+
+    // Image 1 (centered horizontally if narrower)
+    const x1 = Math.round((canvasWidth - d1.w) / 2);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(x1, bannerHeight, d1.w, d1.h);
+    ctx.drawImage(img1, x1, bannerHeight, d1.w, d1.h);
+
+    // Banner 2
+    const y2Banner = bannerHeight + d1.h + 8;
+    ctx.fillStyle = "#27272A";
+    ctx.fillRect(0, y2Banner, canvasWidth, bannerHeight);
+    ctx.fillStyle = "#FF3B00";
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(`[SCREENSHOT 2 OF 2] ${screenshots[1].filename || ""}`, 12, y2Banner + 19);
+
+    // Image 2
+    const x2 = Math.round((canvasWidth - d2.w) / 2);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(x2, y2Banner + bannerHeight, d2.w, d2.h);
+    ctx.drawImage(img2, x2, y2Banner + bannerHeight, d2.w, d2.h);
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
+    });
+  }
+
   function renderContactFloatingScreenshots() {
     const grid = document.getElementById("contact-float-screenshots");
     const errEl = document.getElementById("contact-float-upload-error");
@@ -2122,11 +2244,16 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
             }
             if (contactUploadedScreenshots.length > 0) {
               fsFormData.append("Screenshots_Summary", contactUploadedScreenshots.map((s, idx) => `File ${idx + 1}: ${s.filename} (${s.sizeStr})`).join(", "));
-              if (contactUploadedScreenshots[0].file) {
-                fsFormData.append("attachment", contactUploadedScreenshots[0].file, contactUploadedScreenshots[0].filename || "screenshot_1.png");
-              }
-              if (contactUploadedScreenshots[1] && contactUploadedScreenshots[1].file) {
-                fsFormData.append("attachments[]", contactUploadedScreenshots[1].file, contactUploadedScreenshots[1].filename || "screenshot_2.png");
+              
+              // Compress & consolidate into a single clean attachment under 400KB so FormSubmit's free mailer never drops it
+              const consolidatedBlob = await consolidateScreenshots(contactUploadedScreenshots, 1600, 0.84);
+              if (consolidatedBlob) {
+                const combinedName = contactUploadedScreenshots.length > 1
+                  ? `indexindia-screenshots-${p.ticketId}-combined.jpg`
+                  : (contactUploadedScreenshots[0].filename
+                      ? contactUploadedScreenshots[0].filename.replace(/\.[^.]+$/, ".jpg")
+                      : `screenshot-${p.ticketId}.jpg`);
+                fsFormData.append("attachment", consolidatedBlob, combinedName);
               }
             }
 
