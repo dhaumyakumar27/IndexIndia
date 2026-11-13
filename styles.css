@@ -9613,7 +9613,7 @@ body.theme-dark .customizer-dropdown {
   font-weight: 700;
   color: var(--text-secondary);
   white-space: nowrap;
-  max-width: 270px;
+  max-width: 460px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
