@@ -1581,12 +1581,27 @@ body.theme-dark .rail-header-btn.is-active {
   font-family: inherit;
   font-size: 0.88rem;
   line-height: 1.5;
-  scrollbar-width: none;
-  scroll-behavior: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+body.theme-dark .tree-content-scroll {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .tree-content-scroll::-webkit-scrollbar {
-  display: none;
+  width: 4px;
+}
+
+.tree-content-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+body.theme-dark .tree-content-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Sleek Vertical Quick-Scrub Strip */

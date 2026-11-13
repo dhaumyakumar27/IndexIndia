@@ -466,10 +466,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
   let isPinned = false;
   let isWheeling = false;
-  let wheelCooldownTimer = null;
-  let wheelReleaseTimer = null;
-  let wheelAccumulator = 0;
-  const WHEEL_SENSITIVITY = 32;
+
   let railLeaveTimer = null;
 
   function updateTreeTelemetryUI() {
@@ -752,27 +749,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       if (!isPinned) closeRailPanel(250);
     });
 
-    railNavigator.addEventListener("wheel", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      isWheeling = true;
-      openTreeExplicitly(false);
-
-      if (wheelCooldownTimer) clearTimeout(wheelCooldownTimer);
-      wheelCooldownTimer = setTimeout(() => { isWheeling = false; }, 260);
-
-      wheelAccumulator += e.deltaY;
-      const steps = Math.trunc(wheelAccumulator / WHEEL_SENSITIVITY);
-      if (steps !== 0) {
-        wheelAccumulator -= steps * WHEEL_SENSITIVITY;
-        highlightTreeNode(currentSubIndex + steps);
-      }
-
-      if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
-      wheelReleaseTimer = setTimeout(() => {
-        navigateToNode(currentSubIndex);
-      }, 350);
-    }, { passive: false });
+    // Wheel listener removed: scrolling on directory tree scrolls normally
   }
 
   if (railTreePanel) {
