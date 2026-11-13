@@ -9714,9 +9714,40 @@ body.theme-dark .contact-float-textarea:focus {
   padding: 6px 10px;
 }
 
+.contact-float-screenshots .screenshot-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.screenshot-action-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 4px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.2;
+  transition: all 0.12s ease;
+}
+
+.screenshot-action-pill:hover {
+  background: #FF3B00;
+  color: #FFFFFF;
+  border-color: #FF3B00;
+}
+
 .contact-float-screenshots .screenshot-card-thumb {
   width: 36px;
   height: 36px;
+  cursor: pointer;
 }
 
 .contact-float-actions-row {

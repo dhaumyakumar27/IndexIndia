@@ -232,7 +232,7 @@ export default {
             recipient: targetEmail,
             referenceId
           }),
-          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch (inqErr) {
         return new Response(

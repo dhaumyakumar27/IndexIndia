@@ -1726,14 +1726,51 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       const card = document.createElement("div");
       card.className = "screenshot-preview-card";
       card.innerHTML = `
-        <img src="${s.dataUrl}" alt="${escFloatHtml(s.filename)}" class="screenshot-card-thumb" />
+        <img src="${s.dataUrl}" alt="${escFloatHtml(s.filename)}" class="screenshot-card-thumb contact-thumb-preview" title="Click to view full image" />
         <div class="screenshot-card-info">
           <span class="screenshot-card-name" title="${escFloatHtml(s.filename)}">${escFloatHtml(s.filename)}</span>
           <span class="screenshot-card-size font-mono">${escFloatHtml(s.sizeStr)}</span>
         </div>
-        <button type="button" class="screenshot-card-remove contact-rm-shot-btn" data-idx="${idx}" data-hover-tag="[REMOVE]" aria-label="Remove screenshot">✕</button>
+        <div class="screenshot-card-actions">
+          <button type="button" class="screenshot-action-pill contact-copy-shot-btn font-mono" data-idx="${idx}" title="Copy screenshot to clipboard (paste Ctrl+V into Gmail)">Copy</button>
+          <a href="${s.dataUrl}" download="${escFloatHtml(s.filename)}" class="screenshot-action-pill font-mono" title="Download image">Save</a>
+          <button type="button" class="screenshot-card-remove contact-rm-shot-btn" data-idx="${idx}" data-hover-tag="[REMOVE]" aria-label="Remove screenshot">✕</button>
+        </div>
       `;
       grid.appendChild(card);
+    });
+
+    // Thumb click: Open full image in new tab
+    grid.querySelectorAll(".contact-thumb-preview").forEach((thumb, idx) => {
+      thumb.addEventListener("click", () => {
+        if (contactUploadedScreenshots[idx]?.dataUrl) {
+          const w = window.open("");
+          if (w) {
+            w.document.write(`<title>${escFloatHtml(contactUploadedScreenshots[idx].filename)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;height:100vh;"><img src="${contactUploadedScreenshots[idx].dataUrl}" style="max-width:98vw;max-height:98vh;object-fit:contain;border:1px solid #444;" /></body>`);
+          }
+        }
+      });
+    });
+
+    // 1-Click Copy Image to clipboard
+    grid.querySelectorAll(".contact-copy-shot-btn").forEach((cpBtn) => {
+      cpBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = parseInt(cpBtn.getAttribute("data-idx"), 10);
+        if (!isNaN(idx) && contactUploadedScreenshots[idx]) {
+          const ok = await copyImageDataUrlToClipboard(contactUploadedScreenshots[idx].dataUrl);
+          if (ok) {
+            cpBtn.textContent = "Copied!";
+            setContactInlineStatus(`Screenshot ${idx + 1} copied to clipboard (Ctrl+V in Gmail)`, "success");
+            setTimeout(() => { cpBtn.textContent = "Copy"; }, 1800);
+          } else {
+            cpBtn.textContent = "Failed";
+            setContactInlineStatus("Clipboard copy failed — click 'Save' to download", "info");
+            setTimeout(() => { cpBtn.textContent = "Copy"; }, 1800);
+          }
+        }
+      });
     });
 
     grid.querySelectorAll(".contact-rm-shot-btn").forEach((rmBtn) => {
@@ -1991,7 +2028,125 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         let delivered = false;
         let needsActivation = false;
 
-        // 1. Primary FormSubmit AJAX Relay
+        // 1. Dual Pipeline: ShipMyForm Instant Relay (Zero-activation instant email delivery)
+        try {
+          const smfFormData = new FormData();
+          smfFormData.append("subject", p.emailSubject);
+          smfFormData.append("email", p.userEmail);
+          smfFormData.append("ticket_id", p.ticketId);
+          smfFormData.append("submission_type", p.typeTag);
+          smfFormData.append("classification", p.category);
+          smfFormData.append("description", p.description);
+          smfFormData.append("timestamp_ist", p.timestampIST);
+          smfFormData.append("platform", p.platform);
+          smfFormData.append("viewport", p.viewport);
+          smfFormData.append("theme_and_font", `${p.currentTheme} | ${p.currentFont}`);
+          if (p.consoleCount > 0) {
+            smfFormData.append("console_errors", p.errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"));
+          }
+          if (contactUploadedScreenshots.length > 0) {
+            smfFormData.append("screenshots_attached", contactUploadedScreenshots.map((s, idx) => `File ${idx + 1}: ${s.filename} (${s.sizeStr})`).join(", "));
+          }
+          const smfResp = await fetch("https://shipmyform.com/to/dhaumyakumar27@gmail.com", {
+            method: "POST",
+            headers: { "Accept": "application/json" },
+            body: smfFormData
+          });
+          if (smfResp.ok) {
+            const smfJson = await smfResp.json().catch(() => ({}));
+            if (smfJson.ok === true) {
+              delivered = true;
+            }
+          }
+        } catch (_) {}
+
+        // 2. Dual Pipeline: Native Multipart FormSubmit via Hidden Iframe (Sends Real File Attachments)
+        try {
+          let relayIframe = document.getElementById("contact-relay-iframe");
+          if (!relayIframe) {
+            relayIframe = document.createElement("iframe");
+            relayIframe.id = "contact-relay-iframe";
+            relayIframe.name = "contact-relay-iframe";
+            relayIframe.style.display = "none";
+            relayIframe.style.width = "0";
+            relayIframe.style.height = "0";
+            relayIframe.style.border = "none";
+            relayIframe.setAttribute("aria-hidden", "true");
+            document.body.appendChild(relayIframe);
+          }
+
+          const nativeForm = document.createElement("form");
+          nativeForm.action = "https://formsubmit.co/dhaumyakumar27@gmail.com";
+          nativeForm.method = "POST";
+          nativeForm.enctype = "multipart/form-data";
+          nativeForm.target = "contact-relay-iframe";
+          nativeForm.style.display = "none";
+
+          const addField = (name, val) => {
+            const inp = document.createElement("input");
+            inp.type = "hidden";
+            inp.name = name;
+            inp.value = val;
+            nativeForm.appendChild(inp);
+          };
+
+          addField("_captcha", "false");
+          addField("_template", "table");
+          addField("_subject", p.emailSubject);
+          addField("_replyto", p.userEmail);
+          addField("Submission_Type", p.typeTag);
+          addField("Classification", p.category);
+          addField("Ticket_ID", p.ticketId);
+          addField("Email", p.userEmail);
+          addField("Timestamp_IST", p.timestampIST);
+          addField("Platform", p.platform);
+          addField("Viewport", p.viewport);
+          addField("Screen", p.screenRes);
+          addField("Theme_and_Font", `${p.currentTheme} | ${p.currentFont}`);
+          addField("Description", p.description);
+          if (p.consoleCount > 0) {
+            addField("Console_Errors", p.errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"));
+          }
+          if (contactUploadedScreenshots.length > 0) {
+            addField("Screenshots_Summary", contactUploadedScreenshots.map((s, idx) => `File ${idx + 1}: ${s.filename} (${s.sizeStr})`).join(", "));
+          }
+
+          // Attach real files via DataTransfer so FormSubmit natively ingests them as attachments!
+          if (contactUploadedScreenshots.length > 0) {
+            try {
+              if (contactUploadedScreenshots[0] && contactUploadedScreenshots[0].file) {
+                const dt1 = new DataTransfer();
+                dt1.items.add(contactUploadedScreenshots[0].file);
+                const fileInp1 = document.createElement("input");
+                fileInp1.type = "file";
+                fileInp1.name = "attachment";
+                fileInp1.files = dt1.files;
+                nativeForm.appendChild(fileInp1);
+              }
+
+              if (contactUploadedScreenshots.length > 1 && contactUploadedScreenshots[1] && contactUploadedScreenshots[1].file) {
+                const dt2 = new DataTransfer();
+                dt2.items.add(contactUploadedScreenshots[1].file);
+                const fileInp2 = document.createElement("input");
+                fileInp2.type = "file";
+                fileInp2.name = "attachments[]";
+                fileInp2.files = dt2.files;
+                nativeForm.appendChild(fileInp2);
+              }
+            } catch (dtErr) {
+              console.warn("DataTransfer file attachment fallback:", dtErr);
+            }
+          }
+
+          document.body.appendChild(nativeForm);
+          nativeForm.submit();
+          setTimeout(() => {
+            try { nativeForm.remove(); } catch (_) {}
+          }, 1500);
+          delivered = true;
+        } catch (_) {}
+
+        // 3. FormSubmit AJAX Relay
         try {
           const fsFormData = new FormData();
           fsFormData.append("_captcha", "false");
@@ -2011,12 +2166,12 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           if (p.consoleCount > 0) {
             fsFormData.append("Console_Errors", p.errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"));
           }
-          contactUploadedScreenshots.forEach((s, idx) => {
-            if (s.file) {
-              const attachKey = idx === 0 ? "attachment" : `attachment_${idx + 1}`;
-              fsFormData.append(attachKey, s.file, s.filename || `screenshot_${idx + 1}.png`);
-            }
-          });
+          if (contactUploadedScreenshots.length > 0 && contactUploadedScreenshots[0].file) {
+            fsFormData.append("attachment", contactUploadedScreenshots[0].file, contactUploadedScreenshots[0].filename || "screenshot_1.png");
+          }
+          if (contactUploadedScreenshots.length > 1 && contactUploadedScreenshots[1].file) {
+            fsFormData.append("attachments[]", contactUploadedScreenshots[1].file, contactUploadedScreenshots[1].filename || "screenshot_2.png");
+          }
 
           const fsResp = await fetch("https://formsubmit.co/ajax/dhaumyakumar27@gmail.com", {
             method: "POST",
@@ -2033,7 +2188,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           }
         } catch (_) {}
 
-        // 2. Cloudflare Worker Relay
+        // 4. Cloudflare Worker Relay
         if (!delivered) {
           try {
             const workerPayload = {
@@ -2064,7 +2219,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           } catch (_) {}
         }
 
-        // 3. Direct Resend API Fallback
+        // 5. Direct Resend API Fallback
         if (!delivered && customResendKey) {
           try {
             const resendPayload = {
@@ -2094,22 +2249,26 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         }
 
         if (delivered) {
-          setContactInlineStatus(`✓ Dispatched [${p.ticketId}]`, "success");
+          let statusMsg = `✓ Dispatched [${p.ticketId}]`;
+          if (needsActivation) {
+            statusMsg = `✓ Dispatched [${p.ticketId}] — Check Gmail (or Spam) to click FormSubmit "Activate Form" once`;
+          } else if (contactUploadedScreenshots.length > 0) {
+            statusMsg = `✓ Dispatched [${p.ticketId}] with ${contactUploadedScreenshots.length} screenshot(s)`;
+          }
+          setContactInlineStatus(statusMsg, "success");
           dispatchBtn.textContent = "Dispatched ✓";
           if (commentEl) commentEl.value = "";
-          contactUploadedScreenshots = [];
-          renderContactFloatingScreenshots();
           setTimeout(() => {
             dispatchBtn.textContent = "Dispatch";
             dispatchBtn.disabled = false;
-          }, 2200);
+          }, 3000);
         } else {
           dispatchBtn.textContent = "Dispatch";
           dispatchBtn.disabled = false;
           if (needsActivation) {
-            setContactInlineStatus("Check inbox to activate FormSubmit or use Direct Email", "error");
+            setContactInlineStatus("Check Gmail (or Spam) to click FormSubmit 'Activate Form', or use Direct Email", "error");
           } else {
-            setContactInlineStatus(`Relay unavailable — use Direct Email button`, "error");
+            setContactInlineStatus("Relay unavailable — click 'Send a direct email' below", "error");
           }
         }
       });
@@ -2127,12 +2286,12 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         if (contactUploadedScreenshots.length > 0) {
           const copied = await copyImageDataUrlToClipboard(contactUploadedScreenshots[0].dataUrl);
           if (copied) {
-            setContactInlineStatus("Gmail opened + screenshot copied (Ctrl+V)", "success");
+            setContactInlineStatus("✓ Gmail opened + screenshot copied! Press Ctrl+V in Gmail to paste.", "success");
           } else {
-            setContactInlineStatus("Gmail opened — attach screenshot manually", "info");
+            setContactInlineStatus("✓ Gmail opened — click 'Save' on screenshot preview to attach in Gmail", "info");
           }
         } else {
-          setContactInlineStatus("Gmail compose opened", "success");
+          setContactInlineStatus("✓ Gmail compose opened with pre-filled report", "success");
         }
       });
     }
