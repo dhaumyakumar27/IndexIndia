@@ -4815,6 +4815,30 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
       }
     });
 
+    // If user is not a paid member, remove all encrypted comments completely
+    const isPaid = isUserPaidMember();
+    if (!isPaid) {
+      function pruneEncrypted(node) {
+        if (node.isEncrypted) return null;
+        if (node.children && node.children.length > 0) {
+          const visibleChildren = [];
+          for (const child of node.children) {
+            const pruned = pruneEncrypted(child);
+            if (pruned) visibleChildren.push(pruned);
+          }
+          node.children = visibleChildren;
+        }
+        return node;
+      }
+
+      const filteredRoots = [];
+      for (const root of roots) {
+        const pruned = pruneEncrypted(root);
+        if (pruned) filteredRoots.push(pruned);
+      }
+      return filteredRoots;
+    }
+
     return roots;
   }
 
@@ -4832,7 +4856,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     const canReply = node.depth < 2 && canView;
 
     const badgeHtml = isEncrypted
-      ? `<span class="forum-encrypt-badge font-mono" title="Encrypted Member Thread">🔒 ENCRYPTED</span>`
+      ? `<span class="forum-encrypt-badge font-mono" title="Encrypted Member Thread">🔒</span>`
       : "";
 
     const replyButtonHtml = canReply
@@ -4879,6 +4903,15 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
 
     const roots = buildCommentTree(messages);
     const totalRoots = roots.length;
+    if (totalRoots === 0) {
+      container.innerHTML = `
+        <div class="forum-empty-state font-mono">
+          └── [DIRECTORY EMPTY] NO COMMENTS POSTED YET. BROADCAST A MAIN THREAD BELOW.
+        </div>
+      `;
+      return;
+    }
+
     const html = `
       <div class="tree-forum-feed" id="tree-forum-feed">
         ${roots.map((rootNode, idx) => renderTreeNodeHtml(rootNode, idx === totalRoots - 1)).join("")}
@@ -10384,7 +10417,7 @@ INSTRUCTIONS:
     const canReply = node.depth < 2 && canView;
 
     const badgeHtml = isEncrypted
-      ? `<span class="forum-encrypt-badge font-mono" title="Encrypted Member Thread">🔒 ENCRYPTED</span>`
+      ? `<span class="forum-encrypt-badge font-mono" title="Encrypted Member Thread">🔒</span>`
       : "";
 
     const replyButtonHtml = canReply
@@ -10428,9 +10461,15 @@ INSTRUCTIONS:
       return;
     }
 
-    feed.style.display = "flex";
     const roots = buildCommentTree(messages);
     const totalRoots = roots.length;
+    if (totalRoots === 0) {
+      feed.innerHTML = "";
+      feed.style.display = "none";
+      return;
+    }
+
+    feed.style.display = "flex";
     const html = `
       <div class="sec-tree-forum-feed">
         ${roots.map((rootNode, idx) => renderSectionCommentTreeHtml(rootNode, sectionId, idx === totalRoots - 1)).join("")}
