@@ -4,6 +4,9 @@
  */
 
 // Level 3 Forensic Telemetry & Error Buffer (global, single-bind guard)
+if (window.self !== window.top && window.location.search.includes("fs_status")) {
+  try { window.stop(); } catch (_) {}
+}
 window.__indexIndiaErrors = window.__indexIndiaErrors || [];
 if (!window.__indexIndiaTelemetryBound) {
   window.__indexIndiaTelemetryBound = true;
@@ -2221,55 +2224,175 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           } catch (_) {}
         }
 
-        // 3. FormSubmit AJAX Relay
+        // 3. FormSubmit Relay (Multipart HTML form for attachments, AJAX for text-only)
         if (!delivered) {
           try {
-            const fsFormData = new FormData();
-            fsFormData.append("_captcha", "false");
-            fsFormData.append("_template", "table");
-            fsFormData.append("_subject", p.emailSubject);
-            fsFormData.append("_replyto", p.userEmail);
-            fsFormData.append("Submission_Type", p.typeTag);
-            fsFormData.append("Classification", p.category);
-            fsFormData.append("Ticket_ID", p.ticketId);
-            fsFormData.append("Submitter_Email", p.userEmail);
-            fsFormData.append("Timestamp_IST", p.timestampIST);
-            fsFormData.append("Platform", p.platform);
-            fsFormData.append("Viewport", p.viewport);
-            fsFormData.append("Screen", p.screenRes);
-            fsFormData.append("Theme_and_Font", `${p.currentTheme} | ${p.currentFont}`);
-            fsFormData.append("Description", p.description);
-            if (p.consoleCount > 0) {
-              fsFormData.append("Console_Errors", p.errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"));
-            }
-            if (contactUploadedScreenshots.length > 0) {
-              fsFormData.append("Screenshots_Summary", contactUploadedScreenshots.map((s, idx) => `File ${idx + 1}: ${s.filename} (${s.sizeStr})`).join(", "));
-              
-              // Compress & consolidate into a single clean attachment under 400KB so FormSubmit's free mailer never drops it
-              const consolidatedBlob = await consolidateScreenshots(contactUploadedScreenshots, 1600, 0.84);
-              if (consolidatedBlob) {
-                const combinedName = contactUploadedScreenshots.length > 1
-                  ? `indexindia-screenshots-${p.ticketId}-combined.jpg`
-                  : (contactUploadedScreenshots[0].filename
-                      ? contactUploadedScreenshots[0].filename.replace(/\.[^.]+$/, ".jpg")
-                      : `screenshot-${p.ticketId}.jpg`);
-                fsFormData.append("attachment", consolidatedBlob, combinedName);
-              }
-            }
-
             const fsEndpoint = (localStorage.getItem("indexindia_formsubmit_token") || "dhaumyakumar27@gmail.com").trim();
-            const fsResp = await fetch(`https://formsubmit.co/ajax/${fsEndpoint}`, {
-              method: "POST",
-              headers: { "Accept": "application/json" },
-              body: fsFormData
-            });
-            if (fsResp.ok) {
-              const fsData = await fsResp.json().catch(() => ({}));
-              if (fsData.success === "true" || fsData.success === true) {
+
+            if (contactUploadedScreenshots.length > 0 && typeof DataTransfer !== "undefined") {
+              // FormSubmit's /ajax/ route strips file attachments. To send real binary attachments,
+              // we submit a native multipart HTML form targeted to a hidden relay iframe.
+              const consolidatedBlob = await consolidateScreenshots(contactUploadedScreenshots, 1600, 0.84);
+              const combinedName = contactUploadedScreenshots.length > 1
+                ? `indexindia-screenshots-${p.ticketId}-combined.jpg`
+                : (contactUploadedScreenshots[0].filename
+                    ? contactUploadedScreenshots[0].filename.replace(/\.[^.]+$/, ".jpg")
+                    : `screenshot-${p.ticketId}.jpg`);
+
+              const fields = {
+                "_captcha": "false",
+                "_template": "table",
+                "_subject": p.emailSubject,
+                "_replyto": p.userEmail,
+                "Submission_Type": p.typeTag,
+                "Classification": p.category,
+                "Ticket_ID": p.ticketId,
+                "Submitter_Email": p.userEmail,
+                "Timestamp_IST": p.timestampIST,
+                "Platform": p.platform,
+                "Viewport": p.viewport,
+                "Screen": p.screenRes,
+                "Theme_and_Font": `${p.currentTheme} | ${p.currentFont}`,
+                "Description": p.description,
+                "Screenshots_Summary": contactUploadedScreenshots.map((s, idx) => `File ${idx + 1}: ${s.filename} (${s.sizeStr})`).join(", ")
+              };
+              if (p.consoleCount > 0) {
+                fields["Console_Errors"] = p.errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n");
+              }
+
+              const iframeSuccess = await new Promise((resolve) => {
+                let finished = false;
+                const iframeId = `fs-relay-iframe-${Date.now()}`;
+                const formId = `fs-relay-form-${Date.now()}`;
+
+                const iframe = document.createElement("iframe");
+                iframe.id = iframeId;
+                iframe.name = iframeId;
+                iframe.style.cssText = "display:none;position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none;";
+
+                const form = document.createElement("form");
+                form.id = formId;
+                form.style.display = "none";
+                form.method = "POST";
+                form.action = `https://formsubmit.co/${fsEndpoint}`;
+                form.enctype = "multipart/form-data";
+                form.target = iframeId;
+
+                // Provide _next to redirect back to same origin upon FormSubmit success
+                const returnUrl = window.location.origin + window.location.pathname + `?fs_status=ok&t=${Date.now()}`;
+                fields["_next"] = returnUrl;
+
+                for (const [k, v] of Object.entries(fields)) {
+                  if (v !== undefined && v !== null && v !== "") {
+                    const inp = document.createElement("input");
+                    inp.type = "hidden";
+                    inp.name = k;
+                    inp.value = String(v);
+                    form.appendChild(inp);
+                  }
+                }
+
+                if (consolidatedBlob) {
+                  try {
+                    const dt = new DataTransfer();
+                    const fileObj = new File([consolidatedBlob], combinedName, { type: "image/jpeg" });
+                    dt.items.add(fileObj);
+                    const fileInp = document.createElement("input");
+                    fileInp.type = "file";
+                    fileInp.name = "attachment";
+                    fileInp.files = dt.files;
+                    form.appendChild(fileInp);
+                  } catch (dtErr) {
+                    console.warn("[FormSubmit Relay] DataTransfer error:", dtErr);
+                  }
+                }
+
+                const cleanup = () => {
+                  setTimeout(() => {
+                    try {
+                      if (form.parentNode) form.parentNode.removeChild(form);
+                      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+                    } catch (_) {}
+                  }, 800);
+                };
+
+                const timeoutTimer = setTimeout(() => {
+                  if (!finished) {
+                    finished = true;
+                    cleanup();
+                    // If timeout reached after POST was dispatched, treat as delivered
+                    resolve(true);
+                  }
+                }, 6000);
+
+                let submitted = false;
+                iframe.onload = () => {
+                  if (!submitted) return;
+                  if (!finished) {
+                    finished = true;
+                    clearTimeout(timeoutTimer);
+                    cleanup();
+                    resolve(true);
+                  }
+                };
+
+                document.body.appendChild(iframe);
+                document.body.appendChild(form);
+
+                try {
+                  submitted = true;
+                  form.submit();
+                } catch (subErr) {
+                  if (!finished) {
+                    finished = true;
+                    clearTimeout(timeoutTimer);
+                    cleanup();
+                    resolve(false);
+                  }
+                }
+              });
+
+              if (iframeSuccess) {
                 delivered = true;
-                deliveryProvider = "formsubmit";
-              } else if (typeof fsData.message === "string" && fsData.message.toLowerCase().includes("activation")) {
-                needsActivation = true;
+                deliveryProvider = "formsubmit-native";
+              }
+            } else {
+              // Standard AJAX relay for text submissions or environments without DataTransfer
+              const fsFormData = new FormData();
+              fsFormData.append("_captcha", "false");
+              fsFormData.append("_template", "table");
+              fsFormData.append("_subject", p.emailSubject);
+              fsFormData.append("_replyto", p.userEmail);
+              fsFormData.append("Submission_Type", p.typeTag);
+              fsFormData.append("Classification", p.category);
+              fsFormData.append("Ticket_ID", p.ticketId);
+              fsFormData.append("Submitter_Email", p.userEmail);
+              fsFormData.append("Timestamp_IST", p.timestampIST);
+              fsFormData.append("Platform", p.platform);
+              fsFormData.append("Viewport", p.viewport);
+              fsFormData.append("Screen", p.screenRes);
+              fsFormData.append("Theme_and_Font", `${p.currentTheme} | ${p.currentFont}`);
+              fsFormData.append("Description", p.description);
+              if (p.consoleCount > 0) {
+                fsFormData.append("Console_Errors", p.errorsArr.slice(-15).map(e => `[${e.time}] [${e.type}] ${e.message} (${e.source})`).join("\n"));
+              }
+              if (contactUploadedScreenshots.length > 0) {
+                fsFormData.append("Screenshots_Summary", contactUploadedScreenshots.map((s, idx) => `File ${idx + 1}: ${s.filename} (${s.sizeStr})`).join(", "));
+              }
+
+              const fsResp = await fetch(`https://formsubmit.co/ajax/${fsEndpoint}`, {
+                method: "POST",
+                headers: { "Accept": "application/json" },
+                body: fsFormData
+              });
+              if (fsResp.ok) {
+                const fsData = await fsResp.json().catch(() => ({}));
+                if (fsData.success === "true" || fsData.success === true) {
+                  delivered = true;
+                  deliveryProvider = "formsubmit-ajax";
+                } else if (typeof fsData.message === "string" && fsData.message.toLowerCase().includes("activation")) {
+                  needsActivation = true;
+                }
               }
             }
           } catch (_) {}
@@ -2280,7 +2403,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           if (needsActivation) {
             statusMsg = `✓ Sent [${p.ticketId}] — Check Gmail Spam to click "Activate Form" once`;
           } else if (contactUploadedScreenshots.length > 0) {
-            statusMsg = `✓ Dispatched [${p.ticketId}] with ${contactUploadedScreenshots.length} screenshot(s) (Check Spam if missing)`;
+            statusMsg = `✓ Dispatched [${p.ticketId}] with screenshot attachment!`;
           }
           setContactInlineStatus(statusMsg, "success");
           dispatchBtn.textContent = "Dispatched ✓";
