@@ -3487,11 +3487,12 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
   // ==========================================================================
   // CUSTOMIZABLE & CLOUD-SYNCED KEYBOARD SHORTCUTS SYSTEM
   // ==========================================================================
+  // NOTE: Backspace is strictly excluded from solo keys to prevent it from ever closing
+  // panels, triggering overlay closures, or intercepting input character deletions.
   const ALLOWED_SOLO_KEYS = new Set([
     "Tab",
     "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
     "CapsLock",
-    "Backspace",
     "Enter",
     "Space", " ",
     "Escape",
@@ -3803,6 +3804,10 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
           localStorage.setItem("indexindia_custom_shortcuts", JSON.stringify(parsed));
         }
         for (const k in parsed) {
+          // Never allow Backspace as a custom shortcut binding (prevent panel closures)
+          if (parsed[k] && (parsed[k].key === "Backspace" || parsed[k].code === "Backspace")) {
+            continue;
+          }
           if (activeShortcuts[k]) {
             activeShortcuts[k] = Object.assign({}, activeShortcuts[k], parsed[k]);
           }
@@ -3871,7 +3876,8 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
   // Validate according to user specifications:
   // - User CANNOT enter a simple key (letter, number, symbol)
   // - All of them must be Ctrl or Alt combination (Shift alone is not allowed)
-  // - Buttons such as Tab, Arrow keys, CapsLock, Backspace, Enter, Space allowed in ANY combination or ALONE
+  // - Buttons such as Tab, Arrow keys, CapsLock, Enter, Space allowed in ANY combination or ALONE
+  // - Backspace is explicitly forbidden from being used as a shortcut to prevent accidental closures/navigation
   function validateShortcutInput(e) {
     if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) {
       return { valid: false, isModifierOnly: true };
@@ -3879,9 +3885,17 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
 
     const key = e.key;
     const code = e.code;
-    const hasCtrl = !!(e.ctrlKey || e.metaKey);
+    const hasCtrl = !(!(e.ctrlKey || e.metaKey));
     const hasAlt = !!e.altKey;
     const hasShift = !!e.shiftKey;
+
+    if (key === "Backspace" || code === "Backspace") {
+      return {
+        valid: false,
+        isModifierOnly: false,
+        error: `Backspace cannot be bound to shortcuts to prevent conflicts with text editing and unexpected panel closures.`
+      };
+    }
 
     const isSpecialSolo = ALLOWED_SOLO_KEYS.has(key) || ALLOWED_SOLO_KEYS.has(code);
 
@@ -4413,6 +4427,9 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         return;
       }
     }
+
+    // Never trigger overlay closure or shortcuts on Backspace
+    if (e.key === "Backspace" || e.code === "Backspace") return;
 
     // 18. Close Overlays
     if (matchesShortcut(e, activeShortcuts.closeOverlays)) {
@@ -6351,6 +6368,8 @@ INSTRUCTIONS:
     if (input) {
       input.focus();
       input.addEventListener("keydown", (e) => {
+        // Stop propagation so global document keydown listeners never intercept keys inside follow-up input
+        e.stopPropagation();
         if (e.key === "Enter") {
           e.preventDefault();
           submitFollowUp();
@@ -6553,7 +6572,7 @@ INSTRUCTIONS:
   function openDoubtSolverForSection(sectionEl) {
     const secCtx = getSectionContext(sectionEl);
     setDoubtContext(secCtx);
-    openDoubtSolver(secCtx);
+    openDoubtSolver(secCtx, true);
   }
 
   // 6. Section Hover & Floating "Ask Doubt" Button Injection
@@ -6819,7 +6838,7 @@ INSTRUCTIONS:
   }
 
 
-  openDoubtSolver = function(contextOverride, permanent = false) {
+  openDoubtSolver = function(contextOverride, permanent = true) {
     try {
       if (permanent) {
         geminiIsPermanent = true;
@@ -7058,6 +7077,8 @@ INSTRUCTIONS:
   });
 
   doubtTextInput.addEventListener("keydown", (e) => {
+    // Stop propagation so global document listeners never intercept keys inside doubt text input
+    e.stopPropagation();
     if (e.key === "Enter") {
       e.preventDefault();
       const q = doubtTextInput ? doubtTextInput.value : "";
@@ -7090,6 +7111,8 @@ INSTRUCTIONS:
   document.addEventListener("mousedown", (e) => {
     if (!doubtTile || !doubtTile.classList.contains("is-open")) return;
     if (geminiIsPermanent) return;
+    // Don't close if interacting with any inputs or inline composers
+    if (doubtTile.contains(document.activeElement) || e.target.closest("input, textarea, button")) return;
     if (!doubtTile.contains(e.target) && !e.target.closest(".section-doubt-btn, #doubt-nav-btn, .section-gemini-btn")) {
       closeDoubtSolver();
     }
@@ -7133,8 +7156,12 @@ INSTRUCTIONS:
 
   function closeDoubtOnCursorLeave(delay = 180) {
     if (geminiIsPermanent) return;
+    // Never close if user is focusing an input, typing, or composing a follow-up
+    if (doubtTile && doubtTile.contains(document.activeElement)) return;
     if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
     doubtLeaveTimer = setTimeout(() => {
+      if (geminiIsPermanent) return;
+      if (doubtTile && doubtTile.contains(document.activeElement)) return;
       const isTileHovered = doubtTile && doubtTile.matches(":hover");
       if (!isTileHovered && !geminiIsPermanent && doubtTile && doubtTile.classList.contains("is-open")) {
         closeDoubtSolver();
