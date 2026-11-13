@@ -1575,20 +1575,31 @@ body.theme-dark .rail-header-btn.is-active {
 .tree-content-scroll {
   position: relative;
   flex: 1 1 auto;
-  overflow-y: auto;
+  overflow-y: auto !important;
   overflow-x: hidden;
-  padding: 12px 10px 24px 12px;
+  padding: 12px 14px 28px 14px;
   font-family: inherit;
   font-size: 0.88rem;
   line-height: 1.5;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-  scroll-behavior: smooth;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+  scroll-behavior: auto !important;
   overscroll-behavior: contain;
 }
 
 body.theme-dark .tree-content-scroll {
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding: 12px 14px 28px 14px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+  scroll-behavior: auto !important;
+  overscroll-behavior: contain;
 }
 
 .tree-content-scroll::-webkit-scrollbar {
@@ -1606,20 +1617,11 @@ body.theme-dark .tree-content-scroll::-webkit-scrollbar-thumb {
 
 /* Sleek Vertical Quick-Scrub Strip */
 .tree-scrub-strip {
-  width: 14px;
-  position: relative;
-  border-left: 1px solid var(--border-subtle);
-  background: rgba(0, 0, 0, 0.02);
-  cursor: ns-resize;
-  flex-shrink: 0;
-  user-select: none;
-  display: flex;
-  justify-content: center;
+  display: none !important;
 }
 
 body.theme-dark .tree-scrub-strip {
-  background: rgba(255, 255, 255, 0.02);
-  border-left-color: var(--border-subtle);
+  display: none !important;
 }
 
 .tree-scrub-indicator {

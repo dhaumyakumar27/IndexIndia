@@ -925,11 +925,12 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
   if (treeScrubStrip) {
     let isScrubbing = false;
     function scrubY(clientY) {
+      if (!treeScrubStrip || !treeContentScroll) return;
       const rect = treeScrubStrip.getBoundingClientRect();
       const clampedY = Math.min(Math.max(clientY, rect.top), rect.bottom);
       const ratio = (clampedY - rect.top) / Math.max(rect.height, 1);
-      const targetIdx = Math.min(Math.round(ratio * (treeNodes.length - 1)), treeNodes.length - 1);
-      highlightTreeNode(targetIdx);
+      const maxScroll = treeContentScroll.scrollHeight - treeContentScroll.clientHeight;
+      treeContentScroll.scrollTop = ratio * maxScroll;
     }
 
     treeScrubStrip.addEventListener("pointerdown", (e) => {
@@ -946,14 +947,11 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
       if (isScrubbing) {
         isScrubbing = false;
         try { treeScrubStrip.releasePointerCapture(e.pointerId); } catch (err) {}
-        navigateToNode(currentSubIndex);
-        closeRailPanel(300);
       }
     });
 
     treeScrubStrip.addEventListener("pointercancel", () => {
       isScrubbing = false;
-      closeRailPanel(200);
     });
   }
 
