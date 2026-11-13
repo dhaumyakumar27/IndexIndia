@@ -78,6 +78,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let pinTopFloatingBar = function() {};
   let syncAllShortcutToolBarsUI = function() {};
   let setGridSizePx = function() {};
+  let treeOpenedByHover = false;
+  let doubtOpenedByHover = false;
+  let geminiIsPermanent = false;
+  let doubtLeaveTimer = null;
 
   // Global Annotation Storage State (hoisted to prevent TDZ errors in account panel)
   const ANNOTATION_STORAGE_KEY = `indexindia_annotations_${window.location.pathname.replace(/\/$/, "") || "/"}`;
@@ -2564,15 +2568,27 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
   }
 
   // ================= DYNAMIC PAID MEMBER CONTENT ENGINE (OPTION B SUPABASE) =================
+  let lastKnownMembershipState = null;
   async function syncMemberExclusiveContent(membership) {
+    const currentMemberKey = `${membership?.status || "none"}:${membership?.plan_type || "none"}`;
+    const membershipChanged = lastKnownMembershipState !== null && lastKnownMembershipState !== currentMemberKey;
+    lastKnownMembershipState = currentMemberKey;
+
     currentActiveMembership = membership;
     const isMember = isUserPaidMember();
     if (typeof syncMainForumEncryptUI === "function") {
       syncMainForumEncryptUI();
     }
-    const tileEl = document.getElementById("doubt-solver-tile");
-    if (typeof renderDoubtsView === "function" && tileEl && tileEl.classList.contains("is-open")) {
-      renderDoubtsView();
+    // Only re-render doubts view if membership plan/status ACTUALLY transitioned (e.g. user just upgraded)
+    // NEVER re-render on regular 5-second background heartbeats, to prevent destroying user's active typing / follow-ups
+    if (membershipChanged) {
+      const tileEl = document.getElementById("doubt-solver-tile");
+      if (typeof renderDoubtsView === "function" && tileEl && tileEl.classList.contains("is-open")) {
+        // Do not interrupt if user has an inline follow-up composer open
+        if (!document.querySelector(".doubt-inline-composer")) {
+          renderDoubtsView();
+        }
+      }
     }
 
     // Dynamic sync of section forum drawers if open
@@ -6434,6 +6450,12 @@ INSTRUCTIONS:
   }
 
   function handleOpenFollowUpComposer(nodeId) {
+    // Immediately pin Doubt Solver permanently so cursor leave or outside timers never close it
+    geminiIsPermanent = true;
+    doubtOpenedByHover = false;
+    document.body.classList.add("gemini-permanent");
+    if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
+
     const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
     if (!isPaid) {
       const accBtn = document.getElementById("account-btn");
@@ -6492,6 +6514,13 @@ INSTRUCTIONS:
         </div>
       </div>
     `;
+
+    slot.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+      geminiIsPermanent = true;
+      doubtOpenedByHover = false;
+      if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
+    });
 
     const input = slot.querySelector(".doubt-inline-input");
     const askBtn = slot.querySelector(".doubt-inline-ask-btn");
@@ -6765,6 +6794,11 @@ INSTRUCTIONS:
   // (Cursor drag-and-select to ask Gemini removed; queries sent via full sections only)
 
   function renderDoubtsView() {
+    // Preserve any active follow-up composer state so background updates never destroy user's typing
+    const activeComposer = document.querySelector(".doubt-inline-composer");
+    const activeNodeId = activeComposer ? activeComposer.querySelector(".doubt-inline-close-btn")?.getAttribute("data-id") : null;
+    const activeTypedText = activeComposer ? (activeComposer.querySelector(".doubt-inline-input")?.value || "") : "";
+
     const history = getLocalDoubtsHistory();
     const workerUrl = getActiveWorkerUrl();
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
@@ -6822,6 +6856,17 @@ INSTRUCTIONS:
     html += `</div>`;
     doubtOutput.innerHTML = html;
     attachBannerListeners();
+
+    // Restore active follow-up composer if one was open before re-rendering
+    if (activeNodeId) {
+      try {
+        handleOpenFollowUpComposer(activeNodeId);
+        const restoredInp = document.querySelector(`.doubt-tree-reply-slot#doubt-reply-slot-${activeNodeId} .doubt-inline-input`);
+        if (restoredInp && activeTypedText) {
+          restoredInp.value = activeTypedText;
+        }
+      } catch (_) {}
+    }
 
     // Clear all button
     const clearBtn = doubtOutput.querySelector("#doubt-clear-all-btn");
@@ -7269,9 +7314,18 @@ INSTRUCTIONS:
 
   document.addEventListener("mousedown", (e) => {
     if (!doubtTile || !doubtTile.classList.contains("is-open")) return;
+    // Any click inside doubt tile permanently pins it
+    if (doubtTile.contains(e.target)) {
+      geminiIsPermanent = true;
+      doubtOpenedByHover = false;
+      document.body.classList.add("gemini-permanent");
+      if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
+      return;
+    }
     if (geminiIsPermanent) return;
-    // Don't close if interacting with any inputs or inline composers
-    if (doubtTile.contains(document.activeElement) || e.target.closest("input, textarea, button")) return;
+    // Don't close if interacting with any inputs, buttons, or follow-up composers
+    if (document.querySelector(".doubt-inline-composer, .doubt-inline-input")) return;
+    if (doubtTile.contains(document.activeElement) || e.target.closest("input, textarea, button, .doubt-tree-node-card, .doubt-followup-trigger-btn")) return;
     if (!doubtTile.contains(e.target) && !e.target.closest(".section-doubt-btn, #doubt-nav-btn, .section-gemini-btn")) {
       closeDoubtSolver();
     }
@@ -7280,10 +7334,10 @@ INSTRUCTIONS:
 
   // ================= 10. EDGE HOVER TRIGGER SYSTEM (Left: Directory Tree, Right: Doubt AI) =================
   // Edge hovering pops out temporary floating preview panel; clicking top buttons makes them permanent and snaps page content
-  let treeOpenedByHover = false;
-  let doubtOpenedByHover = false;
-  let geminiIsPermanent = false;
-  let doubtLeaveTimer = null;
+  treeOpenedByHover = false;
+  doubtOpenedByHover = false;
+  geminiIsPermanent = false;
+  doubtLeaveTimer = null;
 
   // Create invisible edge sensor zones for immediate pointer detection
   const edgeSensorLeft = document.createElement("div");
@@ -7316,11 +7370,17 @@ INSTRUCTIONS:
   function closeDoubtOnCursorLeave(delay = 180) {
     if (geminiIsPermanent) return;
     // Never close if user is focusing an input, typing, or composing a follow-up
-    if (doubtTile && doubtTile.contains(document.activeElement)) return;
+    if (document.querySelector(".doubt-inline-composer, .doubt-inline-input")) {
+      geminiIsPermanent = true;
+      doubtOpenedByHover = false;
+      return;
+    }
+    if (doubtTile && (doubtTile.contains(document.activeElement) || doubtTile.matches(":focus-within"))) return;
     if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
     doubtLeaveTimer = setTimeout(() => {
       if (geminiIsPermanent) return;
-      if (doubtTile && doubtTile.contains(document.activeElement)) return;
+      if (document.querySelector(".doubt-inline-composer, .doubt-inline-input")) return;
+      if (doubtTile && (doubtTile.contains(document.activeElement) || doubtTile.matches(":focus-within"))) return;
       const isTileHovered = doubtTile && doubtTile.matches(":hover");
       if (!isTileHovered && !geminiIsPermanent && doubtTile && doubtTile.classList.contains("is-open")) {
         closeDoubtSolver();
@@ -7374,6 +7434,13 @@ INSTRUCTIONS:
 
   // When user enters doubtTile, cancel leave timer; when user cursor leaves doubtTile, close it if opened by hover!
   if (doubtTile) {
+    doubtTile.addEventListener("mousedown", () => {
+      // Any mousedown inside doubt tile pins it permanently
+      geminiIsPermanent = true;
+      doubtOpenedByHover = false;
+      document.body.classList.add("gemini-permanent");
+      if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
+    });
     doubtTile.addEventListener("mouseenter", () => {
       if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
     });
