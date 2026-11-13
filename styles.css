@@ -10244,3 +10244,266 @@ body.theme-dark .sec-inline-reply-input {
 .entity-item {
   scroll-margin-top: 84px;
 }
+
+
+/* ==========================================================================
+   MASTER BLUEPRINT ARCHITECTURE (PARTS I, II, III)
+   ========================================================================== */
+.blueprint-master-container {
+  margin-top: 36px;
+  margin-bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* Sticky / clean jump navigation */
+.blueprint-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: var(--bg-surface-subtle);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.blueprint-nav-label {
+  font-weight: 800;
+  color: #000000;
+  text-transform: uppercase;
+}
+
+body.theme-dark .blueprint-nav-label {
+  color: #FFFFFF;
+}
+
+.blueprint-nav-link {
+  color: #000000;
+  text-decoration: underline;
+  font-weight: 700;
+  transition: color 0.15s ease;
+}
+
+.blueprint-nav-link:hover {
+  color: var(--accent);
+}
+
+body.theme-dark .blueprint-nav-link {
+  color: #60A5FA;
+}
+
+/* Part Containers */
+.blueprint-part-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+body.theme-dark .blueprint-part-container {
+  background: #14161C;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.blueprint-part-header {
+  border-bottom: 1.5px solid var(--border-primary);
+  padding-bottom: 16px;
+}
+
+body.theme-dark .blueprint-part-header {
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+}
+
+.blueprint-part-tag {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #000000;
+  margin-bottom: 6px;
+}
+
+body.theme-dark .blueprint-part-tag {
+  color: #FFFFFF;
+}
+
+.blueprint-part-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #000000;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
+}
+
+body.theme-dark .blueprint-part-title {
+  color: #FFFFFF;
+}
+
+.blueprint-part-desc {
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: #111111;
+  margin: 0;
+}
+
+body.theme-dark .blueprint-part-desc {
+  color: #D1D5DB;
+}
+
+.blueprint-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.blueprint-card {
+  padding: 18px 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-surface-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+body.theme-dark .blueprint-card {
+  background: #1B1E26;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.blueprint-card-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #000000;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+body.theme-dark .blueprint-card-title {
+  color: #FFFFFF;
+}
+
+.blueprint-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.blueprint-field-label {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+body.theme-dark .blueprint-field-label {
+  color: #FFFFFF;
+}
+
+.blueprint-field-value {
+  font-size: 0.90rem;
+  line-height: 1.65;
+  color: #111111;
+}
+
+body.theme-dark .blueprint-field-value {
+  color: #E5E7EB;
+}
+
+.blueprint-sub-list {
+  margin: 6px 0 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.90rem;
+  line-height: 1.6;
+  color: #111111;
+}
+
+body.theme-dark .blueprint-sub-list {
+  color: #E5E7EB;
+}
+
+.blueprint-sub-list li {
+  margin: 0;
+}
+
+.blueprint-section-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #000000;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  margin-bottom: -6px;
+}
+
+body.theme-dark .blueprint-section-subtitle {
+  color: #FFFFFF;
+}
+
+/* Checklist Steps Grid */
+.blueprint-checklist-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.blueprint-checklist-step {
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+body.theme-dark .blueprint-checklist-step {
+  background: #14161C;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.blueprint-step-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #000000;
+  margin-bottom: 4px;
+}
+
+body.theme-dark .blueprint-step-tag {
+  color: #9CA3AF;
+}
+
+.blueprint-step-title {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #000000;
+  margin: 0 0 6px 0;
+}
+
+body.theme-dark .blueprint-step-title {
+  color: #FFFFFF;
+}
+
+.blueprint-step-text {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #111111;
+  margin: 0;
+}
+
+body.theme-dark .blueprint-step-text {
+  color: #E5E7EB;
+}
