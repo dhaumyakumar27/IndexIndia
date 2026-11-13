@@ -654,6 +654,7 @@ export default {
       const context = body.context || {};
       const sectionTitle = (context.title || "Document Context").toString().trim();
       const sectionText = (context.text || "").toString().trim().slice(0, 5000);
+      const history = Array.isArray(body.history) ? body.history : (Array.isArray(context.history) ? context.history : []);
 
       if (!query) {
         return new Response(
@@ -691,21 +692,28 @@ export default {
         );
       }
 
-      // Grounding prompt with section context & factual safety
+      let historyText = "";
+      if (history.length > 0) {
+        historyText = `\n--- PREVIOUS CONVERSATION THREAD (FOLLOW-UP MEMORY) ---\n` +
+          history.map((h, i) => `Turn ${i + 1}:\nUser Question: ${h.question}\nAI Answer: ${h.answerText || h.answer || ""}`).join("\n\n") +
+          `\n--- END PREVIOUS THREAD ---\n`;
+      }
+
+      // Grounding prompt with section context, conversational thread & factual safety
       const promptText = `You are the built-in intelligent reading companion for the IndexIndia book and investigation platform.
 
---- ACTIVE SECTION (IF RELEVANT) ---
+--- ACTIVE SECTION (MANDATORY CORE CONTEXT) ---
 Title: ${sectionTitle}
 Content:
 ${sectionText || "(No active section text provided)"}
 --- ACTIVE SECTION END ---
-
-READER'S QUESTION / DOUBT:
+${historyText}
+READER'S CURRENT QUESTION / FOLLOW-UP DOUBT:
 "${query}"
 
 INSTRUCTIONS:
-1. Answer the question directly, accurately, and concisely in 2 to 3 clear sentences.
-2. If the user asks about the story section, characters (Leo, Pip), or financial forensics, ground your answer in the provided text.
+1. Answer the question directly, accurately, and concisely in 2 to 4 clear sentences.
+2. Ground your answer in the ACTIVE SECTION and take into account the PREVIOUS CONVERSATION THREAD if the question is a follow-up (e.g. references "it", "them", "converting", "tax impact", "minimum capital", previous comparisons, etc.).
 3. If the user asks general knowledge, geography, science, or factual questions (e.g. "is Sydney a country?", "what is the capital of Australia?", "why is the sky blue?"), answer with 100% factual correctness and logical clarity. Never hallucinate or give circular definitions.
 4. If the question is about language, grammar, wordplay, definitions, or antonyms, answer with standard linguistic precision.
 5. Provide only the direct factual explanation without conversational pleasantries (do not say "Sure!", "Here is your answer:", etc.).`;

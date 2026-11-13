@@ -2411,6 +2411,9 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     if (typeof syncMainForumEncryptUI === "function") {
       syncMainForumEncryptUI();
     }
+    if (typeof updateDoubtThreadUI === "function") {
+      updateDoubtThreadUI();
+    }
 
     // Dynamic sync of section forum drawers if open
     document.querySelectorAll(".section-forum-drawer").forEach((drawer) => {
@@ -5682,7 +5685,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     `;
   }
 
-  async function fetchGeminiAnswer(query, context, apiKey) {
+  async function fetchGeminiAnswer(query, context, apiKey, conversationHistory = []) {
     if (!apiKey) return null;
     const cleanKey = apiKey.trim();
     if (!cleanKey) return null;
@@ -5690,21 +5693,28 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     const title = context?.title || "Visible Document Section";
     const sectionText = (context?.text || "").slice(0, 3500);
 
-    const promptText = `You are an expert factual AI and reading assistant for the IndexIndia platform.
-The reader may be asking about the active document section below, or asking a general knowledge question:
+    let historySection = "";
+    if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+      historySection = `\n--- PREVIOUS CONVERSATION THREAD (FOLLOW-UP CONTEXT) ---\n` +
+        conversationHistory.map((item, idx) => `Turn ${idx + 1}:\nUser Question: ${item.question}\nAI Answer: ${item.answerText || ""}`).join("\n\n") +
+        `\n--- END PREVIOUS THREAD ---\n`;
+    }
 
---- ACTIVE SECTION (IF RELEVANT) ---
+    const promptText = `You are an expert factual AI and reading assistant for the IndexIndia platform.
+The reader is reading the active document section below, and may be asking a follow-up question continuing the previous conversation thread, or a new question grounded in the section:
+
+--- ACTIVE SECTION (MANDATORY CORE CONTEXT) ---
 Title: ${title}
 Content:
 ${sectionText}
 --- ACTIVE SECTION END ---
-
-READER'S QUESTION / DOUBT:
+${historySection}
+READER'S CURRENT QUESTION / FOLLOW-UP DOUBT:
 "${query}"
 
 INSTRUCTIONS:
-1. Answer the question directly, accurately, and concisely in 2 to 3 clear sentences.
-2. If the user asks about the story section, characters (Leo, Pip), or financial forensics, ground your answer in the provided text.
+1. Answer the question directly, accurately, and concisely in 2 to 4 clear sentences.
+2. Ground your answer in the ACTIVE SECTION and take into account the PREVIOUS CONVERSATION THREAD if the question is a follow-up (e.g. references "it", "them", "converting", "tax impact", "minimum capital", previous comparisons, etc.).
 3. If the user asks general knowledge, geography, science, or factual questions (e.g. "is Sydney a country?", "what is the capital of Australia?", "why is the sky blue?"), answer with 100% factual correctness and logical clarity. Never hallucinate or give circular definitions.
 4. If the question is about language, grammar, wordplay, definitions, or antonyms (e.g. "opposite of whisper"), answer with standard linguistic precision.
 5. Provide only the direct factual explanation without conversational pleasantries (do not say "Sure!", "Here is your answer:", etc.).`;
@@ -5786,16 +5796,30 @@ INSTRUCTIONS:
     ).trim();
   }
 
-  async function fetchCloudflareWorkerAnswer(query, context, workerUrl) {
+  async function fetchCloudflareWorkerAnswer(query, context, workerUrl, conversationHistory = []) {
     const title = context ? (context.title || "Visible Content") : "Visible Content";
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    // Build enriched context to preserve core section and include previous conversation thread
+    const baseText = context ? (context.text || "") : "";
+    let enrichedText = baseText;
+    if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+      const threadStr = conversationHistory.map((t, idx) => `Turn ${idx + 1}:\nUser Question: ${t.question}\nAI Answer: ${t.answerText}`).join("\n\n");
+      enrichedText = `${baseText}\n\n--- PREVIOUS CONVERSATION THREAD (FOLLOW-UP MEMORY) ---\n${threadStr}\n--- END PREVIOUS THREAD ---`;
+    }
+
+    const payloadContext = {
+      ...(context || {}),
+      text: enrichedText,
+      history: conversationHistory
+    };
 
     try {
       const res = await fetch(workerUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, context }),
+        body: JSON.stringify({ query, context: payloadContext, history: conversationHistory }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -5823,27 +5847,36 @@ INSTRUCTIONS:
     }
   }
 
-  async function resolveDoubtAnswer(query, context) {
+  async function resolveDoubtAnswer(query, context, conversationHistory = []) {
     const rawText = context ? (context.text || "") : "";
     const title = context ? (context.title || "Visible Content") : "Visible Content";
     const workerUrl = getActiveWorkerUrl();
     const apiKey = localStorage.getItem("indexindia_gemini_api_key");
+    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
+    const effectiveHistory = isPaid && Array.isArray(conversationHistory) ? conversationHistory : [];
+    const isFollowUp = effectiveHistory.length > 0;
 
     // 1. Try Cloudflare Worker Proxy first (Zero keys needed for visitors!)
     if (workerUrl) {
       try {
-        const cfRes = await fetchCloudflareWorkerAnswer(query, context, workerUrl);
+        const cfRes = await fetchCloudflareWorkerAnswer(query, context, workerUrl, effectiveHistory);
         if (cfRes && cfRes.text) {
-          return `
-            <div class="doubt-plain-answer">
-              <div class="doubt-ai-badge font-mono">
-                <span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}"
+          const badgeMeta = isFollowUp
+            ? `<span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}" <span class="thread-followup-tag font-mono">[FOLLOW-UP THREAD]</span>`
+            : `<span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}"`;
+          return {
+            html: `
+              <div class="doubt-plain-answer">
+                <div class="doubt-ai-badge font-mono">
+                  ${badgeMeta}
+                </div>
+                <div class="doubt-plain-text font-serif">
+                  ${escapeHtml(cfRes.text)}
+                </div>
               </div>
-              <div class="doubt-plain-text font-serif">
-                ${escapeHtml(cfRes.text)}
-              </div>
-            </div>
-          `;
+            `,
+            text: cfRes.text
+          };
         }
       } catch (cfErr) {
         console.warn("[DoubtSolver] Cloudflare Worker call failed, checking direct key fallback:", cfErr);
@@ -5853,60 +5886,82 @@ INSTRUCTIONS:
     // 2. Try direct Google Gemini API if user has stored an API key
     if (apiKey && apiKey.trim().length > 10) {
       try {
-        const geminiRes = await fetchGeminiAnswer(query, context, apiKey);
+        const geminiRes = await fetchGeminiAnswer(query, context, apiKey, effectiveHistory);
         if (geminiRes && geminiRes.text) {
-          return `
-            <div class="doubt-plain-answer">
-              <div class="doubt-ai-badge font-mono">
-                <span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}"
+          const badgeMeta = isFollowUp
+            ? `<span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}" <span class="thread-followup-tag font-mono">[FOLLOW-UP THREAD]</span>`
+            : `<span class="ai-badge-dot">●</span> EXPLANATION · CONTEXT: "${escapeHtml(title)}"`;
+          return {
+            html: `
+              <div class="doubt-plain-answer">
+                <div class="doubt-ai-badge font-mono">
+                  ${badgeMeta}
+                </div>
+                <div class="doubt-plain-text font-serif">
+                  ${escapeHtml(geminiRes.text)}
+                </div>
               </div>
-              <div class="doubt-plain-text font-serif">
-                ${escapeHtml(geminiRes.text)}
-              </div>
-            </div>
-          `;
+            `,
+            text: geminiRes.text
+          };
         }
       } catch (geminiErr) {
         console.warn("[DoubtSolver] Gemini call failed, falling back to local synthesis:", geminiErr);
         if (geminiErr.message && (geminiErr.message.includes("API key not valid") || geminiErr.message.includes("400") || geminiErr.message.includes("403"))) {
-          return `
-            <div class="doubt-plain-answer">
-              <div class="doubt-ai-badge font-mono" style="color: #ef4444;">
-                <span class="ai-badge-dot" style="color: #ef4444;">●</span> ⚠️ GEMINI API KEY INVALID
+          const errText = `The stored Gemini API key returned an authentication error (${escapeHtml(geminiErr.message)}). Please click Change Key in the banner above to re-enter your key.`;
+          return {
+            html: `
+              <div class="doubt-plain-answer">
+                <div class="doubt-ai-badge font-mono" style="color: #ef4444;">
+                  <span class="ai-badge-dot" style="color: #ef4444;">●</span> ⚠️ GEMINI API KEY INVALID
+                </div>
+                <div class="doubt-plain-text font-serif">
+                  ${errText}
+                </div>
               </div>
-              <div class="doubt-plain-text font-serif">
-                The stored Gemini API key returned an authentication error (${escapeHtml(geminiErr.message)}). Please click <strong>Change Key</strong> in the banner above to re-enter your key.
-              </div>
-            </div>
-          `;
+            `,
+            text: errText
+          };
         }
       }
     }
 
-    // 2. Fast check built-in knowledge first (0ms latency)
+    // 3. Fast check built-in knowledge first (0ms latency)
     const subjectInfo = extractCoreSubject(query, title, rawText);
     const term = subjectInfo.term;
 
     for (const [key, val] of Object.entries(BUILTIN_CONCEPT_EXPLANATIONS)) {
       if (term.includes(key) || key.includes(term) || query.toLowerCase().includes(key)) {
-        return synthesizeConceptAnswer(query, context, {
+        const ans = synthesizeConceptAnswer(query, context, {
           source: "DuckDuckGo Built-in Knowledge",
           title: val.title,
           text: val.explanation
         });
+        return {
+          html: ans,
+          text: extractPlainTextFromAnswer(ans)
+        };
       }
     }
 
-    // 3. Attempt online fetch from DuckDuckGo Instant Answer / Wikipedia
+    // 4. Attempt online fetch from DuckDuckGo Instant Answer / Wikipedia
     try {
       const remote = await fetchDuckDuckGoInstantAnswer(term);
       if (remote) {
-        return synthesizeConceptAnswer(query, context, remote);
+        const ans = synthesizeConceptAnswer(query, context, remote);
+        return {
+          html: ans,
+          text: extractPlainTextFromAnswer(ans)
+        };
       }
     } catch (_) {}
 
-    // 4. Fallback synthesis from visible page context
-    return synthesizeConceptAnswer(query, context, null);
+    // 5. Fallback synthesis from visible page context
+    const ans = synthesizeConceptAnswer(query, context, null);
+    return {
+      html: ans,
+      text: extractPlainTextFromAnswer(ans)
+    };
   }
 
   const DOUBTS_STORAGE_KEY = "indexindia_doubts_history_v1";
@@ -5970,6 +6025,55 @@ INSTRUCTIONS:
     }
   }
 
+  let activeThreadResetTime = 0;
+
+  function extractPlainTextFromAnswer(html) {
+    if (!html) return "";
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      doc.querySelectorAll(".doubt-ai-badge, button, .doubt-ddg-bar, .doubt-takeaway-label, script, style").forEach(el => el.remove());
+      return (doc.body.textContent || "").trim().replace(/\s+/g, " ");
+    } catch (_) {
+      return String(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    }
+  }
+
+  function getActiveConversationThread() {
+    // Only paid members maintain conversational memory
+    if (typeof isUserPaidMember === "function" && !isUserPaidMember()) {
+      return [];
+    }
+
+    const history = getLocalDoubtsHistory();
+    if (!history || history.length === 0) return [];
+
+    const threadItems = [];
+    const limit = 5;
+
+    for (const item of history) {
+      if (activeThreadResetTime && item.timestamp && item.timestamp < activeThreadResetTime) {
+        break;
+      }
+      const q = (item.question || "").trim();
+      const aText = (item.answerText || extractPlainTextFromAnswer(item.answerHtml || "")).trim();
+      if (q && aText) {
+        threadItems.push({
+          question: q,
+          answerText: aText.slice(0, 500)
+        });
+      }
+      if (threadItems.length >= limit) break;
+    }
+
+    // Return in chronological order [Turn 1 (oldest), Turn 2, ..., Turn N (newest)]
+    return threadItems.reverse();
+  }
+
+  function resetConversationThread() {
+    activeThreadResetTime = Date.now();
+    updateDoubtThreadUI();
+  }
+
   function getExactTimestamp() {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, "0");
@@ -6016,6 +6120,7 @@ INSTRUCTIONS:
         </div>
         <button type="button" class="doubt-context-reset-btn font-mono" id="doubt-context-reset-btn" title="Reset to Page Summary" style="display: none;">Page ↺</button>
       </div>
+      <div class="doubt-thread-status-bar" id="doubt-thread-status-bar"></div>
       <div class="doubt-input-row">
         <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask any doubt or question..." autocomplete="off">
         <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask ↵</button>
@@ -6036,6 +6141,63 @@ INSTRUCTIONS:
   const doubtContextBadge = doubtTile.querySelector("#doubt-context-badge");
   const doubtContextTitle = doubtTile.querySelector("#doubt-context-title");
   const doubtContextResetBtn = doubtTile.querySelector("#doubt-context-reset-btn");
+  const doubtThreadStatusBar = doubtTile.querySelector("#doubt-thread-status-bar");
+
+  function updateDoubtThreadUI() {
+    const threadBar = doubtTile ? doubtTile.querySelector("#doubt-thread-status-bar") : document.getElementById("doubt-thread-status-bar");
+    if (!threadBar) return;
+    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
+    const activeTurns = isPaid ? getActiveConversationThread() : [];
+    const ctx = currentDoubtContext || getPageSummaryContext();
+
+    if (isPaid) {
+      const turnCount = activeTurns.length;
+      threadBar.innerHTML = `
+        <div class="doubt-thread-status-inner paid">
+          <span class="doubt-thread-pill paid font-mono" title="Follow-up questions retain active section grounding and previous Q&A turns">
+            <span class="thread-dot paid">●</span> THREAD MEMORY ACTIVE ${turnCount > 0 ? `(${turnCount} PREV TURN${turnCount > 1 ? "S" : ""})` : "(PAID)"}
+          </span>
+          ${turnCount > 0 ? `
+            <button type="button" class="doubt-thread-reset-btn font-mono" id="doubt-thread-reset-btn" title="Start a fresh conversational topic with this section context" data-hover-tag="[NEW TOPIC]">
+              New Topic ↺
+            </button>
+          ` : ""}
+        </div>
+      `;
+      if (doubtTextInput) {
+        doubtTextInput.placeholder = turnCount > 0
+          ? "Ask follow-up question (thread memory active)..."
+          : (ctx.type === "section" ? `Ask doubt about "${(ctx.title || "this section").slice(0, 24)}"...` : "Ask any doubt or question...");
+      }
+      const resetBtn = threadBar.querySelector("#doubt-thread-reset-btn");
+      if (resetBtn) {
+        resetBtn.addEventListener("click", resetConversationThread);
+      }
+    } else {
+      threadBar.innerHTML = `
+        <div class="doubt-thread-status-inner free">
+          <span class="doubt-thread-pill free font-mono" title="Free tier queries are single-turn. Upgrade to retain multi-turn conversational context.">
+            <span class="thread-dot free">○</span> SINGLE-QUERY CONTEXT (FREE)
+          </span>
+          <button type="button" class="doubt-thread-upgrade-btn font-mono" id="doubt-thread-upgrade-btn" title="Unlock multi-turn follow-up conversational thread memory" data-hover-tag="[UPGRADE]">
+            Upgrade for Thread Memory ↗
+          </button>
+        </div>
+      `;
+      if (doubtTextInput) {
+        doubtTextInput.placeholder = ctx.type === "section"
+          ? `Ask doubt about "${(ctx.title || "this section").slice(0, 24)}"...`
+          : "Ask any doubt or question...";
+      }
+      const upgradeBtn = threadBar.querySelector("#doubt-thread-upgrade-btn");
+      if (upgradeBtn) {
+        upgradeBtn.addEventListener("click", () => {
+          const accBtn = document.getElementById("account-btn");
+          if (accBtn) accBtn.click();
+        });
+      }
+    }
+  }
 
   if (doubtContextResetBtn) {
     doubtContextResetBtn.addEventListener("click", () => {
@@ -6207,17 +6369,17 @@ INSTRUCTIONS:
       doubtContextBadge.textContent = "SECTION";
       doubtContextTitle.textContent = ctx.title || "Section Context";
       if (doubtContextResetBtn) doubtContextResetBtn.style.display = "inline-block";
-      if (doubtTextInput) doubtTextInput.placeholder = `Ask doubt about "${(ctx.title || "this section").slice(0, 24)}"...`;
     } else if (ctx.type === "selection") {
       doubtContextBadge.textContent = "SELECTION";
       doubtContextTitle.textContent = ctx.title || "Selected Text";
       if (doubtContextResetBtn) doubtContextResetBtn.style.display = "inline-block";
-      if (doubtTextInput) doubtTextInput.placeholder = "Ask doubt about selected text...";
     } else {
       doubtContextBadge.textContent = "PAGE CONTEXT";
       doubtContextTitle.textContent = ctx.title || "Page Summary";
       if (doubtContextResetBtn) doubtContextResetBtn.style.display = "none";
-      if (doubtTextInput) doubtTextInput.placeholder = "Ask any doubt about this guide or platform...";
+    }
+    if (typeof updateDoubtThreadUI === "function") {
+      updateDoubtThreadUI();
     }
   }
 
@@ -6267,6 +6429,7 @@ INSTRUCTIONS:
     const history = getLocalDoubtsHistory();
     const workerUrl = getActiveWorkerUrl();
     const hasKey = Boolean(localStorage.getItem("indexindia_gemini_api_key")?.trim());
+    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
 
     let bannerHtml = "";
     if (!workerUrl && !hasKey) {
@@ -6304,8 +6467,20 @@ INSTRUCTIONS:
       ${bannerHtml}
       <div class="doubt-history-actions-bar">
         <span class="doubt-history-count font-mono">${history.length} DOUBT${history.length > 1 ? "S" : ""} RECORDED ON THIS DEVICE</span>
-        <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
+        <div class="doubt-history-actions-right">
+          ${isPaid ? `
+            <button type="button" class="doubt-thread-reset-btn-mini font-mono" id="doubt-reset-thread-btn-mini" title="Start a fresh conversational topic">New Topic ↺</button>
+          ` : `
+            <button type="button" class="doubt-thread-upgrade-btn-mini font-mono" id="doubt-thread-upgrade-btn-mini" title="Upgrade for multi-turn thread memory">Upgrade (Thread Memory) ↗</button>
+          `}
+          <button type="button" class="doubt-clear-all-btn font-mono" id="doubt-clear-all-btn" title="Clear all doubts history on this device">Clear History</button>
+        </div>
       </div>
+      ${!isPaid && history.length > 1 ? `
+        <div class="doubt-free-thread-notice font-mono">
+          <span>💡 Free Tier: Queries are single-turn with section context. Upgrade for multi-turn thread memory.</span>
+        </div>
+      ` : ""}
       <div class="doubt-history-list">
     `;
 
@@ -6316,6 +6491,7 @@ INSTRUCTIONS:
             <div class="doubt-history-time font-mono">
               <span class="doubt-time-clock">🕒</span>
               <span>${escapeHtml(item.exactTimestamp)}</span>
+              ${item.isFollowUp ? `<span class="doubt-thread-badge font-mono">[FOLLOW-UP THREAD]</span>` : ""}
             </div>
             <button type="button" class="doubt-item-del-btn" title="Delete this entry" data-id="${item.id}">&times;</button>
           </div>
@@ -6340,7 +6516,23 @@ INSTRUCTIONS:
         if (confirm("Clear all doubts history stored on this device?")) {
           clearLocalDoubtsHistory();
           renderDoubtsView();
+          if (typeof updateDoubtThreadUI === "function") {
+            updateDoubtThreadUI();
+          }
         }
+      });
+    }
+
+    const resetMini = doubtOutput.querySelector("#doubt-reset-thread-btn-mini");
+    if (resetMini) {
+      resetMini.addEventListener("click", resetConversationThread);
+    }
+
+    const upgradeMini = doubtOutput.querySelector("#doubt-thread-upgrade-btn-mini");
+    if (upgradeMini) {
+      upgradeMini.addEventListener("click", () => {
+        const accBtn = document.getElementById("account-btn");
+        if (accBtn) accBtn.click();
       });
     }
 
@@ -6355,6 +6547,9 @@ INSTRUCTIONS:
           window.IndexIndiaSupabase.deleteDoubt(id);
         }
         renderDoubtsView();
+        if (typeof updateDoubtThreadUI === "function") {
+          updateDoubtThreadUI();
+        }
       });
     });
   }
@@ -6529,6 +6724,10 @@ INSTRUCTIONS:
         triggerCloudDoubtsFetch();
       }
 
+      if (typeof updateDoubtThreadUI === "function") {
+        updateDoubtThreadUI();
+      }
+
       if (activeDoubtMode === "doubts") {
         renderDoubtsView();
       } else {
@@ -6585,6 +6784,12 @@ INSTRUCTIONS:
   window.toggleDoubtSolver = toggleDoubtSolver;
   window.openDoubtSolver = openDoubtSolver;
   window.closeDoubtSolver = closeDoubtSolver;
+  window.openDoubtSolverForSection = openDoubtSolverForSection;
+  window.getLocalDoubtsHistory = getLocalDoubtsHistory;
+  window.getActiveConversationThread = getActiveConversationThread;
+  window.resetConversationThread = resetConversationThread;
+  window.updateDoubtThreadUI = updateDoubtThreadUI;
+  window.askDoubt = askDoubt;
 
   function synthesizeDoubtAnswer(query, context) {
     return synthesizeConceptAnswer(query, context, null);
@@ -6621,8 +6826,13 @@ INSTRUCTIONS:
     const context = currentDoubtContext;
     const timeInfo = getExactTimestamp();
 
+    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
+    const conversationThread = isPaid ? getActiveConversationThread() : [];
+
     try {
-      const resolvedAnswer = await resolveDoubtAnswer(trimmed, context);
+      const resolved = await resolveDoubtAnswer(trimmed, context, conversationThread);
+      const resolvedAnswerHtml = (typeof resolved === "object" && resolved && resolved.html) ? resolved.html : String(resolved || "");
+      const resolvedAnswerText = (typeof resolved === "object" && resolved && resolved.text) ? resolved.text : extractPlainTextFromAnswer(resolvedAnswerHtml);
 
       if (currentId === activeQueryId) {
         const newRecord = {
@@ -6630,7 +6840,12 @@ INSTRUCTIONS:
           timestamp: Date.now(),
           exactTimestamp: timeInfo.full,
           question: trimmed,
-          answerHtml: resolvedAnswer
+          answerHtml: resolvedAnswerHtml,
+          answerText: resolvedAnswerText,
+          isFollowUp: conversationThread.length > 0,
+          isPaidMemberThread: isPaid,
+          sectionTitle: context.title,
+          sectionId: context.sectionId || ""
         };
 
         const currentHistory = getLocalDoubtsHistory();
@@ -6642,22 +6857,35 @@ INSTRUCTIONS:
 
         if (doubtTextInput) doubtTextInput.value = "";
         renderDoubtsView();
+        if (typeof updateDoubtThreadUI === "function") {
+          updateDoubtThreadUI();
+        }
       }
     } catch (err) {
       console.error("[DoubtSolver] askDoubt error:", err);
       const fallbackAns = synthesizeConceptAnswer(trimmed, context, null);
+      const fallbackHtml = (typeof fallbackAns === "object" && fallbackAns && fallbackAns.html) ? fallbackAns.html : String(fallbackAns || "");
+      const fallbackText = (typeof fallbackAns === "object" && fallbackAns && fallbackAns.text) ? fallbackAns.text : extractPlainTextFromAnswer(fallbackHtml);
       const newRecord = {
         id: "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
         timestamp: Date.now(),
         exactTimestamp: timeInfo.full,
         question: trimmed,
-        answerHtml: fallbackAns
+        answerHtml: fallbackHtml,
+        answerText: fallbackText,
+        isFollowUp: conversationThread.length > 0,
+        isPaidMemberThread: isPaid,
+        sectionTitle: context.title,
+        sectionId: context.sectionId || ""
       };
       saveLocalDoubtsHistory([newRecord, ...getLocalDoubtsHistory()]);
       if (window.IndexIndiaSupabase) {
         window.IndexIndiaSupabase.uploadDoubt(newRecord);
       }
       renderDoubtsView();
+      if (typeof updateDoubtThreadUI === "function") {
+        updateDoubtThreadUI();
+      }
     } finally {
       if (doubtAskBtn) {
         doubtAskBtn.textContent = "Ask ↵";

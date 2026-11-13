@@ -4255,6 +4255,223 @@ body.theme-dark .doubt-context-reset-btn:hover {
   color: #ffffff;
 }
 
+/* Thread Memory Status Bar in Doubt Solver */
+.doubt-thread-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 10px;
+  margin-bottom: 6px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  border: 1px dashed var(--border-subtle);
+  font-size: 0.68rem;
+  user-select: none;
+}
+
+body.theme-dark .doubt-thread-status-bar {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.doubt-thread-status-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.doubt-thread-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.doubt-thread-pill.paid {
+  color: #000000;
+}
+
+body.theme-dark .doubt-thread-pill.paid {
+  color: #ffffff;
+}
+
+.thread-dot {
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.thread-dot.paid {
+  color: #000000;
+}
+
+body.theme-dark .thread-dot.paid {
+  color: #ffffff;
+}
+
+.thread-dot.free {
+  color: var(--text-tertiary, #888888);
+}
+
+.doubt-thread-reset-btn,
+.doubt-thread-upgrade-btn {
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.doubt-thread-reset-btn:hover {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+body.theme-dark .doubt-thread-reset-btn:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.doubt-thread-upgrade-btn {
+  color: #000000;
+  font-weight: 800;
+  border-color: #000000;
+}
+
+body.theme-dark .doubt-thread-upgrade-btn {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.doubt-thread-upgrade-btn:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+body.theme-dark .doubt-thread-upgrade-btn:hover {
+  background: #ffffff;
+  color: #000000;
+}
+
+.doubt-thread-notice-temp {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  animation: fadeInOut 2.5s forwards;
+}
+
+.doubt-thread-badge {
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  margin-left: 6px;
+}
+
+body.theme-dark .doubt-thread-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #cccccc;
+}
+
+.doubt-free-thread-notice {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px dashed var(--border-subtle);
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+body.theme-dark .doubt-free-thread-notice {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.doubt-history-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.doubt-thread-reset-btn-mini,
+.doubt-thread-upgrade-btn-mini {
+  font-size: 0.63rem;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 2px 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doubt-thread-reset-btn-mini:hover {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+body.theme-dark .doubt-thread-reset-btn-mini:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.doubt-thread-upgrade-btn-mini {
+  color: #000000;
+  font-weight: 800;
+}
+
+body.theme-dark .doubt-thread-upgrade-btn-mini {
+  color: #ffffff;
+}
+
+.doubt-thread-upgrade-btn-mini:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+body.theme-dark .doubt-thread-upgrade-btn-mini:hover {
+  background: #ffffff;
+  color: #000000;
+}
+
+.thread-followup-tag {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-left: 6px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: #000000;
+  color: #ffffff;
+}
+
+body.theme-dark .thread-followup-tag {
+  background: #ffffff;
+  color: #000000;
+}
+
 
 /* Input Row */
 .doubt-input-row {
