@@ -6526,6 +6526,59 @@ INSTRUCTIONS:
   const doubtContextTitle = doubtTile.querySelector("#doubt-context-title");
   const doubtContextResetBtn = doubtTile.querySelector("#doubt-context-reset-btn");
 
+  function scrollToDoubtSector(sectionId, sectionTitle) {
+    let target = null;
+    if (sectionId) {
+      target = document.getElementById(sectionId) || document.querySelector(`[data-section-id="${sectionId}"]`);
+    }
+    if (!target && sectionTitle) {
+      const clean = sectionTitle.replace(/^[0-9.]+\s*/, "").trim().toLowerCase();
+      // Try finding by heading text match
+      const headings = Array.from(document.querySelectorAll(
+        ".entity-name, .blueprint-card-title, .doc-section-title, h1, h2, h3, h4"
+      ));
+      for (const h of headings) {
+        const hText = h.textContent.trim().toLowerCase();
+        if (hText === clean || (hText && clean && (hText.includes(clean) || clean.includes(hText)))) {
+          target = h.closest(".doc-section, .doc-subsection, .doc-subsubsection, .page-directory-section, .entity-item, .story-node-section, section") || h;
+          break;
+        }
+      }
+      // If still not found, check section data-title or IDs containing keywords
+      if (!target) {
+        const allSecs = Array.from(document.querySelectorAll(
+          ".doc-section, .doc-subsection, .doc-subsubsection, .page-directory-section, .entity-item, .story-node-section, section"
+        ));
+        for (const s of allSecs) {
+          const dTitle = (s.getAttribute("data-title") || "").toLowerCase();
+          if (dTitle && (dTitle === clean || dTitle.includes(clean) || clean.includes(dTitle))) {
+            target = s;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!target && (!sectionTitle || sectionTitle.toLowerCase().includes("page overview") || sectionTitle.toLowerCase().includes("page context"))) {
+      target = document.getElementById("sec-curriculum-overview") || document.querySelector(".content-area");
+    }
+
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.classList.add("section-focus-pulse");
+      setTimeout(() => {
+        target.classList.remove("section-focus-pulse");
+      }, 2000);
+      if (target.id) {
+        try {
+          history.replaceState(null, "", `#${target.id}`);
+        } catch (_) {}
+      }
+      return true;
+    }
+    return false;
+  }
+
   function renderDoubtTreeNodeHtml(node, isLastChild, rootNode, totalFollowUps) {
     const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
     const branchSymbol = node.depth === 0 ? "●" : (isLastChild ? "└──" : "├──");
@@ -6552,7 +6605,10 @@ INSTRUCTIONS:
           <div class="doubt-tree-meta-row font-mono">
             <div class="doubt-tree-meta-left">
               <span class="doubt-tree-branch font-mono">${branchSymbol}</span>
-              <span class="doubt-tree-sec-tag">${escapeHtml(node.sectionTitle || "SECTION")}</span>
+              <button type="button" class="doubt-tree-sec-tag font-mono" data-section-id="${escapeHtml(node.sectionId || '')}" data-section-title="${escapeHtml(node.sectionTitle || '')}" title="Jump to sector on page: ${escapeHtml(node.sectionTitle || 'Section')}">
+                <span class="sec-tag-text">${escapeHtml(node.sectionTitle || "SECTION")}</span>
+                <span class="sec-tag-arrow">↗</span>
+              </button>
               <span class="doubt-tree-time">🕒 ${escapeHtml(node.exactTimestamp || "")}</span>
               ${isRoot && totalFollowUps > 0 ? `<span class="doubt-tree-count-badge font-mono">${totalFollowUps}/10</span>` : ""}
             </div>
@@ -6863,18 +6919,31 @@ INSTRUCTIONS:
     const ctx = currentDoubtContext || getPageSummaryContext();
 
     if (ctx.type === "section") {
-      doubtContextBadge.textContent = "SECTION";
+      doubtContextBadge.textContent = "SECTION ↗";
       doubtContextTitle.textContent = ctx.title || "Section Context";
       if (doubtContextResetBtn) doubtContextResetBtn.style.display = "inline-block";
     } else if (ctx.type === "selection") {
-      doubtContextBadge.textContent = "SELECTION";
+      doubtContextBadge.textContent = "SELECTION ↗";
       doubtContextTitle.textContent = ctx.title || "Selected Text";
       if (doubtContextResetBtn) doubtContextResetBtn.style.display = "inline-block";
     } else {
-      doubtContextBadge.textContent = "PAGE CONTEXT";
-      doubtContextTitle.textContent = ctx.title || "Page Summary";
+      doubtContextBadge.textContent = "PAGE CONTEXT ↗";
+      doubtContextTitle.textContent = ctx.title || "Page Overview";
       if (doubtContextResetBtn) doubtContextResetBtn.style.display = "none";
     }
+    if (doubtContextStrip) {
+      doubtContextStrip.setAttribute("title", `Click to jump to ${ctx.title || 'this sector'} on the page`);
+    }
+  }
+
+  if (doubtContextStrip) {
+    doubtContextStrip.addEventListener("click", (e) => {
+      if (e.target.closest("#doubt-context-reset-btn")) return;
+      const ctx = currentDoubtContext || getActiveDoubtContext();
+      if (ctx) {
+        scrollToDoubtSector(ctx.sectionId, ctx.title);
+      }
+    });
   }
 
   function setDoubtContext(ctx) {
@@ -7023,10 +7092,21 @@ INSTRUCTIONS:
       });
     });
 
+    // Sector / Section tag click: jump page directly to that sector where question was asked
+    doubtOutput.querySelectorAll(".doubt-tree-sec-tag").forEach(tag => {
+      tag.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const secId = tag.getAttribute("data-section-id");
+        const secTitle = tag.getAttribute("data-section-title") || tag.textContent;
+        scrollToDoubtSector(secId, secTitle);
+      });
+    });
+
     // Also clicking on a question card opens follow-up composer
     doubtOutput.querySelectorAll(".doubt-tree-node-card").forEach(card => {
       card.addEventListener("click", (e) => {
-        if (e.target.closest("button") || e.target.closest("a") || e.target.closest(".doubt-tree-reply-btn")) return;
+        if (e.target.closest("button") || e.target.closest("a") || e.target.closest(".doubt-tree-reply-btn") || e.target.closest(".doubt-tree-sec-tag")) return;
         const id = card.getAttribute("data-id");
         if (id) handleOpenFollowUpComposer(id);
       });
@@ -7323,7 +7403,12 @@ INSTRUCTIONS:
         const secEl = document.getElementById(parentNode.sectionId);
         if (secEl) {
           targetContext = getSectionContext(secEl);
+        } else if (!targetContext.sectionId) {
+          targetContext.sectionId = parentNode.sectionId;
+          targetContext.title = parentNode.sectionTitle || targetContext.title;
         }
+      } else if (parentNode.sectionTitle && !targetContext.sectionId) {
+        targetContext.title = parentNode.sectionTitle;
       }
     }
 

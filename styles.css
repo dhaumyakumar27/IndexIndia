@@ -4283,11 +4283,23 @@ body.theme-dark .doubt-solver-tile {
   border-left: 3px solid #000000;
   font-size: 0.72rem;
   user-select: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doubt-context-strip:hover {
+  background: rgba(0, 0, 0, 0.07);
+  border-left-color: var(--accent);
 }
 
 body.theme-dark .doubt-context-strip {
   background: rgba(255, 255, 255, 0.05);
   border-left: 3px solid #ffffff;
+}
+
+body.theme-dark .doubt-context-strip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--accent);
 }
 
 .doubt-context-meta {
@@ -4422,21 +4434,72 @@ body.theme-dark .doubt-tree-node-card.active-branch {
 }
 
 .doubt-tree-sec-tag {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.06);
   border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  padding: 1px 5px;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--text-secondary);
-  font-size: 0.62rem;
-  max-width: 150px;
+  color: var(--text-primary);
+  font-size: 0.65rem;
+  max-width: 185px;
+  cursor: pointer;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  user-select: none;
+  vertical-align: middle;
+}
+
+.doubt-tree-sec-tag .sec-tag-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.doubt-tree-sec-tag .sec-tag-arrow {
+  font-size: 0.70rem;
+  color: var(--accent);
+  opacity: 0.85;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.doubt-tree-sec-tag:hover {
+  background: var(--accent);
+  color: #FFFFFF !important;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 59, 0, 0.28);
+}
+
+.doubt-tree-sec-tag:hover .sec-tag-text {
+  color: #FFFFFF !important;
+}
+
+.doubt-tree-sec-tag:hover .sec-tag-arrow {
+  color: #FFFFFF !important;
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
 body.theme-dark .doubt-tree-sec-tag {
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #F8F9FA;
+}
+
+body.theme-dark .doubt-tree-sec-tag:hover {
+  background: var(--accent);
+  color: #FFFFFF !important;
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(255, 85, 34, 0.45);
+}
+
+body.theme-dark .doubt-tree-sec-tag:hover .sec-tag-arrow {
+  color: #FFFFFF !important;
 }
 
 .doubt-tree-time {
