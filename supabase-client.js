@@ -391,16 +391,33 @@
           pagePath: r.page_path
         }));
 
-        // Merge and deduplicate by id or question + timestamp
+        // Merge and deduplicate by id or question + timestamp, preserving local tree linkages
+        const localById = new Map();
+        for (const l of (localDoubts || [])) {
+          const k = String(l.id || `${l.timestamp}_${l.question}`);
+          localById.set(k, l);
+          if (l.id) localById.set(String(l.id), l);
+        }
+
         const seenIds = new Set();
         const merged = [];
 
-        // Remote doubts first
+        // Remote doubts first (merge with local attributes so parentId / sectionId are never lost)
         for (const r of remoteDoubts) {
-          const key = r.id || `${r.timestamp}_${r.question}`;
+          const key = String(r.id || `${r.timestamp}_${r.question}`);
           if (!seenIds.has(key)) {
             seenIds.add(key);
-            merged.push(r);
+            const l = localById.get(key) || localById.get(String(r.id));
+            const mergedItem = {
+              ...r,
+              parentId: (l && l.parentId) || r.parentId || null,
+              rootId: (l && l.rootId) || r.rootId || null,
+              sectionId: (l && l.sectionId) || r.sectionId || "",
+              sectionTitle: (l && l.sectionTitle) || r.sectionTitle || "",
+              isFollowUp: (l && typeof l.isFollowUp === "boolean") ? l.isFollowUp : Boolean(r.parentId || (l && l.parentId)),
+              isPaidMemberThread: (l && l.isPaidMemberThread) || r.isPaidMemberThread || false
+            };
+            merged.push(mergedItem);
           }
         }
 

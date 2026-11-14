@@ -6413,8 +6413,14 @@ INSTRUCTIONS:
 
     sorted.forEach(item => {
       const node = map.get(String(item.id));
-      if (item.parentId && map.has(String(item.parentId))) {
-        const parent = map.get(String(item.parentId));
+      let pId = item.parentId ? String(item.parentId) : null;
+      // Heal broken linkages if rootId exists and was stored
+      if ((!pId || !map.has(pId)) && item.rootId && String(item.rootId) !== String(item.id) && map.has(String(item.rootId))) {
+        pId = String(item.rootId);
+        node.parentId = pId;
+      }
+      if (pId && map.has(pId) && pId !== String(item.id)) {
+        const parent = map.get(pId);
         node.depth = (parent.depth || 0) + 1;
         parent.children.push(node);
       } else {
@@ -6423,17 +6429,9 @@ INSTRUCTIONS:
       }
     });
 
-    // Sort root threads so the latest asked / active question is at the top (reverse chronological)
-    const getThreadLatestTimestamp = (node) => {
-      let t = node.timestamp || 0;
-      if (node.children && node.children.length > 0) {
-        for (const child of node.children) {
-          t = Math.max(t, getThreadLatestTimestamp(child));
-        }
-      }
-      return t;
-    };
-    roots.sort((a, b) => getThreadLatestTimestamp(b) - getThreadLatestTimestamp(a));
+    // Root main questions are sorted reverse chronologically by when the root question was asked.
+    // Follow-ups stay strictly nested under their parent card and never jump to the top.
+    roots.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     return { roots, sorted };
   }
@@ -6479,6 +6477,7 @@ INSTRUCTIONS:
   let currentDoubtContext = null;
   let activeDoubtMode = "doubts";
   let activeQueryId = 0;
+  let activeDoubtParentId = null;
 
   // Create UI elements (Cursor drag-and-select to ask Gemini removed; full sections sent only)
   const doubtPill = null;
@@ -6505,7 +6504,11 @@ INSTRUCTIONS:
         </div>
         <button type="button" class="doubt-context-reset-btn font-mono" id="doubt-context-reset-btn" title="Reset to Page Summary" style="display: none;">Page ↺</button>
       </div>
-      <div class="doubt-input-row">
+      <div class="doubt-reply-thread-banner" id="doubt-reply-thread-banner" style="display: none;">
+        <span class="doubt-reply-thread-label font-mono" id="doubt-reply-thread-label">↳ Replying to: "..."</span>
+        <button type="button" class="doubt-reply-cancel-btn font-mono" id="doubt-reply-cancel-btn" title="Cancel reply (ask new main question)">&times; Cancel</button>
+      </div>
+      <div class="doubt-input-row" id="doubt-input-row">
         <input type="text" id="doubt-text-input" class="doubt-text-input" placeholder="Ask any doubt or question..." autocomplete="off">
         <button type="button" id="doubt-ask-btn" class="doubt-ask-btn">Ask ↵</button>
       </div>
@@ -6525,69 +6528,210 @@ INSTRUCTIONS:
   const doubtContextBadge = doubtTile.querySelector("#doubt-context-badge");
   const doubtContextTitle = doubtTile.querySelector("#doubt-context-title");
   const doubtContextResetBtn = doubtTile.querySelector("#doubt-context-reset-btn");
+  const doubtReplyBanner = doubtTile.querySelector("#doubt-reply-thread-banner");
+  const doubtReplyLabel = doubtTile.querySelector("#doubt-reply-thread-label");
+  const doubtReplyCancelBtn = doubtTile.querySelector("#doubt-reply-cancel-btn");
 
-  function scrollToDoubtSector(sectionId, sectionTitle) {
-    let target = null;
-    if (sectionId) {
-      target = document.getElementById(sectionId) || document.querySelector(`[data-section-id="${sectionId}"]`);
-    }
-    if (!target && sectionTitle) {
-      const clean = sectionTitle.replace(/^[0-9.]+\s*/, "").trim().toLowerCase();
-      // Try finding by heading text match
-      const headings = Array.from(document.querySelectorAll(
-        ".entity-name, .blueprint-card-title, .doc-section-title, h1, h2, h3, h4"
-      ));
-      for (const h of headings) {
-        const hText = h.textContent.trim().toLowerCase();
-        if (hText === clean || (hText && clean && (hText.includes(clean) || clean.includes(hText)))) {
-          target = h.closest(".doc-section, .doc-subsection, .doc-subsubsection, .page-directory-section, .entity-item, .story-node-section, section") || h;
-          break;
-        }
+  function setActiveDoubtParent(nodeId) {
+    activeDoubtParentId = nodeId ? String(nodeId) : null;
+    if (activeDoubtParentId) {
+      const all = getLocalDoubtsHistory();
+      const node = all.find(x => String(x.id) === activeDoubtParentId);
+      const shortQ = node ? ((node.question || "").slice(0, 32) + ((node.question || "").length > 32 ? "..." : "")) : "Question";
+      if (doubtReplyBanner && doubtReplyLabel) {
+        doubtReplyLabel.textContent = `↳ Replying to: "${shortQ}"`;
+        doubtReplyBanner.style.display = "flex";
       }
-      // If still not found, check section data-title or IDs containing keywords
-      if (!target) {
-        const allSecs = Array.from(document.querySelectorAll(
-          ".doc-section, .doc-subsection, .doc-subsubsection, .page-directory-section, .entity-item, .story-node-section, section"
-        ));
-        for (const s of allSecs) {
-          const dTitle = (s.getAttribute("data-title") || "").toLowerCase();
-          if (dTitle && (dTitle === clean || dTitle.includes(clean) || clean.includes(dTitle))) {
-            target = s;
-            break;
+      if (doubtTextInput) {
+        doubtTextInput.placeholder = `Ask follow-up under "${shortQ}"...`;
+      }
+    } else {
+      if (doubtReplyBanner) {
+        doubtReplyBanner.style.display = "none";
+      }
+      if (doubtTextInput) {
+        doubtTextInput.placeholder = "Ask any doubt or question...";
+      }
+      document.querySelectorAll(".doubt-tree-node-card").forEach(c => c.classList.remove("active-branch"));
+      document.querySelectorAll(".doubt-tree-reply-slot").forEach(s => s.innerHTML = "");
+    }
+  }
+
+  if (doubtReplyCancelBtn) {
+    doubtReplyCancelBtn.addEventListener("click", () => {
+      setActiveDoubtParent(null);
+    });
+  }
+
+  function findSectionTarget(sectionId, sectionTitle) {
+    let cleanId = (sectionId || "").trim();
+    if (cleanId.startsWith("#")) cleanId = cleanId.slice(1);
+    if (cleanId === "null" || cleanId === "undefined" || cleanId === "none" || cleanId === "section_0") cleanId = "";
+
+    // 1. Direct ID lookup
+    if (cleanId) {
+      const target = document.getElementById(cleanId) ||
+                     document.querySelector(`[data-section-id="${cleanId}"]`) ||
+                     document.querySelector(`[data-target="${cleanId}"]`) ||
+                     document.querySelector(`section#${cleanId}`);
+      if (target) return target;
+    }
+
+    // 2. Normalize sectionTitle
+    let rawTitle = (sectionTitle || "").trim();
+    rawTitle = rawTitle.replace(/[↗\s]+$/, "").trim();
+    if (!rawTitle || rawTitle.toUpperCase() === "SECTION" || rawTitle.toUpperCase() === "SECTOR") {
+      rawTitle = "";
+    }
+
+    // Check if title is page overview / matrix
+    if (rawTitle && (/overview|curriculum|matrix|complete indian entity/i.test(rawTitle))) {
+      return document.getElementById("sec-curriculum-overview") ||
+             document.querySelector(".page-directory-section") ||
+             document.querySelector(".content-area");
+    }
+
+    if (rawTitle) {
+      const cleanTitle = rawTitle.replace(/^[0-9.]+\s*/, "").trim().toLowerCase();
+
+      // 3. Match against directory tree nodes (#tree-content-scroll .tree-node)
+      const allTreeNodes = Array.from(document.querySelectorAll("#tree-content-scroll .tree-node, .tree-node"));
+      for (const node of allTreeNodes) {
+        const nameEl = node.querySelector(".tree-name");
+        const nodeText = (nameEl ? nameEl.textContent : node.textContent).trim();
+        const cleanNodeText = nodeText.replace(/^[0-9.]+\s*/, "").trim().toLowerCase();
+        if (cleanNodeText && (cleanTitle === cleanNodeText || cleanTitle.startsWith(cleanNodeText) || cleanNodeText.startsWith(cleanTitle))) {
+          const href = node.getAttribute("href") || "";
+          if (href.startsWith("#")) {
+            const t = document.querySelector(href);
+            if (t) return t;
           }
         }
       }
-    }
 
-    if (!target && (!sectionTitle || sectionTitle.toLowerCase().includes("page overview") || sectionTitle.toLowerCase().includes("page context"))) {
-      target = document.getElementById("sec-curriculum-overview") || document.querySelector(".content-area");
-    }
-
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-      target.classList.add("section-focus-pulse");
-      setTimeout(() => {
-        target.classList.remove("section-focus-pulse");
-      }, 2000);
-      if (target.id) {
-        try {
-          history.replaceState(null, "", `#${target.id}`);
-        } catch (_) {}
+      // Substring match in tree nodes if cleanTitle is meaningful (> 3 chars)
+      if (cleanTitle.length > 3) {
+        for (const node of allTreeNodes) {
+          const nameEl = node.querySelector(".tree-name");
+          const nodeText = (nameEl ? nameEl.textContent : node.textContent).trim();
+          const cleanNodeText = nodeText.replace(/^[0-9.]+\s*/, "").trim().toLowerCase();
+          if (cleanNodeText && (cleanNodeText.includes(cleanTitle) || cleanTitle.includes(cleanNodeText))) {
+            const href = node.getAttribute("href") || "";
+            if (href.startsWith("#")) {
+              const t = document.querySelector(href);
+              if (t) return t;
+            }
+          }
+        }
       }
-      return true;
+
+      // 4. Match against section / entity headings on page
+      const headings = Array.from(document.querySelectorAll(
+        ".entity-name, .blueprint-card-title, .doc-section-title, .story-section-title, .section-title, .subsection-title, h1, h2, h3, h4"
+      ));
+      for (const h of headings) {
+        const hText = h.textContent.trim().toLowerCase();
+        const cleanH = hText.replace(/^[0-9.]+\s*/, "").trim();
+        if (cleanH && (cleanH === cleanTitle || cleanTitle.startsWith(cleanH) || cleanH.startsWith(cleanTitle))) {
+          return h.closest(".doc-section, .doc-subsection, .doc-subsubsection, .page-directory-section, .entity-item, .story-node-section, section") || h;
+        }
+      }
+      if (cleanTitle.length > 3) {
+        for (const h of headings) {
+          const hText = h.textContent.trim().toLowerCase();
+          const cleanH = hText.replace(/^[0-9.]+\s*/, "").trim();
+          if (cleanH && (cleanH.includes(cleanTitle) || cleanTitle.includes(cleanH))) {
+            return h.closest(".doc-section, .doc-subsection, .doc-subsubsection, .page-directory-section, .entity-item, .story-node-section, section") || h;
+          }
+        }
+      }
+
+      // 5. Match by section id slug
+      const slug = cleanTitle.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      if (slug.length > 2) {
+        const secMatch = document.querySelector(`section[id*="${slug}"]`) ||
+                         document.querySelector(`[id*="${slug}"]`);
+        if (secMatch) return secMatch;
+      }
     }
-    return false;
+
+    // 6. Substring ID match
+    if (cleanId && cleanId.length > 2) {
+      const subMatch = document.querySelector(`[id*="${cleanId}"]`);
+      if (subMatch) return subMatch;
+    }
+
+    // Fallback: Curriculum overview or top section
+    return document.getElementById("sec-curriculum-overview") ||
+           document.querySelector(".page-directory-section") ||
+           document.querySelector(".content-area");
+  }
+
+  function scrollToDoubtSector(sectionId, sectionTitle) {
+    const rawTarget = findSectionTarget(sectionId, sectionTitle);
+    if (!rawTarget) return false;
+
+    const target = rawTarget.closest(".doc-section, .doc-subsection, .doc-subsubsection, .page-directory-section, .entity-item, .story-node-section, section") || rawTarget;
+
+    const navEl = document.querySelector(".top-nav") || document.querySelector("header");
+    const navHeight = (navEl ? navEl.offsetHeight : 76) || 76;
+    const rect = target.getBoundingClientRect();
+    const targetY = window.pageYOffset + rect.top - navHeight - 16;
+
+    if (window.innerWidth < 1024 && typeof closeDoubtSolver === "function") {
+      closeDoubtSolver();
+    }
+
+    window.scrollTo({
+      top: Math.max(0, targetY),
+      behavior: "smooth"
+    });
+
+    try {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (_) {}
+
+    target.classList.add("section-focus-pulse");
+    setTimeout(() => {
+      target.classList.remove("section-focus-pulse");
+    }, 2400);
+
+    if (target.id) {
+      try {
+        history.replaceState(null, "", `#${target.id}`);
+      } catch (_) {}
+
+      if (typeof treeNodes !== "undefined" && treeNodes && treeNodes.length > 0) {
+        const tIdx = treeNodes.findIndex(n => n.getAttribute("href") === `#${target.id}`);
+        if (tIdx !== -1 && typeof highlightTreeNode === "function") {
+          highlightTreeNode(tIdx);
+        }
+      }
+    }
+
+    return true;
   }
 
   function renderDoubtTreeNodeHtml(node, isLastChild, rootNode, totalFollowUps) {
-    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
     const branchSymbol = node.depth === 0 ? "●" : (isLastChild ? "└──" : "├──");
     const isRoot = node.depth === 0;
     const canFollowUp = totalFollowUps < 10;
 
     const followUpBtnHtml = canFollowUp
-      ? `<button type="button" class="doubt-tree-reply-btn font-mono" data-id="${node.id}" title="${isPaid ? 'Ask a specific follow-up under this question' : 'Upgrade to ask follow-up questions'}">[follow-up ↳]</button>`
+      ? `<button type="button" class="doubt-tree-reply-btn font-mono" data-id="${node.id}" title="Ask a specific follow-up under this question">[follow-up ↳]</button>`
       : `<span class="doubt-tree-limit-tag font-mono">[10/10 LIMIT REACHED]</span>`;
+
+    let displayTitle = (node.sectionTitle || "").trim();
+    if (!displayTitle || displayTitle.toUpperCase() === "SECTION" || displayTitle.toUpperCase() === "SECTOR") {
+      if (node.sectionId) {
+        const target = document.getElementById(node.sectionId);
+        if (target) {
+          const h = target.querySelector(".entity-name, .blueprint-card-title, .section-title, h1, h2, h3, h4");
+          if (h) displayTitle = h.textContent.trim();
+        }
+      }
+    }
+    if (!displayTitle) displayTitle = "SECTOR";
 
     let childrenHtml = "";
     if (node.children && node.children.length > 0) {
@@ -6605,8 +6749,8 @@ INSTRUCTIONS:
           <div class="doubt-tree-meta-row font-mono">
             <div class="doubt-tree-meta-left">
               <span class="doubt-tree-branch font-mono">${branchSymbol}</span>
-              <button type="button" class="doubt-tree-sec-tag font-mono" data-section-id="${escapeHtml(node.sectionId || '')}" data-section-title="${escapeHtml(node.sectionTitle || '')}" title="Jump to sector on page: ${escapeHtml(node.sectionTitle || 'Section')}">
-                <span class="sec-tag-text">${escapeHtml(node.sectionTitle || "SECTION")}</span>
+              <button type="button" class="doubt-tree-sec-tag font-mono" data-section-id="${escapeHtml(node.sectionId || '')}" data-section-title="${escapeHtml(displayTitle)}" title="Jump to sector on page: ${escapeHtml(displayTitle)}">
+                <span class="sec-tag-text">${escapeHtml(displayTitle)}</span>
                 <span class="sec-tag-arrow">↗</span>
               </button>
               <span class="doubt-tree-time">🕒 ${escapeHtml(node.exactTimestamp || "")}</span>
@@ -6638,14 +6782,6 @@ INSTRUCTIONS:
     document.body.classList.add("gemini-permanent");
     if (doubtLeaveTimer) clearTimeout(doubtLeaveTimer);
 
-    const isPaid = typeof isUserPaidMember === "function" && isUserPaidMember();
-    if (!isPaid) {
-      const accBtn = document.getElementById("account-btn");
-      if (accBtn) accBtn.click();
-      alert("Follow-up questions are exclusive to Institutional Paid Members. Upgrade to enable conversational directory tree branching.");
-      return;
-    }
-
     const all = getLocalDoubtsHistory();
     const node = all.find(x => String(x.id) === String(nodeId));
     if (!node) return;
@@ -6658,6 +6794,9 @@ INSTRUCTIONS:
       alert("Maximum 10 follow-up questions reached under this main question. You can ask a new main question in the top box.");
       return;
     }
+
+    // Set active parent id for the top input and reply banner
+    setActiveDoubtParent(nodeId);
 
     // If the question was asked under a specific section, highlight/sync context
     if (node.sectionId) {
@@ -6673,6 +6812,7 @@ INSTRUCTIONS:
     // Toggle: if slot already has content, close it
     if (slot.hasChildNodes()) {
       slot.innerHTML = "";
+      setActiveDoubtParent(null);
       return;
     }
 
@@ -6711,6 +6851,7 @@ INSTRUCTIONS:
     if (closeBtn) {
       closeBtn.addEventListener("click", () => {
         slot.innerHTML = "";
+        setActiveDoubtParent(null);
         if (card) card.classList.remove("active-branch");
       });
     }
@@ -6746,6 +6887,7 @@ INSTRUCTIONS:
         } else if (e.key === "Escape") {
           e.preventDefault();
           slot.innerHTML = "";
+          setActiveDoubtParent(null);
           if (card) card.classList.remove("active-branch");
         }
       });
@@ -6858,7 +7000,7 @@ INSTRUCTIONS:
   function getSectionContext(sectionEl) {
     if (!sectionEl) return getPageSummaryContext();
 
-    const titleEl = sectionEl.querySelector(".section-title, .subsection-title, .subsubsection-title, .doc-title, .story-section-title, .forum-title, h1, h2, h3, h4");
+    const titleEl = sectionEl.querySelector(".entity-name, .blueprint-card-title, .doc-section-title, .section-title, .subsection-title, .subsubsection-title, .doc-title, .story-section-title, .forum-title, h1, h2, h3, h4");
     const numEl = sectionEl.querySelector(".section-number, .subsection-number, .subsubsection-number, .sec-num, .doc-num");
     const numPrefix = numEl ? numEl.textContent.trim() + " " : "";
 
@@ -6900,7 +7042,7 @@ INSTRUCTIONS:
     };
   }
 
-  // 3. Get Active Doubt Context (No auto screen tracker: Section hover has priority, fallback to Page Summary)
+  // 3. Get Active Doubt Context (No auto screen tracker: Section hover has priority, fallback to in-view section or Page Summary)
   function getActiveDoubtContext() {
     if (currentDoubtContext) return currentDoubtContext;
 
@@ -6909,6 +7051,13 @@ INSTRUCTIONS:
     );
     if (hoveredSec) {
       return getSectionContext(hoveredSec);
+    }
+    if (typeof treeNodes !== "undefined" && treeNodes && typeof currentSubIndex === "number" && treeNodes[currentSubIndex]) {
+      const href = treeNodes[currentSubIndex].getAttribute("href");
+      if (href && href.startsWith("#")) {
+        const secEl = document.querySelector(href);
+        if (secEl) return getSectionContext(secEl);
+      }
     }
     return getPageSummaryContext();
   }
@@ -7377,13 +7526,6 @@ INSTRUCTIONS:
     let rootId = null;
 
     if (parentId) {
-      if (!isPaid) {
-        const accBtn = document.getElementById("account-btn");
-        if (accBtn) accBtn.click();
-        alert("Follow-up questions are exclusive to Institutional Paid Members. Upgrade to enable conversational directory tree branching.");
-        return;
-      }
-
       const parentNode = allItems.find(x => String(x.id) === String(parentId));
       if (!parentNode) return;
 
@@ -7436,8 +7578,8 @@ INSTRUCTIONS:
           answerHtml: resolvedAnswerHtml,
           answerText: resolvedAnswerText,
           isFollowUp: Boolean(parentId),
-          isPaidMemberThread: isPaid,
-          sectionTitle: targetContext.title,
+          isPaidMemberThread: Boolean(isPaid),
+          sectionTitle: targetContext.title || "Section",
           sectionId: targetContext.sectionId || ""
         };
 
@@ -7448,6 +7590,7 @@ INSTRUCTIONS:
           window.IndexIndiaSupabase.uploadDoubt(newRecord);
         }
 
+        setActiveDoubtParent(null);
         if (!parentId && doubtTextInput) doubtTextInput.value = "";
         renderDoubtsView();
       }
@@ -7467,14 +7610,16 @@ INSTRUCTIONS:
         answerHtml: fallbackHtml,
         answerText: fallbackText,
         isFollowUp: Boolean(parentId),
-        isPaidMemberThread: isPaid,
-        sectionTitle: targetContext.title,
+        isPaidMemberThread: Boolean(isPaid),
+        sectionTitle: targetContext.title || "Section",
         sectionId: targetContext.sectionId || ""
       };
       saveLocalDoubtsHistory([newRecord, ...getLocalDoubtsHistory()]);
       if (window.IndexIndiaSupabase) {
         window.IndexIndiaSupabase.uploadDoubt(newRecord);
       }
+      setActiveDoubtParent(null);
+      if (!parentId && doubtTextInput) doubtTextInput.value = "";
       renderDoubtsView();
     } finally {
       if (!parentId && doubtAskBtn) {
@@ -7488,7 +7633,7 @@ INSTRUCTIONS:
 
   doubtAskBtn.addEventListener("click", () => {
     const q = doubtTextInput ? doubtTextInput.value : "";
-    askDoubt(q);
+    askDoubt(q, activeDoubtParentId);
   });
 
   doubtTextInput.addEventListener("keydown", (e) => {
@@ -7497,10 +7642,14 @@ INSTRUCTIONS:
     if (e.key === "Enter") {
       e.preventDefault();
       const q = doubtTextInput ? doubtTextInput.value : "";
-      askDoubt(q);
+      askDoubt(q, activeDoubtParentId);
     } else if (e.key === "Escape") {
       e.preventDefault();
-      closeDoubtSolver();
+      if (activeDoubtParentId) {
+        setActiveDoubtParent(null);
+      } else {
+        closeDoubtSolver();
+      }
     }
   });
 

@@ -4713,6 +4713,49 @@ body.theme-dark .doubt-inline-ask-btn {
 }
 
 
+/* Reply Thread Banner */
+.doubt-reply-thread-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-surface-subtle);
+  border: 1px dashed var(--border-strong);
+  border-radius: 5px;
+  padding: 5px 9px;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.doubt-reply-thread-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.doubt-reply-cancel-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.70rem;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+
+.doubt-reply-cancel-btn:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
 /* Input Row */
 .doubt-input-row {
   display: flex;
@@ -6080,8 +6123,9 @@ body.theme-dark mark.finder-match.finder-match-active {
 }
 
 .section-focus-pulse {
-  animation: sectionPulseGlow 1.6s ease-out;
+  animation: sectionPulseGlow 1.8s ease-out;
   border-left: 3.5px solid var(--accent, #FF3B00) !important;
+  scroll-margin-top: calc(var(--nav-height) + 20px) !important;
 }
 
 /* ==========================================================================
