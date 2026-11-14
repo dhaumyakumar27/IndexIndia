@@ -6290,7 +6290,39 @@ INSTRUCTIONS:
       const raw = localStorage.getItem(DOUBTS_STORAGE_KEY);
       const items = raw ? JSON.parse(raw) : [];
       let healed = false;
+
+      // Step 1: Recover metadata and parent linkages from embedded comments or ID encodings
       for (const item of items) {
+        if (!item.parentId) {
+          if (item.answerHtml && item.answerHtml.includes("<!--INDEXINDIA_META:")) {
+            try {
+              const m = item.answerHtml.match(/<!--INDEXINDIA_META:(.*?)-->/);
+              if (m && m[1]) {
+                const parsed = JSON.parse(m[1]);
+                if (parsed.parentId) {
+                  item.parentId = parsed.parentId;
+                  healed = true;
+                }
+                if (parsed.rootId && !item.rootId) item.rootId = parsed.rootId;
+                if (parsed.sectionId && !item.sectionId) item.sectionId = parsed.sectionId;
+                if (parsed.sectionTitle && !item.sectionTitle) item.sectionTitle = parsed.sectionTitle;
+                if (typeof parsed.isFollowUp === "boolean") item.isFollowUp = parsed.isFollowUp;
+              }
+            } catch (_) {}
+          }
+          if (!item.parentId && item.id && String(item.id).includes("__pid__")) {
+            item.parentId = String(item.id).split("__pid__")[1];
+            item.isFollowUp = true;
+            healed = true;
+          }
+          if (!item.parentId && item.rootId && String(item.rootId) !== String(item.id)) {
+            item.parentId = item.rootId;
+            item.isFollowUp = true;
+            healed = true;
+          }
+        }
+
+        // Clean up legacy mockup text if present
         if (item.answerHtml && (
           item.answerHtml.includes(".300 Whisper") ||
           item.answerHtml.includes("cartridge in the Whisper family") ||
@@ -6318,6 +6350,22 @@ INSTRUCTIONS:
           healed = true;
         }
       }
+
+      // Step 2: Chronological parent recovery for follow-ups that lost their linkage during prior sessions
+      const chronological = [...items].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      let lastRoot = null;
+      for (const it of chronological) {
+        if (!it.parentId && !it.isFollowUp) {
+          lastRoot = it;
+        } else if ((it.isFollowUp || it.parentId) && lastRoot) {
+          if (!it.parentId) {
+            it.parentId = lastRoot.id;
+            it.rootId = lastRoot.id;
+            healed = true;
+          }
+        }
+      }
+
       if (healed) {
         saveLocalDoubtsHistory(items);
       }
@@ -6404,24 +6452,40 @@ INSTRUCTIONS:
     const roots = [];
 
     sorted.forEach(item => {
-      map.set(String(item.id), {
+      const strId = String(item.id);
+      const node = {
         ...item,
         children: [],
         depth: 0
-      });
+      };
+      map.set(strId, node);
+      if (strId.includes("__pid__")) {
+        const baseId = strId.split("__pid__")[0];
+        if (!map.has(baseId)) map.set(baseId, node);
+      }
     });
 
     sorted.forEach(item => {
       const node = map.get(String(item.id));
+      if (!node) return;
       let pId = item.parentId ? String(item.parentId) : null;
-      // Heal broken linkages if rootId exists and was stored
-      if ((!pId || !map.has(pId)) && item.rootId && String(item.rootId) !== String(item.id) && map.has(String(item.rootId))) {
-        pId = String(item.rootId);
-        node.parentId = pId;
+      if (pId && !map.has(pId) && pId.includes("__pid__")) {
+        const baseP = pId.split("__pid__")[0];
+        if (map.has(baseP)) pId = baseP;
       }
-      if (pId && map.has(pId) && pId !== String(item.id)) {
+      // Heal broken linkages if rootId exists and was stored
+      if ((!pId || !map.has(pId)) && item.rootId && String(item.rootId) !== String(item.id)) {
+        const rId = String(item.rootId);
+        if (map.has(rId)) {
+          pId = rId;
+        } else if (rId.includes("__pid__") && map.has(rId.split("__pid__")[0])) {
+          pId = rId.split("__pid__")[0];
+        }
+      }
+      if (pId && map.has(pId) && map.get(pId) !== node) {
         const parent = map.get(pId);
         node.depth = (parent.depth || 0) + 1;
+        node.parentId = pId;
         parent.children.push(node);
       } else {
         node.depth = 0;
@@ -7567,7 +7631,22 @@ INSTRUCTIONS:
       const resolvedAnswerText = (typeof resolved === "object" && resolved && resolved.text) ? resolved.text : extractPlainTextFromAnswer(resolvedAnswerHtml);
 
       if (currentId === activeQueryId) {
-        const newId = "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+        const baseId = "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+        const newId = parentId ? `${baseId}__pid__${parentId}` : baseId;
+        const metaObj = {
+          parentId: parentId || null,
+          rootId: parentId ? rootId : newId,
+          sectionId: targetContext.sectionId || "",
+          sectionTitle: targetContext.title || "Section",
+          isFollowUp: Boolean(parentId),
+          isPaidMemberThread: Boolean(isPaid)
+        };
+        const metaTag = `<!--INDEXINDIA_META:${JSON.stringify(metaObj)}-->`;
+        let finalAnswerHtml = resolvedAnswerHtml;
+        if (!finalAnswerHtml.includes("<!--INDEXINDIA_META:")) {
+          finalAnswerHtml += metaTag;
+        }
+
         const newRecord = {
           id: newId,
           parentId: parentId || null,
@@ -7575,7 +7654,7 @@ INSTRUCTIONS:
           timestamp: Date.now(),
           exactTimestamp: timeInfo.full,
           question: trimmed,
-          answerHtml: resolvedAnswerHtml,
+          answerHtml: finalAnswerHtml,
           answerText: resolvedAnswerText,
           isFollowUp: Boolean(parentId),
           isPaidMemberThread: Boolean(isPaid),
@@ -7599,7 +7678,21 @@ INSTRUCTIONS:
       const fallbackAns = synthesizeConceptAnswer(trimmed, targetContext, null);
       const fallbackHtml = (typeof fallbackAns === "object" && fallbackAns && fallbackAns.html) ? fallbackAns.html : String(fallbackAns || "");
       const fallbackText = (typeof fallbackAns === "object" && fallbackAns && fallbackAns.text) ? fallbackAns.text : extractPlainTextFromAnswer(fallbackHtml);
-      const newId = "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+      const baseId = "doubt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+      const newId = parentId ? `${baseId}__pid__${parentId}` : baseId;
+      const metaObj = {
+        parentId: parentId || null,
+        rootId: parentId ? rootId : newId,
+        sectionId: targetContext.sectionId || "",
+        sectionTitle: targetContext.title || "Section",
+        isFollowUp: Boolean(parentId),
+        isPaidMemberThread: Boolean(isPaid)
+      };
+      const metaTag = `<!--INDEXINDIA_META:${JSON.stringify(metaObj)}-->`;
+      let finalFallbackHtml = fallbackHtml;
+      if (!finalFallbackHtml.includes("<!--INDEXINDIA_META:")) {
+        finalFallbackHtml += metaTag;
+      }
       const newRecord = {
         id: newId,
         parentId: parentId || null,
@@ -7607,7 +7700,7 @@ INSTRUCTIONS:
         timestamp: Date.now(),
         exactTimestamp: timeInfo.full,
         question: trimmed,
-        answerHtml: fallbackHtml,
+        answerHtml: finalFallbackHtml,
         answerText: fallbackText,
         isFollowUp: Boolean(parentId),
         isPaidMemberThread: Boolean(isPaid),

@@ -382,21 +382,48 @@
           return localDoubts;
         }
 
-        const remoteDoubts = (data || []).map((r) => ({
-          id: r.record_id,
-          question: r.question,
-          answerHtml: r.answer_html,
-          exactTimestamp: r.exact_timestamp,
-          timestamp: Number(r.timestamp),
-          pagePath: r.page_path
-        }));
+        const remoteDoubts = (data || []).map((r) => {
+          let meta = {};
+          if (r.answer_html && r.answer_html.includes("<!--INDEXINDIA_META:")) {
+            try {
+              const m = r.answer_html.match(/<!--INDEXINDIA_META:(.*?)-->/);
+              if (m && m[1]) {
+                meta = JSON.parse(m[1]);
+              }
+            } catch (_) {}
+          }
+          let pidFromRecordId = null;
+          if (r.record_id && r.record_id.includes("__pid__")) {
+            const parts = r.record_id.split("__pid__");
+            pidFromRecordId = parts[1] || null;
+          }
+          return {
+            id: r.record_id,
+            question: r.question,
+            answerHtml: r.answer_html,
+            exactTimestamp: r.exact_timestamp,
+            timestamp: Number(r.timestamp),
+            pagePath: r.page_path,
+            parentId: meta.parentId || pidFromRecordId || null,
+            rootId: meta.rootId || null,
+            sectionId: meta.sectionId || "",
+            sectionTitle: meta.sectionTitle || "",
+            isFollowUp: typeof meta.isFollowUp === "boolean" ? meta.isFollowUp : Boolean(meta.parentId || pidFromRecordId),
+            isPaidMemberThread: Boolean(meta.isPaidMemberThread)
+          };
+        });
 
         // Merge and deduplicate by id or question + timestamp, preserving local tree linkages
         const localById = new Map();
         for (const l of (localDoubts || [])) {
           const k = String(l.id || `${l.timestamp}_${l.question}`);
           localById.set(k, l);
-          if (l.id) localById.set(String(l.id), l);
+          if (l.id) {
+            localById.set(String(l.id), l);
+            if (String(l.id).includes("__pid__")) {
+              localById.set(String(l.id).split("__pid__")[0], l);
+            }
+          }
         }
 
         const seenIds = new Set();
@@ -405,16 +432,20 @@
         // Remote doubts first (merge with local attributes so parentId / sectionId are never lost)
         for (const r of remoteDoubts) {
           const key = String(r.id || `${r.timestamp}_${r.question}`);
+          const baseKey = r.id && String(r.id).includes("__pid__") ? String(r.id).split("__pid__")[0] : null;
           if (!seenIds.has(key)) {
             seenIds.add(key);
-            const l = localById.get(key) || localById.get(String(r.id));
+            if (baseKey) seenIds.add(baseKey);
+            const l = localById.get(key) || localById.get(String(r.id)) || (baseKey ? localById.get(baseKey) : null);
+            const resolvedParentId = (l && l.parentId) || r.parentId || null;
+            const resolvedRootId = (l && l.rootId) || r.rootId || (resolvedParentId ? resolvedParentId : r.id);
             const mergedItem = {
               ...r,
-              parentId: (l && l.parentId) || r.parentId || null,
-              rootId: (l && l.rootId) || r.rootId || null,
+              parentId: resolvedParentId,
+              rootId: resolvedRootId,
               sectionId: (l && l.sectionId) || r.sectionId || "",
               sectionTitle: (l && l.sectionTitle) || r.sectionTitle || "",
-              isFollowUp: (l && typeof l.isFollowUp === "boolean") ? l.isFollowUp : Boolean(r.parentId || (l && l.parentId)),
+              isFollowUp: (l && typeof l.isFollowUp === "boolean") ? l.isFollowUp : Boolean(resolvedParentId || r.isFollowUp),
               isPaidMemberThread: (l && l.isPaidMemberThread) || r.isPaidMemberThread || false
             };
             merged.push(mergedItem);
@@ -423,9 +454,11 @@
 
         // Local doubts that haven't been pushed to cloud yet
         for (const l of (localDoubts || [])) {
-          const key = l.id || `${l.timestamp}_${l.question}`;
-          if (!seenIds.has(key)) {
+          const key = String(l.id || `${l.timestamp}_${l.question}`);
+          const baseKey = l.id && String(l.id).includes("__pid__") ? String(l.id).split("__pid__")[0] : null;
+          if (!seenIds.has(key) && (!baseKey || !seenIds.has(baseKey))) {
             seenIds.add(key);
+            if (baseKey) seenIds.add(baseKey);
             merged.push(l);
             // Push missing local doubt to cloud in background
             this.uploadDoubt(l);
@@ -447,14 +480,40 @@
       if (!this.isAuthenticated() || !supabaseClient || !record) return;
 
       try {
-        const recordId = record.id || `doubt_${record.timestamp || Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        record.id = recordId;
+        let recordId = record.id;
+        if (!recordId) {
+          recordId = `doubt_${record.timestamp || Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+          if (record.parentId) {
+            recordId += `__pid__${record.parentId}`;
+          }
+          record.id = recordId;
+        } else if (record.parentId && !recordId.includes("__pid__")) {
+          recordId = `${recordId}__pid__${record.parentId}`;
+          record.id = recordId;
+        }
+
+        let answerHtml = record.answerHtml || "";
+        const metaObj = {
+          parentId: record.parentId || null,
+          rootId: record.rootId || (record.parentId ? record.parentId : record.id),
+          sectionId: record.sectionId || "",
+          sectionTitle: record.sectionTitle || "",
+          isFollowUp: Boolean(record.parentId || record.isFollowUp),
+          isPaidMemberThread: Boolean(record.isPaidMemberThread)
+        };
+        const metaTag = `<!--INDEXINDIA_META:${JSON.stringify(metaObj)}-->`;
+        if (answerHtml.includes("<!--INDEXINDIA_META:")) {
+          answerHtml = answerHtml.replace(/<!--INDEXINDIA_META:.*?-->/, metaTag);
+        } else {
+          answerHtml += metaTag;
+        }
+        record.answerHtml = answerHtml;
 
         const payload = {
           user_id: currentUser.id,
           record_id: recordId,
           question: record.question || "",
-          answer_html: record.answerHtml || "",
+          answer_html: answerHtml,
           exact_timestamp: record.exactTimestamp || "",
           timestamp: Number(record.timestamp) || Date.now(),
           page_path: window.location.pathname
@@ -482,7 +541,7 @@
         const { error } = await supabaseClient
           .from("user_ai_history")
           .delete()
-          .eq("record_id", recordId);
+          .or(`record_id.eq.${recordId},record_id.ilike.%__pid__${recordId}%`);
 
         if (error) {
           console.warn("[Supabase] Failed to delete doubt:", error.message);
