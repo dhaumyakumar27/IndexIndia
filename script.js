@@ -602,6 +602,8 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
   }
 
   let activeSectionEl = null;
+  let isNavigatingToSection = false;
+  let navCooldownTimer = null;
 
   function highlightTreeNode(index) {
     if (treeNodes.length === 0) return;
@@ -611,6 +613,14 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
     treeNodes.forEach((n) => n.classList.remove("active"));
     targetNode.classList.add("active");
+
+    // Automatically expand the parent branch group so the selected node is visible
+    const branchGroup = targetNode.closest(".tree-branch-group");
+    if (branchGroup && branchGroup.classList.contains("is-collapsed")) {
+      branchGroup.classList.remove("is-collapsed");
+      const btn = branchGroup.querySelector(".tree-toggle-btn");
+      if (btn) btn.textContent = "▼";
+    }
 
     if (tickMarks.length > 0) {
       const activeTickIdx = Math.round((currentSubIndex / Math.max(treeNodes.length - 1, 1)) * (tickMarks.length - 1));
@@ -635,11 +645,20 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
   }
 
   function navigateToNode(index, preferDivider = true) {
+    isNavigatingToSection = true;
+    if (navCooldownTimer) clearTimeout(navCooldownTimer);
+
     highlightTreeNode(index);
     const targetNode = treeNodes[currentSubIndex];
-    if (!targetNode) return;
+    if (!targetNode) {
+      isNavigatingToSection = false;
+      return;
+    }
     const href = targetNode.getAttribute("href");
-    if (!href) return;
+    if (!href) {
+      isNavigatingToSection = false;
+      return;
+    }
 
     if (href.startsWith("#")) {
       const targetEl = document.querySelector(href);
@@ -652,11 +671,24 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
           }
         }
         const headerOffset = 76;
-        const elPos = scrollEl.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+        const currentX = window.scrollX;
+        const rect = scrollEl.getBoundingClientRect();
+        const elPos = Math.round(rect.top + window.scrollY - headerOffset);
+
+        // Immediate navigation without laggy animation
         window.scrollTo({
           top: Math.max(0, elPos),
-          behavior: "smooth"
+          left: currentX,
+          behavior: "instant"
         });
+
+        try {
+          scrollEl.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
+          if (window.scrollX !== currentX) {
+            window.scrollTo({ left: currentX, behavior: "instant" });
+          }
+        } catch (_) {}
+
         if (history.pushState) {
           history.pushState(null, null, href);
         }
@@ -664,6 +696,13 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
     } else {
       window.location.href = href;
     }
+
+    navCooldownTimer = setTimeout(() => {
+      isNavigatingToSection = false;
+      if (typeof updateSectionOffsets === "function") {
+        updateSectionOffsets();
+      }
+    }, 250);
   }
 
   function getActNodeIndices() {
@@ -770,6 +809,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
   updateSectionOffsets = function() {
     sectionTargets = [];
+    const currentScrollY = window.scrollY;
     for (let i = 0; i < treeNodes.length; i++) {
       const href = treeNodes[i].getAttribute("href") || "";
       if (href.startsWith("#")) {
@@ -777,9 +817,11 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
         if (el) {
           const prev = el.previousElementSibling;
           const checkEl = (prev && prev.classList.contains("story-act-divider")) ? prev : el;
+          const rect = checkEl.getBoundingClientRect();
+          const docTop = Math.round(rect.top + currentScrollY);
           sectionTargets.push({
             index: i,
-            offsetTop: checkEl.offsetTop
+            docTop: docTop
           });
         }
       }
@@ -788,15 +830,14 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
 
   function runScrollSpy() {
     scrollSpyScheduled = false;
+    if (isNavigatingToSection) return;
     if (!hasInPageTree || sectionTargets.length === 0) return;
-    const scrollPos = window.scrollY + 120;
+    const scrollPos = window.scrollY + 100;
     let matchedIdx = 0;
 
     for (let i = 0; i < sectionTargets.length; i++) {
-      if (sectionTargets[i].offsetTop <= scrollPos) {
+      if (sectionTargets[i].docTop <= scrollPos) {
         matchedIdx = sectionTargets[i].index;
-      } else {
-        break;
       }
     }
 
@@ -810,7 +851,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
   }, { passive: true });
 
   window.addEventListener("scroll", () => {
-    if (!scrollSpyScheduled) {
+    if (!scrollSpyScheduled && !isNavigatingToSection) {
       scrollSpyScheduled = true;
       requestAnimationFrame(runScrollSpy);
     }
@@ -831,7 +872,7 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
         const toggleBtn = e.target.closest(".tree-toggle-btn");
         const branchGroup = node.closest(".tree-branch-group");
         
-        // If clicking toggle button specifically: toggle collapse without scrolling
+        // If clicking toggle button specifically: toggle collapse/expand without scrolling
         if (toggleBtn && branchGroup) {
           e.preventDefault();
           e.stopPropagation();
@@ -843,13 +884,14 @@ ${guideHtml}  <span class="tree-name font-mono">${item.displayName}</span>
           return;
         }
 
-        // If clicking main branch node: toggle collapse/expand of its sub-branch!
+        // If clicking main chapter node: ensure branch is expanded so its sub-items are visible!
         if (node.classList.contains("tree-chapter-node") && branchGroup) {
-          branchGroup.classList.toggle("is-collapsed");
-          const isCollapsed = branchGroup.classList.contains("is-collapsed");
-          const btn = branchGroup.querySelector(".tree-toggle-btn");
-          if (btn) btn.textContent = isCollapsed ? "▶" : "▼";
-          if (typeof updateSectionOffsets === "function") updateSectionOffsets();
+          if (branchGroup.classList.contains("is-collapsed")) {
+            branchGroup.classList.remove("is-collapsed");
+            const btn = branchGroup.querySelector(".tree-toggle-btn");
+            if (btn) btn.textContent = "▼";
+            if (typeof updateSectionOffsets === "function") updateSectionOffsets();
+          }
         }
 
         const href = node.getAttribute("href") || "";
@@ -4500,7 +4542,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         }
       }
       const targetIdx = Math.max(0, Math.min(mainSections.length - 1, currentIdx + direction));
-      mainSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
+      mainSections[targetIdx].scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
     }
   }
 
@@ -4526,7 +4568,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
         }
       }
       const targetIdx = Math.max(0, Math.min(allSections.length - 1, currentIdx + direction));
-      allSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
+      allSections[targetIdx].scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
     }
   }
 
@@ -6756,19 +6798,22 @@ INSTRUCTIONS:
       closeDoubtSolver();
     }
 
+    const currentX = window.scrollX;
+
     window.scrollTo({
       top: Math.max(0, targetY),
-      behavior: "smooth"
+      left: currentX,
+      behavior: "instant"
     });
 
     try {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
+      if (window.scrollX !== currentX) {
+        window.scrollTo({ left: currentX, behavior: "instant" });
+      }
     } catch (_) {}
 
-    target.classList.add("section-focus-pulse");
-    setTimeout(() => {
-      target.classList.remove("section-focus-pulse");
-    }, 2400);
+    target.classList.add("is-active-section");
 
     if (target.id) {
       try {
@@ -12975,13 +13020,13 @@ INSTRUCTIONS:
           bar.setAttribute("data-active-next-mode", val);
           const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
           const next = headings.find((h) => h.getBoundingClientRect().top > 80);
-          if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+          if (next) next.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
         } else if (scType === "prev-section-mode") {
           bar.setAttribute("data-active-prev-mode", val);
           const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
           const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
-          if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
-          else window.scrollTo({ top: 0, behavior: "smooth" });
+          if (prev) prev.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
+          else window.scrollTo({ top: 0, behavior: "instant" });
         } else if (scType === "forum-view") {
           bar.setAttribute("data-active-forum-view", val);
           const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
@@ -13137,13 +13182,13 @@ INSTRUCTIONS:
     execCustomAction('[data-action="exec-next-section"]', () => {
       const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
       const next = headings.find((h) => h.getBoundingClientRect().top > 80);
-      if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (next) next.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
     });
     execCustomAction('[data-action="exec-prev-section"]', () => {
       const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
       const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
-      if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
-      else window.scrollTo({ top: 0, behavior: "smooth" });
+      if (prev) prev.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
+      else window.scrollTo({ top: 0, behavior: "instant" });
     });
     execCustomAction('[data-action="exec-forum"]', () => {
       const forum = document.getElementById("forum-section") || document.querySelector(".institutional-forum-section");
@@ -14070,7 +14115,7 @@ INSTRUCTIONS:
         } else {
           const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
           const next = headings.find((h) => h.getBoundingClientRect().top > 80);
-          if (next) next.scrollIntoView({ behavior: "smooth", block: "start" });
+          if (next) next.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
         }
       }
     },
@@ -14085,8 +14130,8 @@ INSTRUCTIONS:
         } else {
           const headings = Array.from(document.querySelectorAll("h1, h2.story-section-title, h3.story-section-title, .page-directory-section"));
           const prev = headings.filter((h) => h.getBoundingClientRect().top < -20).pop();
-          if (prev) prev.scrollIntoView({ behavior: "smooth", block: "start" });
-          else window.scrollTo({ top: 0, behavior: "smooth" });
+          if (prev) prev.scrollIntoView({ behavior: "instant", block: "start", inline: "nearest" });
+          else window.scrollTo({ top: 0, behavior: "instant" });
         }
       }
     },

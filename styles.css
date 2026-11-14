@@ -98,12 +98,13 @@ body.theme-dark {
 html {
   font-size: 15px;
   line-height: 1.55;
-  scroll-behavior: auto;
+  scroll-behavior: auto !important;
   scroll-padding-top: calc(var(--nav-height) + 16px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overflow-x: auto !important;
+  overflow-y: auto !important;
 }
 
 /* Font Size Switcher Variations */
@@ -128,7 +129,6 @@ body {
   min-height: 100vh;
   position: relative;
   padding-top: var(--nav-height) !important;
-  overflow-x: auto !important;
   /* Blueprint graph grid background matching the wireframe */
   background-image: 
     linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
@@ -1723,17 +1723,27 @@ body.theme-dark .canvas-empty-state {
 
 /* Black Bold Highlighting ONLY for active scrolled section */
 .tree-node.active {
-  background-color: rgba(0, 0, 0, 0.06);
-  border-left: 3.5px solid #000000;
+  background-color: rgba(0, 0, 0, 0.08) !important;
+  border-left: 3.5px solid #000000 !important;
   color: #000000 !important;
   font-weight: 800 !important;
 }
 
 body.theme-dark .tree-node.active {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-left: 3.5px solid #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-left: 3.5px solid #FFFFFF !important;
   color: #FFFFFF !important;
   font-weight: 800 !important;
+}
+
+.tree-node.active .tree-name {
+  font-weight: 800 !important;
+  color: #000000 !important;
+}
+
+body.theme-dark .tree-node.active .tree-name {
+  font-weight: 800 !important;
+  color: #FFFFFF !important;
 }
 
 /* Subtle non-bold hover for cursor guidance — NOT bold */
@@ -1907,10 +1917,8 @@ body.theme-dark .tree-node.active .tree-badge {
   border-left: 4px solid #000000;
   border-radius: 6px;
   background: var(--bg-card);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.22s ease,
-              border-color 0.15s ease,
-              background-color 0.15s ease;
+  transition: border-color 0.12s ease,
+              background-color 0.12s ease;
 }
 
 /* Nested Subsection & Sub-subsection Hierarchy */
@@ -6119,7 +6127,6 @@ body.theme-dark mark.finder-match.finder-match-active {
 }
 
 .section-focus-pulse {
-  animation: sectionPulseGlow 1.8s ease-out;
   border-left: 3.5px solid var(--accent, #FF3B00) !important;
   scroll-margin-top: calc(var(--nav-height) + 20px) !important;
 }
@@ -6324,10 +6331,8 @@ body.theme-dark .page-tree-children:hover {
 .page-tree-tab {
   position: relative;
   border-radius: 6px;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.22s ease,
-              border-color 0.15s ease,
-              background-color 0.15s ease;
+  transition: border-color 0.12s ease,
+              background-color 0.12s ease;
 }
 
 .page-tree-tab-header {
