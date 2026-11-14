@@ -103,6 +103,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: auto !important;
 }
 
 /* Font Size Switcher Variations */
@@ -127,6 +128,7 @@ body {
   min-height: 100vh;
   position: relative;
   padding-top: var(--nav-height) !important;
+  overflow-x: auto !important;
   /* Blueprint graph grid background matching the wireframe */
   background-image: 
     linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
@@ -2342,11 +2344,12 @@ body.theme-dark .story-act-divider {
    CONTENT AREA & VIEWPORT SNAPPING (Zero Overlap with Permanent Panels)
    ========================================================================== */
 .main-viewport-wrapper {
-  padding: 24px 40px 60px 40px;
-  max-width: 1200px;
+  padding: 24px 1000px 60px 1000px !important;
+  width: 1200px !important;
+  max-width: none !important;
+  box-sizing: content-box !important;
   margin: 0 auto;
   transition: margin 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-              max-width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
               padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -2355,13 +2358,11 @@ body.theme-dark .story-act-divider {
   body.tree-permanent .main-viewport-wrapper {
     margin-left: 505px !important;
     margin-right: auto !important;
-    max-width: min(1200px, calc(100vw - 535px)) !important;
   }
 
   body.gemini-permanent .main-viewport-wrapper {
     margin-right: 475px !important;
     margin-left: auto !important;
-    max-width: min(1200px, calc(100vw - 505px)) !important;
   }
 }
 
@@ -2369,7 +2370,6 @@ body.theme-dark .story-act-divider {
   body.tree-permanent.gemini-permanent .main-viewport-wrapper {
     margin-left: 505px !important;
     margin-right: 475px !important;
-    max-width: calc(100vw - 1000px) !important;
   }
 }
 
@@ -3705,10 +3705,6 @@ body.theme-dark .membership-card:hover {
   .rail-track,
   .scroll-rail-container {
     display: none !important;
-  }
-
-  .main-viewport-wrapper {
-    padding: 20px 16px 40px 16px;
   }
 
   .content-area {

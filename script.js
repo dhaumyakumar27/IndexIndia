@@ -3683,38 +3683,50 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     isHorizontalHeld = false;
   }
 
-  function snapToMainContentSection() {
+  function snapToMainContentSection(behavior = "smooth") {
     cancelSmoothScrollImmediately();
     const mainEl = document.querySelector(".main-viewport-wrapper") ||
                    document.querySelector(".content-area") ||
                    document.querySelector("main") ||
                    document.body;
     if (!mainEl) {
-      window.scrollTo({ left: 0, behavior: "smooth" });
+      window.scrollTo({ left: 0, behavior });
       return;
     }
     const rect = mainEl.getBoundingClientRect();
     const docLeft = rect.left + window.scrollX;
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
 
+    // The inner content column is 1200px wide, offset by 1000px padding-left
+    const computedStyle = window.getComputedStyle(mainEl);
+    const padLeft = parseFloat(computedStyle.paddingLeft) || 0;
+    const padRight = parseFloat(computedStyle.paddingRight) || 0;
+    const innerContentWidth = Math.max(300, rect.width - padLeft - padRight);
+    const innerContentLeft = docLeft + padLeft;
+
     let leftOffset = 0;
     if (typeof isTreeCurrentlyOpen === "function" && isTreeCurrentlyOpen() && railNavigator) {
       leftOffset = railNavigator.offsetWidth || 455;
     }
+    let rightOffset = 0;
+    const doubtPanel = document.getElementById("doubt-solver-tile");
+    if (doubtPanel && (doubtPanel.classList.contains("is-open") || document.body.classList.contains("gemini-permanent"))) {
+      rightOffset = doubtPanel.offsetWidth || 455;
+    }
 
-    const availableWidth = Math.max(300, viewportWidth - leftOffset);
+    const availableWidth = Math.max(300, viewportWidth - leftOffset - rightOffset);
     let targetX = 0;
 
-    if (rect.width < availableWidth) {
-      targetX = Math.round(docLeft - leftOffset - (availableWidth - rect.width) / 2);
+    if (innerContentWidth < availableWidth) {
+      targetX = Math.round(innerContentLeft - leftOffset - (availableWidth - innerContentWidth) / 2);
     } else {
-      targetX = Math.round(docLeft - leftOffset);
+      targetX = Math.round(innerContentLeft - leftOffset);
     }
 
     targetX = Math.max(0, targetX);
     window.scrollTo({
       left: targetX,
-      behavior: "smooth"
+      behavior
     });
   }
 
@@ -3730,9 +3742,7 @@ ${consoleCount > 0 ? `<div class="logs-box">${escFloatHtml(errorsArr.slice(-15).
     if (e.code === "Space" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
       if (!isSpaceKeyDown) {
         isSpaceKeyDown = true;
-        if (typeof annotationState !== "undefined" && (annotationState.isOpen || document.body.classList.contains("is-annotating") || document.body.classList.contains("has-annotations"))) {
-          document.body.classList.add("is-panning-canvas");
-        }
+        document.body.classList.add("is-panning-canvas");
       }
     }
   });
@@ -14563,4 +14573,12 @@ INSTRUCTIONS:
   initHoverTagSystem();
   initTopBarReorder();
   initShortcutCustomizer();
+
+  // Initial center on the main reading content between the 1000px canvas paddings
+  setTimeout(() => {
+    snapToMainContentSection("instant");
+  }, 50);
+  window.addEventListener("load", () => {
+    snapToMainContentSection("instant");
+  });
 });
